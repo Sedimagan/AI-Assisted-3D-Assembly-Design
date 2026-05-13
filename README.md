@@ -1,2 +1,4 @@
 # AI-Assisted-3D-Assembly-Design
 Predicting Missing &amp; Next Components in CAD Assemblies using Graph Neural Networks
+
+Abstract — Engineering CAD assemblies consist of multiple interconnected components whose correct selection is time-consuming and expertise-dependent. This project proposes an intelligent recommendation system that models assemblies as graphs — components as nodes, relationships as edges — and trains a Graph Neural Network (GNN) on historical assembly data to learn structural patterns. The trained model predicts missing components and suggests the most suitable next component for a partially defined assembly, outputting ranked top-K recommendations with model-level interpretability. The solution is implemented entirely in Python using PyTorch Geometric, without dependency on proprietary CAD software APIs.
