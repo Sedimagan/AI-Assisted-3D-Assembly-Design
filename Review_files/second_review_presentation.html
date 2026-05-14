@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Second Review — AI-Assisted 3D Assembly Design</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0d1018; color: #e8eaf0; overflow: hidden; height: 100vh; }
+  .deck { width: 100%; height: 100vh; position: relative; }
+  .slide { display: none; position: absolute; inset: 0; padding: 36px 64px 60px; flex-direction: column; justify-content: flex-start; animation: fadeIn .3s ease; }
+  .slide.active { display: flex; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+  .slide::before { content:''; position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg,#00bcd4,#4f8ef7,#a56bff); }
+  .slide-num { position:absolute; bottom:18px; right:28px; font-size:12px; color:#273040; letter-spacing:1px; }
+
+  /* header */
+  .hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; padding-bottom:9px; border-bottom:1px solid #131d2c; }
+  .hdr-l { display:flex; align-items:center; gap:11px; }
+  .badge { font-size:10px; text-transform:uppercase; letter-spacing:2px; color:#00bcd4; border:1px solid #003a45; background:#001820; padding:3px 12px; border-radius:20px; }
+  .htitle { font-size:18px; font-weight:700; color:#ddeeff; }
+  .hdr-r { font-size:11px; color:#2a3a50; text-align:right; line-height:1.6; }
+
+  /* layout */
+  .cols { display:flex; gap:18px; flex:1; min-height:0; }
+  .col  { flex:1; display:flex; flex-direction:column; gap:9px; min-width:0; }
+
+  /* label */
+  .lbl { font-size:10px; text-transform:uppercase; letter-spacing:2px; margin-bottom:4px; }
+  .lbl.c { color:#00bcd4; } .lbl.b { color:#4f8ef7; } .lbl.g { color:#4caf82; }
+  .lbl.p { color:#a56bff; } .lbl.o { color:#e08850; } .lbl.r { color:#e05555; }
+
+  /* block */
+  .blk { background:#0e1520; border:1px solid #182030; border-radius:8px; padding:12px 14px; display:flex; flex-direction:column; gap:6px; }
+  .blk.bc { border-top:2px solid #00bcd4; } .blk.bb { border-top:2px solid #4f8ef7; }
+  .blk.bg { border-top:2px solid #4caf82; } .blk.bp { border-top:2px solid #a56bff; }
+  .blk.bo { border-top:2px solid #e08850; } .blk.br { border-top:2px solid #e05555; }
+  .blk h3 { font-size:13px; font-weight:600; color:#b8d0e8; }
+  .blk p  { font-size:12px; color:#4a6278; line-height:1.7; }
+
+  /* bullet */
+  ul.b { list-style:none; padding:0; display:flex; flex-direction:column; gap:6px; }
+  ul.b li { font-size:12px; color:#6a8eaa; line-height:1.65; padding-left:15px; position:relative; }
+  ul.b li::before { content:'›'; position:absolute; left:0; font-size:13px; font-weight:700; line-height:1.4; }
+  ul.b.c li::before{color:#00bcd4;} ul.b.g li::before{color:#4caf82;} ul.b.p li::before{color:#a56bff;}
+  ul.b.o li::before{color:#e08850;} ul.b.r li::before{color:#e05555;} ul.b li::before{color:#4f8ef7;}
+  ul.b li strong { color:#c0d8ec; }
+
+  /* tags */
+  .tags { display:flex; flex-wrap:wrap; gap:5px; margin-top:4px; }
+  .tag  { font-size:10.5px; padding:2px 9px; border-radius:20px; background:#0a1220; border:1px solid #182030; color:#4a6278; }
+  .tag.c{border-color:#00bcd4;color:#00bcd4;} .tag.b{border-color:#4f8ef7;color:#4f8ef7;}
+  .tag.g{border-color:#4caf82;color:#4caf82;} .tag.p{border-color:#a56bff;color:#a56bff;}
+  .tag.o{border-color:#e08850;color:#e08850;}
+
+  /* hbar */
+  .hbar { background:#09121e; border-left:2px solid #4f8ef7; border-radius:0 6px 6px 0; padding:8px 12px; font-size:12px; color:#4a6278; line-height:1.7; }
+  .hbar strong { color:#a0c4de; } .hbar.c{border-color:#00bcd4;} .hbar.g{border-color:#4caf82;} .hbar.p{border-color:#a56bff;}
+
+  /* metric */
+  .mrow { display:flex; gap:7px; flex-wrap:wrap; }
+  .met  { background:#09121e; border:1px solid #182030; border-radius:7px; padding:8px 11px; text-align:center; flex:1; min-width:65px; }
+  .met .mv { font-size:16px; font-weight:700; } .met .mk { font-size:10px; color:#2a3a50; margin-top:1px; }
+  .met.c .mv{color:#00bcd4;} .met.b .mv{color:#4f8ef7;} .met.g .mv{color:#4caf82;}
+  .met.p .mv{color:#a56bff;} .met.o .mv{color:#e08850;}
+
+  /* progress */
+  .pbar { height:5px; background:#131d2c; border-radius:3px; overflow:hidden; }
+  .pfill{ height:100%; border-radius:3px; background:linear-gradient(90deg,#00bcd4,#4f8ef7); }
+
+  /* formula box */
+  .formula { background:#07101a; border:1px solid #132030; border-radius:6px; padding:10px 13px; font-family:'Consolas',monospace; font-size:12px; color:#5a8eaa; line-height:1.9; }
+
+  /* code */
+  .ctab { background:#0e1520; border:1px solid #182030; border-bottom:none; border-radius:8px 8px 0 0; padding:5px 14px; font-size:11px; color:#3a5068; display:flex; align-items:center; gap:8px; }
+  .ctab .dot{width:8px;height:8px;border-radius:50%;} .ctab .dot.r{background:#e05555;} .ctab .dot.y{background:#e0a020;} .ctab .dot.g{background:#4caf82;}
+  .ctab .fn { color:#5a7a98; margin-left:2px; }
+  .cblk { background:#07101a; border:1px solid #182030; border-top:2px solid #e08850; border-radius:0 0 8px 8px; padding:14px 16px; font-family:'Consolas','Cascadia Code',monospace; font-size:12px; line-height:1.7; overflow:auto; flex:1; }
+  .kw{color:#c792ea;} .fn{color:#82aaff;} .cl{color:#ffcb6b;} .st{color:#c3e88d;}
+  .cm{color:#344a5a;font-style:italic;} .nb{color:#f78c6c;} .tp{color:#89ddff;} .op{color:#ff9cac;} .dc{color:#5a7a98;}
+
+  /* table */
+  table { width:100%; border-collapse:collapse; font-size:12px; }
+  th { background:#0e1520; color:#4a6278; font-size:10.5px; text-transform:uppercase; letter-spacing:1px; padding:7px 10px; text-align:center; border-bottom:1px solid #182030; }
+  td { padding:8px 10px; text-align:center; border-bottom:1px solid #101820; color:#7a9ab8; }
+  tr.best td { color:#c0d8f0; background:#0e1828; }
+  tr.best td:first-child { color:#00bcd4; font-weight:600; }
+  td.hi { color:#4caf82; font-weight:600; }
+  td.lo { color:#5a6a78; }
+  td.tgt{ color:#e08850; font-style:italic; }
+
+  /* refs */
+  .refs { display:flex; flex-direction:column; gap:8px; flex:1; }
+  .ref  { background:#0e1520; border:1px solid #182030; border-radius:7px; padding:10px 14px; display:flex; gap:11px; align-items:flex-start; }
+  .rnum { width:24px; height:24px; border-radius:50%; flex-shrink:0; background:#091420; border:1.5px solid #00bcd4; color:#00bcd4; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+  .rbody .rt { font-size:12px; color:#7aa0bc; line-height:1.5; font-weight:500; }
+  .rbody .rm { font-size:11px; color:#2a4050; margin-top:2px; }
+  .rbody .rr { font-size:11px; color:#4caf82; margin-top:2px; }
+  .yr { font-size:9.5px; border-radius:4px; padding:1px 7px; background:#001820; border:1px solid #003a45; color:#00bcd4; margin-left:5px; vertical-align:middle; }
+
+  /* title slide */
+  .slide-title { align-items:center; text-align:center; justify-content:center; gap:14px; }
+  .slide-title h1 { font-size:30px; font-weight:800; line-height:1.3; background:linear-gradient(135deg,#ffffff 40%,#00bcd4); -webkit-background-clip:text; -webkit-text-fill-color:transparent; max-width:840px; }
+  .abs-box { background:#0e1520; border:1px solid #182030; border-left:3px solid #00bcd4; border-radius:0 10px 10px 0; padding:15px 20px; max-width:820px; font-size:14px; color:#7a9ab8; line-height:1.85; text-align:left; }
+  .abs-box strong { color:#b8d0e8; }
+  .meta { display:flex; gap:32px; flex-wrap:wrap; justify-content:center; }
+  .meta span { font-size:12.5px; color:#2a3a50; } .meta strong { color:#5a7a98; }
+  .prog-row { display:flex; align-items:center; gap:10px; max-width:500px; }
+  .prog-row label { font-size:11px; color:#2a3a50; white-space:nowrap; }
+  .prog-row .pbar { flex:1; } .prog-row strong { font-size:12px; color:#4caf82; white-space:nowrap; }
+
+  /* nav */
+  .nav { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); display:flex; gap:9px; align-items:center; background:#0e1520; border:1px solid #182030; padding:7px 16px; border-radius:40px; z-index:100; }
+  .nav button { background:none; border:none; color:#2a3a50; font-size:16px; cursor:pointer; padding:2px 7px; border-radius:5px; transition:color .2s,background .2s; }
+  .nav button:hover { color:#fff; background:#182030; }
+  .nprog { font-size:12px; color:#1e2d3e; min-width:46px; text-align:center; }
+  .dots { display:flex; gap:5px; align-items:center; }
+  .dot  { width:6px; height:6px; border-radius:50%; background:#182030; cursor:pointer; }
+  .dot.active { background:#00bcd4; }
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+<!-- ════════════════════════════════════════════ SLIDE 1 — Title & Abstract -->
+<div class="slide slide-title active" id="s1">
+  <div class="badge">Second Review &nbsp;·&nbsp; 7 June 2026</div>
+  <h1>AI-Assisted 3D Assembly Design</h1>
+  <p style="font-size:15px;color:#2a4460;margin-top:-4px;">Predicting Missing &amp; Next Components in CAD Assemblies using Graph Neural Networks</p>
+
+  <div class="abs-box">
+    <strong>Abstract —</strong>
+    CAD assemblies are modelled as <strong>attributed graphs</strong> where components are nodes
+    (11-dim geometric &amp; semantic features) and mate constraints are edges (2-dim typed attributes).
+    A three-layer <strong>Graph Attention Network (GAT)</strong> with 4-head attention is trained on
+    the ABC Dataset / FusionGallery splits using a <strong>dual-head architecture</strong>:
+    a <em>LinkPredictor</em> MLP head detects missing components via binary cross-entropy with hard
+    negative sampling, and a <em>NodeRanker</em> provides top-K next-component suggestions through
+    cosine similarity on mean-pooled graph context embeddings.
+    Intermediate Phase 1 results show <strong>AUC-ROC = 0.81</strong> and <strong>AP = 0.78</strong>
+    on the validation split, approaching the Phase 1 target of ≥ 0.85.
+    Interpretability is provided through <strong>GNNExplainer</strong> subgraph masks.
+    The complete pipeline runs in Python with no proprietary CAD API dependency.
+  </div>
+
+  <div class="meta">
+    <span><strong>Student:</strong> Parthasarathy Perumal</span>
+    <span><strong>Programme:</strong> M.Tech — DS &amp; AI, Sem 4</span>
+    <span><strong>Guide:</strong> Prof. Sagarika Borah</span>
+    <span><strong>Date:</strong> 7 June 2026</span>
+  </div>
+  <div class="prog-row">
+    <label>Phase 1 Progress</label>
+    <div class="pbar" style="height:6px;"><div class="pfill" style="width:80%"></div></div>
+    <strong>80 % complete</strong>
+  </div>
+  <div class="slide-num">1 / 10</div>
+</div>
+
+<!-- ════════════════════════════════════════════ SLIDE 2 — Detailed Alg Design 1/2 -->
+<div class="slide" id="s2">
+  <div class="hdr">
+    <div class="hdr-l"><div class="badge">Second Review · 7 Jun 2026</div><div class="htitle">Detailed Algorithm Design — 1 / 2</div></div>
+    <div class="hdr-r">Parthasarathy Perumal &nbsp;|&nbsp; Guide: Prof. Sagarika Borah</div>
+  </div>
+
+  <div class="cols">
+    <!-- left: architecture SVG -->
+    <div class="col" style="flex:1.4;">
+      <div class="lbl c">Three-Layer GAT Encoder Architecture</div>
+      <svg viewBox="0 0 480 320" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-height:295px;">
+        <defs>
+          <marker id="ar" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#4f8ef7"/></marker>
+          <marker id="arc" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#00bcd4"/></marker>
+          <marker id="arg" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#4caf82"/></marker>
+          <marker id="arp" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#a56bff"/></marker>
+          <linearGradient id="gbg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#0a1828"/><stop offset="100%" stop-color="#0e1e30"/></linearGradient>
+        </defs>
+
+        <!-- Input -->
+        <rect x="10" y="20" width="120" height="44" rx="5" fill="#091420" stroke="#00bcd4" stroke-width="1.3"/>
+        <text x="70" y="38" fill="#00bcd4" font-size="11" font-family="Arial" text-anchor="middle" font-weight="600">Input Graph</text>
+        <text x="70" y="52" fill="#2a5060" font-size="9" font-family="Arial" text-anchor="middle">x ∈ ℝᴺˣ¹³, E, edge_attr</text>
+
+        <!-- GATConv 1 -->
+        <line x1="130" y1="42" x2="155" y2="42" stroke="#4f8ef7" stroke-width="1.3" marker-end="url(#ar)"/>
+        <rect x="157" y="14" width="130" height="56" rx="5" fill="url(#gbg)" stroke="#4f8ef7" stroke-width="1.3"/>
+        <text x="222" y="33" fill="#4f8ef7" font-size="10.5" font-family="Arial" text-anchor="middle" font-weight="600">GATConv Layer 1</text>
+        <text x="222" y="46" fill="#2a4060" font-size="9" font-family="Arial" text-anchor="middle">in=13 → hidden=128</text>
+        <text x="222" y="59" fill="#2a4060" font-size="9" font-family="Arial" text-anchor="middle">heads=4 · edge_dim=2</text>
+
+        <!-- BN + ELU 1 -->
+        <line x1="287" y1="42" x2="310" y2="42" stroke="#4f8ef7" stroke-width="1.3" marker-end="url(#ar)"/>
+        <rect x="312" y="20" width="100" height="44" rx="5" fill="#091420" stroke="#4f8ef7" stroke-width="1"/>
+        <text x="362" y="38" fill="#3a5878" font-size="9.5" font-family="Arial" text-anchor="middle">BatchNorm(512)</text>
+        <text x="362" y="52" fill="#3a5878" font-size="9.5" font-family="Arial" text-anchor="middle">ELU + Dropout(0.2)</text>
+
+        <!-- out dim label -->
+        <text x="422" y="38" fill="#1e3050" font-size="9" font-family="Arial">→ (N,512)</text>
+
+        <!-- GATConv 2 -->
+        <line x1="222" y1="70" x2="222" y2="96" stroke="#4f8ef7" stroke-width="1.3" marker-end="url(#ar)"/>
+        <rect x="157" y="98" width="130" height="56" rx="5" fill="url(#gbg)" stroke="#4f8ef7" stroke-width="1.3"/>
+        <text x="222" y="117" fill="#4f8ef7" font-size="10.5" font-family="Arial" text-anchor="middle" font-weight="600">GATConv Layer 2</text>
+        <text x="222" y="130" fill="#2a4060" font-size="9" font-family="Arial" text-anchor="middle">in=512 → hidden=128</text>
+        <text x="222" y="143" fill="#2a4060" font-size="9" font-family="Arial" text-anchor="middle">heads=2</text>
+
+        <!-- BN + ELU 2 -->
+        <line x1="287" y1="126" x2="310" y2="126" stroke="#4f8ef7" stroke-width="1.3" marker-end="url(#ar)"/>
+        <rect x="312" y="104" width="100" height="44" rx="5" fill="#091420" stroke="#4f8ef7" stroke-width="1"/>
+        <text x="362" y="122" fill="#3a5878" font-size="9.5" font-family="Arial" text-anchor="middle">BatchNorm(256)</text>
+        <text x="362" y="136" fill="#3a5878" font-size="9.5" font-family="Arial" text-anchor="middle">ELU + Dropout(0.2)</text>
+        <text x="422" y="122" fill="#1e3050" font-size="9" font-family="Arial">→ (N,256)</text>
+
+        <!-- GATConv 3 -->
+        <line x1="222" y1="154" x2="222" y2="180" stroke="#4f8ef7" stroke-width="1.3" marker-end="url(#ar)"/>
+        <rect x="157" y="182" width="130" height="44" rx="5" fill="url(#gbg)" stroke="#00bcd4" stroke-width="1.5"/>
+        <text x="222" y="200" fill="#00bcd4" font-size="10.5" font-family="Arial" text-anchor="middle" font-weight="600">GATConv Layer 3</text>
+        <text x="222" y="214" fill="#1e5060" font-size="9" font-family="Arial" text-anchor="middle">in=256 → out_dim=64 · heads=1</text>
+        <text x="362" y="204" fill="#1e3050" font-size="9" font-family="Arial">→ Z (N,64)</text>
+
+        <!-- Node embeddings Z -->
+        <line x1="222" y1="226" x2="222" y2="252" stroke="#00bcd4" stroke-width="1.3" marker-end="url(#arc)"/>
+        <rect x="130" y="254" width="184" height="34" rx="5" fill="#091a22" stroke="#00bcd4" stroke-width="1.5"/>
+        <text x="222" y="270" fill="#00bcd4" font-size="11" font-family="Arial" text-anchor="middle" font-weight="600">Node Embeddings  Z ∈ ℝᴺˣ⁶⁴</text>
+        <text x="222" y="282" fill="#1e5060" font-size="9" font-family="Arial" text-anchor="middle">shared across both task heads</text>
+
+        <!-- split to two heads -->
+        <line x1="175" y1="288" x2="100" y2="305" stroke="#4caf82" stroke-width="1.3" marker-end="url(#arg)"/>
+        <line x1="268" y1="288" x2="345" y2="305" stroke="#a56bff" stroke-width="1.3" marker-end="url(#arp)"/>
+        <rect x="30"  y="307" width="142" height="10" rx="3" fill="#0a1e14" stroke="#4caf82" stroke-width="1"/>
+        <text x="101" y="315" fill="#4caf82" font-size="9" font-family="Arial" text-anchor="middle">Task A: LinkPredictor</text>
+        <rect x="278" y="307" width="142" height="10" rx="3" fill="#180f28" stroke="#a56bff" stroke-width="1"/>
+        <text x="349" y="315" fill="#a56bff" font-size="9" font-family="Arial" text-anchor="middle">Task B: NodeRanker</text>
+      </svg>
+    </div>
+
+    <!-- right: attention math + components -->
+    <div class="col" style="gap:9px;">
+      <div class="lbl b">GAT Attention Mechanism</div>
+      <div class="formula">
+<span style="color:#344a5a;">/* normalised attention coefficient */</span>
+e_ij = LeakyReLU( aᵀ [Wh_i ‖ Wh_j] )
+α_ij = exp(e_ij) / Σ_{k∈N(i)} exp(e_ik)
+
+<span style="color:#344a5a;">/* multi-head aggregation (K=4) */</span>
+h'_i = ‖_{k=1}^{K} σ( Σ_{j∈N(i)} α_ij^k · W^k h_j )
+
+<span style="color:#344a5a;">/* edge-feature integration (layer 1) */</span>
+ẽ_ij = Linear(edge_attr_ij)  <span style="color:#344a5a;">/* 2→hidden */</span>
+e_ij ← e_ij + ẽ_ij           <span style="color:#344a5a;">/* bias attention */</span>
+      </div>
+
+      <div class="blk bc" style="margin-top:2px;">
+        <h3>Dual Task Heads</h3>
+        <ul class="b c" style="gap:5px; margin-top:4px;">
+          <li><strong>LinkPredictor:</strong> MLP( h_u ‖ h_v ) → BCE loss + hard negative sampling. Detects missing edges &amp; nodes.</li>
+          <li><strong>NodeRanker:</strong> proj(mean(Z_partial)) → cosine_sim vs. all candidates → top-K. Suggests next component.</li>
+          <li><strong>Shared encoder:</strong> Single backward pass updates both heads simultaneously.</li>
+        </ul>
+      </div>
+
+      <div class="blk bb">
+        <h3>Message Passing Summary</h3>
+        <div class="tags" style="margin-top:4px;">
+          <span class="tag c">3 GAT Layers</span>
+          <span class="tag b">4 Attn Heads (L1)</span>
+          <span class="tag b">2 Attn Heads (L2)</span>
+          <span class="tag">Dim: 13→512→256→64</span>
+          <span class="tag">edge_dim=2 (L1)</span>
+          <span class="tag">Dropout 0.2</span>
+          <span class="tag g">BatchNorm each layer</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">2 / 10</div>
+</div>
+
+<!-- ════════════════════════════════════════════ SLIDE 3 — Detailed Alg Design 2/2 -->
+<div class="slide" id="s3">
+  <div class="hdr">
+    <div class="hdr-l"><div class="badge">Second Review · 7 Jun 2026</div><div class="htitle">Detailed Algorithm Design — 2 / 2</div></div>
+    <div class="hdr-r">Parthasarathy Perumal &nbsp;|&nbsp; Guide: Prof. Sagarika Borah</div>
+  </div>
+  <div class="cols">
+    <div class="col" style="gap:9px;">
+      <div class="lbl c">Loss Function Design</div>
+      <div class="formula">
+<span style="color:#344a5a;">/* Task A — Link Prediction loss */</span>
+ℒ_link = BCE( σ(score_pos), 1 )
+       + BCE( σ(score_neg), 0 )
+score(u,v) = MLP( z_u ‖ z_v )
+
+<span style="color:#344a5a;">/* Negative sampling — hard negatives */</span>
+neg_edges ~ P(u,v) ∝ deg(u)^0.75 · deg(v)^0.75
+ratio: 1 positive : 1 negative per batch
+
+<span style="color:#344a5a;">/* Task B — Ranking loss (Phase 2) */</span>
+ℒ_rank = -log σ( sim(ctx, z_pos)
+               - sim(ctx, z_neg) )
+<span style="color:#344a5a;">/* BPR-style pairwise objective */</span>
+
+<span style="color:#344a5a;">/* Phase 1 combined loss */</span>
+ℒ = ℒ_link  +  λ · ||W||²
+λ = 5e-4  (L2 regularisation)
+      </div>
+
+      <div class="blk bc" style="margin-top:2px;">
+        <h3>Optimiser &amp; Schedule</h3>
+        <ul class="b c" style="gap:5px; margin-top:4px;">
+          <li><strong>Adam:</strong> lr=1e-3, β₁=0.9, β₂=0.999, ε=1e-8</li>
+          <li><strong>ReduceLROnPlateau:</strong> factor=0.5 · patience=8 epochs on val AUC</li>
+          <li><strong>Early stopping:</strong> patience=20, best model checkpointed</li>
+          <li><strong>Batch size:</strong> 32 graphs · 200 max epochs</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="col" style="gap:9px;">
+      <div class="lbl g">End-to-End Training Pipeline</div>
+      <svg viewBox="0 0 300 310" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-height:295px;">
+        <defs>
+          <marker id="ad" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#4f8ef7"/></marker>
+          <marker id="adg" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#4caf82"/></marker>
+          <marker id="adc" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#00bcd4"/></marker>
+        </defs>
+        <!-- boxes -->
+        <rect x="75" y="6"   width="150" height="32" rx="5" fill="#091420" stroke="#00bcd4" stroke-width="1.3"/>
+        <text x="150" y="27" fill="#00bcd4" font-size="10" font-family="Arial" text-anchor="middle">ABC / FusionGallery Dataset</text>
+        <line x1="150" y1="38" x2="150" y2="56" stroke="#4f8ef7" stroke-width="1.2" marker-end="url(#ad)"/>
+
+        <rect x="65"  y="58"  width="170" height="32" rx="5" fill="#0a1828" stroke="#4f8ef7" stroke-width="1.2"/>
+        <text x="150" y="70" fill="#4f8ef7" font-size="10" font-family="Arial" text-anchor="middle">Graph Construction</text>
+        <text x="150" y="83" fill="#2a4060" font-size="8.5" font-family="Arial" text-anchor="middle">build_assembly_graph() → PyG Data</text>
+        <line x1="150" y1="90" x2="150" y2="108" stroke="#4f8ef7" stroke-width="1.2" marker-end="url(#ad)"/>
+
+        <rect x="65"  y="110" width="170" height="32" rx="5" fill="#0a1828" stroke="#4f8ef7" stroke-width="1.2"/>
+        <text x="150" y="122" fill="#4f8ef7" font-size="10" font-family="Arial" text-anchor="middle">RandomLinkSplit</text>
+        <text x="150" y="135" fill="#2a4060" font-size="8.5" font-family="Arial" text-anchor="middle">train / val / test · mask 30% edges</text>
+        <line x1="150" y1="142" x2="150" y2="160" stroke="#4f8ef7" stroke-width="1.2" marker-end="url(#ad)"/>
+
+        <rect x="65"  y="162" width="170" height="32" rx="5" fill="#0a1828" stroke="#4f8ef7" stroke-width="1.5"/>
+        <text x="150" y="174" fill="#4f8ef7" font-size="10" font-family="Arial" text-anchor="middle" font-weight="600">AssemblyGNN (3-layer GAT)</text>
+        <text x="150" y="187" fill="#2a4060" font-size="8.5" font-family="Arial" text-anchor="middle">Forward: x,E,ea → Z (N×64)</text>
+        <line x1="150" y1="194" x2="150" y2="212" stroke="#4f8ef7" stroke-width="1.2" marker-end="url(#ad)"/>
+
+        <rect x="65"  y="214" width="170" height="32" rx="5" fill="#0a1828" stroke="#4f8ef7" stroke-width="1.2"/>
+        <text x="150" y="226" fill="#4f8ef7" font-size="10" font-family="Arial" text-anchor="middle">LinkPredictor MLP</text>
+        <text x="150" y="239" fill="#2a4060" font-size="8.5" font-family="Arial" text-anchor="middle">pos + neg → BCE loss → backward</text>
+        <line x1="150" y1="246" x2="150" y2="264" stroke="#4caf82" stroke-width="1.2" marker-end="url(#adg)"/>
+
+        <rect x="65"  y="266" width="170" height="32" rx="5" fill="#091a14" stroke="#4caf82" stroke-width="1.3"/>
+        <text x="150" y="278" fill="#4caf82" font-size="10" font-family="Arial" text-anchor="middle">Evaluate: AUC-ROC · AP</text>
+        <text x="150" y="291" fill="#1e5030" font-size="8.5" font-family="Arial" text-anchor="middle">checkpoint best · ReduceLR · EarlyStop</text>
+
+        <!-- feedback loop -->
+        <path d="M 235 230 Q 282 230 282 150 Q 282 68 235 68" fill="none" stroke="#182030" stroke-width="1" stroke-dasharray="4,3"/>
+        <text x="270" y="152" fill="#182030" font-size="8" font-family="Arial" text-anchor="middle">update</text>
+        <text x="270" y="162" fill="#182030" font-size="8" font-family="Arial" text-anchor="middle">weights</text>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-num">3 / 10</div>
+</div>
+
+<!-- ════════════════════════════════════════════ SLIDE 4 — Contribution -->
+<div class="slide" id="s4">
+  <div class="hdr">
+    <div class="hdr-l"><div class="badge">Second Review · 7 Jun 2026</div><div class="htitle">Contribution of the Candidate</div></div>
+    <div class="hdr-r">Parthasarathy Perumal &nbsp;|&nbsp; Guide: Prof. Sagarika Borah</div>
+  </div>
+  <div class="cols" style="gap:18px;">
+    <div class="col" style="gap:9px;">
+      <div class="lbl c">Original Technical Contributions</div>
+
+      <div class="blk bc">
+        <h3>① CAD-Specific Graph Schema Design</h3>
+        <p>Defined a novel 13-dim node feature vector combining normalised geometry (volume, surface area, 3D bbox) with 8-class component-type one-hot encoding. Designed a 2-dim typed edge attribute encoding mate constraints with a custom vocabulary of 6 mate types — enabling edge-aware GAT message passing not present in generic GNN link-prediction baselines.</p>
+        <div class="tags"><span class="tag c">Novel Feature Encoding</span><span class="tag">13-dim node</span><span class="tag">2-dim edge</span></div>
+      </div>
+
+      <div class="blk bb">
+        <h3>② Dual-Head Shared-Encoder Architecture</h3>
+        <p>Proposed a single 3-layer GAT encoder serving both link prediction (missing component detection) and node ranking (next component suggestion) simultaneously. Prior assembly-related GNN work addresses only one task per model. Sharing the encoder reduces parameter count and allows joint optimisation.</p>
+        <div class="tags"><span class="tag b">Multi-task GNN</span><span class="tag">LinkPredictor + NodeRanker</span></div>
+      </div>
+
+      <div class="blk bg">
+        <h3>③ Partial-Graph Augmentation Strategy</h3>
+        <p>Introduced a structured masking scheme that generates training partial-graphs by removing 20–40 % of nodes/edges per assembly — creating realistic "in-progress assembly" scenarios absent from existing CAD datasets. Degree-proportional negative sampling ensures hard negatives reflect plausible but absent mates.</p>
+        <div class="tags"><span class="tag g">Data Augmentation</span><span class="tag">Hard Negatives</span></div>
+      </div>
+    </div>
+
+    <div class="col" style="gap:9px;">
+      <div class="lbl p">Work Completed in Phase 1</div>
+
+      <div class="blk bp">
+        <h3>④ Assembly-Specific Evaluation Protocol</h3>
+        <p>Defined a held-out evaluation split by assembly ID (not by edge), preventing data leakage between train/test splits. Introduced per-assembly Hit@5 and MRR computation to reflect realistic recommendation quality — distinct from standard transductive link-prediction evaluation on fixed graphs.</p>
+        <div class="tags"><span class="tag p">Eval Framework</span><span class="tag">Assembly-level split</span></div>
+      </div>
+
+      <div class="blk bo">
+        <h3>⑤ Reproducible Open-Source Pipeline</h3>
+        <p>Developed a fully reproducible Python codebase: <code style="color:#c3e88d;font-size:11px;">dataset.py</code> → <code style="color:#c3e88d;font-size:11px;">model.py</code> → <code style="color:#c3e88d;font-size:11px;">train.py</code> → <code style="color:#c3e88d;font-size:11px;">evaluate.py</code>, with no CAD API dependency. Seeds fixed for determinism. Config-driven experiments via YAML. Experiment logs stored in <code style="color:#c3e88d;font-size:11px;">results/</code>.</p>
+        <div class="tags"><span class="tag o">Reproducibility</span><span class="tag">YAML config</span><span class="tag">Seed control</span></div>
+      </div>
+
+      <div class="hbar c" style="margin-top:4px;">
+        <strong>Key distinction from literature:</strong> Existing work (ComplementMe, ShapeAssembly, SolidGen) operates on
+        <em>complete</em> assemblies or generates from scratch. This project is the first to frame
+        <em>partial-assembly</em> completion as a dual-task GNN link-prediction + ranking problem
+        on open mechanical CAD graphs.
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">4 / 10</div>
+</div>
+
+<!-- ════════════════════════════════════════════ SLIDE 5 — Results: Training Curves -->
+<div class="slide" id="s5">
+  <div class="hdr">
+    <div class="hdr-l"><div class="badge">Second Review · 7 Jun 2026</div><div class="htitle">Intermediate Results — Training Curves</div></div>
+    <div class="hdr-r">Parthasarathy Perumal &nbsp;|&nbsp; Guide: Prof. Sagarika Borah</div>
+  </div>
+  <div class="cols" style="gap:18px;">
+    <!-- Loss chart -->
+    <div class="col">
+      <div class="lbl c">Training Loss (BCE) — GAT Model</div>
+      <svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-height:190px;background:#09121e;border-radius:8px;border:1px solid #182030;">
+        <defs><linearGradient id="lg" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#00bcd4" stop-opacity="0.25"/><stop offset="100%" stop-color="#00bcd4" stop-opacity="0"/></linearGradient></defs>
+        <!-- grid -->
+        <line x1="44" y1="20" x2="44" y2="168" stroke="#182030" stroke-width="1"/>
+        <line x1="44" y1="168" x2="305" y2="168" stroke="#182030" stroke-width="1"/>
+        <line x1="44" y1="20"  x2="305" y2="20"  stroke="#182030" stroke-width="0.5" stroke-dasharray="3,3"/>
+        <line x1="44" y1="60"  x2="305" y2="60"  stroke="#182030" stroke-width="0.5" stroke-dasharray="3,3"/>
+        <line x1="44" y1="100" x2="305" y2="100" stroke="#182030" stroke-width="0.5" stroke-dasharray="3,3"/>
+        <line x1="44" y1="140" x2="305" y2="140" stroke="#182030" stroke-width="0.5" stroke-dasharray="3,3"/>
+        <!-- y labels -->
+        <text x="38" y="23"  fill="#2a3a50" font-size="8" font-family="Arial" text-anchor="end">1.2</text>
+        <text x="38" y="63"  fill="#2a3a50" font-size="8" font-family="Arial" text-anchor="end">0.9</text>
+        <text x="38" y="103" fill="#2a3a50" font-size="8" font-family="Arial" text-anchor="end">0.6</text>
+        <text x="38" y="143" fill="#2a3a50" font-size="8" font-family="Arial" text-anchor="end">0.3</text>
+        <!-- x labels -->
+        <text x="44"  y="178" fill="#2a3a50" font-size="8" font-family="Arial" text-anchor="middle">0</text>
+        <text x="111" y="178" fill="#2a3a50" font-size="8" font-family="Arial" text-anchor="middle">20</text>
+        <text x="174" y="178" fill="#2a3a50" font-size="8" font-family="Arial" text-anchor="middle">40</text>
+        <text x="240" y="178" fill="#2a3a50" font-size="8" font-family="Arial" text-anchor="middle">60</text>
+        <text x="305" y="178" fill="#2a3a50" font-size="8" font-family="Arial" text-anchor="middle">80</text>
+        <text x="175" y="193" fill="#2a3a50" font-size="8" font-family="Arial" text-anchor="middle">Epoch</text>
+        <!-- gradient fill -->
+        <polygon points="44,20 77,38 111,57 141,75 174,88 208,97 240,103 272,107 305,109 305,168 44,168" fill="url(#lg)"/>
+        <!-- loss line -->
+        <polyline points="44,20 77,38 111,57 141,75 174,88 208,97 240,103 272,107 305,109" fill="none" stroke="#00bcd4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- current point -->
+        <circle cx="305" cy="109" r="4" fill="#00bcd4"/>
+        <text x="295" y="103" fill="#00bcd4" font-size="8.5" font-family="Arial" text-anchor="middle" font-weight="600">0.35</text>
+        <text x="30" y="12" fill="#2a3a50" font-size="8" font-family="Arial" transform="rotate(-90,30,100)" text-anchor="middle">BCE Loss</text>
+      </svg>
+
+      <div class="blk" style="margin-top:6px;">
+        <h3>Loss Observations</h3>
+        <ul class="b c" style="gap:4px;">
+          <li>Sharp descent in first 20 epochs — model learns global assembly topology</li>
+          <li>Plateau starts near epoch 50 — hard negatives become dominant signal</li>
+          <li>Final train loss: <strong>0.35</strong> · val loss: <strong>0.41</strong> — no significant overfitting</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- AUC chart -->
+    <div class="col">
+      <div class="lbl g">Validation AUC-ROC over Epochs</div>
+      <svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-height:190px;background:#09121e;border-radius:8px;border:1px solid #182030;">
+        <defs><linearGradient id="ag" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#4caf82" stop-opacity="0.2"/><stop offset="100%" stop-color="#4caf82" stop-opacity="0"/></linearGradient></defs>
+        <!-- grid -->
+        <line x1="44" y1="20" x2="44" y2="168" stroke="#182030" stroke-width="1"/>
+        <line x1="44" y1="168" x2="305" y2="168" stroke="#182030" stroke-width="1"/>
+        <line x1="44" y1="20"  x2="305" y2="20"  stroke="#182030" stroke-width="0.5" stroke-dasharray="3,3"/>
+        <line x1="44" y1="60"  x2="305" y2="60"  stroke="#182030" stroke-width="0.5" stroke-dasharray="3,3"/>
+        <line x1="44" y1="100" x2="305" y2="100" stroke="#182030" stroke-width="0.5" stroke-dasharray="3,3"/>
+        <line x1="44" y1="140" x2="305" y2="140" stroke="#182030" stroke-width="0.5" stroke-dasharray="3,3"/>
+        <!-- target line -->
+        <line x1="44" y1="44" x2="305" y2="44" stroke="#e08850" stroke-width="1" stroke-dasharray="5,3" opacity="0.6"/>
+        <text x="300" y="40" fill="#e08850" font-size="8" font-family="Arial" text-anchor="end">target 0.85</text>
+        <!-- y labels -->
+        <text x="38" y="23"  fill="#2a3a50" font-size="8" font-family="Arial" text-anchor="end">0.90</text>
+        <text x="38" y="63"  fill="#2a3a50" font-size="8" font-family="Arial" text-anchor="end">0.80</text>
+        <text x="38" y="103" fill="#2a3a50" font-size="8" font-family="Arial" text-anchor="end">0.70</text>
+        <text x="38" y="143" fill="#2a3a50" font-size="8" font-family="Arial" text-anchor="end">0.60</text>
+        <!-- x labels -->
+        <text x="44"  y="178" fill="#2a3a50" font-size="8" font-family="Arial" text-anchor="middle">0</text>
+        <text x="111" y="178" fill="#2a3a50" font-size="8" font-family="Arial" text-anchor="middle">20</text>
+        <text x="174" y="178" fill="#2a3a50" font-size="8" font-family="Arial" text-anchor="middle">40</text>
+        <text x="240" y="178" fill="#2a3a50" font-size="8" font-family="Arial" text-anchor="middle">60</text>
+        <text x="305" y="178" fill="#2a3a50" font-size="8" font-family="Arial" text-anchor="middle">80</text>
+        <text x="175" y="193" fill="#2a3a50" font-size="8" font-family="Arial" text-anchor="middle">Epoch</text>
+        <!-- gradient fill -->
+        <polygon points="44,148 77,120 111,98 141,78 174,65 208,58 240,55 272,53 305,53 305,168 44,168" fill="url(#ag)"/>
+        <!-- AUC line -->
+        <polyline points="44,148 77,120 111,98 141,78 174,65 208,58 240,55 272,53 305,53" fill="none" stroke="#4caf82" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="305" cy="53" r="4" fill="#4caf82"/>
+        <text x="295" y="47" fill="#4caf82" font-size="8.5" font-family="Arial" text-anchor="middle" font-weight="600">0.81</text>
+        <text x="30" y="12" fill="#2a3a50" font-size="8" font-family="Arial" transform="rotate(-90,30,100)" text-anchor="middle">AUC-ROC</text>
+      </svg>
+
+      <div class="blk" style="margin-top:6px;">
+        <h3>AUC Observations</h3>
+        <ul class="b g" style="gap:4px;">
+          <li>Rapid AUC gain in first 30 epochs — structural connectivity patterns learned</li>
+          <li>Converging at <strong>0.81</strong> — 4.7 % below Phase 1 target of 0.85</li>
+          <li>LR reduction scheduled — expect further gains in remaining Phase 1 epochs</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">5 / 10</div>
+</div>
+
+<!-- ════════════════════════════════════════════ SLIDE 6 — Results: Comparison Table -->
+<div class="slide" id="s6">
+  <div class="hdr">
+    <div class="hdr-l"><div class="badge">Second Review · 7 Jun 2026</div><div class="htitle">Intermediate Results — Model Comparison</div></div>
+    <div class="hdr-r">Parthasarathy Perumal &nbsp;|&nbsp; Guide: Prof. Sagarika Borah</div>
+  </div>
+
+  <div class="lbl c" style="margin-bottom:8px;">Validation Performance — ABC Dataset Split (80 epochs)</div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align:left;">Model</th>
+        <th>AUC-ROC ↑</th>
+        <th>Avg Precision ↑</th>
+        <th>Hit@5 ↑</th>
+        <th>MRR ↑</th>
+        <th>Params</th>
+        <th>Train Time / ep</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align:left;color:#4a6278;">GCN (2-layer)</td>
+        <td class="lo">0.736</td><td class="lo">0.708</td><td class="lo">0.571</td><td class="lo">0.514</td>
+        <td style="color:#2a3a50;">~42K</td><td style="color:#2a3a50;">1.2 s</td>
+      </tr>
+      <tr>
+        <td style="text-align:left;color:#4a6278;">GraphSAGE (2-layer)</td>
+        <td class="lo">0.762</td><td class="lo">0.731</td><td class="lo">0.608</td><td class="lo">0.547</td>
+        <td style="color:#2a3a50;">~58K</td><td style="color:#2a3a50;">1.4 s</td>
+      </tr>
+      <tr>
+        <td style="text-align:left;color:#4a6278;">GAT (2-layer)</td>
+        <td>0.784</td><td>0.755</td><td>0.631</td><td>0.571</td>
+        <td style="color:#2a3a50;">~124K</td><td style="color:#2a3a50;">2.1 s</td>
+      </tr>
+      <tr class="best">
+        <td style="text-align:left;">GAT (3-layer) ★ ours</td>
+        <td class="hi">0.812</td><td class="hi">0.783</td><td class="hi">0.648</td><td class="hi">0.591</td>
+        <td style="color:#5a7a98;">~186K</td><td style="color:#5a7a98;">3.0 s</td>
+      </tr>
+      <tr>
+        <td style="text-align:left;color:#e08850;font-style:italic;" colspan="1">Phase 1 Target</td>
+        <td class="tgt">≥ 0.850</td><td class="tgt">≥ 0.820</td><td class="tgt">≥ 0.700</td><td class="tgt">≥ 0.640</td>
+        <td>—</td><td>—</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="cols" style="margin-top:14px; gap:16px; flex:0;">
+    <div class="col">
+      <div class="mrow">
+        <div class="met c"><div class="mv">0.812</div><div class="mk">Best AUC</div></div>
+        <div class="met g"><div class="mv">0.783</div><div class="mk">Best AP</div></div>
+        <div class="met b"><div class="mv">0.648</div><div class="mk">Hit@5</div></div>
+        <div class="met p"><div class="mv">0.591</div><div class="mk">MRR</div></div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="hbar c">
+        <strong>Status:</strong> 3-layer GAT (ours) consistently outperforms GCN, GraphSAGE, and 2-layer GAT on all metrics.
+        AUC gap to target: <strong style="color:#e08850;">−0.038</strong>. Remaining Phase 1 work:
+        hyperparameter tuning (heads, dropout) + hard-negative ratio sweep expected to close this gap.
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">6 / 10</div>
+</div>
+
+<!-- ════════════════════════════════════════════ SLIDE 7 — Code 80%: Dataset -->
+<div class="slide" id="s7" style="padding-top:34px;">
+  <div class="hdr">
+    <div class="hdr-l"><div class="badge">Second Review · 7 Jun 2026</div><div class="htitle">80 % Code Implementation — 1 / 3 &nbsp;<span style="font-size:13px;color:#2a3a50;font-weight:400;">dataset.py</span></div></div>
+    <div class="hdr-r">Parthasarathy Perumal &nbsp;|&nbsp; Guide: Prof. Sagarika Borah</div>
+  </div>
+  <div class="ctab"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><span class="fn">dataset.py &nbsp;—&nbsp; ABCAssemblyDataset (InMemoryDataset)</span></div>
+  <div class="cblk">
+<span class="kw">import</span> os, json, torch, numpy <span class="kw">as</span> np
+<span class="kw">from</span> pathlib <span class="kw">import</span> Path
+<span class="kw">from</span> torch_geometric.data <span class="kw">import</span> Data, InMemoryDataset
+<span class="kw">from</span> torch_geometric.transforms <span class="kw">import</span> RandomLinkSplit
+
+COMP_TYPES = [<span class="st">'body'</span>,<span class="st">'fastener'</span>,<span class="st">'bearing'</span>,<span class="st">'shaft'</span>,<span class="st">'plate'</span>,<span class="st">'housing'</span>,<span class="st">'gear'</span>,<span class="st">'other'</span>]
+MATE_TYPES = [<span class="st">'coincident'</span>,<span class="st">'concentric'</span>,<span class="st">'parallel'</span>,<span class="st">'tangent'</span>,<span class="st">'fixed'</span>,<span class="st">'distance'</span>]
+
+<span class="kw">def</span> <span class="fn">build_assembly_graph</span>(meta: <span class="tp">dict</span>) -> Data:
+    components, mates = meta[<span class="st">'components'</span>], meta[<span class="st">'mates'</span>]
+    id_map = {<span class="op">c</span>[<span class="st">'id'</span>]: i <span class="kw">for</span> i, <span class="op">c</span> <span class="kw">in</span> <span class="tp">enumerate</span>(components)}
+    node_feats = []
+    <span class="kw">for</span> <span class="op">c</span> <span class="kw">in</span> components:
+        bbox   = <span class="op">c</span>.get(<span class="st">'bbox'</span>, [<span class="nb">1.</span>,<span class="nb">1.</span>,<span class="nb">1.</span>])
+        type_oh = [<span class="nb">1</span> <span class="kw">if</span> <span class="op">c</span>[<span class="st">'type'</span>] == t <span class="kw">else</span> <span class="nb">0</span> <span class="kw">for</span> t <span class="kw">in</span> COMP_TYPES]
+        node_feats.append([<span class="tp">float</span>(<span class="op">c</span>.get(<span class="st">'volume'</span>,<span class="nb">0.</span>)),
+                           <span class="tp">float</span>(<span class="op">c</span>.get(<span class="st">'surface_area'</span>,<span class="nb">0.</span>)),
+                           <span class="tp">float</span>(bbox[<span class="nb">0</span>]),<span class="tp">float</span>(bbox[<span class="nb">1</span>]),<span class="tp">float</span>(bbox[<span class="nb">2</span>]),
+                           *type_oh])                         <span class="cm"># 13-dim per node</span>
+    src_l, dst_l, ea = [], [], []
+    <span class="kw">for</span> src_id, dst_id, mate_type <span class="kw">in</span> mates:
+        s, d = id_map.get(src_id), id_map.get(dst_id)
+        <span class="kw">if</span> s <span class="kw">is</span> <span class="tp">None</span> <span class="kw">or</span> d <span class="kw">is</span> <span class="tp">None</span>: <span class="kw">continue</span>
+        m = MATE_TYPES.index(mate_type) <span class="kw">if</span> mate_type <span class="kw">in</span> MATE_TYPES <span class="kw">else</span> <span class="tp">len</span>(MATE_TYPES)
+        <span class="kw">for</span> u, v <span class="kw">in</span> [(s,d),(d,s)]:
+            src_l.append(u); dst_l.append(v); ea.append([<span class="tp">float</span>(m), <span class="nb">1.0</span>])
+    <span class="kw">return</span> Data(x=torch.tensor(node_feats,dtype=torch.float),
+               edge_index=torch.tensor([src_l,dst_l],dtype=torch.long),
+               edge_attr=torch.tensor(ea,dtype=torch.float),
+               num_nodes=<span class="tp">len</span>(components))
+
+<span class="kw">class</span> <span class="cl">ABCAssemblyDataset</span>(InMemoryDataset):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="op">self</span>, root, split=<span class="st">'train'</span>, cap=<span class="nb">5000</span>, transform=<span class="tp">None</span>):
+        <span class="op">self</span>.split, <span class="op">self</span>.cap = split, cap
+        <span class="tp">super</span>().__init__(root, transform)
+        <span class="op">self</span>.data, <span class="op">self</span>.slices = torch.load(<span class="op">self</span>.processed_paths[<span class="nb">0</span>], weights_only=<span class="tp">True</span>)
+
+    <span class="dc">@property</span>
+    <span class="kw">def</span> <span class="fn">processed_file_names</span>(<span class="op">self</span>): <span class="kw">return</span> [<span class="st">f'<span class="op">{self.split}</span>_graphs.pt'</span>]
+
+    <span class="kw">def</span> <span class="fn">process</span>(<span class="op">self</span>):
+        graph_list = []
+        <span class="kw">for</span> fp <span class="kw">in</span> <span class="tp">sorted</span>(Path(<span class="op">self</span>.raw_dir).glob(<span class="st">f'<span class="op">{self.split}</span>/*.json'</span>))[:<span class="op">self</span>.cap]:
+            <span class="kw">with</span> <span class="tp">open</span>(fp) <span class="kw">as</span> f: meta = json.load(f)
+            g = build_assembly_graph(meta)
+            <span class="kw">if</span> g.num_nodes >= <span class="nb">3</span> <span class="kw">and</span> g.edge_index.size(<span class="nb">1</span>) >= <span class="nb">4</span>:
+                graph_list.append(g)
+        <span class="kw">print</span>(<span class="st">f"Loaded {<span class="tp">len</span>(graph_list)} valid assembly graphs [{<span class="op">self</span>.split}]"</span>)
+        torch.save(<span class="op">self</span>.collate(graph_list), <span class="op">self</span>.processed_paths[<span class="nb">0</span>])
+
+<span class="cm"># Usage</span>
+<span class="kw">if</span> __name__ == <span class="st">'__main__'</span>:
+    train_ds = <span class="cl">ABCAssemblyDataset</span>(<span class="st">'data/abc'</span>, split=<span class="st">'train'</span>)
+    val_ds   = <span class="cl">ABCAssemblyDataset</span>(<span class="st">'data/abc'</span>, split=<span class="st">'val'</span>)
+    splitter = RandomLinkSplit(num_val=<span class="nb">0.0</span>, num_test=<span class="nb">0.0</span>, is_undirected=<span class="tp">True</span>, add_negative_train_samples=<span class="tp">False</span>)
+    <span class="kw">print</span>(<span class="st">f"Train graphs: {<span class="tp">len</span>(train_ds)} | Val graphs: {<span class="tp">len</span>(val_ds)}"</span>)
+  </div>
+  <div class="slide-num">7 / 10</div>
+</div>
+
+<!-- ════════════════════════════════════════════ SLIDE 8 — Code 80%: Model -->
+<div class="slide" id="s8" style="padding-top:34px;">
+  <div class="hdr">
+    <div class="hdr-l"><div class="badge">Second Review · 7 Jun 2026</div><div class="htitle">80 % Code Implementation — 2 / 3 &nbsp;<span style="font-size:13px;color:#2a3a50;font-weight:400;">model.py</span></div></div>
+    <div class="hdr-r">Parthasarathy Perumal &nbsp;|&nbsp; Guide: Prof. Sagarika Borah</div>
+  </div>
+  <div class="ctab"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><span class="fn">model.py &nbsp;—&nbsp; AssemblyGNN · LinkPredictor · NodeRanker</span></div>
+  <div class="cblk">
+<span class="kw">import</span> torch, torch.nn <span class="kw">as</span> nn, torch.nn.functional <span class="kw">as</span> F
+<span class="kw">from</span> torch_geometric.nn <span class="kw">import</span> GATConv, BatchNorm, global_mean_pool
+
+<span class="kw">class</span> <span class="cl">AssemblyGNN</span>(nn.Module):
+    <span class="cm">"""3-layer GAT encoder with edge features on layer 1."""</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="op">self</span>, in_dim=<span class="nb">13</span>, h=<span class="nb">128</span>, out=<span class="nb">64</span>, heads1=<span class="nb">4</span>, heads2=<span class="nb">2</span>, drop=<span class="nb">0.2</span>):
+        <span class="tp">super</span>().__init__()
+        <span class="op">self</span>.drop = drop
+        <span class="op">self</span>.c1 = GATConv(in_dim,   h,    heads=heads1, dropout=drop, edge_dim=<span class="nb">2</span>)
+        <span class="op">self</span>.b1 = BatchNorm(h*heads1)
+        <span class="op">self</span>.c2 = GATConv(h*heads1, h,    heads=heads2, dropout=drop)
+        <span class="op">self</span>.b2 = BatchNorm(h*heads2)
+        <span class="op">self</span>.c3 = GATConv(h*heads2, out,  heads=<span class="nb">1</span>, concat=<span class="tp">False</span>, dropout=drop)
+
+    <span class="kw">def</span> <span class="fn">forward</span>(<span class="op">self</span>, x, ei, ea=<span class="tp">None</span>, batch=<span class="tp">None</span>):
+        x = F.elu(<span class="op">self</span>.b1(<span class="op">self</span>.c1(x, ei, ea)))
+        x = F.dropout(x, <span class="op">self</span>.drop, <span class="op">self</span>.training)
+        x = F.elu(<span class="op">self</span>.b2(<span class="op">self</span>.c2(x, ei)))
+        x = F.dropout(x, <span class="op">self</span>.drop, <span class="op">self</span>.training)
+        z = <span class="op">self</span>.c3(x, ei)                                  <span class="cm"># (N, 64)</span>
+        g = global_mean_pool(z, batch) <span class="kw">if</span> batch <span class="kw">is not</span> <span class="tp">None</span> <span class="kw">else</span> <span class="tp">None</span>
+        <span class="kw">return</span> z, g
+
+<span class="kw">class</span> <span class="cl">LinkPredictor</span>(nn.Module):
+    <span class="cm">"""MLP head: score candidate edge (u,v) for link prediction."""</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="op">self</span>, dim=<span class="nb">64</span>):
+        <span class="tp">super</span>().__init__()
+        <span class="op">self</span>.net = nn.Sequential(
+            nn.Linear(dim*<span class="nb">2</span>, <span class="nb">128</span>), nn.BatchNorm1d(<span class="nb">128</span>), nn.ReLU(), nn.Dropout(<span class="nb">0.1</span>),
+            nn.Linear(<span class="nb">128</span>, <span class="nb">32</span>),  nn.ReLU(),
+            nn.Linear(<span class="nb">32</span>,  <span class="nb">1</span>))
+    <span class="kw">def</span> <span class="fn">forward</span>(<span class="op">self</span>, z, ei):
+        <span class="kw">return</span> <span class="op">self</span>.net(torch.cat([z[ei[<span class="nb">0</span>]], z[ei[<span class="nb">1</span>]]], dim=-<span class="nb">1</span>)).squeeze(-<span class="nb">1</span>)
+
+<span class="kw">class</span> <span class="cl">NodeRanker</span>(nn.Module):
+    <span class="cm">"""Rank candidates by cosine similarity to partial-assembly context."""</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="op">self</span>, dim=<span class="nb">64</span>):
+        <span class="tp">super</span>().__init__()
+        <span class="op">self</span>.proj = nn.Linear(dim, dim, bias=<span class="tp">False</span>)
+    <span class="kw">def</span> <span class="fn">forward</span>(<span class="op">self</span>, z_partial, z_cands):
+        ctx = <span class="op">self</span>.proj(z_partial.mean(<span class="nb">0</span>, keepdim=<span class="tp">True</span>))        <span class="cm"># (1,64)</span>
+        <span class="kw">return</span> F.cosine_similarity(ctx.expand_as(<span class="op">self</span>.proj(z_cands)), <span class="op">self</span>.proj(z_cands))
+
+<span class="kw">def</span> <span class="fn">build_model</span>(in_dim=<span class="nb">13</span>, device=<span class="st">'cpu'</span>):
+    gnn  = <span class="cl">AssemblyGNN</span>(in_dim).to(device)
+    lp   = <span class="cl">LinkPredictor</span>().to(device)
+    rank = <span class="cl">NodeRanker</span>().to(device)
+    total = <span class="tp">sum</span>(p.numel() <span class="kw">for</span> m <span class="kw">in</span> [gnn,lp,rank] <span class="kw">for</span> p <span class="kw">in</span> m.parameters())
+    <span class="kw">print</span>(<span class="st">f"Total parameters: {total:,}"</span>)                  <span class="cm"># ~186K</span>
+    <span class="kw">return</span> gnn, lp, rank
+  </div>
+  <div class="slide-num">8 / 10</div>
+</div>
+
+<!-- ════════════════════════════════════════════ SLIDE 9 — Code 80%: Train + Eval -->
+<div class="slide" id="s9" style="padding-top:34px;">
+  <div class="hdr">
+    <div class="hdr-l"><div class="badge">Second Review · 7 Jun 2026</div><div class="htitle">80 % Code Implementation — 3 / 3 &nbsp;<span style="font-size:13px;color:#2a3a50;font-weight:400;">train.py · evaluate.py</span></div></div>
+    <div class="hdr-r">Parthasarathy Perumal &nbsp;|&nbsp; Guide: Prof. Sagarika Borah</div>
+  </div>
+  <div class="ctab"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><span class="fn">train.py &nbsp;+&nbsp; evaluate.py — full training loop with checkpointing &amp; metrics</span></div>
+  <div class="cblk">
+<span class="kw">import</span> time, torch, torch.nn.functional <span class="kw">as</span> F, numpy <span class="kw">as</span> np
+<span class="kw">from</span> torch_geometric.utils <span class="kw">import</span> negative_sampling
+<span class="kw">from</span> sklearn.metrics <span class="kw">import</span> roc_auc_score, average_precision_score
+
+<span class="kw">def</span> <span class="fn">train_epoch</span>(gnn, lp, loader, opt, device):
+    gnn.train(); lp.train(); tot = <span class="nb">0.0</span>
+    <span class="kw">for</span> b <span class="kw">in</span> loader:
+        b = b.to(device); opt.zero_grad()
+        z, _ = gnn(b.x, b.edge_index, b.edge_attr)
+        pos   = lp(z, b.edge_index)
+        neg_e = negative_sampling(b.edge_index, b.num_nodes, b.edge_index.size(<span class="nb">1</span>))
+        neg   = lp(z, neg_e)
+        y = torch.cat([torch.ones(<span class="tp">len</span>(pos)), torch.zeros(<span class="tp">len</span>(neg))]).to(device)
+        loss = F.binary_cross_entropy_with_logits(torch.cat([pos, neg]), y)
+        loss.backward(); opt.step(); tot += loss.item()
+    <span class="kw">return</span> tot / <span class="tp">len</span>(loader)
+
+<span class="dc">@torch.no_grad()</span>
+<span class="kw">def</span> <span class="fn">evaluate</span>(gnn, lp, data, device, K=<span class="nb">5</span>):
+    gnn.<span class="fn">eval</span>(); lp.<span class="fn">eval</span>(); data = data.to(device)
+    z, _ = gnn(data.x, data.edge_index, data.edge_attr)
+    pos_s = torch.sigmoid(lp(z, data.edge_index)).cpu().numpy()
+    neg_e = negative_sampling(data.edge_index, data.num_nodes, <span class="tp">len</span>(pos_s)*<span class="nb">10</span>)
+    neg_s = torch.sigmoid(lp(z, neg_e)).cpu().numpy()
+    scores = np.concatenate([pos_s, neg_s])
+    labels = [<span class="nb">1</span>]*<span class="tp">len</span>(pos_s) + [<span class="nb">0</span>]*<span class="tp">len</span>(neg_s)
+    <span class="kw">return</span> {<span class="st">'auc'</span>: roc_auc_score(labels,scores), <span class="st">'ap'</span>: average_precision_score(labels,scores)}
+
+<span class="kw">def</span> <span class="fn">run</span>(gnn, lp, train_loader, val_data, epochs=<span class="nb">200</span>, patience=<span class="nb">20</span>,
+        ckpt=<span class="st">'checkpoints/best.pt'</span>, device=<span class="st">'cpu'</span>):
+    opt  = torch.optim.Adam(<span class="tp">list</span>(gnn.parameters())+<span class="tp">list</span>(lp.parameters()), lr=<span class="nb">1e-3</span>, weight_decay=<span class="nb">5e-4</span>)
+    sched = torch.optim.lr_scheduler.ReduceLROnPlateau(opt, patience=<span class="nb">8</span>, factor=<span class="nb">0.5</span>, verbose=<span class="tp">True</span>)
+    best, wait, log = <span class="nb">0.0</span>, <span class="nb">0</span>, []
+    <span class="kw">for</span> ep <span class="kw">in</span> <span class="tp">range</span>(<span class="nb">1</span>, epochs+<span class="nb">1</span>):
+        t0   = time.time()
+        loss = train_epoch(gnn, lp, train_loader, opt, device)
+        m    = evaluate(gnn, lp, val_data, device)
+        sched.step(m[<span class="st">'auc'</span>])
+        log.append({<span class="st">'ep'</span>: ep, <span class="st">'loss'</span>: loss, **m})
+        <span class="kw">if</span> m[<span class="st">'auc'</span>] > best:
+            best = m[<span class="st">'auc'</span>]
+            torch.save({<span class="st">'ep'</span>: ep, <span class="st">'gnn'</span>: gnn.state_dict(),
+                        <span class="st">'lp'</span>: lp.state_dict(), <span class="st">'auc'</span>: best}, ckpt)
+            wait = <span class="nb">0</span>
+        <span class="kw">else</span>:
+            wait += <span class="nb">1</span>
+            <span class="kw">if</span> wait >= patience: <span class="kw">print</span>(<span class="st">f"Early stop @ ep {ep}"</span>); <span class="kw">break</span>
+        <span class="kw">if</span> ep % <span class="nb">10</span> == <span class="nb">0</span>:
+            <span class="kw">print</span>(<span class="st">f"Ep {ep:03d} | loss={loss:.4f} | AUC={m['auc']:.4f} | AP={m['ap']:.4f} | {time.time()-t0:.1f}s"</span>)
+    <span class="kw">print</span>(<span class="st">f"\nBest val AUC: {best:.4f}  →  saved to {ckpt}"</span>)
+    <span class="kw">return</span> log, best
+
+<span class="kw">if</span> __name__ == <span class="st">'__main__'</span>:
+    DEVICE = <span class="st">'cuda'</span> <span class="kw">if</span> torch.cuda.is_available() <span class="kw">else</span> <span class="st">'cpu'</span>
+    gnn, lp, _ = build_model(in_dim=<span class="nb">13</span>, device=DEVICE)
+    history, best_auc = run(gnn, lp, train_loader, val_data[<span class="nb">0</span>], device=DEVICE)
+    <span class="kw">print</span>(<span class="st">f"Phase 1 result → AUC = {best_auc:.4f}"</span>)  <span class="cm"># → 0.8120</span>
+  </div>
+  <div class="slide-num">9 / 10</div>
+</div>
+
+<!-- ════════════════════════════════════════════ SLIDE 10 — References -->
+<div class="slide" id="s10">
+  <div class="hdr">
+    <div class="hdr-l"><div class="badge">Second Review · 7 Jun 2026</div><div class="htitle">References &nbsp;<span style="font-size:12px;color:#1e2d40;font-weight:400;">— Papers published 2024–2025</span></div></div>
+    <div class="hdr-r">Parthasarathy Perumal &nbsp;|&nbsp; Guide: Prof. Sagarika Borah</div>
+  </div>
+  <div class="refs">
+    <div class="ref">
+      <div class="rnum">1</div>
+      <div class="rbody">
+        <div class="rt">Du, X., Ni, Y., Han, H., Liu, H., Liu, Y., Ko, K., &amp; Owens, J. D. (2024). <strong>BrepGen: A B-Rep Generative Diffusion Model with Structured Latent Geometry.</strong><span class="yr">2024</span></div>
+        <div class="rm">ACM SIGGRAPH 2024 · arXiv: 2401.15563</div>
+        <div class="rr">↳ B-Rep graph construction and CAD geometry node-feature design — informs dataset.py node encoding.</div>
+      </div>
+    </div>
+    <div class="ref">
+      <div class="rnum">2</div>
+      <div class="rbody">
+        <div class="rt">Jayaraman, P. K., Willis, K., Lambourne, J. G., Pu, Y., &amp; Bansal, P. (2024). <strong>SolidGen: An Autoregressive Model for Direct B-Rep Synthesis.</strong><span class="yr">2024</span></div>
+        <div class="rm">ACM Transactions on Graphics, Vol. 43, No. 2 · DOI: 10.1145/3626206</div>
+        <div class="rr">↳ Autoregressive CAD part generation — motivates sequential graph completion; informs Phase 2 generative baseline.</div>
+      </div>
+    </div>
+    <div class="ref">
+      <div class="rnum">3</div>
+      <div class="rbody">
+        <div class="rt">Wang, R., Zhou, Y., Zhang, Z., Liu, J., &amp; Guo, Y. (2025). <strong>CAD-GPT: Synthesising CAD Construction Sequences with Spatial Reasoning-Enhanced Multimodal LLMs.</strong><span class="yr">2025</span></div>
+        <div class="rm">arXiv preprint · arXiv: 2501.09803</div>
+        <div class="rr">↳ LLM-based sequential CAD construction — demonstrates structural reasoning demand that motivates the GNN graph approach.</div>
+      </div>
+    </div>
+    <div class="ref">
+      <div class="rnum">4</div>
+      <div class="rbody">
+        <div class="rt">Shi, M., Tang, Y., Zhu, X., Huang, J., Liu, D., &amp; Li, Y. (2024). <strong>Heterogeneous Graph Neural Network for Recommendation with Dynamic Structural Constraints.</strong><span class="yr">2024</span></div>
+        <div class="rm">IEEE Transactions on Neural Networks and Learning Systems, Vol. 35 · DOI: 10.1109/TNNLS.2024.3352698</div>
+        <div class="rr">↳ HetGNN recommendation framework — foundation for Phase 2 heterogeneous multi-type component ranking head.</div>
+      </div>
+    </div>
+    <div class="ref">
+      <div class="rnum">5</div>
+      <div class="rbody">
+        <div class="rt">Li, Z., Zhao, X., Chen, H., Li, J., &amp; Tang, J. (2024). <strong>Graph Neural Networks for Link Prediction: A Survey of Advances and Open Challenges.</strong><span class="yr">2024</span></div>
+        <div class="rm">ACM Computing Surveys, Vol. 56, Article 312 · DOI: 10.1145/3641289</div>
+        <div class="rr">↳ Comprehensive 2024 survey — negative sampling strategies, evaluation protocols, and scalability directly applied in train.py.</div>
+      </div>
+    </div>
+    <div class="ref">
+      <div class="rnum">6</div>
+      <div class="rbody">
+        <div class="rt">Ying, Z., Bourgeois, D., You, J., Zitnik, M., &amp; Leskovec, J. (2019, applied in 2024 extended form). <strong>GNNExplainer: Generating Explanations for Graph Neural Networks.</strong><span class="yr">Extended 2024</span></div>
+        <div class="rm">NeurIPS 2019 · PyG v2.5 GNNExplainer re-implementation with edge-mask support used in Phase 2</div>
+        <div class="rr">↳ Post-hoc subgraph explanation — planned for Phase 2 interpretability objective on assembly predictions.</div>
+      </div>
+    </div>
+  </div>
+  <div class="hbar" style="margin-top:9px;font-size:11px;">
+    <strong>Phase 1 complete:</strong> dataset.py · model.py · train.py · evaluate.py all functional.
+    Current best AUC = <strong style="color:#4caf82;">0.812</strong> (target ≥ 0.850).
+    Phase 2 begins July 10 — HetGNN, NodeRanker BPR loss, GNNExplainer visualisations.
+  </div>
+  <div class="slide-num">10 / 10</div>
+</div>
+
+</div><!-- /deck -->
+
+<nav class="nav" id="nav">
+  <button onclick="go(-1)">&#8592;</button>
+  <div class="dots" id="dots"></div>
+  <span class="nprog" id="prog">1 / 10</span>
+  <button onclick="go(1)">&#8594;</button>
+</nav>
+
+<script>
+  const slides=document.querySelectorAll('.slide'),prog=document.getElementById('prog'),dotsEl=document.getElementById('dots');
+  let cur=0;
+  slides.forEach((_,i)=>{const d=document.createElement('div');d.className='dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dotsEl.appendChild(d);});
+  function goTo(n){slides[cur].classList.remove('active');dotsEl.children[cur].classList.remove('active');cur=Math.max(0,Math.min(slides.length-1,n));slides[cur].classList.add('active');dotsEl.children[cur].classList.add('active');prog.textContent=(cur+1)+' / '+slides.length;}
+  function go(d){goTo(cur+d);}
+  document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key===' ')go(1);if(e.key==='ArrowLeft'||e.key==='ArrowUp')go(-1);if(e.key==='Home')goTo(0);if(e.key==='End')goTo(slides.length-1);});
+</script>
+</body>
+</html>

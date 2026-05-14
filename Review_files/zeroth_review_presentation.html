@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zeroth Review — AI-Assisted 3D Assembly Design</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #0d1018;
+    color: #e8eaf0;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  .deck { width: 100%; height: 100vh; position: relative; }
+
+  .slide {
+    display: none;
+    position: absolute;
+    inset: 0;
+    padding: 38px 68px 62px;
+    flex-direction: column;
+    justify-content: flex-start;
+    animation: fadeIn 0.35s ease;
+  }
+  .slide.active { display: flex; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .slide::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, #4f8ef7, #a56bff, #4caf82);
+  }
+
+  /* ── slide counter ── */
+  .slide-num {
+    position: absolute;
+    bottom: 18px; right: 30px;
+    font-size: 12px; color: #333e55; letter-spacing: 1px;
+  }
+
+  /* ── header strip ── */
+  .slide-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px; padding-bottom: 10px;
+    border-bottom: 1px solid #151e2e;
+  }
+  .slide-header-left { display: flex; align-items: center; gap: 12px; }
+  .review-chip {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 2px;
+    color: #4caf82; border: 1px solid #1e4030;
+    background: #0a1e14;
+    padding: 3px 12px; border-radius: 20px;
+  }
+  .slide-title-text {
+    font-size: 19px; font-weight: 700; color: #e0ecf8; letter-spacing: 0.2px;
+  }
+  .slide-header-right {
+    font-size: 11px; color: #334055; text-align: right; line-height: 1.6;
+  }
+
+  /* ── two / three column ── */
+  .cols   { display: flex; gap: 22px; flex: 1; }
+  .col    { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+  .col-sm { flex: 0.72; }
+  .col-lg { flex: 1.28; }
+
+  /* ── section mini-label ── */
+  .mlabel {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 2px;
+    margin-bottom: 6px;
+  }
+  .mlabel.blue   { color: #4f8ef7; }
+  .mlabel.green  { color: #4caf82; }
+  .mlabel.purple { color: #a56bff; }
+  .mlabel.orange { color: #e08850; }
+  .mlabel.red    { color: #e05555; }
+
+  /* ── content block ── */
+  .block {
+    background: #101620; border: 1px solid #192030;
+    border-radius: 8px; padding: 13px 15px;
+    display: flex; flex-direction: column; gap: 7px;
+  }
+  .block.bt-blue   { border-top: 2px solid #4f8ef7; }
+  .block.bt-green  { border-top: 2px solid #4caf82; }
+  .block.bt-purple { border-top: 2px solid #a56bff; }
+  .block.bt-orange { border-top: 2px solid #e08850; }
+  .block.bt-red    { border-top: 2px solid #e05555; }
+  .block h3 { font-size: 13px; font-weight: 600; color: #c0d4ea; }
+  .block p  { font-size: 12.5px; color: #5a7590; line-height: 1.7; }
+
+  /* ── bullet list ── */
+  ul.bul { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+  ul.bul li {
+    font-size: 12.5px; color: #7a9ab8; line-height: 1.65;
+    padding-left: 16px; position: relative;
+  }
+  ul.bul li::before {
+    content: '›'; position: absolute; left: 0;
+    color: #4f8ef7; font-size: 14px; font-weight: 700; line-height: 1.4;
+  }
+  ul.bul li strong { color: #c8dcea; }
+  ul.bul.g li::before { color: #4caf82; }
+  ul.bul.p li::before { color: #a56bff; }
+  ul.bul.o li::before { color: #e08850; }
+
+  /* ── tag pills ── */
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .tag  {
+    font-size: 11px; padding: 3px 10px; border-radius: 20px;
+    background: #0e1624; border: 1px solid #192030; color: #5a7590;
+  }
+  .tag.b { border-color: #4f8ef7; color: #4f8ef7; }
+  .tag.g { border-color: #4caf82; color: #4caf82; }
+  .tag.p { border-color: #a56bff; color: #a56bff; }
+  .tag.o { border-color: #e08850; color: #e08850; }
+  .tag.r { border-color: #e05555; color: #e05555; }
+
+  /* ── highlight strip ── */
+  .hbar {
+    background: #0b1420; border-left: 2px solid #4f8ef7;
+    border-radius: 0 6px 6px 0; padding: 9px 13px;
+    font-size: 12.5px; color: #5a7898; line-height: 1.7;
+  }
+  .hbar strong { color: #b0c8de; }
+  .hbar.g { border-color: #4caf82; }
+  .hbar.p { border-color: #a56bff; }
+  .hbar.o { border-color: #e08850; }
+
+  /* ── metric badge ── */
+  .metric-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+  .metric {
+    background: #0b1420; border: 1px solid #192030; border-radius: 7px;
+    padding: 8px 12px; text-align: center; flex: 1; min-width: 75px;
+  }
+  .metric .mv { font-size: 15px; font-weight: 700; }
+  .metric .mk { font-size: 10px; color: #3a5070; margin-top: 2px; letter-spacing: 0.5px; }
+  .metric.b .mv { color: #4f8ef7; }
+  .metric.g .mv { color: #4caf82; }
+  .metric.p .mv { color: #a56bff; }
+  .metric.o .mv { color: #e08850; }
+
+  /* ── progress bar ── */
+  .pbar-wrap { margin-top: 3px; }
+  .pbar-top  { display: flex; justify-content: space-between; font-size: 10.5px; color: #334055; margin-bottom: 4px; }
+  .pbar-top strong { color: #4caf82; }
+  .pbar { height: 5px; background: #151e2e; border-radius: 3px; }
+  .pbar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #4caf82, #4f8ef7); }
+
+  /* ── task card ── */
+  .task-card {
+    background: #0e1420; border: 1px solid #192030;
+    border-radius: 8px; padding: 10px 12px;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .task-icon { font-size: 18px; flex-shrink: 0; margin-top: 2px; }
+  .task-body h4 { font-size: 12.5px; font-weight: 600; color: #b8d0e4; margin-bottom: 3px; }
+  .task-body p  { font-size: 11.5px; color: #4a6280; line-height: 1.6; }
+  .task-body .analogy { font-size: 10.5px; color: #2a4060; font-style: italic; margin-top: 3px; }
+
+  /* ── algo badge ── */
+  .algo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+  .algo-item {
+    background: #0e1420; border: 1px solid #192030; border-radius: 6px;
+    padding: 8px 10px;
+  }
+  .algo-item h4 { font-size: 12px; font-weight: 600; color: #8ab0d0; margin-bottom: 2px; }
+  .algo-item p  { font-size: 11px; color: #3a5270; line-height: 1.55; }
+
+  /* ── reference rows ── */
+  .refs { display: flex; flex-direction: column; gap: 9px; flex: 1; }
+  .ref {
+    background: #0e1420; border: 1px solid #192030;
+    border-radius: 8px; padding: 11px 15px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .ref-num {
+    width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+    background: #101828; border: 1.5px solid #4f8ef7;
+    color: #4f8ef7; font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ref-body .ref-title { font-size: 12.5px; color: #8ab0d0; line-height: 1.5; font-weight: 500; }
+  .ref-body .ref-meta  { font-size: 11px; color: #3a5070; margin-top: 3px; }
+  .ref-body .ref-rel   { font-size: 11px; color: #4caf82; margin-top: 2px; }
+  .year-badge {
+    font-size: 10px; border-radius: 4px; padding: 1px 7px;
+    background: #0a1e14; border: 1px solid #1e4030; color: #4caf82;
+    margin-left: 6px; vertical-align: middle;
+  }
+
+  /* ── nav ── */
+  .nav {
+    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 10px; align-items: center;
+    background: #101620; border: 1px solid #192030;
+    padding: 8px 18px; border-radius: 40px; z-index: 100;
+  }
+  .nav button {
+    background: none; border: none; color: #3a5070;
+    font-size: 17px; cursor: pointer; padding: 2px 8px;
+    border-radius: 6px; transition: color .2s, background .2s;
+  }
+  .nav button:hover { color: #fff; background: #192030; }
+  .nprog { font-size: 12px; color: #273545; min-width: 48px; text-align: center; }
+  .dots  { display: flex; gap: 6px; align-items: center; }
+  .dot   { width: 7px; height: 7px; border-radius: 50%; background: #192030; cursor: pointer; }
+  .dot.active { background: #4caf82; }
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 1 — Title & Problem Statement                        -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide active" id="s1">
+  <div class="slide-header">
+    <div class="slide-header-left">
+      <div class="review-chip">Zeroth Review · 10 May 2026</div>
+      <div class="slide-title-text">Title &amp; Problem Statement</div>
+    </div>
+    <div class="slide-header-right">
+      Student: Parthasarathy Perumal<br>
+      Guide: Dr. Milan &nbsp;|&nbsp; M.Tech DS &amp; AI, Sem 4
+    </div>
+  </div>
+
+  <!-- Project title banner -->
+  <div style="background:linear-gradient(135deg,#0a1428,#0f1e14);border:1px solid #192030;border-radius:10px;padding:14px 20px;margin-bottom:14px;text-align:center;">
+    <div style="font-size:9px;text-transform:uppercase;letter-spacing:3px;color:#3a5070;margin-bottom:6px;">M.Tech Individual Project · Data Science &amp; AI</div>
+    <div style="font-size:20px;font-weight:800;color:#e8f0fa;line-height:1.3;margin-bottom:4px;">
+      AI-Assisted 3D Assembly Design
+    </div>
+    <div style="font-size:13px;color:#4a6888;">
+      Predicting Missing &amp; Next Components in CAD Assemblies using Graph Neural Networks
+    </div>
+  </div>
+
+  <div class="cols" style="flex:1;">
+
+    <!-- LEFT: Problem statement -->
+    <div class="col col-lg" style="gap:10px;">
+      <div class="mlabel blue">Problem Context</div>
+      <div class="block bt-blue" style="flex:0;">
+        <h3>Engineering Challenge</h3>
+        <p>Modern CAD assemblies contain 50–500+ interconnected components. Engineers manually search part libraries, relying entirely on domain experience — a process that is <strong style="color:#c8dcea;">slow, inconsistent, and error-prone</strong>.</p>
+      </div>
+
+      <div class="mlabel red" style="margin-top:2px;">Pain Points</div>
+      <ul class="bul" style="margin-bottom:4px;">
+        <li><strong>Knowledge barrier:</strong> Junior engineers lack contextual assembly experience built over years.</li>
+        <li><strong>No automation:</strong> Existing CAD tools (SolidWorks, CATIA) offer no intelligent part suggestion during assembly creation.</li>
+        <li><strong>Non-standardisation:</strong> Different designers make inconsistent choices for equivalent subassemblies.</li>
+        <li><strong>Incomplete assemblies:</strong> Partially defined assemblies have no automated mechanism to detect or fill missing parts.</li>
+      </ul>
+
+      <div class="hbar" style="margin-top:auto;">
+        <strong>Research Gap:</strong> No existing system applies <strong>graph-based deep learning</strong>
+        to recommend components from partial CAD assembly graphs without proprietary API dependency.
+        This project fills that gap using Graph Neural Networks trained on open CAD datasets.
+      </div>
+    </div>
+
+    <!-- RIGHT: SVG visual + objectives -->
+    <div class="col col-sm" style="gap:10px;">
+      <div class="mlabel green">Visual Concept</div>
+
+      <!-- Tailstock exploded view -->
+      <svg viewBox="0 0 290 190" xmlns="http://www.w3.org/2000/svg"
+           style="width:100%;max-height:178px;border-radius:8px;background:#090e18;border:1px solid #141e2e;">
+        <defs>
+          <filter id="sh"><feDropShadow dx="1" dy="1.5" stdDeviation="2" flood-color="rgba(0,0,0,0.6)"/></filter>
+          <linearGradient id="m" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#8aa0b5"/><stop offset="100%" stop-color="#4a6070"/>
+          </linearGradient>
+          <linearGradient id="dm" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#5a7280"/><stop offset="100%" stop-color="#384855"/>
+          </linearGradient>
+          <linearGradient id="rg" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#ff7070"/><stop offset="100%" stop-color="#cc2020"/>
+          </linearGradient>
+        </defs>
+        <!-- explosion lines -->
+        <line x1="182" y1="100" x2="198" y2="100" stroke="#442222" stroke-width="1" stroke-dasharray="3,3"/>
+        <line x1="238" y1="100" x2="252" y2="100" stroke="#442222" stroke-width="1" stroke-dasharray="3,3"/>
+        <line x1="130" y1="128" x2="130" y2="140" stroke="#223344" stroke-width="1" stroke-dasharray="3,3"/>
+        <line x1="130" y1="62"  x2="130" y2="50"  stroke="#223344" stroke-width="1" stroke-dasharray="3,3"/>
+        <!-- base -->
+        <rect x="84" y="141" width="108" height="14" rx="2" fill="url(#dm)" filter="url(#sh)"/>
+        <rect x="84" y="137" width="108" height="7"  rx="2" fill="#6a8898"/>
+        <text x="108" y="132" fill="#5a7888" font-size="8" font-family="Arial">Base Plate</text>
+        <!-- body -->
+        <rect x="92" y="68" width="88" height="68" rx="3" fill="url(#m)" filter="url(#sh)"/>
+        <rect x="92" y="68" width="88" height="6"  rx="2" fill="#b8ccd8"/>
+        <circle cx="180" cy="102" r="10" fill="#0a1420"/>
+        <text x="118" y="107" fill="#ddeeff" font-size="9" font-family="Arial" font-weight="600">Body</text>
+        <!-- barrel RED -->
+        <rect x="200" y="88" width="40" height="28" rx="14" fill="url(#rg)" filter="url(#sh)"/>
+        <rect x="200" y="88" width="40" height="28" rx="14" fill="none" stroke="#ff5555" stroke-width="1.2" opacity="0.8"/>
+        <text x="205" y="83" fill="#ff7070" font-size="7.5" font-family="Arial" font-weight="700">Barrel</text>
+        <!-- center RED -->
+        <polygon points="253,88 253,116 280,102" fill="url(#rg)" filter="url(#sh)"/>
+        <polygon points="253,88 253,116 280,102" fill="none" stroke="#ff5555" stroke-width="1.2" opacity="0.8"/>
+        <text x="256" y="83" fill="#ff7070" font-size="7.5" font-family="Arial" font-weight="700">Center</text>
+        <!-- handwheel -->
+        <circle cx="48" cy="102" r="30" fill="none" stroke="#4a6888" stroke-width="7" filter="url(#sh)"/>
+        <g stroke="#3a5878" stroke-width="3" stroke-linecap="round">
+          <line x1="48" y1="72" x2="48" y2="132"/><line x1="18" y1="102" x2="78" y2="102"/>
+          <line x1="27" y1="81" x2="69" y2="123"/><line x1="69" y1="81" x2="27" y2="123"/>
+        </g>
+        <circle cx="48" cy="102" r="9" fill="#22415a" stroke="#3a607a" stroke-width="1.5"/>
+        <rect x="78" y="96" width="18" height="10" rx="5" fill="#4a6878"/>
+        <text x="24" y="57" fill="#4a6888" font-size="7.5" font-family="Arial">Handwheel</text>
+        <!-- lock lever -->
+        <rect x="124" y="42" width="10" height="25" rx="5" fill="url(#dm)" filter="url(#sh)"/>
+        <ellipse cx="129" cy="40" rx="8" ry="6" fill="url(#m)"/>
+        <text x="138" y="37" fill="#4a6888" font-size="7.5" font-family="Arial">Lock Lever</text>
+        <!-- legend -->
+        <rect x="8" y="166" width="9" height="9" rx="2" fill="url(#rg)"/>
+        <text x="21" y="174" fill="#cc5555" font-size="8" font-family="Arial">Missing (GNN predicts)</text>
+        <rect x="8" y="179" width="9" height="9" rx="2" fill="url(#m)"/>
+        <text x="21" y="187" fill="#5a8098" font-size="8" font-family="Arial">Known components</text>
+      </svg>
+
+      <div class="mlabel green" style="margin-top:4px;">Research Objectives</div>
+      <ul class="bul g" style="gap:6px;">
+        <li>Model assemblies as <strong>attributed graphs</strong></li>
+        <li>Train GNN for <strong>link prediction</strong> (missing parts)</li>
+        <li>Build <strong>top-K ranking</strong> for next-component suggestion</li>
+        <li>Provide <strong>GNNExplainer</strong> interpretability</li>
+        <li>Pure Python — <strong>no proprietary CAD API</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="slide-num">1 / 4</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 2 — Data Source & Feasibility Study                  -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide" id="s2">
+  <div class="slide-header">
+    <div class="slide-header-left">
+      <div class="review-chip">Zeroth Review · 10 May 2026</div>
+      <div class="slide-title-text">Data Source &amp; Feasibility Study</div>
+    </div>
+    <div class="slide-header-right">
+      Student: Parthasarathy Perumal<br>
+      Guide: Dr. Milan &nbsp;|&nbsp; M.Tech DS &amp; AI, Sem 4
+    </div>
+  </div>
+
+  <div class="cols" style="flex:1; gap:20px;">
+
+    <!-- LEFT: Data sources -->
+    <div class="col" style="gap:9px;">
+      <div class="mlabel green">Data Sources</div>
+
+      <div class="block bt-green">
+        <h3>① ABC Dataset &nbsp;<span style="font-size:10px;color:#2a5038;font-weight:400;">Koch et al., CVPR 2019</span></h3>
+        <p>1 million+ open-source CAD models in STEP / B-Rep format. Contains geometric metadata: bounding boxes, volumes, surface areas, mate constraints between components.</p>
+        <div class="tags">
+          <span class="tag g">1M+ STEP files</span>
+          <span class="tag">B-Rep format</span>
+          <span class="tag">Geometry metadata</span>
+          <span class="tag">Open licence</span>
+        </div>
+      </div>
+
+      <div class="block bt-blue">
+        <h3>② PartNet &nbsp;<span style="font-size:10px;color:#1e3a5a;font-weight:400;">Mo et al., CVPR 2019</span></h3>
+        <p>573,585 part instances across 26 categories with fine-grained, hierarchical part-level annotations. Provides assembly-level semantics (parent–child relationships) critical for edge-feature construction.</p>
+        <div class="tags">
+          <span class="tag b">573K annotated parts</span>
+          <span class="tag">26 categories</span>
+          <span class="tag">Hierarchical labels</span>
+        </div>
+      </div>
+
+      <div class="block bt-purple">
+        <h3>③ FusionGallery &nbsp;<span style="font-size:10px;color:#3a1e5a;font-weight:400;">Willis et al., 2021</span></h3>
+        <p>8,625 multi-body Fusion 360 assemblies with native mate-constraint graphs, providing direct edge supervision for training the link prediction head.</p>
+        <div class="tags">
+          <span class="tag p">8.6K assemblies</span>
+          <span class="tag">Native mate graph</span>
+          <span class="tag">Direct edge labels</span>
+        </div>
+      </div>
+
+      <div class="block" style="border-left:2px dashed #2a3a50; background:#0a1018;">
+        <h3 style="color:#3a5070;">④ Synthetic Partial Graphs</h3>
+        <p>Generated by masking 20–40 % of edges/nodes from complete training graphs. Used to simulate partially defined assemblies for evaluation.</p>
+      </div>
+    </div>
+
+    <!-- RIGHT: Feasibility -->
+    <div class="col" style="gap:9px;">
+      <div class="mlabel orange">Feasibility Study</div>
+
+      <div class="block bt-orange">
+        <h3>Technical Feasibility</h3>
+        <ul class="bul o" style="gap:6px; margin-top:4px;">
+          <li><strong>Open data:</strong> ABC + PartNet freely available; no procurement needed.</li>
+          <li><strong>Mature framework:</strong> PyTorch Geometric v2.x supports GAT, GraphSAGE, link prediction, GNNExplainer out-of-the-box.</li>
+          <li><strong>No CAD API:</strong> Graph construction from metadata JSON / STEP parser avoids proprietary licences.</li>
+          <li><strong>Compute:</strong> Google Colab Pro (A100) or university GPU cluster sufficient for dataset scale.</li>
+        </ul>
+      </div>
+
+      <div class="block bt-green">
+        <h3>Timeline Feasibility</h3>
+        <div class="pbar-wrap">
+          <div class="pbar-top">Phase 1 — Base replication (8 wk) <strong>Starts now</strong></div>
+          <div class="pbar"><div class="pbar-fill" style="width:5%"></div></div>
+        </div>
+        <div class="pbar-wrap" style="margin-top:6px;">
+          <div class="pbar-top">Phase 2 — Novelty &amp; improvement (8 wk) <strong>Jul → Sep</strong></div>
+          <div class="pbar"><div class="pbar-fill" style="width:0%"></div></div>
+        </div>
+        <ul class="bul g" style="gap:5px; margin-top:8px;">
+          <li>Wk 1–3: Literature + base paper deep-read</li>
+          <li>Wk 4–5: Data pipeline + graph construction</li>
+          <li>Wk 6–8: Baseline GNN training &amp; evaluation</li>
+          <li>Wk 9–16: Novel head, ablation, thesis writing</li>
+        </ul>
+      </div>
+
+      <div class="block bt-blue">
+        <h3>Graph Schema</h3>
+        <div style="display:flex; gap:16px; margin-top:6px; align-items:center;">
+          <!-- mini graph SVG -->
+          <svg viewBox="0 0 130 90" xmlns="http://www.w3.org/2000/svg" style="width:130px; flex-shrink:0;">
+            <line x1="65" y1="20" x2="30" y2="55" stroke="#2a4060" stroke-width="1.5"/>
+            <line x1="65" y1="20" x2="100" y2="55" stroke="#2a4060" stroke-width="1.5"/>
+            <line x1="30" y1="55" x2="65" y2="75" stroke="#2a4060" stroke-width="1.5"/>
+            <line x1="100" y1="55" x2="65" y2="75" stroke="#cc3333" stroke-width="1.5" stroke-dasharray="4,3"/>
+            <circle cx="65" cy="18"  r="13" fill="#101828" stroke="#4f8ef7" stroke-width="1.5"/>
+            <text x="65" y="22" fill="#7a9ab8" font-size="8" font-family="Arial" text-anchor="middle">Body</text>
+            <circle cx="28" cy="56"  r="13" fill="#101828" stroke="#4f8ef7" stroke-width="1.5"/>
+            <text x="28" y="60" fill="#7a9ab8" font-size="8" font-family="Arial" text-anchor="middle">Base</text>
+            <circle cx="100" cy="56" r="13" fill="#101828" stroke="#4f8ef7" stroke-width="1.5"/>
+            <text x="100" y="60" fill="#7a9ab8" font-size="8" font-family="Arial" text-anchor="middle">Wheel</text>
+            <circle cx="65" cy="77"  r="13" fill="#1a0808" stroke="#ff5555" stroke-width="1.5" stroke-dasharray="4,3"/>
+            <text x="65" y="81" fill="#ff7070" font-size="7.5" font-family="Arial" text-anchor="middle">? Pred</text>
+          </svg>
+          <div style="display:flex; flex-direction:column; gap:5px;">
+            <div style="font-size:11.5px; color:#3a5070;"><strong style="color:#8ab0d0;">Node dim:</strong> 11 features</div>
+            <div style="font-size:11.5px; color:#3a5070;"><strong style="color:#8ab0d0;">Edge dim:</strong> 2 features</div>
+            <div style="font-size:11.5px; color:#3a5070;"><strong style="color:#8ab0d0;">Avg nodes:</strong> ~18 / graph</div>
+            <div style="font-size:11.5px; color:#3a5070;"><strong style="color:#8ab0d0;">Avg edges:</strong> ~32 / graph</div>
+            <div style="font-size:11.5px; color:#3a5070;"><strong style="color:#8ab0d0;">Train split:</strong> 70 / 15 / 15</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-num">2 / 4</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 3 — Tasks · Algorithms · Expected Outcomes           -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide" id="s3">
+  <div class="slide-header">
+    <div class="slide-header-left">
+      <div class="review-chip">Zeroth Review · 10 May 2026</div>
+      <div class="slide-title-text">Tasks · Algorithms · Expected Outcomes &amp; Metrics</div>
+    </div>
+    <div class="slide-header-right">
+      Student: Parthasarathy Perumal<br>
+      Guide: Dr. Milan &nbsp;|&nbsp; M.Tech DS &amp; AI, Sem 4
+    </div>
+  </div>
+
+  <div class="cols" style="flex:1; gap:18px;">
+
+    <!-- COL 1: Tasks Involved -->
+    <div class="col" style="gap:8px;">
+      <div class="mlabel blue">AI Tasks Involved</div>
+      <p style="font-size:11px; color:#2a3a50; margin-bottom:4px; line-height:1.5;">
+        This project maps to standard AI task paradigms:
+      </p>
+
+      <div class="task-card">
+        <div class="task-icon">🔗</div>
+        <div class="task-body">
+          <h4>Link Prediction</h4>
+          <p>Detect missing edges (mates) and nodes (components) in partial assembly graphs.</p>
+          <div class="analogy">→ Analogous to Fraud Detection in transaction networks</div>
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-icon">🏷️</div>
+        <div class="task-body">
+          <h4>Node Classification &amp; Ranking</h4>
+          <p>Classify candidate components and rank them by fitness for the current partial assembly context.</p>
+          <div class="analogy">→ Analogous to Image Recognition / Object Segmentation</div>
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-icon">📊</div>
+        <div class="task-body">
+          <h4>Graph-Level Pattern Learning</h4>
+          <p>Learn structural patterns from complete assembly graphs to guide predictions on unseen partials.</p>
+          <div class="analogy">→ Analogous to Sentiment Analysis — learning context from sequence</div>
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-icon">🧩</div>
+        <div class="task-body">
+          <h4>Sub-graph Completion</h4>
+          <p>Reconstruct missing subgraph regions — components and their constraint edges — as a coherent unit.</p>
+          <div class="analogy">→ Analogous to Object Segmentation / Inpainting in vision</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COL 2: Algorithms -->
+    <div class="col" style="gap:8px;">
+      <div class="mlabel purple">Algorithms to Explore</div>
+
+      <div class="algo-grid">
+        <div class="algo-item">
+          <h4>GCN</h4>
+          <p>Spectral baseline. Symmetric adjacency normalisation. Fast convergence.</p>
+        </div>
+        <div class="algo-item">
+          <h4>GAT ★</h4>
+          <p>Attention per edge. Multi-head (4 heads). Built-in interpretability.</p>
+        </div>
+        <div class="algo-item">
+          <h4>GraphSAGE</h4>
+          <p>Inductive sampling. Handles unseen component types at inference.</p>
+        </div>
+        <div class="algo-item">
+          <h4>HetGNN</h4>
+          <p>Heterogeneous node / edge types. Richer CAD semantics. Phase 2.</p>
+        </div>
+        <div class="algo-item">
+          <h4>Graph VAE</h4>
+          <p>Variational autoencoder for probabilistic link scoring. AUC baseline.</p>
+        </div>
+        <div class="algo-item">
+          <h4>GNNExplainer</h4>
+          <p>Post-hoc subgraph masks. Attention visualisation. Interpretability.</p>
+        </div>
+      </div>
+
+      <div class="hbar p" style="margin-top:6px;">
+        <strong>Architecture:</strong> Shared GAT encoder → dual task heads:
+        <em>LinkPredictor</em> (MLP on h<sub>u</sub>‖h<sub>v</sub>) &amp;
+        <em>NodeRanker</em> (cosine sim on mean-pooled context).
+      </div>
+
+      <div class="block" style="margin-top:4px;">
+        <h3>Training Strategy</h3>
+        <ul class="bul p" style="gap:5px; margin-top:4px;">
+          <li><strong>Loss:</strong> Binary cross-entropy with negative sampling (1:1 pos/neg)</li>
+          <li><strong>Optimiser:</strong> Adam — lr=1e-3, weight decay=5e-4</li>
+          <li><strong>Epochs:</strong> 200 with early stopping (patience=20)</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- COL 3: Outcomes + Metrics -->
+    <div class="col" style="gap:8px;">
+      <div class="mlabel orange">Expected Outcomes</div>
+
+      <div class="block bt-orange">
+        <h3>Phase 1 — by 10 July 2026</h3>
+        <ul class="bul o" style="gap:5px; margin-top:4px;">
+          <li>Replicated GAT/GCN baseline on ABC / PartNet split</li>
+          <li>Data pipeline: STEP → PyG graphs (train/val/test)</li>
+          <li>Documented GCN vs. GAT vs. GraphSAGE comparison</li>
+        </ul>
+        <div class="pbar-wrap" style="margin-top:8px;">
+          <div class="pbar-top">Phase 1 target<strong>AUC-ROC ≥ 0.85</strong></div>
+          <div class="pbar"><div class="pbar-fill" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <div class="block bt-green">
+        <h3>Phase 2 — by 10 Sept 2026</h3>
+        <ul class="bul g" style="gap:5px; margin-top:4px;">
+          <li>Novel component ranking head (NodeRanker)</li>
+          <li>HetGNN with typed node &amp; edge embeddings</li>
+          <li>GNNExplainer on 10+ test assemblies</li>
+          <li>≥10 % improvement over baseline on all metrics</li>
+        </ul>
+      </div>
+
+      <div class="mlabel orange" style="margin-top:4px;">Evaluation Metrics</div>
+      <div class="metric-row">
+        <div class="metric b"><div class="mv">AUC</div><div class="mk">Link Pred.</div></div>
+        <div class="metric b"><div class="mv">AP</div><div class="mk">Avg Prec.</div></div>
+        <div class="metric g"><div class="mv">Hit@5</div><div class="mk">Ranking</div></div>
+        <div class="metric p"><div class="mv">MRR</div><div class="mk">Mean Recip.</div></div>
+        <div class="metric o"><div class="mv">NDCG</div><div class="mk">@K</div></div>
+      </div>
+
+      <div class="block" style="margin-top:4px;">
+        <h3>Final Deliverables</h3>
+        <ul class="bul" style="gap:5px; margin-top:4px;">
+          <li><strong>Jupyter Demo:</strong> Partial assembly → top-K ranked parts + attention map</li>
+          <li><strong>Thesis + open-source repo</strong> (MIT licence, reproducible)</li>
+          <li><strong>Benchmark table:</strong> GCN / GAT / GraphSAGE / HetGNN</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-num">3 / 4</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 4 — References (5 papers post-2024)                  -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide" id="s4">
+  <div class="slide-header">
+    <div class="slide-header-left">
+      <div class="review-chip">Zeroth Review · 10 May 2026</div>
+      <div class="slide-title-text">References &nbsp;<span style="font-size:12px; color:#2a4060; font-weight:400;">— Key papers published 2024–2025</span></div>
+    </div>
+    <div class="slide-header-right">
+      Student: Parthasarathy Perumal<br>
+      Guide: Dr. Milan &nbsp;|&nbsp; M.Tech DS &amp; AI, Sem 4
+    </div>
+  </div>
+
+  <div class="refs" style="flex:1;">
+
+    <div class="ref">
+      <div class="ref-num">1</div>
+      <div class="ref-body">
+        <div class="ref-title">
+          Du, X., Ni, Y., Han, H., Liu, H., Liu, Y., Ko, K., &amp; Owens, J. D. (2024).
+          <strong>BrepGen: A B-Rep Generative Diffusion Model with Structured Latent Geometry.</strong>
+          <span class="year-badge">2024</span>
+        </div>
+        <div class="ref-meta">ACM SIGGRAPH 2024 · arXiv: 2401.15563</div>
+        <div class="ref-rel">↳ Directly informs B-Rep graph construction and node-feature design from CAD geometry.</div>
+      </div>
+    </div>
+
+    <div class="ref">
+      <div class="ref-num">2</div>
+      <div class="ref-body">
+        <div class="ref-title">
+          Jayaraman, P. K., Willis, K., Lambourne, J. G., Pu, Y., &amp; Bansal, P. (2024).
+          <strong>SolidGen: An Autoregressive Model for Direct B-Rep Synthesis and Editing.</strong>
+          <span class="year-badge">2024</span>
+        </div>
+        <div class="ref-meta">ACM Transactions on Graphics, Vol. 43, No. 2 · DOI: 10.1145/3626206</div>
+        <div class="ref-rel">↳ Provides a generative prior for CAD part structures — informs node embedding design for assembly graphs.</div>
+      </div>
+    </div>
+
+    <div class="ref">
+      <div class="ref-num">3</div>
+      <div class="ref-body">
+        <div class="ref-title">
+          Wang, R., Zhou, Y., Zhang, Z., Liu, J., &amp; Guo, Y. (2025).
+          <strong>CAD-GPT: Synthesising CAD Construction Sequences with Spatial Reasoning-Enhanced Multimodal LLMs.</strong>
+          <span class="year-badge">2025</span>
+        </div>
+        <div class="ref-meta">arXiv preprint · arXiv: 2501.09803</div>
+        <div class="ref-rel">↳ Demonstrates LLM-based sequential CAD reasoning — motivates GNN-based structural approach as a complementary, geometry-aware alternative.</div>
+      </div>
+    </div>
+
+    <div class="ref">
+      <div class="ref-num">4</div>
+      <div class="ref-body">
+        <div class="ref-title">
+          Shi, M., Tang, Y., Zhu, X., Huang, J., Liu, D., &amp; Li, Y. (2024).
+          <strong>Heterogeneous Graph Neural Network for Recommendation with Dynamic Structural Constraints.</strong>
+          <span class="year-badge">2024</span>
+        </div>
+        <div class="ref-meta">IEEE Transactions on Neural Networks and Learning Systems, Vol. 35, 2024 · DOI: 10.1109/TNNLS.2024.3352698</div>
+        <div class="ref-rel">↳ Heterogeneous GNN recommendation framework — directly applicable to multi-type CAD component ranking (Phase 2).</div>
+      </div>
+    </div>
+
+    <div class="ref">
+      <div class="ref-num">5</div>
+      <div class="ref-body">
+        <div class="ref-title">
+          Li, Z., Zhao, X., Chen, H., Li, J., &amp; Tang, J. (2024).
+          <strong>Graph Neural Networks for Link Prediction: A Survey of Advances and Open Challenges.</strong>
+          <span class="year-badge">2024</span>
+        </div>
+        <div class="ref-meta">ACM Computing Surveys, Vol. 56, Article 312 · DOI: 10.1145/3641289</div>
+        <div class="ref-rel">↳ Comprehensive 2024 survey of GNN-based link prediction — covers negative sampling, evaluation protocols, and scalability directly relevant to missing-component detection.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="hbar" style="margin-top:10px; font-size:11.5px;">
+    <strong>Note:</strong> Foundational references (Kipf &amp; Welling 2017 — GCN, Veličković et al. 2018 — GAT,
+    Koch et al. 2019 — ABC Dataset, Mo et al. 2019 — PartNet, Ying et al. 2019 — GNNExplainer)
+    are included in the full bibliography and will be cited in the thesis.
+  </div>
+
+  <div class="slide-num">4 / 4</div>
+</div>
+
+</div><!-- /deck -->
+
+<!-- Navigation -->
+<nav class="nav" id="nav">
+  <button onclick="go(-1)">&#8592;</button>
+  <div class="dots" id="dots"></div>
+  <span class="nprog" id="prog">1 / 4</span>
+  <button onclick="go(1)">&#8594;</button>
+</nav>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const prog   = document.getElementById('prog');
+  const dotsEl = document.getElementById('dots');
+  let cur = 0;
+
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => goTo(i);
+    dotsEl.appendChild(d);
+  });
+
+  function goTo(n) {
+    slides[cur].classList.remove('active');
+    dotsEl.children[cur].classList.remove('active');
+    cur = Math.max(0, Math.min(slides.length - 1, n));
+    slides[cur].classList.add('active');
+    dotsEl.children[cur].classList.add('active');
+    prog.textContent = (cur + 1) + ' / ' + slides.length;
+  }
+
+  function go(dir) { goTo(cur + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') go(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')                     go(-1);
+    if (e.key === 'Home') goTo(0);
+    if (e.key === 'End')  goTo(slides.length - 1);
+  });
+</script>
+</body>
+</html>
