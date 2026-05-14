@@ -6,94 +6,81 @@
 |---|---|
 | **Student** | Parthasarathy Perumal |
 | **Programme** | M.Tech Data Science & AI, Sem 4 |
-| **Guide** | Prof. Sagarika Borah |
-| **Phase 1 Status** | Complete — all targets exceeded |
-| **Phase 2 Status** | In progress (Jul–Sep 2026) |
+| **Guide** | Dr. Milan |
+| **Phase 1** | May 10 – Jul 10, 2026 (Base replication) |
+| **Phase 2** | Jul 10 – Sep 10, 2026 (Novelty & improvement) |
 
 ---
 
-## Overview
+## Abstract
 
-Engineering CAD assemblies consist of multiple interconnected components whose correct selection is time-consuming and expertise-dependent. This project builds an intelligent recommendation system that models assemblies as attributed graphs — components as nodes, mate constraints as edges — and trains a **Graph Attention Network (GAT)** on historical assembly data to learn structural patterns.
-
-The system addresses two tasks simultaneously:
-1. **Missing component detection** — identify which components are absent from a partial assembly via link prediction
-2. **Next component recommendation** — rank candidate components for the next assembly step via embedding-space ranking
-
-Predictions are interpretable through **GNNExplainer** subgraph masks. The entire pipeline runs in Python using PyTorch Geometric with no dependency on proprietary CAD software APIs.
+Engineering CAD assemblies consist of multiple interconnected components whose correct selection is time-consuming and expertise-dependent. This project proposes an intelligent recommendation system that models assemblies as graphs — components as nodes, relationships as edges — and trains a **Graph Neural Network (GNN)** on historical assembly data to learn structural patterns. The trained model predicts **missing components** and suggests the most suitable **next component** for a partially defined assembly, outputting ranked top-K recommendations with model-level interpretability. The solution is implemented entirely in Python using PyTorch Geometric, without dependency on proprietary CAD software APIs.
 
 ---
 
-## Architecture
+## Problem Statement
+
+Modern CAD tools (SolidWorks, CATIA, Fusion 360) offer no contextual intelligence during assembly creation. Engineers rely entirely on domain knowledge to choose and position each component.
+
+| Pain Point | Description |
+|---|---|
+| **Knowledge barrier** | Junior engineers lack assembly patterns built over years of experience |
+| **No automation** | Existing CAD tools offer no intelligent part suggestion during assembly creation |
+| **Non-standardisation** | Different designers make inconsistent choices for equivalent subassemblies |
+| **Incomplete assemblies** | Partially defined assemblies have no mechanism to detect or fill missing parts |
+
+**Research Gap:** No existing system applies graph-based deep learning to recommend components from partial CAD assembly graphs without proprietary API dependency.
+
+---
+
+## Proposed System
 
 ```
-ABC Dataset (4,872 STEP graphs)
-         │
-         ▼
-Graph Construction Pipeline (dataset.py)
-  BRep Parser → Node feat (13-dim) → Edge feat (2-dim) → PyG InMemoryDataset
-         │
-         ▼
-AssemblyGNN — 3-Layer GAT Encoder (model.py)
-  Input x ∈ ℝᴺˣ¹³
-  → GATConv L1 (4 heads, edge_dim=2)  → (N, 512)
-  → GATConv L2 (2 heads)              → (N, 256)
-  → GATConv L3 (1 head)               → Z ∈ ℝᴺˣ⁶⁴
-         │
-    ┌────┴────┐
-    ▼         ▼
-LinkPredictor    NodeRanker
-MLP(hᵤ‖hᵥ)→BCE  cosine_sim(ctx, cands)
-Missing detect   Top-K recommendations
-    │         │
-    └────┬────┘
-         ▼
-GNNExplainer — edge mask + feature mask → subgraph explanations
+Partial Assembly Graph (some nodes / edges missing)
+                    │
+                    ▼
+         GNN Encoder (GAT / GraphSAGE)
+         Message passing → node embeddings hᵥ
+                    │
+         ┌──────────┴──────────┐
+         ▼                     ▼
+   Task A: Link Prediction   Task B: Node Ranking
+   Detect missing components  Top-K next component
+   (AUC-ROC, AP)              suggestions (Hit@K, MRR)
+         │                     │
+         └──────────┬──────────┘
+                    ▼
+         GNNExplainer — attention maps + subgraph masks
+         Ranked top-K recommendations with confidence scores
 ```
 
-### Node Feature Vector (13-dim)
+### Graph Schema
 
-| Dimensions | Feature |
-|---|---|
-| 0–7 | Component type one-hot (body, fastener, bearing, shaft, plate, housing, gear, other) |
-| 8 | Normalised volume |
-| 9 | Normalised surface area |
-| 10–12 | Bounding box (x, y, z) |
+| Element | Features | Description |
+|---|---|---|
+| **Node** | 11-dim | Component type (one-hot, 6 classes), normalised volume, surface area, bounding box (x, y, z) |
+| **Edge** | 2-dim | Mate type encoded (coincident, concentric, parallel, tangent, fixed), weight |
+| **Avg nodes/graph** | ~18 | — |
+| **Avg edges/graph** | ~32 | — |
+| **Train/Val/Test split** | 70/15/15 | Split by assembly ID to prevent data leakage |
 
-### Edge Feature Vector (2-dim)
-
-| Dimension | Feature |
-|---|---|
-| 0 | Mate type encoded (coincident, concentric, parallel, tangent, fixed, other) |
-| 1 | Weight (1.0) |
+Partial graphs are generated by masking **20–40% of edges/nodes** per assembly to simulate partially defined assemblies.
 
 ---
 
-## Results — Phase 1 Final
+## Architecture Candidates
 
-Trained on 4,872 ABC Dataset assemblies, converged at epoch 147/200 on Google Colab A100.
+| Model | Description | Role |
+|---|---|---|
+| **GCN** | Spectral convolution baseline; symmetric adjacency normalisation | Baseline |
+| **GAT** | Learnable per-edge attention (4 heads); built-in interpretability | Primary candidate |
+| **GraphSAGE** | Inductive sampling; generalises to unseen component types at inference | Baseline |
+| **HetGNN** | Typed node/edge embeddings for 6 component classes + mate types | Phase 2 novelty |
+| **GNNExplainer** | Post-hoc subgraph masks + attention visualisation | Interpretability |
 
-| Metric | Score | Target | Status |
-|---|---|---|---|
-| AUC-ROC | **0.868** | ≥ 0.850 | ✓ |
-| Average Precision | **0.841** | ≥ 0.820 | ✓ |
-| Hit@5 | **0.742** | ≥ 0.700 | ✓ |
-| MRR | **0.671** | ≥ 0.640 | ✓ |
-| NDCG@5 | **0.694** | — | — |
+**Architecture:** Shared GAT encoder → dual task heads: `LinkPredictor` (MLP on hᵤ‖hᵥ) and `NodeRanker` (cosine similarity on mean-pooled context).
 
-**Cross-dataset generalisation (FusionGallery, unseen during training):** AUC = 0.839 · Hit@5 = 0.711
-
-### Baseline Comparison
-
-| Model | AUC-ROC | Avg Prec | Hit@5 | MRR | Params |
-|---|---|---|---|---|---|
-| Random Baseline | 0.500 | 0.487 | 0.198 | 0.121 | — |
-| Node2Vec + MLP | 0.681 | 0.654 | 0.512 | 0.441 | ~28K |
-| GCN (2-layer) | 0.736 | 0.708 | 0.571 | 0.514 | ~42K |
-| GraphSAGE (2-layer) | 0.762 | 0.731 | 0.608 | 0.547 | ~58K |
-| GAT (2-layer) | 0.784 | 0.755 | 0.631 | 0.571 | ~124K |
-| GAT-3L (single task) | 0.844 | 0.817 | 0.711 | 0.641 | ~162K |
-| **GAT-3L Dual-Head (ours)** | **0.868** | **0.841** | **0.742** | **0.671** | ~186K |
+**Training:** Binary cross-entropy with negative sampling (1:1 pos/neg) · Adam (lr=1e-3, weight decay=5e-4) · 200 epochs with early stopping (patience=20)
 
 ---
 
@@ -101,154 +88,88 @@ Trained on 4,872 ABC Dataset assemblies, converged at epoch 147/200 on Google Co
 
 | Dataset | Size | Role |
 |---|---|---|
-| [ABC Dataset](https://deep-geometry.github.io/abc-dataset/) | 4,872 STEP assembly graphs | Primary training / evaluation |
-| [FusionGallery](https://github.com/AutodeskAILab/FusionGallery) | 8,625 assemblies | Cross-dataset generalisation test |
-| [PartNet](https://partnet.cs.stanford.edu/) | 573K part annotations | Supplementary part annotations |
-
-Train / Val / Test split: **70 / 15 / 15** by assembly ID. Partial graphs are generated by masking 20–40% of edges per assembly.
-
----
-
-## Codebase
-
-```
-.
-├── dataset.py       # ABCAssemblyDataset — BRep parsing, graph construction, PyG splits
-├── model.py         # AssemblyGNN (3-layer GAT encoder) + build_model()
-├── train.py         # Training loop, loss, optimiser, checkpointing
-├── evaluate.py      # AUC-ROC, AP, Hit@K, MRR, NDCG@K computation
-├── demo.py          # Inference: predict_missing() + recommend_next()
-├── visualise.py     # Assembly graph visualisation, recommendation display
-├── explainer.py     # GNNExplainer subgraph masks
-├── checkpoints/     # Saved model weights (best.pt)
-├── results/         # Experiment logs and metric outputs
-├── configs/         # YAML experiment configurations
-└── data/            # Processed PyG graph files
-```
-
-### Requirements
-
-```
-python >= 3.9
-torch >= 2.0
-torch-geometric
-networkx
-matplotlib
-numpy
-```
-
-### Quick Start
-
-```bash
-# Install dependencies
-pip install torch torch-geometric networkx matplotlib numpy
-
-# Train the model
-python train.py --config configs/default.yaml
-
-# Run inference on a partial assembly
-python demo.py --checkpoint checkpoints/best.pt
-
-# Evaluate on the test split
-python evaluate.py --checkpoint checkpoints/best.pt
-
-# Visualise a prediction
-python visualise.py --checkpoint checkpoints/best.pt
-```
-
-### Demo Output Example
-
-```
-====================================================
-Top-K Recommendations
-====================================================
-  1. shaft        |████████████████░░░░| 0.831
-  2. bearing      |██████████████░░░░░░| 0.712
-  3. fastener     |████████████░░░░░░░░| 0.648
-  4. gear         |████████░░░░░░░░░░░░| 0.421
-  5. plate        |██████░░░░░░░░░░░░░░| 0.318
-```
+| [ABC Dataset](https://deep-geometry.github.io/abc-dataset/) — Koch et al., CVPR 2019 | 1M+ STEP / B-Rep files | Primary training data; geometric metadata (bbox, volume, surface area, mate constraints) |
+| [PartNet](https://partnet.cs.stanford.edu/) — Mo et al., CVPR 2019 | 573,585 annotated parts, 26 categories | Hierarchical part-level annotations for edge-feature construction |
+| [FusionGallery](https://github.com/AutodeskAILab/FusionGallery) — Willis et al., 2021 | 8,625 Fusion 360 assemblies | Native mate-constraint graphs; direct edge supervision |
+| Synthetic Partial Graphs | Generated | 20–40% edge/node masking of complete graphs for evaluation |
 
 ---
 
-## Key Design Decisions
+## Evaluation Metrics
 
-**Why 3 GAT layers?** Ablation showed a 3-hop neighbourhood is needed to capture structural patterns across typical assembly subgraphs (average depth 2.8). Additional layers caused over-smoothing.
-
-**Why a shared encoder?** Joint training reduces total parameters by 38% vs. two separate encoders while boosting AUC (+0.024) and Hit@5 (+0.031) over single-task training.
-
-**Why edge features on L1 only?** Edge-dim integration on all layers caused gradient instability. L1 edge conditioning injects mate-type bias early; subsequent layers refine topology.
-
-**Why ABC Dataset?** Chosen over FusionGallery for scale (4,872 vs. 1,200 usable graphs). FusionGallery is reserved for held-out cross-dataset generalisation.
-
----
-
-## Training Configuration
-
-| Parameter | Value |
+| Metric | Task |
 |---|---|
-| Optimizer | Adam (lr=1e-3, β₁=0.9, β₂=0.999) |
-| LR Schedule | ReduceLROnPlateau (factor=0.5, patience=8) |
-| Early Stopping | patience=20, best model checkpointed |
-| Batch Size | 32 graphs |
-| Max Epochs | 200 (converged at 147) |
-| Regularisation | L2 (λ=5e-4) |
-| Hardware | Google Colab A100 (40GB) |
-| Training Time | ~4.1 min |
-| Total Params | 186,432 |
+| AUC-ROC | Link prediction (missing component detection) |
+| Average Precision (AP) | Link prediction |
+| Hit@K | Next component recommendation |
+| MRR (Mean Reciprocal Rank) | Next component recommendation |
+| NDCG@K | Next component recommendation |
+
+**Phase 1 target:** AUC-ROC ≥ 0.85 on held-out assembly split by July 10, 2026.
 
 ---
 
-## Ablation Results
+## Project Timeline
 
-| Configuration | AUC-ROC | Hit@5 | Delta AUC |
-|---|---|---|---|
-| 2 layers | 0.840 | 0.718 | −0.028 |
-| 3 layers (ours) | **0.868** | **0.742** | baseline |
-| No edge features | 0.849 | 0.728 | −0.019 |
-| Single-task | 0.844 | 0.711 | −0.024 |
-| Random negatives | 0.857 | 0.734 | −0.011 |
+```
+May 10, 2026 ──────────────── Jul 10, 2026 ──────────────── Sep 10, 2026
+│   PHASE 1 — Replication      │   PHASE 2 — Novelty          │
+│                               │                               │
+│ Wk 1–3: Literature review     │ Wk 9–10: Design novelty       │
+│ Wk 4–5: Data pipeline         │ Wk 11–13: Improved model      │
+│ Wk 6–8: Baseline GNN          │ Wk 14–16: Thesis + demo       │
+★ Zeroth Review (10 May)        │                              ★ Final Review (~10 Sep)
+```
 
 ---
 
-## Phase 2 Roadmap (Jul–Sep 2026)
+## Deliverables
 
-- **HetGNN:** Typed node/edge embeddings for 6 component classes and 6 mate types — target AUC ≥ 0.890
-- **BPR Ranking Loss:** Pairwise ranking objective for the NodeRanker — target Hit@5 ≥ 0.771
-- **t-SNE Visualisation:** Component embedding space showing geometric clustering
-- **Extended Explainability:** PGExplainer for graph-level explanations
-- **Thesis + Journal Paper:** Full draft targeting *Computer-Aided Design* (Elsevier) / *IEEE T-NNLS*, submission Nov 2026
+| Phase | Deliverable |
+|---|---|
+| Phase 1 | Replicated GAT/GCN baseline on ABC/PartNet split; GCN vs. GAT vs. GraphSAGE comparison table |
+| Phase 2 | Novel NodeRanker head; HetGNN with typed embeddings; GNNExplainer on 10+ test assemblies |
+| Final | Interactive Python notebook (partial assembly → top-K ranked parts + attention map); thesis + open-source repo (MIT licence, reproducible) |
+
+---
+
+## Technology Stack
+
+| Layer | Tools |
+|---|---|
+| **Data & Graphs** | ABC Dataset, PartNet, NetworkX, Open3D, pandas |
+| **Models** | PyTorch Geometric, PyTorch, DGL |
+| **Explainability** | GNNExplainer, attention visualisation |
+| **Environment** | Python 3.10+, Jupyter, Google Colab (A100) — no proprietary CAD API |
 
 ---
 
 ## Literature Survey
 
-| # | Paper | Venue | Relevance |
-|---|---|---|---|
-| 1 | BrepGen: A B-Rep Generative Diffusion Model with Structured Latent Geometry | SIGGRAPH 2024 | Node feature design and CAD graph schema |
-| 2 | SolidGen: An Autoregressive Model for Direct B-Rep Synthesis | ACM ToG 2024 | Sequential CAD synthesis; motivates GNN-over-LLM choice |
-| 3 | CAD-GPT: Synthesising CAD Construction Sequences with Spatial Reasoning-Enhanced Multimodal LLMs | arXiv 2025 | LLM-based CAD reasoning baseline |
-| 4 | Heterogeneous Graph Neural Network for Recommendation with Dynamic Structural Constraints | IEEE T-NNLS 2024 | HetGNN framework for Phase 2 |
-| 5 | Graph Neural Networks for Link Prediction: A Survey of Advances and Open Challenges | ACM Comp. Surveys 2024 | Negative sampling strategy and evaluation protocol |
-| 6 | ELPH: Efficient Link Prediction with Hashing for Large-Scale Graphs | ICLR 2024 | Scalable link prediction baseline |
+Survey papers are available in [`Literature_survey_papers/`](./Literature_survey_papers/).
 
-Survey papers are available in the [`Literature_survey_papers/`](./Literature_survey_papers/) directory.
+| Paper | Venue | PDF |
+|---|---|---|
+| Du et al. (2024). **BrepGen: A B-Rep Generative Diffusion Model with Structured Latent Geometry** | ACM SIGGRAPH 2024 · arXiv: 2401.15563 | [PDF](./Literature_survey_papers/BrepGen_2401.15563v3.pdf) |
+| Jayaraman et al. (2024). **SolidGen: An Autoregressive Model for Direct B-Rep Synthesis and Editing** | ACM ToG, Vol. 43 · DOI: 10.1145/3626206 | [PDF](./Literature_survey_papers/SolidGen_2203.13944v2.pdf) |
+| Wang et al. (2025). **CAD-GPT: Synthesising CAD Construction Sequences with Spatial Reasoning-Enhanced Multimodal LLMs** | arXiv: 2501.09803 | [PDF](./Literature_survey_papers/CADGPT_2412.19663v2.pdf) |
+| (2024). **Can GNNs Learn Link Heuristics?** | arXiv: 2411.14711 | [PDF](<./Literature_survey_papers/Can GNNs Learn Link Heuristics_2411.14711v2.pdf>) |
+| (2023). **Heterogeneous Graph Contrastive Learning** | arXiv: 2303.00995 | [PDF](./Literature_survey_papers/Heterogeneous%20Graph%20Contrastive%20Learning_2303.00995v1.pdf) |
+
+**Foundational references** (cited in thesis): Kipf & Welling (2017) — GCN · Veličković et al. (2018) — GAT · Hamilton et al. (2017) — GraphSAGE · Koch et al. (2019) — ABC Dataset · Mo et al. (2019) — PartNet · Ying et al. (2019) — GNNExplainer.
 
 ---
 
-## Review Presentations
+## Review Files
 
-Progress presentations are in the [`Review_files/`](./Review_files/) directory.
-
-| Review | Date | Phase Progress |
-|---|---|---|
-| Zeroth Review | — | Project proposal |
-| First Review | 24 May 2026 | Phase 1 — 30% |
-| Second Review | 7 Jun 2026 | Phase 1 — 80% |
-| Third Review | 21 Jun 2026 | Phase 1 — 100% ✓ |
+| File | Description |
+|---|---|
+| [`zeroth_review_presentation.html`](./Review_files/zeroth_review_presentation.html) | Zeroth review — project proposal, 10 May 2026 |
+| [`zeroth_review_presentation_self_reference.html`](./Review_files/zeroth_review_presentation_self_reference.html) | Zeroth review with self-reference links |
+| [`AI_Assisted_3D_Assembly_guidance_call_1.html`](./Review_files/AI_Assisted_3D_Assembly_guidance_call_1.html) | Guidance call 1 — motivation, methodology, open questions |
 
 ---
 
 ## License
 
-MIT License — open-source with reproducible seeds and YAML-driven experiments.
+MIT — open-source, reproducible seeds, no proprietary CAD API dependency.
