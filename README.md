@@ -176,6 +176,62 @@ May 10, 2026 ──────────────── Jul 10, 2026 ─�
 
 ---
 
+## 3D Visualization — STEP File Viewer
+
+**Recommended stack: Streamlit + stpyvista** — interactive 3D out of the box with no frontend code.
+
+Since PyVista cannot read STEP files directly, use a two-step pipeline:
+
+```
+STEP file  →  cascadio (OpenCASCADE)  →  GLB/OBJ mesh  →  PyVista  →  stpyvista  →  Streamlit
+```
+
+### Install
+
+```bash
+pip install streamlit cascadio pyvista stpyvista
+```
+
+### Basic Usage
+
+```python
+import streamlit as st
+import pyvista as pv
+import cascadio
+from stpyvista import stpyvista
+
+pv.OFF_SCREEN = True  # required on macOS M1 to avoid NSInternalInconsistencyException
+
+st.title("CAD Assembly Viewer")
+uploaded = st.file_uploader("Upload STEP file", type=["step", "stp"])
+
+if uploaded:
+    with open("temp.step", "wb") as f:
+        f.write(uploaded.read())
+
+    mesh_path = cascadio.convert("temp.step", "temp.glb")
+    mesh = pv.read("temp.glb")
+
+    plotter = pv.Plotter(window_size=[600, 400])
+    plotter.add_mesh(mesh, color="lightblue")
+    plotter.view_isometric()
+    plotter.background_color = "white"
+
+    stpyvista(plotter)
+```
+
+### Why Streamlit over Flask / Gradio
+
+| Tool | Verdict |
+|---|---|
+| **Streamlit + stpyvista** | Interactive 3D (zoom, rotate, pan) with minimal code — recommended |
+| Flask | Requires building a full Three.js frontend yourself |
+| Gradio | Very limited 3D support; primarily for model inference demos |
+
+**M1 note:** `stpyvista` can throw `NSInternalInconsistencyException` on macOS. Fix by adding `pv.OFF_SCREEN = True` (or `pv.start_xvfb()`) at the top of your script before any PyVista calls.
+
+---
+
 ## Literature Survey
 
 Survey papers are available in [`Literature_survey_papers/`](./Literature_survey_papers/).
