@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(python3 -c 'import sys; from html.parser import HTMLParser; *)",
-      "Bash(python3 -c ' *)"
+      "Bash(python3 -c ' *)",
+      "Bash(pip show *)",
+      "Bash(pip list *)"
     ]
   }
 }

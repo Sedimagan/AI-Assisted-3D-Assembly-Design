@@ -6,7 +6,7 @@
 |---|---|
 | **Student** | Parthasarathy Perumal |
 | **Programme** | M.Tech Data Science & AI, Sem 4 |
-| **Guide** | Dr. Milan |
+| **Guide** | Prof. Sagarika Borah |
 | **Phase 1** | May 10 – Jul 10, 2026 (Base replication) |
 | **Phase 2** | Jul 10 – Sep 10, 2026 (Novelty & improvement) |
 
@@ -192,33 +192,17 @@ STEP file  →  cascadio (OpenCASCADE)  →  GLB/OBJ mesh  →  PyVista  →  st
 pip install streamlit cascadio pyvista stpyvista
 ```
 
-### Basic Usage
+### Running the App
 
-```python
-import streamlit as st
-import pyvista as pv
-import cascadio
-from stpyvista import stpyvista
+The full viewer app lives in [`front_end/app.py`](./front_end/app.py).
 
-pv.OFF_SCREEN = True  # required on macOS M1 to avoid NSInternalInconsistencyException
-
-st.title("CAD Assembly Viewer")
-uploaded = st.file_uploader("Upload STEP file", type=["step", "stp"])
-
-if uploaded:
-    with open("temp.step", "wb") as f:
-        f.write(uploaded.read())
-
-    mesh_path = cascadio.convert("temp.step", "temp.glb")
-    mesh = pv.read("temp.glb")
-
-    plotter = pv.Plotter(window_size=[600, 400])
-    plotter.add_mesh(mesh, color="lightblue")
-    plotter.view_isometric()
-    plotter.background_color = "white"
-
-    stpyvista(plotter)
+```bash
+cd front_end
+pip install -r requirements.txt
+streamlit run app.py
 ```
+
+**Features:** file uploader (STEP/STP), interactive 3D viewer (zoom, rotate, pan), sidebar controls for colour, background, camera preset, edge display, and opacity, plus mesh stats (point count, face count, bounding-box dimensions).
 
 ### Why Streamlit over Flask / Gradio
 
