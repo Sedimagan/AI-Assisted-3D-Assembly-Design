@@ -1,0 +1,32 @@
+data:
+  source_dir: "/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Source_3d_models"
+  processed_dir: "data/processed"
+  train_ratio: 0.70
+  val_ratio:   0.15
+  test_ratio:  0.15
+  mask_ratio:  [0.20, 0.40]   # fraction of edges masked per graph for partial-graph training
+
+model:
+  in_dim:     13              # node feature dimension
+  edge_dim:   2               # edge feature dimension
+  hidden_dim: 128
+  out_dim:    64
+  heads:      [4, 2, 1]       # attention heads per GAT layer
+  dropout:    0.2
+
+training:
+  batch_size:   32
+  epochs:       200
+  lr:           1.0e-3
+  weight_decay: 5.0e-4
+  patience:     20            # early stopping patience
+  lr_patience:  8             # ReduceLROnPlateau patience
+  lr_factor:    0.5
+  neg_ratio:    1.0           # negatives per positive edge
+
+evaluation:
+  top_k: [1, 3, 5, 10]
+
+paths:
+  checkpoints: "checkpoints"
+  results:     "results"
