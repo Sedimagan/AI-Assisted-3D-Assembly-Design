@@ -1,1 +1,23 @@
+# macOS
 .DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+
+# Environment
+.env
+
+# Service runtime
+.pids/
+.logs/
+
+# Back-end generated
+back_end/data/processed/
+back_end/checkpoints/best.pt
+back_end/results/
+
+# Jupyter
+.ipynb_checkpoints/
