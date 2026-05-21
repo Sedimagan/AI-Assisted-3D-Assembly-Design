@@ -154,7 +154,7 @@ AI-Assisted-3D-Assembly-Design/
 | `back_end/evaluate.py` | `evaluate()` returns AUC-ROC and Average Precision — Phase 1 only; Hit@K / MRR / NDCG@K deferred to Phase 2 |
 | `back_end/infer.py` | `predict_missing()` scores all absent node pairs and returns top-K with confidence; bar-chart CLI output |
 | `back_end/skills_agent.py` | `AssemblySkillsAgent` — loads skills YAML, builds Gemini system prompt, exposes `explain_prediction()`, `identify_component()`, `suggest_assembly_sequence()`, `answer()` |
-| `front_end/app.py` | Streamlit app — fixed header, gmsh subprocess STEP→STL, Plotly `Mesh3d` dual-panel viewer, native macOS folder picker (osascript), background training subprocess with milestone streaming to activity log |
+| `front_end/app.py` | Streamlit app — fixed header, dual independent panels (left: viewer, right: prediction), gmsh subprocess STEP→STL, Plotly `Mesh3d`, osascript folder picker, background training with unbuffered log streaming, GNN inference subprocess, confidence-bar missing-link results |
 
 ---
 
@@ -233,26 +233,40 @@ bash start_services.sh          # starts Streamlit on FRONTEND_PORT (default 115
 streamlit run front_end/app.py --server.port 11501
 ```
 
-**Features:**
-- Fixed header with project title, student/guide/university info
-- File uploader hidden after upload; **Upload new file** button in sidebar to reset
-- STEP conversion runs in a **subprocess** (bypasses gmsh signal-handler thread restriction)
-- Conversion result cached with `@st.cache_data` — sidebar changes are instant
-- Dual-panel layout: left = uploaded model, right = AI-Assisted viewer (coming soon)
-- Axis grid always on; auto-scrolls to viewer after conversion; success banner hides on first pan/zoom
+**Dual-panel layout:**
+
+| Panel | Description |
+|---|---|
+| **Left — 3D Model Viewer** | Upload any STEP/STP file → gmsh converts → interactive Plotly 3D viewer. Independent of inference. |
+| **Right — AI-Assisted Viewer** | Shows "Train first" if no checkpoint. After training: **"Upload 3D model for predicting missing components"** uploader. On upload: runs GNN inference → displays missing component predictions with confidence bars. |
+
+**After training completes** a green banner appears: *"🎉 Training Complete · AUC X.XXXX — Upload a 3D model in the right panel to predict missing components."*
 
 **Sidebar layout:**
 
 | Row | Controls |
 |---|---|
-| 1 | Colour picker · Opacity slider (side by side) |
-| 2 | Background · Camera preset (side by side) |
+| 1 | Colour · Opacity (side by side) |
+| 2 | Background · Camera (side by side) |
 | 3 | *(note)* Locate source for training |
-| 4 | **📁 3D Files** — opens native macOS folder picker; saves chosen path to `.env` + `config.yaml` |
+| 4 | **📁 3D Files** — native macOS folder picker; saves to `.env` + `config.yaml` |
 | 5 | *(label)* 📂 If new 3D models added |
-| 6 | **🔄 Upload new file** *(shown only when a file is loaded)* |
-| 7 | **🚀 Train 3D Models** — starts `back_end/train.py` in background; milestones stream to Activity Log |
-| 8 | **📋 Activity Log** — colour-coded, timestamped; shows training milestones every 10th epoch |
+| 6 | **🔄 Upload new file** *(when left viewer has a file)* |
+| 7 | **🚀 Train 3D Models** — starts `back_end/train.py` with unbuffered stdout; milestones stream live to Activity Log every 3 s |
+| 8 | **📋 Activity Log** — colour-coded per stage; shows dataset parsing, model build, every 10th epoch AUC, test results |
+
+**Training Activity Log stages:**
+
+| Emoji | What it shows |
+|---|---|
+| 📂 | `[1/4] Loading dataset` |
+| 🗂️ | STEP files found / parsed / synthetic graphs generated |
+| 🧠 | `[2/4] Building model` · params count |
+| 🏋️ | `[3/4] Training` |
+| 📊 | Epoch 10, 20 … with AUC score |
+| ✅ | New best AUC checkpoint saved |
+| 📈 | `[4/4] Test results` — final AUC / AP |
+| ✅ | Training complete + prompt to upload for prediction |
 
 ---
 
