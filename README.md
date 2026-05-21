@@ -154,7 +154,7 @@ AI-Assisted-3D-Assembly-Design/
 | `back_end/evaluate.py` | `evaluate()` returns AUC-ROC and Average Precision — Phase 1 only; Hit@K / MRR / NDCG@K deferred to Phase 2 |
 | `back_end/infer.py` | `predict_missing()` scores all absent node pairs and returns top-K with confidence; bar-chart CLI output |
 | `back_end/skills_agent.py` | `AssemblySkillsAgent` — loads skills YAML, builds Gemini system prompt, exposes `explain_prediction()`, `identify_component()`, `suggest_assembly_sequence()`, `answer()` |
-| `front_end/app.py` | Streamlit app — fixed header, session-state file upload, gmsh subprocess conversion (STEP → STL), Plotly `Mesh3d` viewer, dual-panel layout, activity log sidebar |
+| `front_end/app.py` | Streamlit app — fixed header, gmsh subprocess STEP→STL, Plotly `Mesh3d` dual-panel viewer, native macOS folder picker (osascript), background training subprocess with milestone streaming to activity log |
 
 ---
 
@@ -235,14 +235,24 @@ streamlit run front_end/app.py --server.port 11501
 
 **Features:**
 - Fixed header with project title, student/guide/university info
-- File uploader hidden after upload; sidebar "Upload new file" button to reset
+- File uploader hidden after upload; **Upload new file** button in sidebar to reset
 - STEP conversion runs in a **subprocess** (bypasses gmsh signal-handler thread restriction)
-- Conversion result cached with `@st.cache_data` — sidebar changes (colour, opacity, camera) are instant
+- Conversion result cached with `@st.cache_data` — sidebar changes are instant
 - Dual-panel layout: left = uploaded model, right = AI-Assisted viewer (coming soon)
-- Sidebar activity log with colour-coded status entries
-- Auto-scrolls to viewer after conversion; success banner hides on first pan/zoom
+- Axis grid always on; auto-scrolls to viewer after conversion; success banner hides on first pan/zoom
 
-**Sidebar controls:** part colour · background · camera preset (Isometric/Top/Front/Side) · axis grid · opacity · upload new file
+**Sidebar layout:**
+
+| Row | Controls |
+|---|---|
+| 1 | Colour picker · Opacity slider (side by side) |
+| 2 | Background · Camera preset (side by side) |
+| 3 | *(note)* Locate source for training |
+| 4 | **📁 3D Files** — opens native macOS folder picker; saves chosen path to `.env` + `config.yaml` |
+| 5 | *(label)* 📂 If new 3D models added |
+| 6 | **🔄 Upload new file** *(shown only when a file is loaded)* |
+| 7 | **🚀 Train 3D Models** — starts `back_end/train.py` in background; milestones stream to Activity Log |
+| 8 | **📋 Activity Log** — colour-coded, timestamped; shows training milestones every 10th epoch |
 
 ---
 
@@ -251,11 +261,11 @@ streamlit run front_end/app.py --server.port 11501
 ```bash
 cd back_end
 
-# First run (synthetic data — no STEP files needed)
-python train.py
+# From the UI: click "🚀 Train 3D Models" in the sidebar — streams milestones to Activity Log
 
-# Re-process STEP files after adding to Source_3d_models/
-python train.py --force-reload
+# Or from the terminal:
+python train.py                        # uses source_dir from config.yaml / .env
+python train.py --force-reload         # re-process STEP files
 
 # Inference demo
 python infer.py --demo
