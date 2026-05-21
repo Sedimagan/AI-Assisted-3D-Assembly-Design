@@ -1,9 +1,14 @@
 import os
+import re
 import subprocess
 import sys
 import tempfile
 import textwrap
 from datetime import datetime
+from pathlib import Path
+
+# Project root — resolved once here so all helpers can reference it
+_PROJ_ROOT = Path(__file__).resolve().parent.parent
 
 os.environ["DISPLAY"] = ":99"
 import pyvista as pv
@@ -152,6 +157,17 @@ if "activity_log" not in st.session_state:
 if "mesh_logged" not in st.session_state:
     st.session_state.mesh_logged       = False
 
+# Initialise source_3d_dir from .env, falling back to the default folder
+if "source_3d_dir" not in st.session_state:
+    _default_src = str(_PROJ_ROOT / "Source_3d_models")
+    _env_file = _PROJ_ROOT / ".env"
+    if _env_file.exists():
+        for _line in _env_file.read_text().splitlines():
+            if _line.startswith("SOURCE_3D_MODELS="):
+                _default_src = _line.split("=", 1)[1].strip()
+                break
+    st.session_state.source_3d_dir = _default_src
+
 # ── Log helper ────────────────────────────────────────────────────────────────
 def log(msg: str) -> None:
     entry = f"{datetime.now().strftime('%H:%M:%S')}  {msg}"
@@ -178,19 +194,141 @@ def render_log(entries: list) -> str:
         'max-height:220px;overflow-y:auto;">' + rows + "</div>"
     )
 
+# ── Source folder helper ──────────────────────────────────────────────────────
+def _pick_source_folder() -> str | None:
+    """Open a native macOS folder-picker; return the chosen path or None."""
+    result = subprocess.run(
+        ["osascript", "-e",
+         'set p to POSIX path of (choose folder with prompt '
+         '"Select the folder containing your 3D model files (.step / .stp)")'
+         ],
+        capture_output=True, text=True, timeout=120,
+    )
+    if result.returncode == 0:
+        return result.stdout.strip().rstrip("/") or None
+    return None
+
+
+def _save_source_dir(path: str) -> None:
+    """Persist the chosen folder to .env and back_end/config.yaml."""
+    # .env
+    env_path = _PROJ_ROOT / ".env"
+    if env_path.exists():
+        txt = env_path.read_text()
+        txt = re.sub(r"^SOURCE_3D_MODELS=.*$", f"SOURCE_3D_MODELS={path}",
+                     txt, flags=re.MULTILINE)
+        env_path.write_text(txt)
+    # config.yaml
+    cfg_path = _PROJ_ROOT / "back_end" / "config.yaml"
+    if cfg_path.exists():
+        txt = cfg_path.read_text()
+        txt = re.sub(r'^(\s*source_dir:\s*).*$', f'\\1"{path}"',
+                     txt, flags=re.MULTILINE)
+        cfg_path.write_text(txt)
+
+
+# ── Training helpers ──────────────────────────────────────────────────────────
+_TRAIN_SCRIPT = _PROJ_ROOT / "back_end" / "train.py"
+_TRAIN_LOG    = _PROJ_ROOT / ".logs" / "training.log"
+
+# Patterns that mark a training milestone worth showing in the activity log
+_MILESTONE_RE = re.compile(
+    r"\[1/4\]|\[2/4\]|\[3/4\]|\[4/4\]|✓ New best|Early stop|"
+    r"Test result|auc:|ap:|Traceback|Error|params:"
+)
+_EPOCH_RE = re.compile(r"Ep\s+(\d+)/")
+
+
+def _is_training() -> bool:
+    pid = st.session_state.get("training_pid")
+    if not pid:
+        return False
+    try:
+        os.kill(pid, 0)   # signal 0 = existence check only
+        return True
+    except OSError:
+        return False
+
+
+def _start_training() -> None:
+    _TRAIN_LOG.parent.mkdir(parents=True, exist_ok=True)
+    lf = open(_TRAIN_LOG, "w")          # file handle passed to Popen; child inherits fd
+    proc = subprocess.Popen(
+        [sys.executable, str(_TRAIN_SCRIPT)],
+        cwd=str(_TRAIN_SCRIPT.parent),
+        stdout=lf, stderr=lf,
+    )
+    lf.close()                           # parent can close; child keeps its fd
+    st.session_state.training_pid     = proc.pid
+    st.session_state.training_log_pos = 0
+    log(f"🚀  Training started (PID {proc.pid})")
+
+
+def _poll_training() -> None:
+    """Read new lines from training log and push milestones to activity log."""
+    if not _TRAIN_LOG.exists():
+        return
+    with open(_TRAIN_LOG, "r", errors="replace") as f:
+        f.seek(st.session_state.get("training_log_pos", 0))
+        new_text = f.read()
+        st.session_state.training_log_pos = f.tell()
+
+    for line in new_text.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        # Always show stage markers and key events
+        if _MILESTONE_RE.search(line):
+            log(f"🏋️  {line}")
+            continue
+        # Show every 10th epoch and epoch 1
+        m = _EPOCH_RE.search(line)
+        if m and int(m.group(1)) % 10 == 0:
+            log(f"📊  {line}")
+
+    # Mark done when process exits
+    if not _is_training() and st.session_state.get("training_pid"):
+        log("✅  Training process finished")
+        st.session_state.training_pid = None
+
+
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown(
         "<p style='font-size:0.8rem;font-weight:700;margin:0 0 0.2rem;'>⚙️ Viewer Settings</p>",
         unsafe_allow_html=True,
     )
-    mesh_color  = st.color_picker("Part colour", "#5b9bd5")
-    bg_color    = st.selectbox("Background", ["white", "black", "grey", "lightgrey"])
-    view_preset = st.selectbox("Camera preset", ["Isometric", "Top", "Front", "Side"])
-    show_grid   = st.checkbox("Show axis grid", value=False)
-    opacity     = st.slider("Opacity", 0.1, 1.0, 1.0, 0.05)
+    _cc, _cg, _co = st.columns([1, 0.7, 1.5])
+    mesh_color = _cc.color_picker("Colour", "#5b9bd5")
+    show_grid  = _cg.checkbox("Grid", value=False)
+    opacity    = _co.slider("Opacity", 0.1, 1.0, 1.0, 0.05)
+    _col_bg, _col_cam = st.columns(2)
+    bg_color    = _col_bg.selectbox("Background", ["white", "black", "grey", "lightgrey"])
+    view_preset = _col_cam.selectbox("Camera", ["Isometric", "Top", "Front", "Side"])
 
     st.markdown("---")
+    st.markdown(
+        "<p style='font-size:0.68rem;color:#3a5878;margin:0 0 0.15rem;'>"
+        "Locate source for training</p>",
+        unsafe_allow_html=True,
+    )
+    if st.button("📁 3D Files", use_container_width=True):
+        chosen = _pick_source_folder()
+        if chosen:
+            st.session_state.source_3d_dir = chosen
+            _save_source_dir(chosen)
+            log(f"📁  Source folder set: {Path(chosen).name}")
+            st.rerun()
+
+    # Show the currently selected source folder (truncated)
+    _src_name = Path(st.session_state.source_3d_dir).name
+    st.markdown(
+        f"<p style='font-size:0.65rem;color:#2a4060;margin:0.05rem 0 0;"
+        f"overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+        f"' title='{st.session_state.source_3d_dir}'>📂 {_src_name}</p>",
+        unsafe_allow_html=True,
+    )
+
     if st.session_state.uploaded_bytes is not None:
         if st.button("🔄 Upload new file", use_container_width=True):
             log("🔄  New file upload requested")
@@ -199,9 +337,25 @@ with st.sidebar:
             st.session_state.mesh_logged    = False
             st.rerun()
 
+    # ── Train button ──────────────────────────────────────────────────────────
+    _poll_training()   # read any new log lines on every rerun
+
+    if _is_training():
+        st.markdown(
+            "<p style='font-size:0.72rem;color:#4caf82;margin:0.2rem 0;'>"
+            "⚙️ Training in progress…</p>",
+            unsafe_allow_html=True,
+        )
+        if st.button("🔄 Refresh status", use_container_width=True):
+            st.rerun()
+    else:
+        if st.button("🚀 Train 3D Models", use_container_width=True):
+            _start_training()
+            st.rerun()
+
     # Activity Log — always visible, compact heading
     st.markdown(
-        "<p style='font-size:0.78rem;font-weight:600;margin:0.35rem 0 0.2rem;'>📋 Activity Log</p>",
+        "<p style='font-size:0.78rem;font-weight:600;margin:0.25rem 0 0.15rem;'>📋 Activity Log</p>",
         unsafe_allow_html=True,
     )
     log_slot = st.empty()
@@ -345,7 +499,7 @@ fig.update_layout(
     scene_camera=CAMERAS[view_preset],
     margin=dict(l=0, r=0, b=0, t=0),
     paper_bgcolor="rgba(0,0,0,0)",
-    height=340,
+    height=255,
 )
 
 # ── Dual viewer layout ────────────────────────────────────────────────────────
@@ -370,7 +524,7 @@ with col_right:
         """<div style="
             border:1.5px solid #2a4060;
             border-radius:8px;
-            height:346px;
+            height:260px;
             display:flex;
             flex-direction:column;
             align-items:center;
@@ -397,6 +551,15 @@ log_slot.markdown(render_log(st.session_state.activity_log[-12:]),
                   unsafe_allow_html=True)
 
 # ── Auto-scroll + hide success alert on first viewer interaction ──────────────
+if _is_training():
+    streamlit.components.v1.html(
+        "<script>setTimeout(function(){"
+        "window.parent.document.querySelector('[data-testid=\"stRefreshButton\"] button')"
+        "?.click();"           # try Streamlit's internal refresh if available
+        "},4000);</script>",
+        height=0,
+    )
+
 streamlit.components.v1.html(
     """<script>
     setTimeout(function () {
