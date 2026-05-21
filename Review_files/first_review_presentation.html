@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>First Review — AI-Assisted 3D Assembly Design</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #0d1018;
+    color: #e8eaf0;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  .deck { width: 100%; height: 100vh; position: relative; }
+
+  .slide {
+    display: none;
+    position: absolute;
+    inset: 0;
+    padding: 38px 68px 62px;
+    flex-direction: column;
+    justify-content: flex-start;
+    animation: fadeIn 0.35s ease;
+  }
+  .slide.active { display: flex; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .slide::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, #4f8ef7, #a56bff, #4caf82);
+  }
+
+  .slide-num {
+    position: absolute;
+    bottom: 18px; right: 30px;
+    font-size: 12px; color: #333e55; letter-spacing: 1px;
+  }
+
+  .slide-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px; padding-bottom: 10px;
+    border-bottom: 1px solid #151e2e;
+  }
+  .slide-header-left { display: flex; align-items: center; gap: 12px; }
+  .review-chip {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 2px;
+    color: #4f8ef7; border: 1px solid #1a2e50;
+    background: #0a1020;
+    padding: 3px 12px; border-radius: 20px;
+  }
+  .slide-title-text {
+    font-size: 19px; font-weight: 700; color: #e0ecf8; letter-spacing: 0.2px;
+  }
+  .slide-header-right {
+    font-size: 11px; color: #334055; text-align: right; line-height: 1.6;
+  }
+
+  .cols   { display: flex; gap: 22px; flex: 1; }
+  .col    { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+  .col-sm { flex: 0.72; }
+  .col-lg { flex: 1.28; }
+
+  .mlabel {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 2px;
+    margin-bottom: 6px;
+  }
+  .mlabel.blue   { color: #4f8ef7; }
+  .mlabel.green  { color: #4caf82; }
+  .mlabel.purple { color: #a56bff; }
+  .mlabel.orange { color: #e08850; }
+  .mlabel.red    { color: #e05555; }
+
+  .block {
+    background: #101620; border: 1px solid #192030;
+    border-radius: 8px; padding: 13px 15px;
+    display: flex; flex-direction: column; gap: 7px;
+  }
+  .block.bt-blue   { border-top: 2px solid #4f8ef7; }
+  .block.bt-green  { border-top: 2px solid #4caf82; }
+  .block.bt-purple { border-top: 2px solid #a56bff; }
+  .block.bt-orange { border-top: 2px solid #e08850; }
+  .block.bt-red    { border-top: 2px solid #e05555; }
+  .block h3 { font-size: 13px; font-weight: 600; color: #c0d4ea; }
+  .block p  { font-size: 12.5px; color: #5a7590; line-height: 1.7; }
+
+  ul.bul { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+  ul.bul li {
+    font-size: 12.5px; color: #7a9ab8; line-height: 1.65;
+    padding-left: 16px; position: relative;
+  }
+  ul.bul li::before {
+    content: '›'; position: absolute; left: 0;
+    color: #4f8ef7; font-size: 14px; font-weight: 700; line-height: 1.4;
+  }
+  ul.bul li strong { color: #c8dcea; }
+  ul.bul.g li::before { color: #4caf82; }
+  ul.bul.p li::before { color: #a56bff; }
+  ul.bul.o li::before { color: #e08850; }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .tag  {
+    font-size: 11px; padding: 3px 10px; border-radius: 20px;
+    background: #0e1624; border: 1px solid #192030; color: #5a7590;
+  }
+  .tag.b { border-color: #4f8ef7; color: #4f8ef7; }
+  .tag.g { border-color: #4caf82; color: #4caf82; }
+  .tag.p { border-color: #a56bff; color: #a56bff; }
+  .tag.o { border-color: #e08850; color: #e08850; }
+  .tag.r { border-color: #e05555; color: #e05555; }
+
+  .hbar {
+    background: #0b1420; border-left: 2px solid #4f8ef7;
+    border-radius: 0 6px 6px 0; padding: 9px 13px;
+    font-size: 12.5px; color: #5a7898; line-height: 1.7;
+  }
+  .hbar strong { color: #b0c8de; }
+  .hbar.g { border-color: #4caf82; }
+  .hbar.p { border-color: #a56bff; }
+  .hbar.o { border-color: #e08850; }
+
+  .metric-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+  .metric {
+    background: #0b1420; border: 1px solid #192030; border-radius: 7px;
+    padding: 8px 12px; text-align: center; flex: 1; min-width: 75px;
+  }
+  .metric .mv { font-size: 15px; font-weight: 700; }
+  .metric .mk { font-size: 10px; color: #3a5070; margin-top: 2px; letter-spacing: 0.5px; }
+  .metric.b .mv { color: #4f8ef7; }
+  .metric.g .mv { color: #4caf82; }
+  .metric.p .mv { color: #a56bff; }
+  .metric.o .mv { color: #e08850; }
+
+  .pbar-wrap { margin-top: 3px; }
+  .pbar-top  { display: flex; justify-content: space-between; font-size: 10.5px; color: #334055; margin-bottom: 4px; }
+  .pbar-top strong { color: #4caf82; }
+  .pbar { height: 5px; background: #151e2e; border-radius: 3px; }
+  .pbar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #4caf82, #4f8ef7); }
+
+  .pipe { display: flex; align-items: center; gap: 0; flex-wrap: nowrap; margin: 6px 0; }
+  .pipe-node {
+    background: #0e1828; border: 1px solid #1e3050; border-radius: 6px;
+    padding: 6px 11px; font-size: 11.5px; color: #6a90b8; white-space: nowrap;
+  }
+  .pipe-node.hi { border-color: #4f8ef7; color: #4f8ef7; }
+  .pipe-node.hg { border-color: #4caf82; color: #4caf82; }
+  .pipe-node.hp { border-color: #a56bff; color: #a56bff; }
+  .pipe-node.ho { border-color: #e08850; color: #e08850; }
+  .pipe-arrow { color: #2a3a50; font-size: 13px; padding: 0 5px; }
+
+  .deliv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; flex: 1; }
+  .deliv-card {
+    background: #0e1420; border: 1px solid #192030; border-radius: 8px;
+    padding: 11px 13px; display: flex; gap: 10px; align-items: flex-start;
+  }
+  .deliv-icon { font-size: 20px; flex-shrink: 0; }
+  .deliv-body h4 { font-size: 12.5px; font-weight: 600; color: #b0cce0; margin-bottom: 3px; }
+  .deliv-body p  { font-size: 11.5px; color: #3a5878; line-height: 1.55; }
+
+  .status-row { display: flex; gap: 8px; align-items: center; font-size: 12px; }
+  .status-dot-g { width: 8px; height: 8px; border-radius: 50%; background: #4caf82; flex-shrink: 0; }
+  .status-dot-y { width: 8px; height: 8px; border-radius: 50%; background: #e08850; flex-shrink: 0; }
+  .status-dot-b { width: 8px; height: 8px; border-radius: 50%; background: #4f8ef7; flex-shrink: 0; }
+
+  .code {
+    background: #070e18; border: 1px solid #141e2e; border-radius: 6px;
+    padding: 9px 12px; font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 11px; color: #5a8090; line-height: 1.7; white-space: pre;
+  }
+  .code .kw { color: #4f8ef7; }
+  .code .fn { color: #a56bff; }
+  .code .cm { color: #2a4050; }
+  .code .st { color: #4caf82; }
+  .code .nm { color: #e08850; }
+
+  .skill-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7px; }
+  .skill-card {
+    background: #0e1420; border: 1px solid #192030; border-radius: 6px;
+    padding: 9px 11px;
+  }
+  .skill-card h4 { font-size: 11.5px; font-weight: 600; color: #8ab0ce; margin-bottom: 3px; }
+  .skill-card p  { font-size: 10.5px; color: #3a5270; line-height: 1.5; }
+
+  .nav {
+    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 10px; align-items: center;
+    background: #101620; border: 1px solid #192030;
+    padding: 8px 18px; border-radius: 40px; z-index: 100;
+  }
+  .nav button {
+    background: none; border: none; color: #3a5070;
+    font-size: 17px; cursor: pointer; padding: 2px 8px;
+    border-radius: 6px; transition: color .2s, background .2s;
+  }
+  .nav button:hover { color: #fff; background: #192030; }
+  .nprog { font-size: 12px; color: #273545; min-width: 48px; text-align: center; }
+  .dots  { display: flex; gap: 6px; align-items: center; }
+  .dot   { width: 7px; height: 7px; border-radius: 50%; background: #192030; cursor: pointer; }
+  .dot.active { background: #4f8ef7; }
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 1 — Deliverables Completed                           -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide active" id="s1">
+  <div class="slide-header">
+    <div class="slide-header-left">
+      <div class="review-chip">First Review · 24 May 2026</div>
+      <div class="slide-title-text">Deliverables Completed</div>
+    </div>
+    <div class="slide-header-right">
+      Student: Parthasarathy Perumal<br>
+      Guide: Prof. Sagarika Borah &nbsp;|&nbsp; M.Tech DS &amp; AI, Sem 4
+    </div>
+  </div>
+
+  <div class="deliv-grid">
+
+    <div class="deliv-card">
+      <div class="deliv-icon">⚙️</div>
+      <div class="deliv-body">
+        <h4>Automated Setup — bootstrap.sh</h4>
+        <p>7-step script: Python 3.10+ check · write permissions · <strong style="color:#4f8ef7;">uv</strong> package manager · .venv creation · all deps · .env generation · skills profile validation. Flags: --force-venv · --skip-uv · --no-color.</p>
+      </div>
+    </div>
+
+    <div class="deliv-card">
+      <div class="deliv-icon">🖥️</div>
+      <div class="deliv-body">
+        <h4>3D Assembly Viewer — front_end/app.py</h4>
+        <p>Streamlit · STEP upload → <strong style="color:#4caf82;">gmsh subprocess</strong> → STL → PyVista → <strong style="color:#4caf82;">Plotly Mesh3d</strong> · dual-panel layout · fixed header · session-state management · colour-coded activity log sidebar.</p>
+      </div>
+    </div>
+
+    <div class="deliv-card">
+      <div class="deliv-icon">🧠</div>
+      <div class="deliv-body">
+        <h4>GNN Training Pipeline — back_end/</h4>
+        <p><strong style="color:#a56bff;">dataset.py</strong> STEP parser + synthetic fallback · <strong style="color:#a56bff;">model.py</strong> 3-layer GAT encoder + LinkPredictor + NodeRanker · <strong style="color:#a56bff;">train.py</strong> · <strong style="color:#a56bff;">evaluate.py</strong> · <strong style="color:#a56bff;">infer.py</strong>.</p>
+      </div>
+    </div>
+
+    <div class="deliv-card">
+      <div class="deliv-icon">🤖</div>
+      <div class="deliv-body">
+        <h4>Skills AI Agent — AIDA</h4>
+        <p><strong style="color:#e08850;">Gemini 2.0 Flash</strong> orchestrator · 6 engineering skill domains loaded from <strong style="color:#e08850;">skills/engineering_3d_assembly.yaml</strong> · explains GNN predictions · identifies components · suggests assembly sequences.</p>
+      </div>
+    </div>
+
+    <div class="deliv-card">
+      <div class="deliv-icon">🔌</div>
+      <div class="deliv-body">
+        <h4>REST API — back_end/api.py</h4>
+        <p><strong style="color:#4caf82;">FastAPI + uvicorn</strong> · 5 endpoints: /predict/missing · /predict/next · /explain · /identify · /health · Swagger UI at /docs · CORS enabled for Streamlit.</p>
+      </div>
+    </div>
+
+    <div class="deliv-card">
+      <div class="deliv-icon">🚀</div>
+      <div class="deliv-body">
+        <h4>Service Management Scripts</h4>
+        <p><strong style="color:#4f8ef7;">start_services.sh</strong> launches front-end (8501) then waits 4 s before back-end (8000) · PID tracking + port check · <strong style="color:#4f8ef7;">stop_services.sh</strong> SIGTERM → grace period → SIGKILL fallback.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="margin-top:12px;">
+    <div class="pbar-wrap">
+      <div class="pbar-top"><span>Phase 1 overall progress (Wk 2 of 8)</span><strong>35%</strong></div>
+      <div class="pbar"><div class="pbar-fill" style="width:35%"></div></div>
+    </div>
+  </div>
+
+  <div class="slide-num">1 / 5</div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 2 — Implemented System Architecture                  -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide" id="s2">
+  <div class="slide-header">
+    <div class="slide-header-left">
+      <div class="review-chip">First Review · 24 May 2026</div>
+      <div class="slide-title-text">Implemented System Architecture</div>
+    </div>
+    <div class="slide-header-right">
+      Student: Parthasarathy Perumal<br>
+      Guide: Prof. Sagarika Borah &nbsp;|&nbsp; M.Tech DS &amp; AI, Sem 4
+    </div>
+  </div>
+
+  <div class="cols" style="flex:1;">
+
+    <div class="col col-lg" style="gap:12px;">
+      <div class="mlabel blue">End-to-End Pipeline</div>
+
+      <div class="block bt-blue" style="gap:10px;">
+        <h3>Data Layer</h3>
+        <div class="pipe">
+          <div class="pipe-node hi">Source_3d_models/<br><span style="font-size:10px;color:#2a4a70;">.step / .stp</span></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-node hg">gmsh subprocess<br><span style="font-size:10px;color:#2a5030;">OpenCASCADE</span></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-node">Solid bodies<br><span style="font-size:10px;">nodes · 13-dim</span></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-node">Shared surfaces<br><span style="font-size:10px;">edges · 2-dim</span></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-node hg">PyG Dataset<br><span style="font-size:10px;color:#2a5030;">InMemoryDataset</span></div>
+        </div>
+        <p style="font-size:11.5px;color:#3a5060;">Auto-generates <strong style="color:#c8dcea;">300 synthetic graphs</strong> when Source_3d_models/ is empty — training works immediately without real STEP files.</p>
+      </div>
+
+      <div class="block bt-purple" style="gap:10px;">
+        <h3>GNN Model Layer</h3>
+        <div class="pipe">
+          <div class="pipe-node">x ∈ ℝᴺˣ¹³</div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-node hp">GATConv L1<br><span style="font-size:10px;color:#6030a0;">4 heads · edge_dim=2</span></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-node hp">GATConv L2<br><span style="font-size:10px;color:#6030a0;">2 heads</span></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-node hp">GATConv L3<br><span style="font-size:10px;color:#6030a0;">1 head</span></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-node">Z ∈ ℝᴺˣ⁶⁴</div>
+        </div>
+        <div class="pipe" style="margin-top:4px;">
+          <div class="pipe-node hi">LinkPredictor<br><span style="font-size:10px;">MLP(hᵤ‖hᵥ) → BCE</span></div>
+          <div class="pipe-arrow" style="flex:1;text-align:center;font-size:10px;color:#1a2a40;">shared encoder ↑</div>
+          <div class="pipe-node hg">NodeRanker<br><span style="font-size:10px;">cosine_sim(ctx, cands)</span></div>
+        </div>
+      </div>
+
+      <div class="block bt-orange" style="gap:8px;">
+        <h3>AI Orchestration + Serving</h3>
+        <div class="pipe">
+          <div class="pipe-node">Predictions</div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-node ho">AIDA · Gemini<br><span style="font-size:10px;color:#905020;">2.0 Flash</span></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-node">Engineering<br>explanation</div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-node hi">FastAPI<br><span style="font-size:10px;">:8000</span></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-node hg">Streamlit<br><span style="font-size:10px;">:8501</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col col-sm" style="gap:10px;">
+      <div class="mlabel green">Key Design Decisions</div>
+
+      <div class="block bt-green">
+        <h3>gmsh over cascadio</h3>
+        <ul class="bul g">
+          <li>Self-contained ARM wheel on M1 — no compilation</li>
+          <li>OpenCASCADE built-in solid body + surface extraction</li>
+          <li>Subprocess wrapper avoids Streamlit signal-handler thread error</li>
+        </ul>
+      </div>
+
+      <div class="block bt-blue">
+        <h3>Plotly over stpyvista</h3>
+        <ul class="bul">
+          <li><code style="color:#4f8ef7;">isolate_styles</code> removed in Streamlit ≥ 1.29 — stpyvista broken</li>
+          <li>Plotly Mesh3d is native Streamlit — no iframe conflicts</li>
+          <li><code style="color:#4f8ef7;">@st.cache_data</code> on conversion — sidebar changes instant</li>
+        </ul>
+      </div>
+
+      <div class="block bt-purple">
+        <h3>uv over pip</h3>
+        <ul class="bul p">
+          <li>10–100× faster resolution and install</li>
+          <li>Native M1 ARM wheels auto-selected</li>
+          <li>Used in bootstrap.sh for reproducible setup</li>
+        </ul>
+      </div>
+
+      <div class="hbar g" style="margin-top:auto;">
+        <strong>No proprietary CAD API.</strong> gmsh · PyTorch Geometric · Streamlit · Gemini — fully open-source stack.
+      </div>
+    </div>
+
+  </div>
+
+  <div class="slide-num">2 / 5</div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 3 — 3D Assembly Viewer                               -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide" id="s3">
+  <div class="slide-header">
+    <div class="slide-header-left">
+      <div class="review-chip">First Review · 24 May 2026</div>
+      <div class="slide-title-text">3D Assembly Viewer — front_end/app.py</div>
+    </div>
+    <div class="slide-header-right">
+      Student: Parthasarathy Perumal<br>
+      Guide: Prof. Sagarika Borah &nbsp;|&nbsp; M.Tech DS &amp; AI, Sem 4
+    </div>
+  </div>
+
+  <div class="cols" style="flex:1;">
+
+    <div class="col col-lg" style="gap:10px;">
+      <div class="mlabel blue">Conversion Pipeline</div>
+
+      <div class="block bt-blue">
+        <div class="pipe" style="flex-wrap:wrap;gap:6px;">
+          <div class="pipe-node hi">Upload .step</div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-node hg">gmsh subprocess<br><span style="font-size:10px;color:#2a5030;">signal-safe</span></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-node">STL mesh<br><span style="font-size:10px;">temp dir</span></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-node">PyVista<br><span style="font-size:10px;">triangulate()</span></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-node hp">Plotly Mesh3d<br><span style="font-size:10px;color:#6030a0;">vtx + face idx</span></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-node hg">Streamlit<br><span style="font-size:10px;">8501</span></div>
+        </div>
+        <p style="font-size:11.5px;color:#3a5060;margin-top:4px;"><strong style="color:#c8dcea;">@st.cache_data</strong> on <code style="color:#4f8ef7;">load_mesh()</code> — the gmsh subprocess runs once per file; colour/opacity/camera changes rebuild only the Plotly figure.</p>
+      </div>
+
+      <div class="mlabel purple" style="margin-top:2px;">UI Implementation</div>
+      <div class="cols" style="gap:10px;flex:0 0 auto;">
+        <div class="block bt-purple" style="flex:1;">
+          <h3>Layout</h3>
+          <ul class="bul p">
+            <li><strong>Fixed header</strong> — <code>position:fixed; left:21rem</code> centres within main content</li>
+            <li><strong>Dual-panel</strong> — left: uploaded model · right: AI viewer placeholder</li>
+            <li><strong>st.empty() slot</strong> — uploader hidden after file picked via session state + rerun</li>
+          </ul>
+        </div>
+        <div class="block bt-green" style="flex:1;">
+          <h3>Sidebar Controls</h3>
+          <ul class="bul g">
+            <li>Part colour picker</li>
+            <li>Background: white / black / grey / lightgrey</li>
+            <li>Camera: Isometric / Top / Front / Side</li>
+            <li>Axis grid toggle · Opacity slider</li>
+            <li>Activity log — colour-coded, timestamped</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block bt-orange">
+        <h3>UX Details</h3>
+        <ul class="bul o">
+          <li><strong>Auto-scroll</strong> to viewer via JS <code style="color:#e08850;">plotly_relayout</code> event listener in hidden iframe</li>
+          <li><strong>Success banner</strong> fades on first pan/zoom; <code style="color:#e08850;">display:none</code> after 0.5 s</li>
+          <li>Viewer border: <code style="color:#e08850;">box-shadow: 0 0 0 1.5px #2a4060</code> — never clipped by iframe height</li>
+          <li>Mesh stats (points · faces · bbox) in compact single-line HTML row</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="col col-sm" style="gap:10px;">
+      <div class="mlabel green">Tech Stack</div>
+      <div class="tags">
+        <div class="tag b">streamlit ≥ 1.35</div>
+        <div class="tag g">gmsh ≥ 4.11</div>
+        <div class="tag g">pyvista ≥ 0.43</div>
+        <div class="tag p">plotly ≥ 5.0</div>
+        <div class="tag o">python-dotenv</div>
+      </div>
+
+      <div class="mlabel orange" style="margin-top:8px;">M1 Constraints</div>
+      <div class="block bt-orange">
+        <ul class="bul o">
+          <li><code style="color:#e08850;">pv.OFF_SCREEN = True</code> before any PyVista import</li>
+          <li>gmsh in subprocess — no signal-handler conflict</li>
+          <li>Keep assemblies under 20 nodes for fast conversion</li>
+        </ul>
+      </div>
+
+      <div class="mlabel blue" style="margin-top:8px;">Feature Status</div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div class="status-row"><div class="status-dot-g"></div><span style="font-size:12px;color:#7a9ab8;">STEP upload + gmsh conversion</span></div>
+        <div class="status-row"><div class="status-dot-g"></div><span style="font-size:12px;color:#7a9ab8;">Interactive Plotly 3D viewer</span></div>
+        <div class="status-row"><div class="status-dot-g"></div><span style="font-size:12px;color:#7a9ab8;">Session state + sidebar controls</span></div>
+        <div class="status-row"><div class="status-dot-g"></div><span style="font-size:12px;color:#7a9ab8;">Activity log with timestamps</span></div>
+        <div class="status-row"><div class="status-dot-g"></div><span style="font-size:12px;color:#7a9ab8;">start_services.sh / stop_services.sh</span></div>
+        <div class="status-row"><div class="status-dot-y"></div><span style="font-size:12px;color:#7a9ab8;">Right panel: AI-assisted viewer</span></div>
+        <div class="status-row"><div class="status-dot-y"></div><span style="font-size:12px;color:#7a9ab8;">API → front-end integration</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="slide-num">3 / 5</div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 4 — GNN Pipeline & REST API                          -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide" id="s4">
+  <div class="slide-header">
+    <div class="slide-header-left">
+      <div class="review-chip">First Review · 24 May 2026</div>
+      <div class="slide-title-text">GNN Pipeline &amp; REST API — back_end/</div>
+    </div>
+    <div class="slide-header-right">
+      Student: Parthasarathy Perumal<br>
+      Guide: Prof. Sagarika Borah &nbsp;|&nbsp; M.Tech DS &amp; AI, Sem 4
+    </div>
+  </div>
+
+  <div class="cols" style="flex:1;">
+
+    <div class="col" style="gap:10px;">
+      <div class="mlabel purple">Model — AssemblyGNN (model.py)</div>
+      <div class="block bt-purple">
+        <div class="code"><span class="cm"># 3-layer GAT encoder + dual heads</span>
+<span class="kw">class</span> <span class="fn">AssemblyGNN</span>(nn.Module):
+  L1: GATConv(<span class="nm">13</span>→<span class="nm">512</span>, heads=<span class="nm">4</span>, edge_dim=<span class="nm">2</span>)
+  L2: GATConv(<span class="nm">512</span>→<span class="nm">256</span>, heads=<span class="nm">2</span>)
+  L3: GATConv(<span class="nm">256</span>→<span class="nm">64</span>,  heads=<span class="nm">1</span>) <span class="cm">→ Z ∈ ℝᴺˣ⁶⁴</span>
+
+<span class="kw">class</span> <span class="fn">LinkPredictor</span>:  MLP(z_u ‖ z_v) → BCE
+<span class="kw">class</span> <span class="fn">NodeRanker</span>:    cosine_sim(proj(mean(Z)), z_cands)</div>
+        <div class="metric-row" style="margin-top:6px;">
+          <div class="metric b"><div class="mv">186K</div><div class="mk">PARAMS</div></div>
+          <div class="metric p"><div class="mv">13-dim</div><div class="mk">NODE</div></div>
+          <div class="metric g"><div class="mv">2-dim</div><div class="mk">EDGE</div></div>
+          <div class="metric o"><div class="mv">64-dim</div><div class="mk">EMBED</div></div>
+        </div>
+      </div>
+
+      <div class="mlabel blue">Training Config (config.yaml)</div>
+      <div class="block bt-blue">
+        <ul class="bul" style="display:grid;grid-template-columns:1fr 1fr;gap:5px 16px;">
+          <li><strong>Optimizer:</strong> Adam lr=1e-3</li>
+          <li><strong>Max epochs:</strong> 200</li>
+          <li><strong>LR schedule:</strong> ReduceLROnPlateau</li>
+          <li><strong>Batch:</strong> 32 graphs</li>
+          <li><strong>Negatives:</strong> 1:1 hard neg ratio</li>
+          <li><strong>Early stop:</strong> patience 20</li>
+          <li><strong>Device:</strong> MPS / CUDA / CPU</li>
+          <li><strong>Split:</strong> 70 / 15 / 15</li>
+        </ul>
+      </div>
+
+      <div class="mlabel green">Phase 1 Targets</div>
+      <div class="metric-row">
+        <div class="metric b"><div class="mv">≥ 0.85</div><div class="mk">AUC-ROC</div></div>
+        <div class="metric g"><div class="mv">≥ 0.82</div><div class="mk">AVG PREC</div></div>
+        <div class="metric p"><div class="mv">≥ 0.70</div><div class="mk">HIT@5</div></div>
+        <div class="metric o"><div class="mv">≥ 0.64</div><div class="mk">MRR</div></div>
+      </div>
+    </div>
+
+    <div class="col" style="gap:10px;">
+      <div class="mlabel orange">REST API — api.py (FastAPI · port 8000)</div>
+      <div class="block bt-orange" style="gap:8px;">
+        <div style="display:flex;flex-direction:column;gap:7px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div class="tag g" style="font-size:10px;white-space:nowrap;flex-shrink:0;">GET  /health</div>
+            <span style="font-size:11.5px;color:#3a5878;">Model loaded · agent status · component type list</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div class="tag b" style="font-size:10px;white-space:nowrap;flex-shrink:0;">POST /predict/missing</div>
+            <span style="font-size:11.5px;color:#3a5878;">Top-K missing link predictions from assembly graph</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div class="tag b" style="font-size:10px;white-space:nowrap;flex-shrink:0;">POST /predict/next</div>
+            <span style="font-size:11.5px;color:#3a5878;">Ranked next-component suggestions</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div class="tag p" style="font-size:10px;white-space:nowrap;flex-shrink:0;">POST /explain</div>
+            <span style="font-size:11.5px;color:#3a5878;">Gemini AI explanation of GNN predictions</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div class="tag o" style="font-size:10px;white-space:nowrap;flex-shrink:0;">POST /identify</div>
+            <span style="font-size:11.5px;color:#3a5878;">Component type from geometric features</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div class="tag g" style="font-size:10px;white-space:nowrap;flex-shrink:0;">GET  /docs</div>
+            <span style="font-size:11.5px;color:#3a5878;">Auto-generated Swagger UI</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mlabel blue">Dataset Pipeline (dataset.py)</div>
+      <div class="block bt-blue">
+        <ul class="bul">
+          <li>Scans <strong>Source_3d_models/</strong> recursively for .step / .stp</li>
+          <li>gmsh extracts solid bodies → nodes · shared bounding surfaces → edges</li>
+          <li>Node: 8-class one-hot + volume + surface area + bbox = <strong>13-dim</strong></li>
+          <li>Edge: mate type encoded + weight = <strong>2-dim</strong></li>
+          <li>Synthetic fallback: <strong>300 graphs</strong> when folder is empty</li>
+        </ul>
+      </div>
+
+      <div class="hbar g" style="margin-top:auto;">
+        <strong>Current status:</strong> End-to-end pipeline runs on synthetic data. Awaiting real STEP assemblies for Phase 1 AUC evaluation.
+      </div>
+    </div>
+
+  </div>
+
+  <div class="slide-num">4 / 5</div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 5 — Skills AI (AIDA) & Phase 1 Status               -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide" id="s5">
+  <div class="slide-header">
+    <div class="slide-header-left">
+      <div class="review-chip">First Review · 24 May 2026</div>
+      <div class="slide-title-text">Skills AI (AIDA) &amp; Phase 1 Status</div>
+    </div>
+    <div class="slide-header-right">
+      Student: Parthasarathy Perumal<br>
+      Guide: Prof. Sagarika Borah &nbsp;|&nbsp; M.Tech DS &amp; AI, Sem 4
+    </div>
+  </div>
+
+  <div class="cols" style="flex:1;">
+
+    <div class="col col-lg" style="gap:10px;">
+      <div class="mlabel orange">AIDA — Gemini-Powered Engineering Agent (skills_agent.py)</div>
+
+      <div class="block bt-orange">
+        <div class="pipe" style="flex-wrap:wrap;gap:6px;">
+          <div class="pipe-node">GNN output<br><span style="font-size:10px;">missing + ranked</span></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-node ho">AssemblySkillsAgent<br><span style="font-size:10px;color:#905020;">skills_agent.py</span></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-node" style="font-size:10.5px;">engineering_3d<br>_assembly.yaml</div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-node ho">Gemini<br><span style="font-size:10px;color:#905020;">2.0-flash</span></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-node">Engineering<br>explanation</div>
+        </div>
+        <p style="font-size:11.5px;color:#3a5060;margin-top:4px;">YAML profile defines persona · 6 skill domains · response rules · example interactions. Loaded dynamically — new skills added without code changes.</p>
+      </div>
+
+      <div class="mlabel purple">Six Skill Domains</div>
+      <div class="skill-grid">
+        <div class="skill-card">
+          <h4>⚙️ Mechanical Engineering</h4>
+          <p>Statics, materials, tolerancing (GD&amp;T), DFM, fatigue analysis</p>
+        </div>
+        <div class="skill-card">
+          <h4>📐 3D Modelling</h4>
+          <p>B-Rep, STEP/IGES, OpenCASCADE, solid kernels, file formats</p>
+        </div>
+        <div class="skill-card">
+          <h4>🔧 Assembly Design</h4>
+          <p>Mate constraints, DOF, assembly hierarchies, sub-assembly patterns</p>
+        </div>
+        <div class="skill-card">
+          <h4>🔩 Parts Identification</h4>
+          <p>8-class component classification from volume, area, bbox, mates</p>
+        </div>
+        <div class="skill-card">
+          <h4>🧠 GNN Interpretation</h4>
+          <p>AUC, Hit@K, confidence scores explained in engineering terms</p>
+        </div>
+        <div class="skill-card">
+          <h4>📋 Assembly Sequencing</h4>
+          <p>Build order, fixture needs, interference and accessibility checks</p>
+        </div>
+      </div>
+
+      <div class="hbar p">
+        <strong>Offline-safe:</strong> GEMINI_API_KEY optional — GNN inference and 3D viewer work fully without Gemini. Agent returns a graceful message if key is missing.
+      </div>
+    </div>
+
+    <div class="col col-sm" style="gap:10px;">
+      <div class="mlabel green">Phase 1 Completion — Wk 2 / 8</div>
+
+      <div style="display:flex;flex-direction:column;gap:7px;">
+        <div class="status-row"><div class="status-dot-g"></div><span style="font-size:12px;color:#7a9ab8;">Literature review started</span></div>
+        <div class="status-row"><div class="status-dot-g"></div><span style="font-size:12px;color:#7a9ab8;">bootstrap.sh + GETTING_STARTED.md</span></div>
+        <div class="status-row"><div class="status-dot-g"></div><span style="font-size:12px;color:#7a9ab8;">STEP → graph pipeline (dataset.py)</span></div>
+        <div class="status-row"><div class="status-dot-g"></div><span style="font-size:12px;color:#7a9ab8;">3-layer GAT model + training loop</span></div>
+        <div class="status-row"><div class="status-dot-g"></div><span style="font-size:12px;color:#7a9ab8;">3D viewer — front_end/app.py</span></div>
+        <div class="status-row"><div class="status-dot-g"></div><span style="font-size:12px;color:#7a9ab8;">Skills AI agent (AIDA + Gemini)</span></div>
+        <div class="status-row"><div class="status-dot-g"></div><span style="font-size:12px;color:#7a9ab8;">FastAPI back-end + service scripts</span></div>
+        <div class="status-row"><div class="status-dot-y"></div><span style="font-size:12px;color:#7a9ab8;">Real STEP dataset (Fusion 360 Gallery)</span></div>
+        <div class="status-row"><div class="status-dot-y"></div><span style="font-size:12px;color:#7a9ab8;">Baseline AUC evaluation ≥ 0.85</span></div>
+        <div class="status-row"><div class="status-dot-b"></div><span style="font-size:12px;color:#7a9ab8;">Phase 2: HetGNN · BPR loss · t-SNE</span></div>
+      </div>
+
+      <div class="pbar-wrap" style="margin-top:6px;">
+        <div class="pbar-top"><span>Phase 1 progress</span><strong>35%</strong></div>
+        <div class="pbar"><div class="pbar-fill" style="width:35%"></div></div>
+      </div>
+
+      <div class="block bt-blue">
+        <h3>Immediate Next Steps</h3>
+        <ul class="bul">
+          <li>Acquire STEP assemblies (Fusion 360 Gallery subset)</li>
+          <li>Run baseline GCN vs. GAT vs. GraphSAGE comparison</li>
+          <li>Connect FastAPI predictions to Streamlit right panel</li>
+          <li>GNNExplainer subgraph visualisation</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="slide-num">5 / 5</div>
+</div>
+
+
+<!-- ═══════════════ NAV ═══════════════ -->
+<nav class="nav" id="nav">
+  <button onclick="go(-1)">&#8592;</button>
+  <div class="dots" id="dots"></div>
+  <span class="nprog" id="nprog">1 / 5</span>
+  <button onclick="go(1)">&#8594;</button>
+</nav>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  let cur = 0;
+  const prog   = document.getElementById('nprog');
+  const dotsEl = document.getElementById('dots');
+
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => goTo(i);
+    dotsEl.appendChild(d);
+  });
+
+  function goTo(n) {
+    slides[cur].classList.remove('active');
+    dotsEl.children[cur].classList.remove('active');
+    cur = Math.max(0, Math.min(slides.length - 1, n));
+    slides[cur].classList.add('active');
+    dotsEl.children[cur].classList.add('active');
+    prog.textContent = (cur + 1) + ' / ' + slides.length;
+  }
+
+  function go(dir) { goTo(cur + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')                    go(-1);
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') go(1);
+    if (e.key === 'Home') goTo(0);
+    if (e.key === 'End')  goTo(slides.length - 1);
+  });
+</script>
+</body>
+</html>
