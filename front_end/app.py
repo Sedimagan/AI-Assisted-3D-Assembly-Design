@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import subprocess
@@ -8,7 +9,9 @@ from datetime import datetime
 from pathlib import Path
 
 # Project root — resolved once here so all helpers can reference it
-_PROJ_ROOT = Path(__file__).resolve().parent.parent
+_PROJ_ROOT  = Path(__file__).resolve().parent.parent
+_CKPT_PATH  = _PROJ_ROOT / "back_end" / "checkpoints" / "best.pt"
+_STEP_CACHE = _PROJ_ROOT / ".logs" / "inference_input.step"
 
 os.environ["DISPLAY"] = ":99"
 import pyvista as pv
@@ -155,7 +158,15 @@ if "activity_log" not in st.session_state:
         f"{datetime.now().strftime('%H:%M:%S')}  🟢  App initialized"
     )
 if "mesh_logged" not in st.session_state:
-    st.session_state.mesh_logged       = False
+    st.session_state.mesh_logged        = False
+if "inference_result" not in st.session_state:
+    st.session_state.inference_result   = None
+if "inference_done_for" not in st.session_state:
+    st.session_state.inference_done_for = ""
+if "pred_bytes" not in st.session_state:
+    st.session_state.pred_bytes = None
+if "pred_name"  not in st.session_state:
+    st.session_state.pred_name  = None
 
 # Initialise source_3d_dir from .env, falling back to the default folder
 if "source_3d_dir" not in st.session_state:
@@ -193,6 +204,132 @@ def render_log(entries: list) -> str:
         '<div style="background:#070e18;border-radius:6px;padding:0.5rem 0.6rem;'
         'max-height:220px;overflow-y:auto;">' + rows + "</div>"
     )
+
+# ── Inference helpers ─────────────────────────────────────────────────────────
+
+def _run_inference(step_bytes: bytes) -> dict:
+    """
+    Write STEP bytes to a cache file then run missing-component prediction
+    in a subprocess (avoids gmsh + PyTorch signal-handler conflicts).
+    Returns a dict with keys: n_nodes, n_edges, missing_links  or  error.
+    """
+    _STEP_CACHE.parent.mkdir(parents=True, exist_ok=True)
+    _STEP_CACHE.write_bytes(step_bytes)
+
+    back_end = str(_PROJ_ROOT / "back_end")
+    script = textwrap.dedent(f"""\
+        import sys, json, io, contextlib
+        sys.path.insert(0, {repr(back_end)})
+        from dataset import _parse_step
+        from infer import load_checkpoint, predict_missing
+
+        graph = _parse_step({repr(str(_STEP_CACHE))})
+        if graph is None or graph.num_nodes < 2:
+            print(json.dumps({{"error": "Need ≥ 2 solid bodies for inference"}}))
+            sys.exit(0)
+
+        with contextlib.redirect_stdout(io.StringIO()):
+            gnn, lp, device, cfg = load_checkpoint({repr(str(_CKPT_PATH))})
+
+        results = predict_missing(gnn, lp, graph, device, top_k=5)
+        out = {{
+            "n_nodes": int(graph.num_nodes),
+            "n_edges": int(graph.edge_index.size(1)),
+            "missing_links": [
+                {{"src": int(u), "dst": int(v), "confidence": float(s)}}
+                for (u, v), s in results
+            ]
+        }}
+        print(json.dumps(out))
+    """)
+    r = subprocess.run(
+        [sys.executable, "-c", script],
+        capture_output=True, text=True, timeout=180,
+    )
+    # Parse the last JSON line from stdout
+    for line in reversed(r.stdout.strip().splitlines()):
+        line = line.strip()
+        if line.startswith("{"):
+            try:
+                return json.loads(line)
+            except Exception:
+                pass
+    return {"error": (r.stderr.strip()[:300] or "Inference subprocess failed")}
+
+
+def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
+    """Return the HTML for the right viewer panel based on inference state."""
+    PANEL = (
+        "border:1.5px solid #2a4060;border-radius:8px;height:260px;"
+        "background:#f8f9fb;"
+    )
+    CENTER = (
+        "display:flex;flex-direction:column;align-items:center;"
+        "justify-content:center;text-align:center;padding:14px;"
+    )
+
+    if result and "error" not in result:
+        missing = result.get("missing_links", [])
+        n_nodes = result.get("n_nodes", 0)
+        n_edges = result.get("n_edges", 0)
+
+        if missing:
+            rows = ""
+            for lk in missing:
+                u, v, s = lk["src"], lk["dst"], lk["confidence"]
+                pct = int(s * 100)
+                col = "#4caf82" if s >= 0.8 else "#5b9bd5" if s >= 0.5 else "#e08850"
+                rows += (
+                    f'<div style="display:flex;align-items:center;gap:8px;'
+                    f'font-size:0.72rem;margin-bottom:6px;">'
+                    f'<span style="color:#555;white-space:nowrap;min-width:90px;">'
+                    f'Node {u} ↔ Node {v}</span>'
+                    f'<div style="flex:1;background:#dce8f0;border-radius:3px;height:7px;">'
+                    f'<div style="width:{pct}%;background:{col};border-radius:3px;height:7px;"></div>'
+                    f'</div>'
+                    f'<span style="color:{col};font-weight:700;min-width:36px;text-align:right;">'
+                    f'{s:.3f}</span></div>'
+                )
+        else:
+            rows = "<p style='color:#4caf82;font-size:0.78rem;'>✓ Assembly appears complete — no missing links found.</p>"
+
+        return (
+            f'<div style="{PANEL}padding:14px;overflow-y:auto;">'
+            f'<p style="font-size:0.72rem;color:#888;margin:0 0 6px;">'
+            f'{n_nodes} components · {n_edges} known connections</p>'
+            f'<p style="font-size:0.82rem;font-weight:600;color:#333;margin:0 0 10px;">'
+            f'🔍 Missing Component Predictions</p>'
+            f'{rows}</div>'
+        )
+
+    if result and "error" in result:
+        return (
+            f'<div style="{PANEL}{CENTER}">'
+            f'<div style="font-size:1.8rem;">⚠️</div>'
+            f'<div style="font-size:0.8rem;color:#e05555;margin-top:0.4rem;">Inference error</div>'
+            f'<div style="font-size:0.68rem;color:#aaa;margin-top:0.3rem;max-width:180px;">'
+            f'{result["error"][:120]}</div></div>'
+        )
+
+    if not ckpt_exists:
+        return (
+            f'<div style="{PANEL}{CENTER}">'
+            f'<div style="font-size:2rem;">🧠</div>'
+            f'<div style="font-size:0.88rem;font-weight:600;color:#5b9bd5;margin-top:0.5rem;">'
+            f'No trained model yet</div>'
+            f'<div style="font-size:0.75rem;color:#999;margin-top:0.3rem;">'
+            f'Click "Train 3D Models" to begin</div></div>'
+        )
+
+    return (
+        f'<div style="{PANEL}{CENTER}">'
+        f'<div style="font-size:2rem;">🔍</div>'
+        f'<div style="font-size:0.88rem;font-weight:600;color:#5b9bd5;margin-top:0.5rem;">'
+        f'Upload a STEP file to predict</div>'
+        f'<div style="font-size:0.75rem;color:#999;margin-top:0.3rem;">'
+        f'Missing components will appear here</div></div>'
+    )
+
 
 # ── Source folder helper ──────────────────────────────────────────────────────
 def _pick_source_folder() -> str | None:
@@ -331,9 +468,11 @@ with st.sidebar:
     if st.session_state.uploaded_bytes is not None:
         if st.button("🔄 Upload new file", use_container_width=True):
             log("🔄  New file upload requested")
-            st.session_state.uploaded_bytes = None
-            st.session_state.uploaded_name  = None
-            st.session_state.mesh_logged    = False
+            st.session_state.uploaded_bytes   = None
+            st.session_state.uploaded_name    = None
+            st.session_state.mesh_logged      = False
+            st.session_state.inference_result = None
+            st.session_state.inference_done_for = ""
             st.rerun()
 
     # ── Train button ──────────────────────────────────────────────────────────
@@ -402,76 +541,10 @@ def load_mesh(file_bytes: bytes) -> dict:
             n_cells = mesh.n_cells,
         )
 
-# ── File uploader (hidden after upload) ───────────────────────────────────────
-uploader_slot = st.empty()
+# ── Always-visible dual-panel layout ─────────────────────────────────────────
+st.markdown("### 3D Viewers")
+col_left, col_right = st.columns(2)
 
-if st.session_state.uploaded_bytes is None:
-    with uploader_slot.container():
-        c1, c2 = st.columns([2, 1])
-        with c1:
-            raw = st.file_uploader(
-                "Upload a STEP / STP file", type=["step", "stp"],
-                help="Converted locally via gmsh then rendered with Plotly.",
-            )
-        with c2:
-            st.info("**Supported:** `.step`, `.stp`\n\nInteractive 3D — zoom, rotate, pan.")
-
-    if raw:
-        kb = len(raw.getvalue()) / 1024
-        log(f"📂  File received: {raw.name}  ({kb:.1f} KB)")
-        st.session_state.uploaded_bytes = raw.getvalue()
-        st.session_state.uploaded_name  = raw.name
-        st.rerun()
-    else:
-        st.markdown(
-            """<div style="text-align:center;padding:3rem 0;color:#888;">
-                <div style="font-size:3rem;">📂</div>
-                <p style="margin-top:0.5rem;">Upload a STEP file above to get started</p>
-            </div>""",
-            unsafe_allow_html=True,
-        )
-        log_slot.markdown(render_log(st.session_state.activity_log[-12:]),
-                          unsafe_allow_html=True)
-        st.stop()
-
-# ── Convert & display ─────────────────────────────────────────────────────────
-uploader_slot.empty()
-
-if not st.session_state.mesh_logged:
-    log("⚙️  Starting STEP → STL conversion via gmsh…")
-
-with st.spinner("Converting STEP → STL mesh …"):
-    try:
-        m = load_mesh(st.session_state.uploaded_bytes)
-    except Exception as exc:
-        log(f"❌  Conversion failed: {exc}")
-        log_slot.markdown(render_log(st.session_state.activity_log[-12:]),
-                          unsafe_allow_html=True)
-        st.error(f"Conversion failed: {exc}")
-        st.stop()
-
-if not st.session_state.mesh_logged:
-    log("✅  STL mesh generated successfully")
-    b = m["bounds"]
-    log(f"📐  {m['n_pts']:,} points · {m['n_cells']:,} faces")
-    log(f"📦  Bbox: {b[1]-b[0]:.2f} × {b[3]-b[2]:.2f} × {b[5]-b[4]:.2f}")
-    log("🎨  Building Plotly 3D viewer…")
-    st.session_state.mesh_logged = True
-
-# Stats
-st.success(f"✅ **{st.session_state.uploaded_name}** loaded successfully.")
-b = m["bounds"]
-st.markdown(
-    f"""<div style="display:flex;gap:1.5rem;margin:0.3rem 0 0.6rem;font-size:0.75rem;color:#555;">
-        <span><strong>Points:</strong> {m['n_pts']:,}</span>
-        <span><strong>Faces:</strong> {m['n_cells']:,}</span>
-        <span><strong>Bbox (x×y×z):</strong>
-              {b[1]-b[0]:.2f} × {b[3]-b[2]:.2f} × {b[5]-b[4]:.2f}</span>
-    </div>""",
-    unsafe_allow_html=True,
-)
-
-# ── Plotly figure ─────────────────────────────────────────────────────────────
 CAMERAS = {
     "Isometric": dict(eye=dict(x=1.5, y=1.5, z=1.5)),
     "Top":       dict(eye=dict(x=0,   y=0,   z=2.5)),
@@ -480,68 +553,136 @@ CAMERAS = {
 }
 BG_MAP = {"white":"#ffffff","black":"#000000","grey":"#808080","lightgrey":"#d3d3d3"}
 
-verts = m["verts"]
-fig = go.Figure(go.Mesh3d(
-    x=verts[:, 0], y=verts[:, 1], z=verts[:, 2],
-    i=m["i"], j=m["j"], k=m["k"],
-    color=mesh_color, opacity=opacity, flatshading=True,
-    lighting=dict(ambient=0.5, diffuse=0.8, specular=0.3, roughness=0.5, fresnel=0.2),
-    lightposition=dict(x=100, y=100, z=100),
-))
-fig.update_layout(
-    scene=dict(
-        bgcolor=BG_MAP[bg_color], aspectmode="data",
-        xaxis=dict(showgrid=show_grid, title="X"),
-        yaxis=dict(showgrid=show_grid, title="Y"),
-        zaxis=dict(showgrid=show_grid, title="Z"),
-    ),
-    scene_camera=CAMERAS[view_preset],
-    margin=dict(l=0, r=0, b=0, t=0),
-    paper_bgcolor="rgba(0,0,0,0)",
-    height=255,
-)
-
-# ── Dual viewer layout ────────────────────────────────────────────────────────
-st.markdown("### 3D Viewers")
-col_left, col_right = st.columns(2)
-
+# ── LEFT: 3D viewer (view only — not connected to inference) ──────────────────
 with col_left:
     st.markdown(
-        f"<p style='font-size:0.8rem;font-weight:600;margin:0 0 0.25rem;color:#444;'>"
-        f"📁 {st.session_state.uploaded_name}</p>",
+        "<p style='font-size:0.8rem;font-weight:600;margin:0 0 0.2rem;color:#444;'>"
+        "📁 3D Model Viewer</p>",
         unsafe_allow_html=True,
     )
-    st.plotly_chart(fig, use_container_width=True)
 
+    if st.session_state.uploaded_bytes is None:
+        raw = st.file_uploader(
+            "Upload a STEP / STP file", type=["step", "stp"],
+            help="Converted via gmsh then rendered interactively.",
+        )
+        if raw:
+            kb = len(raw.getvalue()) / 1024
+            log(f"📂  File received: {raw.name}  ({kb:.1f} KB)")
+            st.session_state.uploaded_bytes = raw.getvalue()
+            st.session_state.uploaded_name  = raw.name
+            st.rerun()
+        else:
+            st.markdown(
+                '<div style="text-align:center;padding:2rem 0;color:#aaa;height:260px;'
+                'display:flex;flex-direction:column;align-items:center;justify-content:center;">'
+                '<div style="font-size:2.5rem;">📂</div>'
+                '<p style="font-size:0.85rem;margin-top:0.4rem;">Upload a STEP file to view</p>'
+                '</div>',
+                unsafe_allow_html=True,
+            )
+    else:
+        if not st.session_state.mesh_logged:
+            log("⚙️  Starting STEP → STL conversion via gmsh…")
+
+        with st.spinner("Converting STEP → STL …"):
+            try:
+                m = load_mesh(st.session_state.uploaded_bytes)
+            except Exception as exc:
+                log(f"❌  Conversion failed: {exc}")
+                st.error(f"Conversion failed: {exc}")
+                m = None
+
+        if m:
+            if not st.session_state.mesh_logged:
+                log("✅  STL mesh generated")
+                b = m["bounds"]
+                log(f"📐  {m['n_pts']:,} pts · {m['n_cells']:,} faces")
+                log(f"📦  Bbox: {b[1]-b[0]:.2f} × {b[3]-b[2]:.2f} × {b[5]-b[4]:.2f}")
+                log("🎨  Building 3D viewer…")
+                st.session_state.mesh_logged = True
+
+            verts = m["verts"]
+            fig = go.Figure(go.Mesh3d(
+                x=verts[:, 0], y=verts[:, 1], z=verts[:, 2],
+                i=m["i"], j=m["j"], k=m["k"],
+                color=mesh_color, opacity=opacity, flatshading=True,
+                lighting=dict(ambient=0.5, diffuse=0.8, specular=0.3,
+                              roughness=0.5, fresnel=0.2),
+                lightposition=dict(x=100, y=100, z=100),
+            ))
+            fig.update_layout(
+                scene=dict(
+                    bgcolor=BG_MAP[bg_color], aspectmode="data",
+                    xaxis=dict(showgrid=show_grid, title="X"),
+                    yaxis=dict(showgrid=show_grid, title="Y"),
+                    zaxis=dict(showgrid=show_grid, title="Z"),
+                ),
+                scene_camera=CAMERAS[view_preset],
+                margin=dict(l=0, r=0, b=0, t=0),
+                paper_bgcolor="rgba(0,0,0,0)",
+                height=255,
+            )
+            st.plotly_chart(fig, use_container_width=True)
+            b = m["bounds"]
+            st.markdown(
+                f'<div style="font-size:0.7rem;color:#888;margin-top:-0.4rem;">'
+                f'✅ {st.session_state.uploaded_name} &nbsp;·&nbsp; '
+                f'{m["n_pts"]:,} pts · {m["n_cells"]:,} faces</div>',
+                unsafe_allow_html=True,
+            )
+
+# ── RIGHT: Prediction panel — active only after training is complete ───────────
 with col_right:
     st.markdown(
-        "<p style='font-size:0.8rem;font-weight:600;margin:0 0 0.25rem;color:#444;'>"
+        "<p style='font-size:0.8rem;font-weight:600;margin:0 0 0.2rem;color:#444;'>"
         "🤖 AI-Assisted 3D Assembly Design Viewer</p>",
         unsafe_allow_html=True,
     )
-    st.markdown(
-        """<div style="
-            border:1.5px solid #2a4060;
-            border-radius:8px;
-            height:260px;
-            display:flex;
-            flex-direction:column;
-            align-items:center;
-            justify-content:center;
-            text-align:center;
-            background:#f8f9fb;
-            color:#aaa;
-        ">
-            <div style="font-size:2.2rem;">🚧</div>
-            <div style="font-size:0.95rem;font-weight:600;color:#5b9bd5;margin-top:0.5rem;">
-                Coming Soon
-            </div>
-            <div style="font-size:0.78rem;color:#999;margin-top:0.3rem;">
-                Working on it…
-            </div>
-        </div>""",
-        unsafe_allow_html=True,
-    )
+
+    if not _CKPT_PATH.exists():
+        # Training not done yet
+        st.markdown(_right_panel_html(None, False), unsafe_allow_html=True)
+
+    elif st.session_state.pred_bytes is None:
+        # Trained model ready — show prediction uploader
+        pred_file = st.file_uploader(
+            "📂 Upload 3D model for predicting missing components",
+            type=["step", "stp"],
+            key="pred_uploader",
+            help="The trained GNN will identify which component connections are missing.",
+        )
+        if pred_file:
+            st.session_state.pred_bytes = pred_file.getvalue()
+            st.session_state.pred_name  = pred_file.name
+            log(f"🔍  Prediction file received: {pred_file.name}")
+            st.rerun()
+
+    else:
+        # Run inference (once per file)
+        if st.session_state.inference_done_for != st.session_state.pred_name:
+            with st.spinner("🔍 Predicting missing components…"):
+                log("🔍  Running GNN inference…")
+                _res = _run_inference(st.session_state.pred_bytes)
+                st.session_state.inference_result   = _res
+                st.session_state.inference_done_for = st.session_state.pred_name
+                if "error" not in _res:
+                    _n = len(_res.get("missing_links", []))
+                    log(f"✅  Prediction done — {_n} missing link(s) found")
+                else:
+                    log(f"⚠️  Inference: {_res.get('error','')[:80]}")
+
+        st.markdown(
+            _right_panel_html(st.session_state.inference_result, True),
+            unsafe_allow_html=True,
+        )
+        if st.button("🔄 Predict another model", key="reset_pred",
+                     use_container_width=True):
+            st.session_state.pred_bytes         = None
+            st.session_state.pred_name          = None
+            st.session_state.inference_result   = None
+            st.session_state.inference_done_for = ""
+            st.rerun()
 
 log("✅  3D viewer ready")
 
