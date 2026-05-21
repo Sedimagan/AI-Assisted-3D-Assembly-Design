@@ -43,7 +43,7 @@ st.markdown(
         gap: 0.2rem;
     }
     div.block-container {
-        padding-top: 6.5rem !important;
+        padding-top: 8.5rem !important;
     }
     /* Left viewer border — box-shadow renders outside the element box so all
        four sides (including bottom) are always fully visible */
