@@ -423,13 +423,16 @@ def _is_training() -> bool:
 
 def _start_training() -> None:
     _TRAIN_LOG.parent.mkdir(parents=True, exist_ok=True)
-    lf = open(_TRAIN_LOG, "w")          # file handle passed to Popen; child inherits fd
+    lf = open(_TRAIN_LOG, "w")
+    _env = os.environ.copy()
+    _env["PYTHONUNBUFFERED"] = "1"      # force line-by-line flush to log file
     proc = subprocess.Popen(
-        [sys.executable, str(_TRAIN_SCRIPT)],
+        [sys.executable, "-u", str(_TRAIN_SCRIPT)],   # -u = unbuffered stdout/stderr
         cwd=str(_TRAIN_SCRIPT.parent),
         stdout=lf, stderr=lf,
+        env=_env,
     )
-    lf.close()                           # parent can close; child keeps its fd
+    lf.close()
     st.session_state.training_pid     = proc.pid
     st.session_state.training_log_pos = 0
     log(f"🚀  Training started (PID {proc.pid})")
@@ -747,15 +750,13 @@ log("✅  3D viewer ready")
 log_slot.markdown(render_log(st.session_state.activity_log[-12:]),
                   unsafe_allow_html=True)
 
-# ── Auto-scroll + hide success alert on first viewer interaction ──────────────
+# ── Auto-poll training log every 3 s while training is active ─────────────────
 if _is_training():
-    streamlit.components.v1.html(
-        "<script>setTimeout(function(){"
-        "window.parent.document.querySelector('[data-testid=\"stRefreshButton\"] button')"
-        "?.click();"           # try Streamlit's internal refresh if available
-        "},4000);</script>",
-        height=0,
-    )
+    import time
+    time.sleep(3)
+    st.rerun()
+
+# ── Auto-scroll + hide success alert on first viewer interaction ──────────────
 
 streamlit.components.v1.html(
     """<script>
