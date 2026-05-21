@@ -134,7 +134,7 @@ st.markdown(
     </style>
 
     <div id="proj-header">
-        <span style="color:#ffffff;font-size:1.5rem;font-weight:700;letter-spacing:0.4px;">
+        <span style="color:#ffffff;font-size:1.5rem;font-weight:700;letter-spacing:0.4px;margin-top:0.4rem;display:block;">
             🔩 AI-Assisted 3D Assembly Design
         </span>
         <span style="color:#a0b8cc;font-size:0.82rem;letter-spacing:0.2px;">
