@@ -22,17 +22,19 @@ git clone <repo-url> && cd AI-Assisted-3D-Assembly-Design
 # One command sets up everything
 bash bootstrap.sh
 
-# Add Gemini API key (required for AI features)
-nano .env   # set GEMINI_API_KEY=...
+# Add Gemini API key and review ports in .env
+nano .env   # set GEMINI_API_KEY=... FRONTEND_PORT=... BACKEND_URL=...
 
 # Activate environment
 source .venv/bin/activate
 
-# Run the 3D viewer
-streamlit run front_end/app.py
+# Start both services (reads ports from .env)
+bash start_services.sh              # front-end :11501  · back-end :11000
+bash stop_services.sh               # graceful shutdown
 
-# Train the GNN (uses synthetic data if no STEP files present)
-cd back_end && python train.py
+# Or run individually
+streamlit run front_end/app.py      # 3D viewer only
+cd back_end && python train.py      # GNN training
 ```
 
 > Full setup guide → [`GETTING_STARTED.md`](./GETTING_STARTED.md)
@@ -114,6 +116,8 @@ Next-component ranking (Hit@K, MRR)
 AI-Assisted-3D-Assembly-Design/
 │
 ├── bootstrap.sh                 ← One-shot automated setup (uv + venv + deps + .env)
+├── start_services.sh            ← Start front-end + back-end; reads ports from .env
+├── stop_services.sh             ← Graceful shutdown (SIGTERM → SIGKILL); reads ports from .env
 ├── GETTING_STARTED.md           ← Full setup and usage guide
 ├── .env.example                 ← Environment template (copy → .env)
 │
@@ -201,13 +205,32 @@ Set `GEMINI_API_KEY` in `.env`. The agent degrades gracefully (offline mode) wit
 
 ---
 
+## Environment Configuration (.env)
+
+Copy `.env.example` → `.env` and fill in your values. Key sections:
+
+| Section | Key variables |
+|---|---|
+| **Google Gemini** | `GEMINI_API_KEY` · `GEMINI_MODEL=gemini-2.0-flash` |
+| **Skills AI** | `SKILLS_PROFILE=engineering_3d_assembly` · `SKILLS_TEMPERATURE=0.3` |
+| **Frontend** | `FRONTEND_HOST=localhost` · `FRONTEND_PORT=11501` |
+| **Backend** | `BACKEND_URL=http://localhost:11000` |
+| **LLM** | *(placeholder for future LLM-specific keys)* |
+| **Application** | `APP_ENV=development` · `LOG_LEVEL=INFO` · `SOURCE_3D_MODELS=<path>` |
+
+`start_services.sh` and `stop_services.sh` both read `FRONTEND_PORT` and `BACKEND_URL` from `.env` automatically — no need to edit the scripts when changing ports.
+
+---
+
 ## 3D Viewer (Front-end)
 
 **Stack:** STEP → gmsh (OpenCASCADE) → STL → PyVista → Plotly `Mesh3d` → Streamlit
 
 ```bash
 source .venv/bin/activate
-streamlit run front_end/app.py
+bash start_services.sh          # starts Streamlit on FRONTEND_PORT (default 11501)
+# or directly:
+streamlit run front_end/app.py --server.port 11501
 ```
 
 **Features:**
