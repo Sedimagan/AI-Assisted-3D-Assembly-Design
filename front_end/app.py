@@ -634,8 +634,8 @@ with col_left:
             st.rerun()
         else:
             st.markdown(
-                '<div style="text-align:center;padding:2rem 0;color:#aaa;height:260px;'
-                'display:flex;flex-direction:column;align-items:center;justify-content:center;">'
+                '<div style="text-align:center;padding:0.5rem 0 2rem;color:#aaa;height:260px;'
+                'display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:1.5rem;">'
                 '<div style="font-size:2.5rem;">📂</div>'
                 '<p style="font-size:0.85rem;margin-top:0.4rem;">Upload a STEP file to view</p>'
                 '</div>',
