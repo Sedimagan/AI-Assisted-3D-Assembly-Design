@@ -57,49 +57,71 @@ st.markdown(
         margin-top: 0.6rem !important;
         transition: opacity 0.5s ease;
     }
-    /* ── Sidebar: no-scroll layout ── */
+    /* ── Sidebar: pull everything to the top ── */
     section[data-testid="stSidebar"] > div:first-child {
-        padding-top: 0.4rem !important;
+        padding-top: 0 !important;
+    }
+    section[data-testid="stSidebar"] > div:first-child > div:first-child {
+        padding-top: 0 !important;
+        margin-top:  0 !important;
+    }
+    /* Zero-out the automatic gap Streamlit injects around every widget */
+    section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] > div {
+        margin-top:    0 !important;
+        margin-bottom: 0 !important;
+        padding-top:   0 !important;
+        padding-bottom:0 !important;
+    }
+    section[data-testid="stSidebar"] .element-container {
+        margin:  0 !important;
+        padding: 0 !important;
     }
     /* Tighter dividers */
     section[data-testid="stSidebar"] hr {
-        margin: 0.35rem 0 !important;
+        margin: 0.2rem 0 !important;
     }
     /* Smaller widget labels */
     section[data-testid="stSidebar"] [data-testid="stWidgetLabel"] p,
     section[data-testid="stSidebar"] label {
-        font-size: 0.75rem !important;
-        line-height: 1.2 !important;
-        margin-bottom: 0.1rem !important;
+        font-size: 0.72rem !important;
+        line-height: 1.1 !important;
+        margin-bottom: 0 !important;
     }
-    /* Shrink the colour-picker swatch square */
+    /* Shrink the colour-picker swatch */
+    section[data-testid="stSidebar"] [data-testid="stColorPicker"] {
+        padding: 0 !important;
+    }
     section[data-testid="stSidebar"] [data-testid="stColorPicker"] button {
-        width:  1.7rem !important;
-        height: 1.7rem !important;
-        min-width:  1.7rem !important;
-        min-height: 1.7rem !important;
+        width:  1.6rem !important;
+        height: 1.6rem !important;
+        min-width:  1.6rem !important;
+        min-height: 1.6rem !important;
         border-radius: 4px !important;
     }
-    /* Compact selectbox rows */
+    /* Compact selectbox */
     section[data-testid="stSidebar"] [data-testid="stSelectbox"] > div > div {
-        min-height: 1.9rem !important;
-        font-size:  0.78rem !important;
-        padding: 0.2rem 0.5rem !important;
+        min-height: 1.8rem !important;
+        font-size:  0.77rem !important;
+        padding: 0.15rem 0.5rem !important;
     }
-    /* Compress slider vertical padding */
+    /* Slim slider */
     section[data-testid="stSidebar"] [data-testid="stSlider"] {
-        padding-top:    0.15rem !important;
-        padding-bottom: 0.15rem !important;
+        padding-top:    0.1rem !important;
+        padding-bottom: 0.1rem !important;
     }
-    /* Compact upload button — no extra top/bottom gap */
+    section[data-testid="stSidebar"] [data-testid="stSlider"] > div {
+        padding: 0 !important;
+    }
+    /* Compact checkbox */
+    section[data-testid="stSidebar"] .stCheckbox {
+        margin:  0 !important;
+        padding: 0 !important;
+    }
+    /* Compact upload button */
     section[data-testid="stSidebar"] [data-testid="stButton"] button {
-        padding: 0.2rem 0.75rem !important;
+        padding: 0.15rem 0.75rem !important;
         font-size: 0.77rem !important;
         line-height: 1.4 !important;
-    }
-    /* Remove the automatic bottom gap on every widget element */
-    section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] > div {
-        margin-bottom: 0.05rem !important;
     }
     </style>
 
@@ -158,7 +180,10 @@ def render_log(entries: list) -> str:
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.header("⚙️ Viewer Settings")
+    st.markdown(
+        "<p style='font-size:0.8rem;font-weight:700;margin:0 0 0.2rem;'>⚙️ Viewer Settings</p>",
+        unsafe_allow_html=True,
+    )
     mesh_color  = st.color_picker("Part colour", "#5b9bd5")
     bg_color    = st.selectbox("Background", ["white", "black", "grey", "lightgrey"])
     view_preset = st.selectbox("Camera preset", ["Isometric", "Top", "Front", "Side"])
