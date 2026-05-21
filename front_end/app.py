@@ -167,6 +167,10 @@ if "pred_bytes" not in st.session_state:
     st.session_state.pred_bytes = None
 if "pred_name"  not in st.session_state:
     st.session_state.pred_name  = None
+if "training_just_done" not in st.session_state:
+    st.session_state.training_just_done = False
+if "last_train_auc" not in st.session_state:
+    st.session_state.last_train_auc = None
 
 # Initialise source_3d_dir from .env, falling back to the default folder
 if "source_3d_dir" not in st.session_state:
@@ -189,10 +193,13 @@ def log(msg: str) -> None:
 # ── Activity log renderer ─────────────────────────────────────────────────────
 def render_log(entries: list) -> str:
     def colour(e: str) -> str:
-        if "❌" in e: return "#ff6b6b"
-        if "✅" in e: return "#6bffb8"
-        if any(x in e for x in ("⚙️", "🎨", "🔄")): return "#6bbbff"
-        if any(x in e for x in ("📂", "📐", "📦")): return "#ffd06b"
+        if "❌" in e:                                        return "#ff6b6b"
+        if "✅" in e:                                        return "#6bffb8"
+        if any(x in e for x in ("⚙️", "🧠", "⏸️")):       return "#6bbbff"
+        if any(x in e for x in ("📂", "📐", "📦", "🗂️")): return "#ffd06b"
+        if any(x in e for x in ("📊", "📈")):               return "#a0e0ff"
+        if any(x in e for x in ("🏋️", "🔹")):              return "#c0c0e0"
+        if "🚀" in e:                                        return "#ffaa44"
         return "#aaaacc"
 
     rows = "".join(
@@ -370,10 +377,37 @@ _TRAIN_LOG    = _PROJ_ROOT / ".logs" / "training.log"
 
 # Patterns that mark a training milestone worth showing in the activity log
 _MILESTONE_RE = re.compile(
-    r"\[1/4\]|\[2/4\]|\[3/4\]|\[4/4\]|✓ New best|Early stop|"
-    r"Test result|auc:|ap:|Traceback|Error|params:"
+    r"\[1/4\]|\[2/4\]|\[3/4\]|\[4/4\]"        # stage markers
+    r"|Found \d+|No STEP files|Parsing:|Parsed \d+|Generating \d+|Saved \d+"
+    r"|graphs loaded|graphs →"                   # dataset lines
+    r"|Model built|total params"                 # model build
+    r"|✓ New best|New best AUC|checkpoint saved" # best model
+    r"|Early stop"                               # early stopping
+    r"|── Test|auc\s*:|ap\s*:|Results saved|Best checkpoint"  # test results
+    r"|Traceback|Error|Exception"                # errors
 )
-_EPOCH_RE = re.compile(r"Ep\s+(\d+)/")
+_EPOCH_RE   = re.compile(r"Ep\s+(\d+)/")
+_AUC_RE     = re.compile(r"AUC=([0-9.]+)")
+_TEST_AUC   = re.compile(r"auc\s*:\s*([0-9.]+)", re.IGNORECASE)
+
+
+def _emoji_for(line: str) -> str:
+    if "[1/4]" in line:                            return "📂"
+    if "[2/4]" in line:                            return "🧠"
+    if "[3/4]" in line:                            return "🏋️"
+    if "[4/4]" in line:                            return "📊"
+    if any(x in line for x in ("Found", "Parsing", "Parsed", "Generating", "Saved", "graphs")):
+        return "🗂️"
+    if any(x in line for x in ("Model built", "total params")):
+        return "⚙️"
+    if any(x in line for x in ("✓", "New best", "checkpoint")):
+        return "✅"
+    if "Early stop" in line:                       return "⏸️"
+    if any(x in line.lower() for x in ("auc", "ap :", "results saved", "best checkpoint")):
+        return "📈"
+    if any(x in line for x in ("Error", "Traceback", "Exception")):
+        return "❌"
+    return "🔹"
 
 
 def _is_training() -> bool:
@@ -414,19 +448,31 @@ def _poll_training() -> None:
         line = line.strip()
         if not line:
             continue
-        # Always show stage markers and key events
+
+        # Capture test AUC for the completion banner
+        ta = _TEST_AUC.search(line)
+        if ta:
+            st.session_state.last_train_auc = float(ta.group(1))
+
+        # Always log milestone lines
         if _MILESTONE_RE.search(line):
-            log(f"🏋️  {line}")
+            log(f"{_emoji_for(line)}  {line}")
             continue
-        # Show every 10th epoch and epoch 1
-        m = _EPOCH_RE.search(line)
-        if m and int(m.group(1)) % 10 == 0:
-            log(f"📊  {line}")
+
+        # Log every 10th epoch (and capture best AUC per epoch)
+        em = _EPOCH_RE.search(line)
+        if em and int(em.group(1)) % 10 == 0:
+            am = _AUC_RE.search(line)
+            auc_tag = f"  AUC={am.group(1)}" if am else ""
+            log(f"📊  Epoch {em.group(1)}{auc_tag}")
 
     # Mark done when process exits
     if not _is_training() and st.session_state.get("training_pid"):
-        log("✅  Training process finished")
-        st.session_state.training_pid = None
+        auc_str = (f"  (AUC {st.session_state.last_train_auc:.4f})"
+                   if st.session_state.last_train_auc else "")
+        log(f"✅  Training complete{auc_str} — upload a 3D model to predict missing components")
+        st.session_state.training_pid       = None
+        st.session_state.training_just_done = True
 
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
@@ -540,6 +586,17 @@ def load_mesh(file_bytes: bytes) -> dict:
             n_pts   = mesh.n_points,
             n_cells = mesh.n_cells,
         )
+
+# ── Always-visible dual-panel layout ─────────────────────────────────────────
+# ── Training completion banner ────────────────────────────────────────────────
+if st.session_state.training_just_done and _CKPT_PATH.exists():
+    auc_tag = (f" · AUC {st.session_state.last_train_auc:.4f}"
+               if st.session_state.last_train_auc else "")
+    st.success(
+        f"🎉 **Training Complete{auc_tag}** — Model ready!  "
+        f"Upload a 3D model in the right panel to predict missing components.",
+        icon="✅",
+    )
 
 # ── Always-visible dual-panel layout ─────────────────────────────────────────
 st.markdown("### 3D Viewers")
