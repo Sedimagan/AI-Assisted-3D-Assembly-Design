@@ -1,6 +1,6 @@
 # AI-Assisted 3D Assembly Design
 
-**Predicting Missing & Next Components in CAD Assemblies using Graph Neural Networks**
+**Predicting Missing Components in CAD Assemblies using Graph Neural Networks**
 
 | | |
 |---|---|
@@ -41,7 +41,9 @@ cd back_end && python train.py
 
 ## Abstract
 
-Engineering CAD assemblies consist of multiple interconnected components whose correct selection is time-consuming and expertise-dependent. This project proposes an intelligent recommendation system that models assemblies as graphs — components as nodes, relationships as edges — and trains a **Graph Attention Network (GAT)** on historical assembly data to learn structural patterns. The trained model predicts **missing components** and suggests the most suitable **next component** for a partially defined assembly, outputting ranked top-K recommendations with model-level interpretability. A **Gemini-powered Skills AI agent** (AIDA) orchestrates the pipeline and explains predictions in engineering language. The solution is implemented entirely in Python using PyTorch Geometric, without dependency on proprietary CAD software APIs.
+Engineering CAD assemblies consist of multiple interconnected components whose correct selection is time-consuming and expertise-dependent. This project trains a **Graph Attention Network (GAT)** on assembly graphs to detect **missing components** via link prediction — Phase 1. A **Gemini-powered Skills AI agent** (AIDA) explains predictions in engineering language. The solution is implemented entirely in Python using PyTorch Geometric, without dependency on proprietary CAD software APIs.
+
+**Phase 2 (planned):** Next-component ranking via NodeRanker (cosine similarity, Hit@K, MRR).
 
 ---
 
@@ -76,15 +78,16 @@ model.py — AssemblyGNN (3-layer GAT)
   13 → 512 → 256 → 64 dim
   4-head attention · edge features on L1
          │
-    ┌────┴────────────────────┐
-    ▼                         ▼
-LinkPredictor MLP          NodeRanker
-MLP(hᵤ‖hᵥ) → BCE          cosine_sim(ctx, cands)
-Missing component          Top-K next component
-detection                  recommendation
-    │                         │
-    └─────────────┬────────────┘
-                  ▼
+         ▼
+LinkPredictor MLP  [Phase 1]
+MLP(hᵤ‖hᵥ) → BCE
+Missing component detection (AUC-ROC, AP)
+         │
+         ▼  (Phase 2 — planned)
+NodeRanker · cosine_sim(ctx, cands)
+Next-component ranking (Hit@K, MRR)
+         │
+         ▼
       skills_agent.py — Gemini AI (AIDA)
       Engineering explanation of predictions
                   │
@@ -142,10 +145,10 @@ AI-Assisted-3D-Assembly-Design/
 | File | What it does |
 |---|---|
 | `back_end/dataset.py` | Scans `Source_3d_models/` for STEP files; uses gmsh + OpenCASCADE to extract solid bodies (nodes) and shared surfaces (edges); falls back to 300 synthetic graphs if folder is empty |
-| `back_end/model.py` | 3-layer GAT encoder (13→512→256→64) + `LinkPredictor` MLP + `NodeRanker` cosine similarity head; `build_model()` auto-selects CPU / MPS / CUDA |
-| `back_end/train.py` | Full training loop with BCE loss, hard negative sampling, Adam + ReduceLROnPlateau, early stopping, checkpoint saving |
-| `back_end/evaluate.py` | `evaluate()` runs a full pass and returns AUC-ROC, AP, Hit@K, MRR, NDCG@K |
-| `back_end/infer.py` | `predict_missing()` scores all absent node pairs; `recommend_next()` ranks a component library; bar-chart CLI output |
+| `back_end/model.py` | 3-layer GAT encoder (13→512→256→64) + `LinkPredictor` MLP; `build_model()` returns `(gnn, lp, device)`; `NodeRanker` present in file, deferred to Phase 2 |
+| `back_end/train.py` | Training loop: BCE loss + hard negative sampling, Adam + ReduceLROnPlateau, early stopping, checkpoint saving |
+| `back_end/evaluate.py` | `evaluate()` returns AUC-ROC and Average Precision — Phase 1 only; Hit@K / MRR / NDCG@K deferred to Phase 2 |
+| `back_end/infer.py` | `predict_missing()` scores all absent node pairs and returns top-K with confidence; bar-chart CLI output |
 | `back_end/skills_agent.py` | `AssemblySkillsAgent` — loads skills YAML, builds Gemini system prompt, exposes `explain_prediction()`, `identify_component()`, `suggest_assembly_sequence()`, `answer()` |
 | `front_end/app.py` | Streamlit app — fixed header, session-state file upload, gmsh subprocess conversion (STEP → STL), Plotly `Mesh3d` viewer, dual-panel layout, activity log sidebar |
 
@@ -158,7 +161,7 @@ The project uses **Google Gemini** as an AI orchestrator configured with mechani
 ### Pipeline
 
 ```
-GNN predictions (missing links + ranked components)
+GNN predictions (missing component links — Phase 1)
          │
          ▼
 AssemblySkillsAgent  ←  skills/engineering_3d_assembly.yaml
@@ -178,7 +181,7 @@ Engineering explanation in plain language
 | `3d_modelling` | B-Rep, STEP/IGES, OpenCASCADE, solid modelling kernels |
 | `3d_assembly_design` | Mate constraints, DOF, assembly hierarchies, sub-assemblies |
 | `3d_parts_identification` | Body / fastener / bearing / shaft / plate / gear classification from geometry |
-| `gnn_interpretation` | Reading AUC, Hit@K, confidence scores in engineering terms |
+| `gnn_interpretation` | Reading AUC-ROC, AP, link confidence scores in engineering terms |
 | `assembly_sequencing` | Build order, fixture requirements, interference analysis |
 
 ### Usage
@@ -189,7 +192,7 @@ from back_end.skills_agent import AssemblySkillsAgent
 agent = AssemblySkillsAgent()
 print(agent.explain_prediction(
     missing=[((2, 5), 0.87), ((0, 3), 0.72)],
-    recs=[("bearing", 0.83), ("shaft", 0.71)],
+    recs=[],   # next-component recs added in Phase 2
     context="Lathe tailstock — 4 known components",
 ))
 ```
@@ -253,14 +256,14 @@ python skills_agent.py
 | Batch size | 32 graphs |
 | Neg sampling ratio | 1:1 pos/neg |
 
-### Phase 1 targets
+### Phase 1 targets — Missing Component Detection
 
 | Metric | Target |
 |---|---|
 | AUC-ROC | ≥ 0.85 |
 | Average Precision | ≥ 0.82 |
-| Hit@5 | ≥ 0.70 |
-| MRR | ≥ 0.64 |
+
+> Hit@K · MRR · NDCG@K are Phase 2 targets (NodeRanker — next-component ranking).
 
 ---
 
@@ -298,7 +301,7 @@ python skills_agent.py
 | **Graph ML** | PyTorch Geometric · GAT · RandomLinkSplit |
 | **AI Orchestration** | Google Gemini (`gemini-2.0-flash`) · `skills_agent.py` |
 | **Front-end** | Streamlit · Plotly `Mesh3d` · PyVista (offscreen STL load) |
-| **Evaluation** | scikit-learn · AUC-ROC · AP · Hit@K · MRR · NDCG@K |
+| **Evaluation** | scikit-learn · AUC-ROC · AP (Phase 1) · Hit@K · MRR · NDCG@K (Phase 2) |
 | **Environment** | Python 3.10+ · `.venv/` · `python-dotenv` |
 
 ---
@@ -321,8 +324,8 @@ May 10, 2026 ──────────────── Jul 10, 2026 ─�
 
 | Phase | Deliverable |
 |---|---|
-| Phase 1 | GAT/GCN baseline on ABC/PartNet split; GCN vs. GAT vs. GraphSAGE comparison; AUC ≥ 0.85 |
-| Phase 2 | HetGNN with typed embeddings; BPR ranking loss; GNNExplainer on 10+ assemblies; Skills AI integration |
+| Phase 1 | GAT/GCN baseline; GCN vs. GAT vs. GraphSAGE comparison; **missing component detection** AUC ≥ 0.85 · AP ≥ 0.82 |
+| Phase 2 | **NodeRanker** next-component ranking; HetGNN typed embeddings; BPR ranking loss; Hit@5 ≥ 0.70 · MRR ≥ 0.64; GNNExplainer |
 | Final | Streamlit demo (STEP upload → 3D view → GNN predictions → AI explanation); thesis; open-source repo (MIT) |
 
 ---
@@ -350,6 +353,7 @@ Survey papers are available in [`Literature_survey_papers/`](./Literature_survey
 | [`zeroth_review_presentation.html`](./Review_files/zeroth_review_presentation.html) | Zeroth review — project proposal, 10 May 2026 |
 | [`zeroth_review_presentation_self_reference.html`](./Review_files/zeroth_review_presentation_self_reference.html) | Zeroth review with self-reference links |
 | [`AI_Assisted_3D_Assembly_guidance_call_1.html`](./Review_files/AI_Assisted_3D_Assembly_guidance_call_1.html) | Guidance call 1 — motivation, methodology, open questions |
+| [`first_review_presentation.html`](./Review_files/first_review_presentation.html) | First review — 6 slides: Title · Architecture · Algorithms · Techniques · Expected Outcomes · References, 24 May 2026 |
 
 ---
 

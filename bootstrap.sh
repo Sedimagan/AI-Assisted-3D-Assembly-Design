@@ -11,7 +11,7 @@
 set -euo pipefail
 
 # ── Colour helpers ────────────────────────────────────────────────────────────
-if [[ "${*}" == *"--no-color"* ]] || [[ ! -t 1 ]]; then
+if [[ "${*:-}" == *"--no-color"* ]] || [[ ! -t 1 ]]; then
   RED="" GREEN="" YELLOW="" BLUE="" CYAN="" BOLD="" DIM="" NC=""
 else
   RED='\033[0;31m' GREEN='\033[0;32m' YELLOW='\033[1;33m'
@@ -28,8 +28,8 @@ step()    { echo -e "\n${CYAN}${BOLD}[$1/$TOTAL_STEPS] $2${NC}"; }
 TOTAL_STEPS=7
 SKIP_UV=false
 FORCE_VENV=false
-[[ "${*}" == *"--skip-uv"*   ]] && SKIP_UV=true
-[[ "${*}" == *"--force-venv"*]] && FORCE_VENV=true
+[[ "${*:-}" == *"--skip-uv"*   ]] && SKIP_UV=true
+[[ "${*:-}" == *"--force-venv"* ]] && FORCE_VENV=true
 
 # ── Banner ────────────────────────────────────────────────────────────────────
 echo -e "${CYAN}${BOLD}"
