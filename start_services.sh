@@ -10,7 +10,7 @@
 set -euo pipefail
 
 # ── Colour ────────────────────────────────────────────────────────────────────
-if [[ "${*}" == *"--no-color"* ]] || [[ ! -t 1 ]]; then
+if [[ "${*:-}" == *"--no-color"* ]] || [[ ! -t 1 ]]; then
   RED="" GREEN="" YELLOW="" BLUE="" CYAN="" BOLD="" DIM="" NC=""
 else
   RED='\033[0;31m' GREEN='\033[0;32m' YELLOW='\033[1;33m'
@@ -29,14 +29,26 @@ PIDS_DIR="$PROJ_ROOT/.pids"
 LOGS_DIR="$PROJ_ROOT/.logs"
 VENV="$PROJ_ROOT/.venv/bin/activate"
 
-FRONTEND_PORT=8501
-BACKEND_PORT=8000
+# Load .env — values override the defaults below
+if [[ -f "$PROJ_ROOT/.env" ]]; then
+  set -o allexport
+  # shellcheck disable=SC1091
+  source <(grep -v '^\s*#' "$PROJ_ROOT/.env" | grep -v '^\s*$')
+  set +o allexport
+fi
+
+# Port defaults (overridden by .env values FRONTEND_PORT / BACKEND_URL)
+FRONTEND_HOST="${FRONTEND_HOST:-localhost}"
+FRONTEND_PORT="${FRONTEND_PORT:-8501}"
+BACKEND_URL="${BACKEND_URL:-http://localhost:8000}"
+BACKEND_PORT="${BACKEND_URL##*:}"   # extract port from URL, e.g. http://localhost:11000 → 11000
+
 STARTUP_DELAY=4          # seconds to wait between frontend and backend start
 
 START_FRONTEND=true
 START_BACKEND=true
-[[ "${*}" == *"--frontend-only"* ]] && START_BACKEND=false
-[[ "${*}" == *"--backend-only"*  ]] && START_FRONTEND=false
+[[ "${*:-}" == *"--frontend-only"* ]] && START_BACKEND=false
+[[ "${*:-}" == *"--backend-only"*  ]] && START_FRONTEND=false
 
 # ── Banner ────────────────────────────────────────────────────────────────────
 echo -e "${CYAN}${BOLD}"
@@ -74,19 +86,19 @@ $START_BACKEND  && check_port $BACKEND_PORT  "Back-end"  || true
 
 # ── Start front-end (Streamlit) ───────────────────────────────────────────────
 start_frontend() {
-  info "Starting front-end  →  http://localhost:${FRONTEND_PORT}"
+  info "Starting front-end  →  http://${FRONTEND_HOST}:${FRONTEND_PORT}"
   nohup streamlit run "$PROJ_ROOT/front_end/app.py" \
     --server.port "$FRONTEND_PORT" \
     --server.headless true \
     --server.fileWatcherType none \
     > "$LOGS_DIR/frontend.log" 2>&1 &
   echo $! > "$PIDS_DIR/frontend.pid"
-  success "Front-end started  (PID $(cat "$PIDS_DIR/frontend.pid"))  →  http://localhost:${FRONTEND_PORT}"
+  success "Front-end started  (PID $(cat "$PIDS_DIR/frontend.pid"))  →  http://${FRONTEND_HOST}:${FRONTEND_PORT}"
 }
 
 # ── Start back-end (FastAPI / uvicorn) ────────────────────────────────────────
 start_backend() {
-  info "Starting back-end   →  http://localhost:${BACKEND_PORT}"
+  info "Starting back-end   →  ${BACKEND_URL}"
   cd "$PROJ_ROOT/back_end"
   nohup python -m uvicorn api:app \
     --host 0.0.0.0 \
@@ -95,7 +107,7 @@ start_backend() {
     > "$LOGS_DIR/backend.log" 2>&1 &
   echo $! > "$PIDS_DIR/backend.pid"
   cd "$PROJ_ROOT"
-  success "Back-end started   (PID $(cat "$PIDS_DIR/backend.pid"))   →  http://localhost:${BACKEND_PORT}"
+  success "Back-end started   (PID $(cat "$PIDS_DIR/backend.pid"))   →  ${BACKEND_URL}"
 }
 
 # ── Launch sequence ───────────────────────────────────────────────────────────
@@ -118,7 +130,7 @@ echo -e "  ${DIM}─────────────────────
 
 if $START_FRONTEND; then
   if lsof -iTCP:$FRONTEND_PORT -sTCP:LISTEN &>/dev/null; then
-    echo -e "  ${GREEN}●${NC} Front-end  (Streamlit)  →  ${CYAN}http://localhost:${FRONTEND_PORT}${NC}"
+    echo -e "  ${GREEN}●${NC} Front-end  (Streamlit)  →  ${CYAN}http://${FRONTEND_HOST}:${FRONTEND_PORT}${NC}"
   else
     echo -e "  ${YELLOW}○${NC} Front-end  (Streamlit)  →  still starting…  check .logs/frontend.log"
   fi
@@ -126,8 +138,8 @@ fi
 
 if $START_BACKEND; then
   if lsof -iTCP:$BACKEND_PORT -sTCP:LISTEN &>/dev/null; then
-    echo -e "  ${GREEN}●${NC} Back-end   (FastAPI)    →  ${CYAN}http://localhost:${BACKEND_PORT}${NC}"
-    echo -e "     API docs              →  ${CYAN}http://localhost:${BACKEND_PORT}/docs${NC}"
+    echo -e "  ${GREEN}●${NC} Back-end   (FastAPI)    →  ${CYAN}${BACKEND_URL}${NC}"
+    echo -e "     API docs              →  ${CYAN}${BACKEND_URL}/docs${NC}"
   else
     echo -e "  ${YELLOW}○${NC} Back-end   (FastAPI)    →  still starting…  check .logs/backend.log"
   fi

@@ -10,7 +10,7 @@
 set -euo pipefail
 
 # ── Colour ────────────────────────────────────────────────────────────────────
-if [[ "${*}" == *"--no-color"* ]] || [[ ! -t 1 ]]; then
+if [[ "${*:-}" == *"--no-color"* ]] || [[ ! -t 1 ]]; then
   RED="" GREEN="" YELLOW="" BLUE="" CYAN="" BOLD="" DIM="" NC=""
 else
   RED='\033[0;31m' GREEN='\033[0;32m' YELLOW='\033[1;33m'
@@ -26,14 +26,23 @@ warn()    { echo -e "${YELLOW}  ⚠  $*${NC}"; }
 PROJ_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PIDS_DIR="$PROJ_ROOT/.pids"
 
-FRONTEND_PORT=8501
-BACKEND_PORT=8000
+# Load .env to get the same ports used at start time
+if [[ -f "$PROJ_ROOT/.env" ]]; then
+  set -o allexport
+  # shellcheck disable=SC1091
+  source <(grep -v '^\s*#' "$PROJ_ROOT/.env" | grep -v '^\s*$')
+  set +o allexport
+fi
+
+FRONTEND_PORT="${FRONTEND_PORT:-8501}"
+BACKEND_URL="${BACKEND_URL:-http://localhost:8000}"
+BACKEND_PORT="${BACKEND_URL##*:}"
 GRACE_PERIOD=3     # seconds before SIGKILL
 
 STOP_FRONTEND=true
 STOP_BACKEND=true
-[[ "${*}" == *"--frontend-only"* ]] && STOP_BACKEND=false
-[[ "${*}" == *"--backend-only"*  ]] && STOP_FRONTEND=false
+[[ "${*:-}" == *"--frontend-only"* ]] && STOP_BACKEND=false
+[[ "${*:-}" == *"--backend-only"*  ]] && STOP_FRONTEND=false
 
 # ── Banner ────────────────────────────────────────────────────────────────────
 echo -e "${CYAN}${BOLD}"
