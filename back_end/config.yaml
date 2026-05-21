@@ -25,7 +25,8 @@ training:
   neg_ratio:    1.0           # negatives per positive edge
 
 evaluation:
-  top_k: [1, 3, 5, 10]
+  # Phase 1: AUC-ROC and Average Precision only (link prediction)
+  # Phase 2: top_k: [1, 3, 5, 10]  for next-component ranking
 
 paths:
   checkpoints: "checkpoints"

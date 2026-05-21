@@ -27,7 +27,7 @@ except ImportError:
 
 from model import build_model
 from dataset import _synthetic_graph, COMP_TYPES
-from infer import predict_missing, recommend_next
+from infer import predict_missing
 from skills_agent import AssemblySkillsAgent
 
 # ── App setup ─────────────────────────────────────────────────────────────────
@@ -47,20 +47,20 @@ app.add_middleware(
 
 # ── Startup: load model + agent ───────────────────────────────────────────────
 
-_gnn = _lp = _ranker = _device = None
+_gnn = _lp = _device = None
 _agent: Optional[AssemblySkillsAgent] = None
 _ckpt_path = Path(__file__).parent / "checkpoints" / "best.pt"
 
 @app.on_event("startup")
 def startup():
-    global _gnn, _lp, _ranker, _device, _agent
+    global _gnn, _lp, _device, _agent
 
     cfg_path = Path(__file__).parent / "config.yaml"
     with open(cfg_path) as f:
         cfg = yaml.safe_load(f)
     mc = cfg["model"]
 
-    _gnn, _lp, _ranker, _device = build_model(
+    _gnn, _lp, _device = build_model(
         in_dim=mc["in_dim"], out_dim=mc["out_dim"],
         hidden=mc["hidden_dim"], heads=mc["heads"],
         dropout=mc["dropout"], edge_dim=mc["edge_dim"],
@@ -70,8 +70,7 @@ def startup():
         ckpt = torch.load(_ckpt_path, map_location=_device, weights_only=False)
         _gnn.load_state_dict(ckpt["gnn"])
         _lp.load_state_dict(ckpt["lp"])
-        _ranker.load_state_dict(ckpt["ranker"])
-        _gnn.eval(); _lp.eval(); _ranker.eval()
+        _gnn.eval(); _lp.eval()
         print(f"  ✓ Checkpoint loaded (val AUC={ckpt['auc']:.4f})")
     else:
         print("  ⚠  No checkpoint found — using untrained model.")
@@ -153,19 +152,6 @@ def api_predict_missing(req: AssemblyGraph):
     ]}
 
 
-@app.post("/predict/next")
-def api_recommend_next(req: AssemblyGraph):
-    """Rank candidate next components for a partial assembly."""
-    if _gnn is None:
-        raise HTTPException(503, "Model not loaded")
-    partial = _to_pyg(req)
-    library = [_synthetic_graph(n_nodes=1) for _ in range(20)]
-    results = recommend_next(_gnn, _ranker, partial, library, _device, top_k=req.top_k)
-    return {"recommendations": [
-        {"component_type": COMP_TYPES[i % len(COMP_TYPES)], "score": s}
-        for i, s in results
-    ]}
-
 
 @app.post("/explain")
 def api_explain(req: ExplainRequest):
@@ -199,8 +185,7 @@ def docs_summary():
     return {
         "endpoints": {
             "GET  /health":          "Service + model status",
-            "POST /predict/missing": "Missing component link prediction",
-            "POST /predict/next":    "Next component recommendation",
+            "POST /predict/missing": "Missing component link prediction (Phase 1)",
             "POST /explain":         "Gemini AI explanation of predictions",
             "POST /identify":        "Component type identification from geometry",
         }

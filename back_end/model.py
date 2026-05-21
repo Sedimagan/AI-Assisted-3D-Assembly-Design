@@ -1,7 +1,9 @@
 """
 model.py — AssemblyGNN
-3-layer Graph Attention Network with a shared encoder and two task heads:
+3-layer Graph Attention Network with a shared encoder and one Phase 1 task head:
   - LinkPredictor  : detects missing component connections (binary edge scoring)
+
+Phase 2 (planned):
   - NodeRanker     : ranks candidate next components (cosine similarity)
 """
 
@@ -129,12 +131,9 @@ def build_model(
     device = device or torch.device("cuda" if torch.cuda.is_available() else
                                     "mps"  if torch.backends.mps.is_available() else "cpu")
 
-    gnn    = AssemblyGNN(in_dim, out_dim, hidden, heads, dropout, edge_dim).to(device)
-    lp     = LinkPredictor(out_dim).to(device)
-    ranker = NodeRanker(out_dim).to(device)
+    gnn = AssemblyGNN(in_dim, out_dim, hidden, heads, dropout, edge_dim).to(device)
+    lp  = LinkPredictor(out_dim).to(device)
 
-    total = sum(p.numel() for p in list(gnn.parameters())
-                             + list(lp.parameters())
-                             + list(ranker.parameters()))
+    total = sum(p.numel() for p in list(gnn.parameters()) + list(lp.parameters()))
     print(f"Model built on {device}  |  total params: {total:,}")
-    return gnn, lp, ranker, device
+    return gnn, lp, device

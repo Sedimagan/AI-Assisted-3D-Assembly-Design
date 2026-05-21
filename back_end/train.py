@@ -80,7 +80,7 @@ def main():
     print("\n[2/4] Building model …")
     mc  = cfg["model"]
     tc  = cfg["training"]
-    gnn, lp, ranker, device = build_model(
+    gnn, lp, device = build_model(
         in_dim   = mc["in_dim"],
         out_dim  = mc["out_dim"],
         hidden   = mc["hidden_dim"],
@@ -110,8 +110,7 @@ def main():
     for epoch in range(1, tc["epochs"] + 1):
         t0         = time.time()
         train_loss = train_epoch(gnn, lp, train_loader, opt, device)
-        val_metrics = evaluate(gnn, lp, val_loader, device,
-                               top_k=cfg["evaluation"]["top_k"])
+        val_metrics = evaluate(gnn, lp, val_loader, device)
         sched.step(val_metrics["auc"])
 
         row = {"epoch": epoch, "train_loss": round(train_loss, 4), **{
@@ -124,20 +123,17 @@ def main():
               f"loss={train_loss:.4f}  "
               f"AUC={val_metrics['auc']:.4f}  "
               f"AP={val_metrics['ap']:.4f}  "
-              f"Hit@5={val_metrics.get('hit@5', 0):.4f}  "
-              f"MRR={val_metrics['mrr']:.4f}  "
               f"({elapsed:.1f}s)")
 
         if val_metrics["auc"] > best_auc:
             best_auc      = val_metrics["auc"]
             patience_left = tc["patience"]
             torch.save({
-                "epoch":  epoch,
-                "auc":    best_auc,
-                "gnn":    gnn.state_dict(),
-                "lp":     lp.state_dict(),
-                "ranker": ranker.state_dict(),
-                "cfg":    cfg,
+                "epoch": epoch,
+                "auc":   best_auc,
+                "gnn":   gnn.state_dict(),
+                "lp":    lp.state_dict(),
+                "cfg":   cfg,
             }, ckpt_dir / "best.pt")
             print(f"  ✓ New best AUC={best_auc:.4f}  checkpoint saved.")
         else:
@@ -152,8 +148,7 @@ def main():
     gnn.load_state_dict(ckpt["gnn"])
     lp.load_state_dict(ckpt["lp"])
 
-    test_metrics = evaluate(gnn, lp, test_loader, device,
-                            top_k=cfg["evaluation"]["top_k"])
+    test_metrics = evaluate(gnn, lp, test_loader, device)
     print("\n  ── Test results ──────────────────────────")
     for k, v in test_metrics.items():
         print(f"     {k:12s}: {v:.4f}")
