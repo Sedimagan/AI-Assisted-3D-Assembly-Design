@@ -298,10 +298,10 @@ with st.sidebar:
         "<p style='font-size:0.8rem;font-weight:700;margin:0 0 0.2rem;'>⚙️ Viewer Settings</p>",
         unsafe_allow_html=True,
     )
-    _cc, _cg, _co = st.columns([1, 0.7, 1.5])
+    _cc, _co = st.columns([1, 1.5])
     mesh_color = _cc.color_picker("Colour", "#5b9bd5")
-    show_grid  = _cg.checkbox("Grid", value=False)
     opacity    = _co.slider("Opacity", 0.1, 1.0, 1.0, 0.05)
+    show_grid  = True  # grid always on
     _col_bg, _col_cam = st.columns(2)
     bg_color    = _col_bg.selectbox("Background", ["white", "black", "grey", "lightgrey"])
     view_preset = _col_cam.selectbox("Camera", ["Isometric", "Top", "Front", "Side"])
@@ -320,12 +320,11 @@ with st.sidebar:
             log(f"📁  Source folder set: {Path(chosen).name}")
             st.rerun()
 
-    # Show the currently selected source folder (truncated)
-    _src_name = Path(st.session_state.source_3d_dir).name
+    # Show label + full path in tooltip
     st.markdown(
         f"<p style='font-size:0.65rem;color:#2a4060;margin:0.05rem 0 0;"
         f"overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
-        f"' title='{st.session_state.source_3d_dir}'>📂 {_src_name}</p>",
+        f"' title='{st.session_state.source_3d_dir}'>📂 If new 3D models added</p>",
         unsafe_allow_html=True,
     )
 
