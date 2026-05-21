@@ -42,7 +42,7 @@ st.markdown(
         background: #0d1828;
         border-bottom: 1px solid #1e3a5f;
         box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-        padding: 0.55rem 1.5rem;
+        padding: 0.85rem 1.5rem 0.3rem;
         display: flex;
         flex-direction: column;
         align-items: center;
