@@ -251,8 +251,11 @@ def _run_inference(step_bytes: bytes) -> dict:
             gnn, lp, device, cfg = load_checkpoint({repr(str(_CKPT_PATH))})
 
         results = predict_missing(gnn, lp, graph, device, top_k=5)
-        
-        # Extract centroids + gmsh entity names in one pass
+
+        # One gmsh pass: centroids + names + area-thresholded contact degrees
+        # A connection only counts when shared surface area >= 1 % of the smaller
+        # body's total surface area — this filters out incidental tiny overlaps
+        # from slightly-displaced parts that are not truly mated.
         import gmsh, re as _re
         gmsh.initialize()
         gmsh.option.setNumber("General.Terminal", 0)
@@ -265,16 +268,41 @@ def _run_inference(step_bytes: bytes) -> dict:
                 gmsh.model.occ.synchronize()
                 vols = gmsh.model.occ.getEntities(3)
 
-            centroids  = []
-            raw_names  = []
+            centroids    = []
+            raw_names    = []
+            _surf_sets   = []
+            _surf_totals = []
             for dim, tag in vols:
                 bbox = gmsh.model.occ.getBoundingBox(dim, tag)
                 centroids.append([(bbox[0]+bbox[3])/2, (bbox[1]+bbox[4])/2, (bbox[2]+bbox[5])/2])
-                n = gmsh.model.getEntityName(dim, tag)
-                raw_names.append(n.strip() if n else "")
+                _en = gmsh.model.getEntityName(dim, tag)
+                raw_names.append(_en.strip() if _en else "")
+                _bnd  = gmsh.model.getBoundary([(dim, tag)], oriented=False, combined=True)
+                _stgs = frozenset(abs(_s[1]) for _s in _bnd if _s[0] == 2)
+                _surf_sets.append(_stgs)
+                _surf_totals.append(max(sum(gmsh.model.occ.getMass(2, _st) for _st in _stgs), 1e-12))
+
+            _CONTACT_THRESH = 0.01   # shared area must be >= 1 % of smaller body's area
+            _nv   = len(vols)
+            _adeg = [0] * _nv
+            for _ii in range(_nv):
+                for _jj in range(_ii + 1, _nv):
+                    _sh = _surf_sets[_ii] & _surf_sets[_jj]
+                    if _sh:
+                        _shared_sa = sum(gmsh.model.occ.getMass(2, _st) for _st in _sh)
+                        _min_sa    = min(_surf_totals[_ii], _surf_totals[_jj])
+                        if _shared_sa / _min_sa >= _CONTACT_THRESH:
+                            _adeg[_ii] += 1
+                            _adeg[_jj] += 1
+            node_degrees = _adeg
+
         except Exception:
-            centroids = []
-            raw_names = []
+            centroids    = []
+            raw_names    = []
+            _es = graph.edge_index[0].tolist()
+            _fb = [0] * int(graph.num_nodes)
+            for _s in _es: _fb[_s] += 1
+            node_degrees = _fb
         finally:
             gmsh.finalize()
 
@@ -290,13 +318,6 @@ def _run_inference(step_bytes: bytes) -> dict:
                 pass
 
         part_names = [n if n else f"Part {{i+1}}" for i, n in enumerate(raw_names)]
-
-        # Degree of each node (number of outgoing edges in the bidirectional graph)
-        _edge_src = graph.edge_index[0].tolist()
-        _deg = [0] * int(graph.num_nodes)
-        for _s in _edge_src:
-            _deg[_s] += 1
-        node_degrees = _deg
 
         out = {{
             "n_nodes": int(graph.num_nodes),
@@ -349,23 +370,48 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
                 return part_names[idx]
             return f"Part {idx + 1}"
 
-        isolated = [i for i, d in enumerate(node_degrees) if d == 0]
+        # Group nodes by part name; flag isolated (degree=0) or under-connected
+        _grp: dict = {}
+        for _gi, _gn in enumerate(part_names):
+            _grp.setdefault(_gn, []).append(_gi)
+
+        not_assembled = []   # degree=0 — no contact at all
+        under_connected = [] # degree>0 but < group max — not properly mated
+
+        for _gn, _gnodes in _grp.items():
+            _degs = [node_degrees[_i] for _i in _gnodes if _i < len(node_degrees)]
+            _max  = max(_degs) if _degs else 0
+            for _gi in _gnodes:
+                if _gi >= len(node_degrees):
+                    continue
+                _d = node_degrees[_gi]
+                if len(_gnodes) > 1:
+                    if _d == 0:
+                        not_assembled.append(_gi)
+                    elif _d < _max:
+                        under_connected.append(_gi)
+                else:
+                    if _d == 0:
+                        not_assembled.append(_gi)
 
         rows = ""
 
-        # ── Section 1: isolated (not assembled) nodes ─────────────────────────
-        if isolated:
+        # ── Section 1: not assembled / under-connected nodes ──────────────────
+        all_flagged = not_assembled + under_connected
+        if all_flagged:
             rows += (
                 '<p style="font-size:0.76rem;font-weight:700;color:#ef4444;'
-                'margin:0 0 5px;">🔴 Not Assembled</p>'
+                'margin:0 0 5px;">🔴 Not Assembled / Not Properly Mated</p>'
             )
-            for i in isolated:
+            for i in all_flagged:
+                label = ("no connections in assembly"
+                         if i in not_assembled else "under-connected — not properly mated")
                 rows += (
                     f'<div style="display:flex;align-items:center;gap:6px;'
                     f'font-size:0.72rem;margin-bottom:5px;">'
                     f'<span style="color:#ef4444;font-size:0.78rem;">⚠</span>'
                     f'<span style="color:#cc2222;font-weight:600;">{_pname(i)}</span>'
-                    f'<span style="color:#888;font-size:0.68rem;">— no connections in assembly</span>'
+                    f'<span style="color:#888;font-size:0.68rem;">— {label}</span>'
                     f'</div>'
                 )
 
@@ -393,7 +439,7 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
                 )
             rows += lbl + link_rows
 
-        if not isolated and not missing:
+        if not all_flagged and not missing:
             rows = "<p style='color:#4caf82;font-size:0.78rem;'>✓ Assembly appears complete — no missing links found.</p>"
 
         return (
@@ -1018,19 +1064,41 @@ with col_right:
                         body_to_gnn[best_b_idx].append(g_idx)
 
             # Determine which nodes to highlight as "not assembled"
-            # Priority 1: isolated nodes (degree=0) — geometrically disconnected bodies
-            # Priority 2: GNN-predicted missing links (fallback when nothing is isolated)
+            # Rules (applied in combination):
+            #   1. Isolated nodes (degree=0) — no contact at all
+            #   2. Under-connected nodes — same part name as other instances but
+            #      fewer connections (e.g. 3 displaced bolts vs 1 correct bolt)
+            # Fallback: GNN predictions when neither rule fires
             highlighted_gnn_nodes = set()
             if (
                 st.session_state.inference_result
                 and st.session_state.inference_done_for == st.session_state.uploaded_name
             ):
-                _ir = st.session_state.inference_result
+                _ir      = st.session_state.inference_result
                 _degrees = _ir.get("node_degrees", [])
-                _isolated = {i for i, d in enumerate(_degrees) if d == 0}
-                if _isolated:
-                    highlighted_gnn_nodes = _isolated
-                else:
+                _pnames  = _ir.get("part_names", [])
+
+                # Group node indices by part name
+                _grp: dict = {}
+                for _gi, _gn in enumerate(_pnames):
+                    _grp.setdefault(_gn, []).append(_gi)
+
+                for _gn, _gnodes in _grp.items():
+                    _degs_in_grp = [_degrees[_i] for _i in _gnodes if _i < len(_degrees)]
+                    _max_deg = max(_degs_in_grp) if _degs_in_grp else 0
+                    for _gi in _gnodes:
+                        if _gi < len(_degrees):
+                            if len(_gnodes) > 1:
+                                # Multi-instance part: flag any under-connected instance
+                                if _degrees[_gi] < _max_deg:
+                                    highlighted_gnn_nodes.add(_gi)
+                            else:
+                                # Unique part: flag only if completely isolated
+                                if _degrees[_gi] == 0:
+                                    highlighted_gnn_nodes.add(_gi)
+
+                # Fallback to GNN predictions if nothing was flagged
+                if not highlighted_gnn_nodes:
                     for lk in _ir.get("missing_links", []):
                         highlighted_gnn_nodes.add(lk["src"])
                         highlighted_gnn_nodes.add(lk["dst"])
