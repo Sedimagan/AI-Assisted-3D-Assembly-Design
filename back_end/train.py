@@ -94,7 +94,7 @@ def main():
     opt    = torch.optim.Adam(params, lr=tc["lr"], weight_decay=tc["weight_decay"])
     sched  = torch.optim.lr_scheduler.ReduceLROnPlateau(
         opt, mode="max", factor=tc["lr_factor"],
-        patience=tc["lr_patience"], verbose=True,
+        patience=tc["lr_patience"],
     )
 
     # ── Training ──────────────────────────────────────────────────────────
