@@ -156,7 +156,7 @@ AI-Assisted-3D-Assembly-Design/
 | `back_end/evaluate.py` | `evaluate()` returns AUC-ROC and Average Precision — Phase 1 only; Hit@K / MRR / NDCG@K deferred to Phase 2 |
 | `back_end/infer.py` | `predict_missing()` scores all absent node pairs and returns top-K with confidence; bar-chart CLI output |
 | `back_end/skills_agent.py` | `AssemblySkillsAgent` — loads skills YAML, builds Gemini system prompt, exposes `explain_prediction()`, `identify_component()`, `suggest_assembly_sequence()`, `answer()` |
-| `front_end/app.py` | Streamlit app — fixed header, dual independent panels (left: viewer, right: prediction), gmsh subprocess STEP→STL, Plotly `Mesh3d`, osascript folder picker, background training with unbuffered log streaming, GNN inference subprocess, confidence-bar missing-link results |
+| `front_end/app.py` | Streamlit app — fixed header, dual independent panels (left: inference + AIDA, right: 3D viewer), gmsh subprocess STEP→STL, Plotly `Mesh3d` with red-highlighted not-assembled / under-connected parts, area-thresholded contact detection, group-based under-connection detection by part basename, fragmentation name inheritance, osascript folder picker, background training with unbuffered log streaming |
 
 ---
 
@@ -176,7 +176,7 @@ AssemblySkillsAgent  ←  skills/engineering_3d_assembly.yaml
 Gemini (gemini-2.0-flash)
          │
          ▼
-Engineering explanation in plain language
+3–4 bullet engineering explanation (displayed in AIDA panel)
 ```
 
 ### Skill domains
@@ -204,6 +204,8 @@ print(agent.explain_prediction(
 ```
 
 Set `GEMINI_API_KEY` in `.env`. The agent degrades gracefully (offline mode) without a key.
+
+AIDA responses are constrained to **3–4 concise bullet points** covering: what the top missing link represents mechanically, the implied mate constraint type, confidence level interpretation, and any unusual finding worth verifying. The AIDA panel is displayed prominently with a vivid blue gradient at the bottom of the left inference panel.
 
 ---
 
@@ -239,10 +241,31 @@ streamlit run front_end/app.py --server.port 11501
 
 | Panel | Description |
 |---|---|
-| **Left — 3D Model Viewer** | Upload any STEP/STP file → gmsh converts → interactive Plotly 3D viewer. Independent of inference. |
-| **Right — AI-Assisted Viewer** | Shows "Train first" if no checkpoint. After training: **"Upload 3D model for predicting missing components"** uploader. On upload: runs GNN inference → displays missing component predictions with confidence bars. |
+| **Left — AI-Assisted Viewer** | Shows "Train first" if no checkpoint. After training: upload a STEP file → runs GNN inference → displays missing component predictions with confidence bars and assembly health status. |
+| **Right — 3D Model Viewer** | Upload any STEP/STP file → gmsh converts → interactive Plotly 3D viewer. Highlighted in red: parts detected as not assembled or under-connected. Independent inference display. |
 
-**After training completes** a green banner appears: *"🎉 Training Complete · AUC X.XXXX — Upload a 3D model in the right panel to predict missing components."*
+**After training completes** a green banner appears: *"🎉 Training Complete · AUC X.XXXX — Upload a 3D model in the left panel to predict missing components."*
+
+### Assembly Health Detection
+
+The inference pipeline analyses every component in the uploaded STEP file and flags assembly problems in the left panel and 3D viewer (red highlight):
+
+| Condition | Detection Method |
+|---|---|
+| **Not Assembled** | Degree = 0 after area-thresholded contact check — no surface contact with any other part |
+| **Under-Connected** | Same part (by name) appears multiple times; instances with fewer connections than the best-connected instance are flagged |
+
+**Area-threshold contact rule:** A shared surface between two bodies only counts as a mate connection when the shared area is ≥ 1 % of the smaller body's total surface area. This filters incidental tiny overlaps from slightly-displaced parts that are not truly mated.
+
+**Group-based under-connection:** Parts are grouped by their **basename** (last path segment in the STEP hierarchy, e.g. `11-Black Dice LicPlate Bolts-X4`) regardless of instance folder. If one bolt is correctly mated and three others are displaced, the three displaced bolts are flagged as under-connected.
+
+### Part Name Display
+
+Component names are extracted from gmsh entity names (STEP path hierarchy) and displayed as short labels:
+
+- Full gmsh paths like `Shapes/Assembly/InstanceFolder/PartName` are trimmed to the last segment
+- Names are inherited through the `fragment()` operation so sub-volumes created by Boolean splitting retain their parent's name
+- Any remaining unnamed nodes are filled from STEP `PRODUCT` records as fallback
 
 **Sidebar layout:**
 
@@ -310,7 +333,7 @@ python skills_agent.py
 After training completes a timestamped file is saved to `trained_models/`:
 
 ```
-trained_models/assembly_gnn_20260523_114500_auc08520.pt
+trained_models/assembly_gnn_20260523_162431_auc09272.pt   ← best run (AUC 0.9272)
 ```
 
 Each export contains: epoch · best AUC · test metrics · `trained_at` timestamp · `source_dir` path · model weights (`gnn`, `lp`) · full config. Files are git-ignored; the folder is tracked.
