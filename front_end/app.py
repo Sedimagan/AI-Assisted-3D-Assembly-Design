@@ -414,7 +414,7 @@ _TRAIN_LOG    = _PROJ_ROOT / ".logs" / "training.log"
 _MILESTONE_RE = re.compile(
     r"\[1/4\]|\[2/4\]|\[3/4\]|\[4/4\]"        # stage markers
     r"|Found \d+|No STEP files|Parsing:|Parsed \d+|Generating \d+|Saved \d+"
-    r"|graphs loaded|graphs →"                   # dataset lines
+    r"|graphs loaded|graphs →|Splits —"           # dataset lines
     r"|Model built|total params"                 # model build
     r"|✓ New best|New best AUC|checkpoint saved" # best model
     r"|Early stop"                               # early stopping

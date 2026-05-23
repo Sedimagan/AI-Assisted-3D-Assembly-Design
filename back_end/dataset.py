@@ -224,12 +224,47 @@ class AssemblyDataset(InMemoryDataset):
 # ── Split helper ──────────────────────────────────────────────────────────────
 
 def get_splits(dataset: AssemblyDataset, cfg: dict):
-    """Return train / val / test splits using RandomLinkSplit."""
+    """
+    Split the dataset into train / val / test lists, then apply
+    RandomLinkSplit to each individual graph.
+
+    RandomLinkSplit must be applied per-graph (it expects a Data object,
+    not an InMemoryDataset).  Graphs with fewer than 8 directed edges are
+    skipped to ensure the split can always allocate at least one val/test edge.
+    """
+    n       = len(dataset)
+    n_test  = max(1, int(n * cfg["data"]["test_ratio"]))
+    n_val   = max(1, int(n * cfg["data"]["val_ratio"]))
+    n_train = max(1, n - n_val - n_test)
+
+    torch.manual_seed(42)
+    perm = torch.randperm(n).tolist()
+
     splitter = RandomLinkSplit(
-        num_val             = cfg["data"]["val_ratio"],
-        num_test            = cfg["data"]["test_ratio"],
-        is_undirected       = True,
+        num_val                    = 0.1,
+        num_test                   = 0.1,
+        is_undirected              = True,
         add_negative_train_samples = True,
-        neg_sampling_ratio  = cfg["training"]["neg_ratio"],
+        neg_sampling_ratio         = cfg["training"]["neg_ratio"],
     )
-    return splitter(dataset)
+
+    def _transform(indices: list, split_idx: int) -> List[Data]:
+        result = []
+        for i in indices:
+            data = dataset[i]
+            if data.edge_index.size(1) < 8:   # need enough edges to split
+                continue
+            try:
+                train_d, val_d, test_d = splitter(data)
+                result.append([train_d, val_d, test_d][split_idx])
+            except Exception:
+                continue
+        return result
+
+    train_data = _transform(perm[:n_train],             0)
+    val_data   = _transform(perm[n_train:n_train+n_val], 1)
+    test_data  = _transform(perm[n_train+n_val:],        2)
+
+    print(f"  Splits — train: {len(train_data)}  val: {len(val_data)}"
+          f"  test: {len(test_data)}  (skipped graphs with <8 edges)")
+    return train_data, val_data, test_data
