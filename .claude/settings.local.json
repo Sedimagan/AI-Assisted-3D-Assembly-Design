@@ -4,7 +4,18 @@
       "Bash(python3 -c 'import sys; from html.parser import HTMLParser; *)",
       "Bash(python3 -c ' *)",
       "Bash(pip show *)",
-      "Bash(pip list *)"
+      "Bash(pip list *)",
+      "Bash(chmod +x *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(git commit -m 'Rewrite first review: 6 structured slides, sparse content, 80% screen usage *)",
+      "Bash(grep *)",
+      "Bash(command -v 7z)",
+      "Bash(command -v 7za)",
+      "Bash(brew install *)",
+      "Bash(7z x *)",
+      "Bash(wait)"
     ]
   }
 }

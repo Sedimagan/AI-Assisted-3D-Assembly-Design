@@ -66,7 +66,7 @@ skills:
       Knows typical assembly topologies for machine tools, fixtures, and
       structural assemblies.
     keywords:
-      - mate constraint: coincident, concentric, parallel, tangent, fixed, flush
+      - "mate constraint: coincident, concentric, parallel, tangent, fixed, flush"
       - DOF, fully constrained, under-constrained, over-constrained
       - sub-assembly, top-level assembly, bill of materials (BOM)
       - fastener patterns, interference fit, press fit, slip fit
@@ -85,7 +85,7 @@ skills:
       - bearing, shaft, barrel, spindle, bushing
       - plate, base, flange, bracket, gusset
       - gear, sprocket, pulley, cam
-      - node features: type one-hot, volume, surface area, bbox
+      - "node features: type one-hot, volume, surface area, bbox"
 
   - id: gnn_interpretation
     name: "GNN Prediction Interpretation"

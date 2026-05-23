@@ -182,9 +182,11 @@ class AssemblyDataset(InMemoryDataset):
     ):
         self.source_dir = Path(source_dir)
         if force_reload:
-            proc = Path(processed_dir) / "data.pt"
-            if proc.exists():
-                proc.unlink()
+            # Check both the raw processed_dir and PyG's nested processed_dir/processed path
+            for fname in ["data.pt", "processed/data.pt"]:
+                proc = Path(processed_dir) / fname
+                if proc.exists():
+                    proc.unlink()
         super().__init__(str(processed_dir), transform, pre_transform)
         self.data, self.slices = torch.load(self.processed_paths[0],
                                             weights_only=False)
