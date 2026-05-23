@@ -21,3 +21,6 @@ back_end/results/
 
 # Jupyter
 .ipynb_checkpoints/
+
+# 3D model source files (large binary assets — not tracked in git)
+Source_3d_models/
