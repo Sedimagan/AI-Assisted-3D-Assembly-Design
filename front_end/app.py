@@ -592,6 +592,10 @@ with st.sidebar:
             st.session_state.mesh_logged      = False
             st.session_state.inference_result = None
             st.session_state.inference_done_for = ""
+            st.session_state.pred_bytes         = None
+            st.session_state.pred_name          = None
+            st.session_state.aida_explanation   = None
+            st.session_state.aida_explain_for   = ""
             st.rerun()
 
     # ── Train button ──────────────────────────────────────────────────────────
@@ -1041,6 +1045,10 @@ with col_right:
             st.session_state.pred_bytes = pred_file.getvalue()
             st.session_state.pred_name  = pred_file.name
             log(f"🔍  Prediction file received: {pred_file.name}")
+            # Synchronize to the left viewer so they don't have to upload twice
+            st.session_state.uploaded_bytes = st.session_state.pred_bytes
+            st.session_state.uploaded_name  = st.session_state.pred_name
+            st.session_state.mesh_logged    = False
             st.rerun()
 
     else:
@@ -1056,20 +1064,39 @@ with col_right:
                     log(f"✅  Prediction done — {_n} missing link(s) found")
                 else:
                     log(f"⚠️  Inference: {_res.get('error','')[:80]}")
+                st.rerun()
 
         st.markdown(
             _right_panel_html(st.session_state.inference_result, True),
             unsafe_allow_html=True,
         )
-        if st.button("🔄 Predict another model", key="reset_pred",
-                     use_container_width=True):
-            st.session_state.pred_bytes         = None
-            st.session_state.pred_name          = None
-            st.session_state.inference_result   = None
-            st.session_state.inference_done_for = ""
-            st.session_state.aida_explanation   = None
-            st.session_state.aida_explain_for   = ""
-            st.rerun()
+        btn_col1, btn_col2 = st.columns(2)
+        with btn_col1:
+            if st.button("🔄 Predict another", key="reset_pred", use_container_width=True):
+                st.session_state.pred_bytes         = None
+                st.session_state.pred_name          = None
+                st.session_state.inference_result   = None
+                st.session_state.inference_done_for = ""
+                st.session_state.aida_explanation   = None
+                st.session_state.aida_explain_for   = ""
+                # Synchronize reset to the left viewer
+                st.session_state.uploaded_bytes     = None
+                st.session_state.uploaded_name      = None
+                st.session_state.mesh_logged        = False
+                st.rerun()
+        with btn_col2:
+            if st.button("🗑️ Reset All & Log", key="reset_main_log", use_container_width=True):
+                st.session_state.pred_bytes         = None
+                st.session_state.pred_name          = None
+                st.session_state.inference_result   = None
+                st.session_state.inference_done_for = ""
+                st.session_state.aida_explanation   = None
+                st.session_state.aida_explain_for   = ""
+                st.session_state.uploaded_bytes     = None
+                st.session_state.uploaded_name      = None
+                st.session_state.mesh_logged        = False
+                st.session_state.activity_log       = []
+                st.rerun()
 
 # ── AIDA panel — below dual viewer ───────────────────────────────────────────
 _inf = st.session_state.inference_result
@@ -1090,12 +1117,12 @@ if (
 # Render AIDA panel
 _expl_text = st.session_state.aida_explanation
 if _expl_text:
-    _body = f'<p style="font-size:0.82rem;color:#7a9ab8;line-height:1.8;white-space:pre-wrap;">{_expl_text}</p>'
+    _body = f'<p style="font-size:0.88rem;color:#e0f2fe;line-height:1.9;white-space:pre-wrap;margin:0;">{_expl_text}</p>'
 elif _inf and "error" in _inf:
-    _body = '<p style="font-size:0.8rem;color:#e05555;">Inference error — no explanation available.</p>'
+    _body = '<p style="font-size:0.84rem;color:#fca5a5;margin:0;">Inference error — no explanation available.</p>'
 else:
     _body = (
-        '<p style="font-size:0.8rem;color:#2a4060;font-style:italic;">'
+        '<p style="font-size:0.84rem;color:#7dd3fc;font-style:italic;margin:0;">'
         'Upload a 3D model to the right panel — AIDA will explain the missing '
         'component predictions in engineering language once inference is complete.'
         '</p>'
@@ -1104,25 +1131,28 @@ else:
 st.markdown(
     f"""
     <div style="
-        background:linear-gradient(135deg,#070e18,#0a1420);
-        border:1px solid #1e3a5f;
+        background:linear-gradient(135deg,#0a1628,#0f2744);
+        border:1px solid #1d4ed8;
+        border-left:4px solid #38bdf8;
         border-radius:10px;
         margin-top:0.8rem;
         overflow:hidden;
+        box-shadow:0 0 18px rgba(56,189,248,0.15);
     ">
         <div style="
-            padding:0.55rem 1.2rem;
-            border-bottom:1px solid #152438;
+            padding:0.6rem 1.2rem;
+            border-bottom:1px solid #1e3a6e;
             display:flex;
             align-items:baseline;
             gap:0.6rem;
+            background:linear-gradient(90deg,#0c3566,#0f2744);
         ">
-            <span style="color:#ffffff;font-size:0.92rem;font-weight:700;">🤖 AIDA explains</span>
-            <span style="color:#3a5878;font-size:0.72rem;">
-                Gemini AI (AIDA) explains the predictions in engineering language
+            <span style="color:#38bdf8;font-size:0.95rem;font-weight:700;letter-spacing:0.3px;">🤖 AIDA explains</span>
+            <span style="color:#93c5fd;font-size:0.76rem;font-weight:500;">
+                Gemini AI · engineering interpretation of GNN predictions
             </span>
         </div>
-        <div style="padding:0.9rem 1.2rem;min-height:70px;">
+        <div style="padding:1.0rem 1.2rem;min-height:70px;">
             {_body}
         </div>
     </div>

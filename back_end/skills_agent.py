@@ -74,7 +74,7 @@ class AssemblySkillsAgent:
         self.profile = profile or os.getenv("SKILLS_PROFILE", "engineering_3d_assembly")
         self.model_name = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
         self.temperature = float(os.getenv("SKILLS_TEMPERATURE", "0.3"))
-        self.max_tokens  = int(os.getenv("SKILLS_MAX_OUTPUT_TOKENS", "2048"))
+        self.max_tokens  = int(os.getenv("SKILLS_MAX_OUTPUT_TOKENS", "300"))
 
         skills = _load_skills(self.profile)
         self._system_prompt = _build_system_prompt(skills)
@@ -141,20 +141,22 @@ class AssemblySkillsAgent:
         ) or "  (none)"
 
         prompt = f"""
-The GNN model produced the following predictions for a partial CAD assembly.
-{f"Assembly context: {context}" if context else ""}
+GNN predictions for a partial CAD assembly.
+{f"Context: {context}" if context else ""}
 
-Missing link predictions (node pairs likely connected but absent):
+Missing links (absent but predicted):
 {missing_txt}
 
-Next component recommendations (ranked by cosine similarity):
+Next-component recommendations:
 {recs_txt}
 
-Please:
-1. Explain what these predictions mean from a mechanical engineering perspective.
-2. For the top missing link, describe what type of mate constraint it likely represents.
-3. For the top recommendation, explain why that component type makes engineering sense.
-4. Flag any predictions that seem unusual or worth verifying in CAD.
+Respond with exactly 3–4 concise bullet points (one sentence each):
+• What the top missing link likely represents mechanically
+• What mate constraint it suggests (coincident / concentric / etc.)
+• Whether the confidence level is high/medium/low and what action to take
+• (Optional) One unusual finding worth verifying in CAD
+
+No prose paragraphs. No headings. Bullets only. Maximum 4 lines total.
 """
         return self._ask(prompt)
 
