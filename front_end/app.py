@@ -171,6 +171,10 @@ if "training_just_done" not in st.session_state:
     st.session_state.training_just_done = False
 if "last_train_auc" not in st.session_state:
     st.session_state.last_train_auc = None
+if "aida_explanation" not in st.session_state:
+    st.session_state.aida_explanation   = None
+if "aida_explain_for" not in st.session_state:
+    st.session_state.aida_explain_for   = ""
 
 # Initialise source_3d_dir from .env, falling back to the default folder
 if "source_3d_dir" not in st.session_state:
@@ -336,6 +340,37 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
         f'<div style="font-size:0.75rem;color:#999;margin-top:0.3rem;">'
         f'Missing components will appear here</div></div>'
     )
+
+
+# ── AIDA explanation helper ───────────────────────────────────────────────────
+
+def _run_aida_explain(inference_result: dict) -> str:
+    """Call AssemblySkillsAgent.explain_prediction() in a subprocess."""
+    missing  = inference_result.get("missing_links", [])
+    n_nodes  = inference_result.get("n_nodes", 0)
+    n_edges  = inference_result.get("n_edges", 0)
+    back_end = str(_PROJ_ROOT / "back_end")
+
+    script = textwrap.dedent(f"""\
+        import sys
+        sys.path.insert(0, {repr(back_end)})
+        try:
+            from skills_agent import AssemblySkillsAgent
+            agent = AssemblySkillsAgent()
+            missing_fmt = [((m['src'], m['dst']), m['confidence'])
+                           for m in {repr(missing)}]
+            ctx = (f"Assembly with {n_nodes} components and {n_edges} "
+                   "known connections.")
+            print(agent.explain_prediction(missing=missing_fmt, recs=[], context=ctx))
+        except Exception as e:
+            print(f"[AIDA offline] {{e}}")
+    """)
+    r = subprocess.run(
+        [sys.executable, "-c", script],
+        capture_output=True, text=True, timeout=60,
+    )
+    return (r.stdout.strip() or r.stderr.strip()[:300]
+            or "AIDA explanation unavailable.")
 
 
 # ── Source folder helper ──────────────────────────────────────────────────────
@@ -742,7 +777,68 @@ with col_right:
             st.session_state.pred_name          = None
             st.session_state.inference_result   = None
             st.session_state.inference_done_for = ""
+            st.session_state.aida_explanation   = None
+            st.session_state.aida_explain_for   = ""
             st.rerun()
+
+# ── AIDA panel — below dual viewer ───────────────────────────────────────────
+_inf = st.session_state.inference_result
+_pred_name = st.session_state.pred_name or ""
+
+# Trigger explanation once per prediction result
+if (
+    _inf and "error" not in _inf
+    and st.session_state.aida_explain_for != _pred_name
+    and _pred_name
+):
+    with st.spinner("🤖 AIDA is preparing the engineering explanation…"):
+        _expl = _run_aida_explain(_inf)
+        st.session_state.aida_explanation = _expl
+        st.session_state.aida_explain_for = _pred_name
+        log("🤖  AIDA explanation ready")
+
+# Render AIDA panel
+_expl_text = st.session_state.aida_explanation
+if _expl_text:
+    _body = f'<p style="font-size:0.82rem;color:#7a9ab8;line-height:1.8;white-space:pre-wrap;">{_expl_text}</p>'
+elif _inf and "error" in _inf:
+    _body = '<p style="font-size:0.8rem;color:#e05555;">Inference error — no explanation available.</p>'
+else:
+    _body = (
+        '<p style="font-size:0.8rem;color:#2a4060;font-style:italic;">'
+        'Upload a 3D model to the right panel — AIDA will explain the missing '
+        'component predictions in engineering language once inference is complete.'
+        '</p>'
+    )
+
+st.markdown(
+    f"""
+    <div style="
+        background:linear-gradient(135deg,#070e18,#0a1420);
+        border:1px solid #1e3a5f;
+        border-radius:10px;
+        margin-top:0.8rem;
+        overflow:hidden;
+    ">
+        <div style="
+            padding:0.55rem 1.2rem;
+            border-bottom:1px solid #152438;
+            display:flex;
+            align-items:baseline;
+            gap:0.6rem;
+        ">
+            <span style="color:#ffffff;font-size:0.92rem;font-weight:700;">🤖 AIDA explains</span>
+            <span style="color:#3a5878;font-size:0.72rem;">
+                Gemini AI (AIDA) explains the predictions in engineering language
+            </span>
+        </div>
+        <div style="padding:0.9rem 1.2rem;min-height:70px;">
+            {_body}
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 log("✅  3D viewer ready")
 
