@@ -235,8 +235,16 @@ def _run_inference(step_bytes: bytes) -> dict:
         from infer import load_checkpoint, predict_missing
 
         graph = _parse_step({repr(str(_STEP_CACHE))})
-        if graph is None or graph.num_nodes < 2:
-            print(json.dumps({{"error": "Need ≥ 2 solid bodies for inference"}}))
+        n_bodies = graph.num_nodes if graph is not None else 0
+        if n_bodies < 2:
+            print(json.dumps({{
+                "error": (
+                    f"This file has {{n_bodies}} solid body. "
+                    "Upload a multi-body assembly STEP file (e.g. Assembly5.stp). "
+                    "Individual part files from j1.0.0/joint/ are single components — "
+                    "they cannot be used for missing link prediction."
+                )
+            }}))
             sys.exit(0)
 
         with contextlib.redirect_stdout(io.StringIO()):
