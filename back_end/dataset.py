@@ -56,6 +56,13 @@ def _parse_step(step_path: str) -> Optional[Data]:
         if len(volumes) < 2:
             return None
 
+        # Fragment volumes against each other to share boundary surface tags for contact detection
+        gmsh.model.occ.fragment(volumes, [])
+        gmsh.model.occ.synchronize()
+        
+        # Re-fetch volumes since fragmentation may update tags
+        volumes = gmsh.model.occ.getEntities(3)
+
         # ── Node features ──────────────────────────────────────────────────
         node_feats: List[List[float]] = []
         body_surfs: List[frozenset]   = []

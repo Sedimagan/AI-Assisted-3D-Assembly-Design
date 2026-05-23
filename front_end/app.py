@@ -614,24 +614,110 @@ def _gmsh_convert(step_path: str, stl_path: str) -> None:
 
 @st.cache_data(show_spinner=False)
 def load_mesh(file_bytes: bytes) -> dict:
-    """STEP → triangulated mesh data. Cached so sidebar changes skip re-conversion."""
+    """STEP → list of triangulated mesh bodies. Cached so sidebar changes skip re-conversion."""
     with tempfile.TemporaryDirectory() as d:
         sp = os.path.join(d, "model.step")
-        tp = os.path.join(d, "model.stl")
         with open(sp, "wb") as f:
             f.write(file_bytes)
-        _gmsh_convert(sp, tp)
-        mesh  = pv.read(tp).triangulate()
-        faces = mesh.faces.reshape(-1, 4)
-        return dict(
-            verts   = mesh.points.copy(),
-            i       = faces[:, 1].copy(),
-            j       = faces[:, 2].copy(),
-            k       = faces[:, 3].copy(),
-            bounds  = mesh.bounds,
-            n_pts   = mesh.n_points,
-            n_cells = mesh.n_cells,
+        
+        # Mesh and extract individual bodies inside a helper to avoid thread signal constraints
+        import subprocess, sys, json, textwrap
+        
+        script = textwrap.dedent(f"""\
+            import gmsh, json, sys
+            gmsh.initialize()
+            gmsh.option.setNumber("General.Terminal", 0)
+            gmsh.option.setNumber("Mesh.CharacteristicLengthMax", 5.0)
+            gmsh.model.add("assembly")
+            try:
+                gmsh.merge({repr(sp)})
+                gmsh.model.occ.synchronize()
+                
+                # Fragment to ensure exact same volumes list as GNN dataset builder
+                volumes = gmsh.model.occ.getEntities(3)
+                if volumes:
+                    gmsh.model.occ.fragment(volumes, [])
+                    gmsh.model.occ.synchronize()
+                
+                gmsh.model.mesh.generate(2)
+                
+                vols = gmsh.model.occ.getEntities(3)
+                bodies = []
+                
+                # Collect overall bounds
+                xmin, ymin, zmin, xmax, ymax, zmax = 1e9, 1e9, 1e9, -1e9, -1e9, -1e9
+                
+                for idx, (dim, tag) in enumerate(vols):
+                    # Bounding box
+                    v_bbox = gmsh.model.occ.getBoundingBox(dim, tag)
+                    xmin = min(xmin, v_bbox[0]); ymin = min(ymin, v_bbox[1]); zmin = min(zmin, v_bbox[2])
+                    xmax = max(xmax, v_bbox[3]); ymax = max(ymax, v_bbox[4]); zmax = max(zmax, v_bbox[5])
+                    
+                    bnd = gmsh.model.getBoundary([(dim, tag)], oriented=False, combined=True)
+                    surf_tags = [abs(s[1]) for s in bnd if s[0] == 2]
+                    
+                    all_coords = []
+                    all_node_tags = {{}}
+                    triangles = []
+                    
+                    for s_tag in surf_tags:
+                        node_tags, coords, _ = gmsh.model.mesh.getNodes(2, s_tag, includeBoundary=True)
+                        coords = coords.reshape(-1, 3)
+                        for t, coord in zip(node_tags, coords):
+                            if t not in all_node_tags:
+                                all_node_tags[t] = len(all_coords)
+                                all_coords.append(coord.tolist())
+                                
+                        elem_types, elem_tags, elem_node_tags = gmsh.model.mesh.getElements(2, s_tag)
+                        for el_type, el_nodes in zip(elem_types, elem_node_tags):
+                            if el_type == 2:
+                                el_nodes = el_nodes.reshape(-1, 3)
+                                for tri in el_nodes:
+                                    triangles.append([
+                                        all_node_tags[tri[0]],
+                                        all_node_tags[tri[1]],
+                                        all_node_tags[tri[2]]
+                                    ])
+                                    
+                    bodies.append({{
+                        "idx": idx,
+                        "verts": all_coords,
+                        "triangles": triangles,
+                    }})
+                
+                print(json.dumps({{
+                    "bodies": bodies,
+                    "bounds": [xmin, xmax, ymin, ymax, zmin, zmax]
+                }}))
+            except Exception as e:
+                print(json.dumps({{"error": str(e)}}))
+            finally:
+                gmsh.finalize()
+        """)
+        
+        r = subprocess.run(
+            [sys.executable, "-c", script],
+            capture_output=True, text=True, timeout=120,
         )
+        
+        # Parse output
+        out = None
+        for line in reversed(r.stdout.strip().splitlines()):
+            line = line.strip()
+            if line.startswith("{"):
+                try:
+                    out = json.loads(line)
+                    break
+                except Exception:
+                    pass
+        if not out or "error" in out:
+            raise RuntimeError(out.get("error") if out else (r.stderr.strip() or "gmsh mesh generation failed"))
+            
+        n_pts = sum(len(b["verts"]) for b in out["bodies"])
+        n_cells = sum(len(b["triangles"]) for b in out["bodies"])
+        out["n_pts"] = n_pts
+        out["n_cells"] = n_cells
+        return out
 
 # ── Always-visible dual-panel layout ─────────────────────────────────────────
 # ── Training completion banner ────────────────────────────────────────────────
@@ -705,15 +791,48 @@ with col_left:
                 log("🎨  Building 3D viewer…")
                 st.session_state.mesh_logged = True
 
-            verts = m["verts"]
-            fig = go.Figure(go.Mesh3d(
-                x=verts[:, 0], y=verts[:, 1], z=verts[:, 2],
-                i=m["i"], j=m["j"], k=m["k"],
-                color=mesh_color, opacity=opacity, flatshading=True,
-                lighting=dict(ambient=0.5, diffuse=0.8, specular=0.3,
-                              roughness=0.5, fresnel=0.2),
-                lightposition=dict(x=100, y=100, z=100),
-            ))
+            import numpy as np
+            fig = go.Figure()
+            
+            # Determine which nodes are predicted as missing
+            highlighted_nodes = set()
+            if (
+                st.session_state.inference_result 
+                and "missing_links" in st.session_state.inference_result
+                and st.session_state.inference_done_for == st.session_state.uploaded_name
+            ):
+                for lk in st.session_state.inference_result["missing_links"]:
+                    highlighted_nodes.add(lk["src"])
+                    highlighted_nodes.add(lk["dst"])
+
+            for b in m["bodies"]:
+                idx = b["idx"]
+                verts = np.array(b["verts"])
+                triangles = np.array(b["triangles"])
+                
+                if len(verts) == 0 or len(triangles) == 0:
+                    continue
+                
+                if idx in highlighted_nodes:
+                    b_color = "#ff4d4d"  # Bright red for missing components
+                    name = f"Node {idx} (Missing Link)"
+                    show_leg = True
+                else:
+                    b_color = mesh_color
+                    name = f"Node {idx}"
+                    show_leg = False
+                    
+                fig.add_trace(go.Mesh3d(
+                    x=verts[:, 0], y=verts[:, 1], z=verts[:, 2],
+                    i=triangles[:, 0], j=triangles[:, 1], k=triangles[:, 2],
+                    color=b_color, opacity=opacity, flatshading=True,
+                    name=name,
+                    showlegend=show_leg,
+                    hoverinfo="name",
+                    lighting=dict(ambient=0.5, diffuse=0.8, specular=0.3,
+                                   roughness=0.5, fresnel=0.2),
+                    lightposition=dict(x=100, y=100, z=100),
+                ))
             fig.update_layout(
                 scene=dict(
                     bgcolor=BG_MAP[bg_color], aspectmode="data",
