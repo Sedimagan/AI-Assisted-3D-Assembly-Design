@@ -141,7 +141,9 @@ AI-Assisted-3D-Assembly-Design/
 ├── skills/
 │   └── engineering_3d_assembly.yaml  ← AIDA skills profile (6 domain skill areas)
 │
-└── Source_3d_models/            ← Drop .step / .stp files here
+├── trained_models/              ← Timestamped model exports (git-ignored *.pt, folder tracked)
+│
+└── Source_3d_models/            ← 3D assembly STEP files for training (git-ignored)
 ```
 
 ### Key files
@@ -150,7 +152,7 @@ AI-Assisted-3D-Assembly-Design/
 |---|---|
 | `back_end/dataset.py` | Scans `Source_3d_models/` for STEP files; uses gmsh + OpenCASCADE to extract solid bodies (nodes) and shared surfaces (edges); falls back to 300 synthetic graphs if folder is empty |
 | `back_end/model.py` | 3-layer GAT encoder (13→512→256→64) + `LinkPredictor` MLP; `build_model()` returns `(gnn, lp, device)`; `NodeRanker` present in file, deferred to Phase 2 |
-| `back_end/train.py` | Training loop: BCE loss + hard negative sampling, Adam + ReduceLROnPlateau, early stopping, checkpoint saving |
+| `back_end/train.py` | Training loop: BCE loss + hard negatives, Adam + ReduceLROnPlateau, early stopping; saves `best.pt` during training and a timestamped export to `trained_models/` on completion |
 | `back_end/evaluate.py` | `evaluate()` returns AUC-ROC and Average Precision — Phase 1 only; Hit@K / MRR / NDCG@K deferred to Phase 2 |
 | `back_end/infer.py` | `predict_missing()` scores all absent node pairs and returns top-K with confidence; bar-chart CLI output |
 | `back_end/skills_agent.py` | `AssemblySkillsAgent` — loads skills YAML, builds Gemini system prompt, exposes `explain_prediction()`, `identify_component()`, `suggest_assembly_sequence()`, `answer()` |
@@ -278,8 +280,8 @@ cd back_end
 # From the UI: click "🚀 Train 3D Models" in the sidebar — streams milestones to Activity Log
 
 # Or from the terminal:
-python train.py                        # uses source_dir from config.yaml / .env
-python train.py --force-reload         # re-process STEP files
+python train.py                        # reads Source_3d_models/ by default
+python train.py --force-reload         # re-process STEP files (clears graph cache)
 
 # Inference demo
 python infer.py --demo
@@ -302,6 +304,16 @@ python skills_agent.py
 | Max epochs | 200 |
 | Batch size | 32 graphs |
 | Neg sampling ratio | 1:1 pos/neg |
+
+### Trained model output
+
+After training completes a timestamped file is saved to `trained_models/`:
+
+```
+trained_models/assembly_gnn_20260523_114500_auc08520.pt
+```
+
+Each export contains: epoch · best AUC · test metrics · `trained_at` timestamp · `source_dir` path · model weights (`gnn`, `lp`) · full config. Files are git-ignored; the folder is tracked.
 
 ### Phase 1 targets — Missing Component Detection
 
