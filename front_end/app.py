@@ -1207,10 +1207,10 @@ with col_right:
                 legend=dict(
                     x=0.01, y=0.99,
                     xanchor="left", yanchor="top",
-                    bgcolor="rgba(15,25,45,0.45)",
-                    bordercolor="rgba(100,160,220,0.25)",
-                    borderwidth=1,
-                    font=dict(size=9, color="#e0eaf5"),
+                    bgcolor="rgba(0,0,0,0)",
+                    bordercolor="rgba(0,0,0,0)",
+                    borderwidth=0,
+                    font=dict(size=9, color="#000000"),
                     itemsizing="constant",
                 ),
             )
