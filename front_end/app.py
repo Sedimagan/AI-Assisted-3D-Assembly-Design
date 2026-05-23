@@ -291,6 +291,13 @@ def _run_inference(step_bytes: bytes) -> dict:
 
         part_names = [n if n else f"Part {{i+1}}" for i, n in enumerate(raw_names)]
 
+        # Degree of each node (number of outgoing edges in the bidirectional graph)
+        _edge_src = graph.edge_index[0].tolist()
+        _deg = [0] * int(graph.num_nodes)
+        for _s in _edge_src:
+            _deg[_s] += 1
+        node_degrees = _deg
+
         out = {{
             "n_nodes": int(graph.num_nodes),
             "n_edges": int(graph.edge_index.size(1)),
@@ -298,8 +305,9 @@ def _run_inference(step_bytes: bytes) -> dict:
                 {{"src": int(u), "dst": int(v), "confidence": float(s)}}
                 for (u, v), s in results
             ],
-            "centroids":   centroids,
-            "part_names":  part_names,
+            "centroids":    centroids,
+            "part_names":   part_names,
+            "node_degrees": node_degrees,
         }}
         print(json.dumps(out))
     """)
@@ -330,23 +338,49 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
     )
 
     if result and "error" not in result:
-        missing    = result.get("missing_links", [])
-        n_nodes    = result.get("n_nodes", 0)
-        n_edges    = result.get("n_edges", 0)
-        part_names = result.get("part_names", [])
+        missing      = result.get("missing_links", [])
+        n_nodes      = result.get("n_nodes", 0)
+        n_edges      = result.get("n_edges", 0)
+        part_names   = result.get("part_names", [])
+        node_degrees = result.get("node_degrees", [])
 
         def _pname(idx):
             if idx < len(part_names) and part_names[idx]:
                 return part_names[idx]
             return f"Part {idx + 1}"
 
+        isolated = [i for i, d in enumerate(node_degrees) if d == 0]
+
+        rows = ""
+
+        # ── Section 1: isolated (not assembled) nodes ─────────────────────────
+        if isolated:
+            rows += (
+                '<p style="font-size:0.76rem;font-weight:700;color:#ef4444;'
+                'margin:0 0 5px;">🔴 Not Assembled</p>'
+            )
+            for i in isolated:
+                rows += (
+                    f'<div style="display:flex;align-items:center;gap:6px;'
+                    f'font-size:0.72rem;margin-bottom:5px;">'
+                    f'<span style="color:#ef4444;font-size:0.78rem;">⚠</span>'
+                    f'<span style="color:#cc2222;font-weight:600;">{_pname(i)}</span>'
+                    f'<span style="color:#888;font-size:0.68rem;">— no connections in assembly</span>'
+                    f'</div>'
+                )
+
+        # ── Section 2: GNN missing-link predictions ───────────────────────────
         if missing:
-            rows = ""
+            lbl = (
+                '<p style="font-size:0.76rem;font-weight:700;color:#5b9bd5;'
+                'margin:8px 0 5px;">🤖 AI Predicted Missing Links</p>'
+            )
+            link_rows = ""
             for lk in missing:
                 u, v, s = lk["src"], lk["dst"], lk["confidence"]
                 pct = int(s * 100)
                 col = "#4caf82" if s >= 0.8 else "#5b9bd5" if s >= 0.5 else "#e08850"
-                rows += (
+                link_rows += (
                     f'<div style="display:flex;align-items:center;gap:8px;'
                     f'font-size:0.72rem;margin-bottom:6px;">'
                     f'<span style="color:#333;white-space:nowrap;min-width:120px;font-weight:600;">'
@@ -357,15 +391,15 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
                     f'<span style="color:{col};font-weight:700;min-width:36px;text-align:right;">'
                     f'{s:.3f}</span></div>'
                 )
-        else:
+            rows += lbl + link_rows
+
+        if not isolated and not missing:
             rows = "<p style='color:#4caf82;font-size:0.78rem;'>✓ Assembly appears complete — no missing links found.</p>"
 
         return (
-            f'<div style="{PANEL}padding:14px;overflow-y:auto;">'
+            f'<div style="{PANEL}padding:14px;overflow-y:auto;max-height:280px;">'
             f'<p style="font-size:0.72rem;color:#888;margin:0 0 6px;">'
             f'{n_nodes} components · {n_edges} known connections</p>'
-            f'<p style="font-size:0.82rem;font-weight:600;color:#333;margin:0 0 10px;">'
-            f'🔍 Missing Component Predictions</p>'
             f'{rows}</div>'
         )
 
@@ -983,16 +1017,23 @@ with col_left:
                     if best_b_idx is not None:
                         body_to_gnn[best_b_idx].append(g_idx)
 
-            # Determine which GNN nodes are predicted as missing
+            # Determine which nodes to highlight as "not assembled"
+            # Priority 1: isolated nodes (degree=0) — geometrically disconnected bodies
+            # Priority 2: GNN-predicted missing links (fallback when nothing is isolated)
             highlighted_gnn_nodes = set()
             if (
-                st.session_state.inference_result 
-                and "missing_links" in st.session_state.inference_result
+                st.session_state.inference_result
                 and st.session_state.inference_done_for == st.session_state.uploaded_name
             ):
-                for lk in st.session_state.inference_result["missing_links"]:
-                    highlighted_gnn_nodes.add(lk["src"])
-                    highlighted_gnn_nodes.add(lk["dst"])
+                _ir = st.session_state.inference_result
+                _degrees = _ir.get("node_degrees", [])
+                _isolated = {i for i, d in enumerate(_degrees) if d == 0}
+                if _isolated:
+                    highlighted_gnn_nodes = _isolated
+                else:
+                    for lk in _ir.get("missing_links", []):
+                        highlighted_gnn_nodes.add(lk["src"])
+                        highlighted_gnn_nodes.add(lk["dst"])
 
             for b in m["bodies"]:
                 idx = b["idx"]
