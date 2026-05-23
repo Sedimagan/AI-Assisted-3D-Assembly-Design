@@ -1163,10 +1163,19 @@ with col_right:
                     s = s.rstrip("/").split("/")[-1].strip()
                     return s[:maxlen] + "…" if len(s) > maxlen else s
 
+                def _wrap(s, width=22):
+                    if len(s) <= width:
+                        return s
+                    cut = max(s.rfind(" ", 0, width), s.rfind("-", 0, width))
+                    if cut <= 0:
+                        cut = width
+                    rest = s[cut:].lstrip()
+                    return s[:cut].rstrip() + "<br>" + (rest[:width-1] + "…" if len(rest) > width else rest)
+
                 if is_highlighted:
                     b_color  = "#ff4d4d"
                     h_gnn    = [g for g in mapped_gnn if g in highlighted_gnn_nodes]
-                    name     = ", ".join(_short(_vname(g)) for g in h_gnn) + " ⚠"
+                    name     = ", ".join(_wrap(_short(_vname(g))) for g in h_gnn) + " ⚠"
                     show_leg = True
                 else:
                     b_color  = mesh_color
@@ -1198,7 +1207,7 @@ with col_right:
                 legend=dict(
                     x=0.01, y=0.99,
                     xanchor="left", yanchor="top",
-                    bgcolor="rgba(15,25,45,0.82)",
+                    bgcolor="rgba(15,25,45,0.45)",
                     bordercolor="rgba(100,160,220,0.25)",
                     borderwidth=1,
                     font=dict(size=9, color="#e0eaf5"),
