@@ -252,8 +252,8 @@ def _run_inference(step_bytes: bytes) -> dict:
 
         results = predict_missing(gnn, lp, graph, device, top_k=5)
         
-        # Extract centroids of the fragmented volumes
-        import gmsh
+        # Extract centroids + gmsh entity names in one pass
+        import gmsh, re as _re
         gmsh.initialize()
         gmsh.option.setNumber("General.Terminal", 0)
         try:
@@ -264,18 +264,32 @@ def _run_inference(step_bytes: bytes) -> dict:
                 gmsh.model.occ.fragment(vols, [])
                 gmsh.model.occ.synchronize()
                 vols = gmsh.model.occ.getEntities(3)
-            
-            centroids = []
+
+            centroids  = []
+            raw_names  = []
             for dim, tag in vols:
                 bbox = gmsh.model.occ.getBoundingBox(dim, tag)
-                cx = (bbox[0] + bbox[3]) / 2.0
-                cy = (bbox[1] + bbox[4]) / 2.0
-                cz = (bbox[2] + bbox[5]) / 2.0
-                centroids.append([cx, cy, cz])
+                centroids.append([(bbox[0]+bbox[3])/2, (bbox[1]+bbox[4])/2, (bbox[2]+bbox[5])/2])
+                n = gmsh.model.getEntityName(dim, tag)
+                raw_names.append(n.strip() if n else "")
         except Exception:
             centroids = []
+            raw_names = []
         finally:
             gmsh.finalize()
+
+        # Fallback: parse PRODUCT names from the STEP file text
+        if not any(raw_names):
+            try:
+                with open({repr(str(_STEP_CACHE))}, 'r', errors='replace') as _f:
+                    _txt = _f.read()
+                _matches = _re.findall(r"PRODUCT\s*\(\s*'([^']*)'", _txt, _re.IGNORECASE)
+                _snames  = [m.strip() for m in _matches if m.strip()]
+                raw_names = [_snames[i] if i < len(_snames) else "" for i in range(len(centroids))]
+            except Exception:
+                pass
+
+        part_names = [n if n else f"Part {{i+1}}" for i, n in enumerate(raw_names)]
 
         out = {{
             "n_nodes": int(graph.num_nodes),
@@ -284,7 +298,8 @@ def _run_inference(step_bytes: bytes) -> dict:
                 {{"src": int(u), "dst": int(v), "confidence": float(s)}}
                 for (u, v), s in results
             ],
-            "centroids": centroids
+            "centroids":   centroids,
+            "part_names":  part_names,
         }}
         print(json.dumps(out))
     """)
@@ -315,9 +330,15 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
     )
 
     if result and "error" not in result:
-        missing = result.get("missing_links", [])
-        n_nodes = result.get("n_nodes", 0)
-        n_edges = result.get("n_edges", 0)
+        missing    = result.get("missing_links", [])
+        n_nodes    = result.get("n_nodes", 0)
+        n_edges    = result.get("n_edges", 0)
+        part_names = result.get("part_names", [])
+
+        def _pname(idx):
+            if idx < len(part_names) and part_names[idx]:
+                return part_names[idx]
+            return f"Part {idx + 1}"
 
         if missing:
             rows = ""
@@ -328,8 +349,8 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
                 rows += (
                     f'<div style="display:flex;align-items:center;gap:8px;'
                     f'font-size:0.72rem;margin-bottom:6px;">'
-                    f'<span style="color:#555;white-space:nowrap;min-width:90px;">'
-                    f'Node {u} ↔ Node {v}</span>'
+                    f'<span style="color:#333;white-space:nowrap;min-width:120px;font-weight:600;">'
+                    f'{_pname(u)} ↔ {_pname(v)}</span>'
                     f'<div style="flex:1;background:#dce8f0;border-radius:3px;height:7px;">'
                     f'<div style="width:{pct}%;background:{col};border-radius:3px;height:7px;"></div>'
                     f'</div>'
@@ -381,10 +402,21 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
 
 def _run_aida_explain(inference_result: dict) -> str:
     """Call AssemblySkillsAgent.explain_prediction() in a subprocess."""
-    missing  = inference_result.get("missing_links", [])
-    n_nodes  = inference_result.get("n_nodes", 0)
-    n_edges  = inference_result.get("n_edges", 0)
-    back_end = str(_PROJ_ROOT / "back_end")
+    missing    = inference_result.get("missing_links", [])
+    n_nodes    = inference_result.get("n_nodes", 0)
+    n_edges    = inference_result.get("n_edges", 0)
+    part_names = inference_result.get("part_names", [])
+    back_end   = str(_PROJ_ROOT / "back_end")
+
+    # Replace node indices in missing list with part names for AIDA context
+    def _pname(i):
+        return part_names[i] if i < len(part_names) and part_names[i] else f"Part {i+1}"
+
+    missing_named = [
+        {"src_name": _pname(m["src"]), "dst_name": _pname(m["dst"]),
+         "confidence": m["confidence"]}
+        for m in missing
+    ]
 
     script = textwrap.dedent(f"""\
         import sys
@@ -392,10 +424,10 @@ def _run_aida_explain(inference_result: dict) -> str:
         try:
             from skills_agent import AssemblySkillsAgent
             agent = AssemblySkillsAgent()
-            missing_fmt = [((m['src'], m['dst']), m['confidence'])
-                           for m in {repr(missing)}]
-            ctx = (f"Assembly with {n_nodes} components and {n_edges} "
-                   "known connections.")
+            missing_fmt = [((m['src_name'], m['dst_name']), m['confidence'])
+                           for m in {repr(missing_named)}]
+            ctx = (f"Assembly with {n_nodes} components and {n_edges} known connections. "
+                   f"Parts: {repr([_pname(i) for i in range(n_nodes)])}")
             print(agent.explain_prediction(missing=missing_fmt, recs=[], context=ctx))
         except Exception as e:
             print(f"[AIDA offline] {{e}}")
@@ -972,21 +1004,20 @@ with col_left:
                 
                 mapped_gnn = body_to_gnn.get(idx, [])
                 is_highlighted = any(g in highlighted_gnn_nodes for g in mapped_gnn)
-                
+
+                _inf_pnames = (st.session_state.inference_result or {}).get("part_names", [])
+                def _vname(g):
+                    return (_inf_pnames[g] if g < len(_inf_pnames) and _inf_pnames[g]
+                            else f"Part {g+1}")
+
                 if is_highlighted:
-                    b_color = "#ff4d4d"  # Bright red for missing components
-                    # Highlight which of the mapped GNN nodes are missing links
-                    h_gnn = [g for g in mapped_gnn if g in highlighted_gnn_nodes]
-                    gnn_str = ", ".join(f"Node {g}" for g in h_gnn)
-                    name = f"Body {idx} ({gnn_str} - Missing Link)"
+                    b_color = "#ff4d4d"
+                    h_gnn   = [g for g in mapped_gnn if g in highlighted_gnn_nodes]
+                    name    = " / ".join(_vname(g) for g in h_gnn) + " ⚠ Missing"
                     show_leg = True
                 else:
                     b_color = mesh_color
-                    if mapped_gnn:
-                        gnn_str = ", ".join(f"Node {g}" for g in mapped_gnn)
-                        name = f"Body {idx} ({gnn_str})"
-                    else:
-                        name = f"Body {idx}"
+                    name    = (_vname(mapped_gnn[0]) if mapped_gnn else f"Part {idx+1}")
                     show_leg = False
                     
                 fig.add_trace(go.Mesh3d(

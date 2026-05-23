@@ -131,7 +131,7 @@ class AssemblySkillsAgent:
         context : optional free-text description of the assembly
         """
         missing_txt = "\n".join(
-            f"  - node {u} ↔ node {v} — confidence {s:.3f}"
+            f"  - {u} ↔ {v} — confidence {s:.3f}"
             for (u, v), s in missing
         ) or "  (none)"
 
