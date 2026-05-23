@@ -251,13 +251,40 @@ def _run_inference(step_bytes: bytes) -> dict:
             gnn, lp, device, cfg = load_checkpoint({repr(str(_CKPT_PATH))})
 
         results = predict_missing(gnn, lp, graph, device, top_k=5)
+        
+        # Extract centroids of the fragmented volumes
+        import gmsh
+        gmsh.initialize()
+        gmsh.option.setNumber("General.Terminal", 0)
+        try:
+            gmsh.merge({repr(str(_STEP_CACHE))})
+            gmsh.model.occ.synchronize()
+            vols = gmsh.model.occ.getEntities(3)
+            if vols:
+                gmsh.model.occ.fragment(vols, [])
+                gmsh.model.occ.synchronize()
+                vols = gmsh.model.occ.getEntities(3)
+            
+            centroids = []
+            for dim, tag in vols:
+                bbox = gmsh.model.occ.getBoundingBox(dim, tag)
+                cx = (bbox[0] + bbox[3]) / 2.0
+                cy = (bbox[1] + bbox[4]) / 2.0
+                cz = (bbox[2] + bbox[5]) / 2.0
+                centroids.append([cx, cy, cz])
+        except Exception:
+            centroids = []
+        finally:
+            gmsh.finalize()
+
         out = {{
             "n_nodes": int(graph.num_nodes),
             "n_edges": int(graph.edge_index.size(1)),
             "missing_links": [
                 {{"src": int(u), "dst": int(v), "confidence": float(s)}}
                 for (u, v), s in results
-            ]
+            ],
+            "centroids": centroids
         }}
         print(json.dumps(out))
     """)
@@ -625,74 +652,180 @@ def load_mesh(file_bytes: bytes) -> dict:
         
         script = textwrap.dedent(f"""\
             import gmsh, json, sys
-            gmsh.initialize()
-            gmsh.option.setNumber("General.Terminal", 0)
-            gmsh.option.setNumber("Mesh.CharacteristicLengthMax", 5.0)
-            gmsh.model.add("assembly")
-            try:
-                gmsh.merge({repr(sp)})
-                gmsh.model.occ.synchronize()
-                
-                # Fragment to ensure exact same volumes list as GNN dataset builder
-                volumes = gmsh.model.occ.getEntities(3)
-                if volumes:
-                    gmsh.model.occ.fragment(volumes, [])
+            
+            def run():
+                # ── Try Fast Path ──────────────────────────────────────────
+                gmsh.initialize()
+                gmsh.option.setNumber("General.Terminal", 0)
+                gmsh.option.setNumber("Mesh.CharacteristicLengthMax", 5.0)
+                gmsh.model.add("assembly")
+                try:
+                    gmsh.merge({repr(sp)})
                     gmsh.model.occ.synchronize()
-                
-                gmsh.model.mesh.generate(2)
-                
-                vols = gmsh.model.occ.getEntities(3)
-                bodies = []
-                
-                # Collect overall bounds
-                xmin, ymin, zmin, xmax, ymax, zmax = 1e9, 1e9, 1e9, -1e9, -1e9, -1e9
-                
-                for idx, (dim, tag) in enumerate(vols):
-                    # Bounding box
-                    v_bbox = gmsh.model.occ.getBoundingBox(dim, tag)
-                    xmin = min(xmin, v_bbox[0]); ymin = min(ymin, v_bbox[1]); zmin = min(zmin, v_bbox[2])
-                    xmax = max(xmax, v_bbox[3]); ymax = max(ymax, v_bbox[4]); zmax = max(zmax, v_bbox[5])
+                    vols = gmsh.model.occ.getEntities(3)
+                    gmsh.model.mesh.generate(2)
                     
-                    bnd = gmsh.model.getBoundary([(dim, tag)], oriented=False, combined=True)
-                    surf_tags = [abs(s[1]) for s in bnd if s[0] == 2]
+                    bodies = []
+                    xmin, ymin, zmin, xmax, ymax, zmax = 1e9, 1e9, 1e9, -1e9, -1e9, -1e9
                     
-                    all_coords = []
-                    all_node_tags = {{}}
-                    triangles = []
-                    
-                    for s_tag in surf_tags:
-                        node_tags, coords, _ = gmsh.model.mesh.getNodes(2, s_tag, includeBoundary=True)
-                        coords = coords.reshape(-1, 3)
-                        for t, coord in zip(node_tags, coords):
-                            if t not in all_node_tags:
-                                all_node_tags[t] = len(all_coords)
-                                all_coords.append(coord.tolist())
-                                
-                        elem_types, elem_tags, elem_node_tags = gmsh.model.mesh.getElements(2, s_tag)
-                        for el_type, el_nodes in zip(elem_types, elem_node_tags):
-                            if el_type == 2:
-                                el_nodes = el_nodes.reshape(-1, 3)
-                                for tri in el_nodes:
-                                    triangles.append([
-                                        all_node_tags[tri[0]],
-                                        all_node_tags[tri[1]],
-                                        all_node_tags[tri[2]]
-                                    ])
+                    for idx, (dim, tag) in enumerate(vols):
+                        v_bbox = gmsh.model.occ.getBoundingBox(dim, tag)
+                        xmin = min(xmin, v_bbox[0]); ymin = min(ymin, v_bbox[1]); zmin = min(zmin, v_bbox[2])
+                        xmax = max(xmax, v_bbox[3]); ymax = max(ymax, v_bbox[4]); zmax = max(zmax, v_bbox[5])
+                        
+                        cx = (v_bbox[0] + v_bbox[3]) / 2.0
+                        cy = (v_bbox[1] + v_bbox[4]) / 2.0
+                        cz = (v_bbox[2] + v_bbox[5]) / 2.0
+                        
+                        bnd = gmsh.model.getBoundary([(dim, tag)], oriented=False, combined=True)
+                        surf_tags = [abs(s[1]) for s in bnd if s[0] == 2]
+                        
+                        all_coords = []
+                        all_node_tags = {{}}
+                        triangles = []
+                        
+                        for s_tag in surf_tags:
+                            node_tags, coords, _ = gmsh.model.mesh.getNodes(2, s_tag, includeBoundary=True)
+                            coords = coords.reshape(-1, 3)
+                            for t, coord in zip(node_tags, coords):
+                                if t not in all_node_tags:
+                                    all_node_tags[t] = len(all_coords)
+                                    all_coords.append(coord.tolist())
                                     
-                    bodies.append({{
-                        "idx": idx,
-                        "verts": all_coords,
-                        "triangles": triangles,
-                    }})
-                
+                            elem_types, elem_tags, elem_node_tags = gmsh.model.mesh.getElements(2, s_tag)
+                            for el_type, el_nodes in zip(elem_types, elem_node_tags):
+                                if el_type == 2:
+                                    el_nodes = el_nodes.reshape(-1, 3)
+                                    for tri in el_nodes:
+                                        triangles.append([
+                                            all_node_tags[tri[0]],
+                                            all_node_tags[tri[1]],
+                                            all_node_tags[tri[2]]
+                                        ])
+                                        
+                        bodies.append({{
+                            "idx": idx,
+                            "verts": all_coords,
+                            "triangles": triangles,
+                            "centroid": [cx, cy, cz],
+                        }})
+                    
+                    print(json.dumps({{
+                        "bodies": bodies,
+                        "bounds": [xmin, xmax, ymin, ymax, zmin, zmax]
+                    }}))
+                    return
+                except Exception as e:
+                    pass
+                finally:
+                    gmsh.finalize()
+                    
+                # ── Fallback Path: Mesh Individually ─────────────────────────
+                gmsh.initialize()
+                gmsh.option.setNumber("General.Terminal", 0)
+                gmsh.model.add("master")
+                try:
+                    gmsh.merge({repr(sp)})
+                    gmsh.model.occ.synchronize()
+                    vols = gmsh.model.occ.getEntities(3)
+                    
+                    v_info = []
+                    xmin, ymin, zmin, xmax, ymax, zmax = 1e9, 1e9, 1e9, -1e9, -1e9, -1e9
+                    for dim, tag in vols:
+                        v_bbox = gmsh.model.occ.getBoundingBox(dim, tag)
+                        xmin = min(xmin, v_bbox[0]); ymin = min(ymin, v_bbox[1]); zmin = min(zmin, v_bbox[2])
+                        xmax = max(xmax, v_bbox[3]); ymax = max(ymax, v_bbox[4]); zmax = max(zmax, v_bbox[5])
+                        cx = (v_bbox[0] + v_bbox[3]) / 2.0
+                        cy = (v_bbox[1] + v_bbox[4]) / 2.0
+                        cz = (v_bbox[2] + v_bbox[5]) / 2.0
+                        v_info.append((dim, tag, v_bbox, [cx, cy, cz]))
+                except Exception as e:
+                    print(json.dumps({{"error": "Failed to read STEP file geometry: " + str(e)}}))
+                    return
+                finally:
+                    gmsh.finalize()
+                    
+                bodies = []
+                for idx, (dim, tag, bbox, centroid) in enumerate(v_info):
+                    gmsh.initialize()
+                    gmsh.option.setNumber("General.Terminal", 0)
+                    gmsh.option.setNumber("Mesh.CharacteristicLengthMax", 5.0)
+                    gmsh.model.add(f"body_{{idx}}")
+                    try:
+                        gmsh.merge({repr(sp)})
+                        gmsh.model.occ.synchronize()
+                        curr_vols = gmsh.model.occ.getEntities(3)
+                        
+                        to_remove = [v for i, v in enumerate(curr_vols) if i != idx]
+                        if to_remove:
+                            gmsh.model.occ.remove(to_remove, recursive=True)
+                            gmsh.model.occ.synchronize()
+                            
+                        gmsh.model.mesh.generate(2)
+                        
+                        # Extract mesh
+                        rem_dim, rem_tag = curr_vols[idx]
+                        bnd = gmsh.model.getBoundary([(rem_dim, rem_tag)], oriented=False, combined=True)
+                        surf_tags = [abs(s[1]) for s in bnd if s[0] == 2]
+                        
+                        all_coords = []
+                        all_node_tags = {{}}
+                        triangles = []
+                        
+                        for s_tag in surf_tags:
+                            node_tags, coords, _ = gmsh.model.mesh.getNodes(2, s_tag, includeBoundary=True)
+                            coords = coords.reshape(-1, 3)
+                            for t, coord in zip(node_tags, coords):
+                                if t not in all_node_tags:
+                                    all_node_tags[t] = len(all_coords)
+                                    all_coords.append(coord.tolist())
+                                    
+                            elem_types, elem_tags, elem_node_tags = gmsh.model.mesh.getElements(2, s_tag)
+                            for el_type, el_nodes in zip(elem_types, elem_node_tags):
+                                if el_type == 2:
+                                    el_nodes = el_nodes.reshape(-1, 3)
+                                    for tri in el_nodes:
+                                        triangles.append([
+                                            all_node_tags[tri[0]],
+                                            all_node_tags[tri[1]],
+                                            all_node_tags[tri[2]]
+                                        ])
+                        bodies.append({{
+                            "idx": idx,
+                            "verts": all_coords,
+                            "triangles": triangles,
+                            "centroid": centroid,
+                        }})
+                    except Exception:
+                        # Coarse fallback
+                        x0, y0, z0, x1, y1, z1 = bbox
+                        verts = [
+                            [x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0],
+                            [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1]
+                        ]
+                        triangles = [
+                            [0, 1, 2], [0, 2, 3],
+                            [4, 5, 6], [4, 6, 7],
+                            [0, 1, 5], [0, 5, 4],
+                            [1, 2, 6], [1, 6, 5],
+                            [2, 3, 7], [2, 7, 6],
+                            [3, 0, 4], [3, 4, 7]
+                        ]
+                        bodies.append({{
+                            "idx": idx,
+                            "verts": verts,
+                            "triangles": triangles,
+                            "centroid": centroid,
+                        }})
+                    finally:
+                        gmsh.finalize()
+                        
                 print(json.dumps({{
                     "bodies": bodies,
                     "bounds": [xmin, xmax, ymin, ymax, zmin, zmax]
                 }}))
-            except Exception as e:
-                print(json.dumps({{"error": str(e)}}))
-            finally:
-                gmsh.finalize()
+
+            run()
         """)
         
         r = subprocess.run(
@@ -794,16 +927,36 @@ with col_left:
             import numpy as np
             fig = go.Figure()
             
-            # Determine which nodes are predicted as missing
-            highlighted_nodes = set()
+            # Map GNN node centroids to viewer body centroids by minimum distance
+            body_to_gnn = {b["idx"]: [] for b in m["bodies"]}
+            if (
+                st.session_state.inference_result 
+                and "centroids" in st.session_state.inference_result
+                and len(st.session_state.inference_result["centroids"]) > 0
+            ):
+                gnn_centroids = st.session_state.inference_result["centroids"]
+                for g_idx, g_center in enumerate(gnn_centroids):
+                    best_b_idx = None
+                    min_dist = float('inf')
+                    for b in m["bodies"]:
+                        b_center = b["centroid"]
+                        dist = sum((g_center[k] - b_center[k])**2 for k in range(3))
+                        if dist < min_dist:
+                            min_dist = dist
+                            best_b_idx = b["idx"]
+                    if best_b_idx is not None:
+                        body_to_gnn[best_b_idx].append(g_idx)
+
+            # Determine which GNN nodes are predicted as missing
+            highlighted_gnn_nodes = set()
             if (
                 st.session_state.inference_result 
                 and "missing_links" in st.session_state.inference_result
                 and st.session_state.inference_done_for == st.session_state.uploaded_name
             ):
                 for lk in st.session_state.inference_result["missing_links"]:
-                    highlighted_nodes.add(lk["src"])
-                    highlighted_nodes.add(lk["dst"])
+                    highlighted_gnn_nodes.add(lk["src"])
+                    highlighted_gnn_nodes.add(lk["dst"])
 
             for b in m["bodies"]:
                 idx = b["idx"]
@@ -813,13 +966,23 @@ with col_left:
                 if len(verts) == 0 or len(triangles) == 0:
                     continue
                 
-                if idx in highlighted_nodes:
+                mapped_gnn = body_to_gnn.get(idx, [])
+                is_highlighted = any(g in highlighted_gnn_nodes for g in mapped_gnn)
+                
+                if is_highlighted:
                     b_color = "#ff4d4d"  # Bright red for missing components
-                    name = f"Node {idx} (Missing Link)"
+                    # Highlight which of the mapped GNN nodes are missing links
+                    h_gnn = [g for g in mapped_gnn if g in highlighted_gnn_nodes]
+                    gnn_str = ", ".join(f"Node {g}" for g in h_gnn)
+                    name = f"Body {idx} ({gnn_str} - Missing Link)"
                     show_leg = True
                 else:
                     b_color = mesh_color
-                    name = f"Node {idx}"
+                    if mapped_gnn:
+                        gnn_str = ", ".join(f"Node {g}" for g in mapped_gnn)
+                        name = f"Body {idx} ({gnn_str})"
+                    else:
+                        name = f"Body {idx}"
                     show_leg = False
                     
                 fig.add_trace(go.Mesh3d(
