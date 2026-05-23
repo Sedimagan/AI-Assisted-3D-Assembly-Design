@@ -1051,14 +1051,19 @@ with col_left:
                     return (_inf_pnames[g] if g < len(_inf_pnames) and _inf_pnames[g]
                             else f"Part {g+1}")
 
+                def _short(s, maxlen=24):
+                    # Strip path prefixes like "Shapes/Assembly/Part/Part" → "Part"
+                    s = s.rstrip("/").split("/")[-1].strip()
+                    return s[:maxlen] + "…" if len(s) > maxlen else s
+
                 if is_highlighted:
-                    b_color = "#ff4d4d"
-                    h_gnn   = [g for g in mapped_gnn if g in highlighted_gnn_nodes]
-                    name    = " / ".join(_vname(g) for g in h_gnn) + " ⚠ Missing"
+                    b_color  = "#ff4d4d"
+                    h_gnn    = [g for g in mapped_gnn if g in highlighted_gnn_nodes]
+                    name     = ", ".join(_short(_vname(g)) for g in h_gnn) + " ⚠"
                     show_leg = True
                 else:
-                    b_color = mesh_color
-                    name    = (_vname(mapped_gnn[0]) if mapped_gnn else f"Part {idx+1}")
+                    b_color  = mesh_color
+                    name     = (_short(_vname(mapped_gnn[0])) if mapped_gnn else f"Part {idx+1}")
                     show_leg = False
                     
                 fig.add_trace(go.Mesh3d(
@@ -1083,6 +1088,15 @@ with col_left:
                 margin=dict(l=0, r=0, b=0, t=0),
                 paper_bgcolor="rgba(0,0,0,0)",
                 height=255,
+                legend=dict(
+                    x=0.01, y=0.99,
+                    xanchor="left", yanchor="top",
+                    bgcolor="rgba(15,25,45,0.82)",
+                    bordercolor="rgba(100,160,220,0.25)",
+                    borderwidth=1,
+                    font=dict(size=9, color="#e0eaf5"),
+                    itemsizing="constant",
+                ),
             )
             st.plotly_chart(fig, use_container_width=True)
             b = m["bounds"]
