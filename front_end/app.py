@@ -929,7 +929,7 @@ if st.session_state.training_just_done and _CKPT_PATH.exists():
                if st.session_state.last_train_auc else "")
     st.success(
         f"🎉 **Training Complete{auc_tag}** — Model ready!  "
-        f"Upload a 3D model in the right panel to predict missing components.",
+        f"Upload a 3D model in the left panel to predict missing components.",
         icon="✅",
     )
 
@@ -945,8 +945,8 @@ CAMERAS = {
 }
 BG_MAP = {"white":"#ffffff","black":"#000000","grey":"#808080","lightgrey":"#d3d3d3"}
 
-# ── LEFT: 3D viewer (view only — not connected to inference) ──────────────────
-with col_left:
+# ── RIGHT: 3D viewer (view only — not connected to inference) ─────────────────
+with col_right:
     st.markdown(
         "<p style='font-size:0.8rem;font-weight:600;margin:0 0 0.2rem;color:#444;'>"
         "📁 3D Model Viewer</p>",
@@ -1107,8 +1107,8 @@ with col_left:
                 unsafe_allow_html=True,
             )
 
-# ── RIGHT: Prediction panel — active only after training is complete ───────────
-with col_right:
+# ── LEFT: Prediction panel — active only after training is complete ────────────
+with col_left:
     st.markdown(
         "<p style='font-size:0.8rem;font-weight:600;margin:0 0 0.2rem;color:#444;'>"
         "🤖 AI-Assisted 3D Assembly Design Viewer</p>",
@@ -1131,7 +1131,7 @@ with col_right:
             st.session_state.pred_bytes = pred_file.getvalue()
             st.session_state.pred_name  = pred_file.name
             log(f"🔍  Prediction file received: {pred_file.name}")
-            # Synchronize to the left viewer so they don't have to upload twice
+            # Synchronize to the right viewer so they don't have to upload twice
             st.session_state.uploaded_bytes = st.session_state.pred_bytes
             st.session_state.uploaded_name  = st.session_state.pred_name
             st.session_state.mesh_logged    = False
