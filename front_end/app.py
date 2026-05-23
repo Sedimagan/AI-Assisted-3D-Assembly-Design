@@ -263,9 +263,24 @@ def _run_inference(step_bytes: bytes) -> dict:
             gmsh.merge({repr(str(_STEP_CACHE))})
             gmsh.model.occ.synchronize()
             vols = gmsh.model.occ.getEntities(3)
+
+            # Record names before fragmentation so children can inherit them
+            _pre_frag_names = {{}}
+            for _d, _t in vols:
+                _n = gmsh.model.getEntityName(_d, _t)
+                _pre_frag_names[(_d, _t)] = _n.strip() if _n else ""
+
+            _inherited = {{}}
             if vols:
-                gmsh.model.occ.fragment(vols, [])
+                _fout, _fmap = gmsh.model.occ.fragment(vols, [])
                 gmsh.model.occ.synchronize()
+                # Propagate each parent's name to all child volumes it created
+                for _si, (_d, _t) in enumerate(vols):
+                    _pname = _pre_frag_names[(_d, _t)]
+                    if _pname and _si < len(_fmap):
+                        for _cd, _ct in _fmap[_si]:
+                            if _cd == 3:
+                                _inherited[(_cd, _ct)] = _pname
                 vols = gmsh.model.occ.getEntities(3)
 
             centroids    = []
@@ -276,7 +291,12 @@ def _run_inference(step_bytes: bytes) -> dict:
                 bbox = gmsh.model.occ.getBoundingBox(dim, tag)
                 centroids.append([(bbox[0]+bbox[3])/2, (bbox[1]+bbox[4])/2, (bbox[2]+bbox[5])/2])
                 _en = gmsh.model.getEntityName(dim, tag)
-                raw_names.append(_en.strip() if _en else "")
+                if _en and _en.strip():
+                    raw_names.append(_en.strip())
+                elif (dim, tag) in _inherited:
+                    raw_names.append(_inherited[(dim, tag)])
+                else:
+                    raw_names.append("")
                 _bnd  = gmsh.model.getBoundary([(dim, tag)], oriented=False, combined=True)
                 _stgs = frozenset(abs(_s[1]) for _s in _bnd if _s[0] == 2)
                 _surf_sets.append(_stgs)
@@ -306,14 +326,19 @@ def _run_inference(step_bytes: bytes) -> dict:
         finally:
             gmsh.finalize()
 
-        # Fallback: parse PRODUCT names from the STEP file text
-        if not any(raw_names):
+        # Fallback: fill any still-empty names from STEP PRODUCT records
+        if any(not n for n in raw_names):
             try:
                 with open({repr(str(_STEP_CACHE))}, 'r', errors='replace') as _f:
                     _txt = _f.read()
                 _matches = _re.findall(r"PRODUCT\s*\(\s*'([^']*)'", _txt, _re.IGNORECASE)
                 _snames  = [m.strip() for m in _matches if m.strip()]
-                raw_names = [_snames[i] if i < len(_snames) else "" for i in range(len(centroids))]
+                _pi = 0
+                for _i in range(len(raw_names)):
+                    if not raw_names[_i]:
+                        if _pi < len(_snames):
+                            raw_names[_i] = _snames[_pi]
+                        _pi += 1
             except Exception:
                 pass
 
@@ -365,15 +390,23 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
         part_names   = result.get("part_names", [])
         node_degrees = result.get("node_degrees", [])
 
+        def _basename(s):
+            if s and "/" in s:
+                return s.rstrip("/").split("/")[-1].strip()
+            return s or ""
+
         def _pname(idx):
             if idx < len(part_names) and part_names[idx]:
-                return part_names[idx]
+                raw = part_names[idx]
+                short = _basename(raw)
+                return short[:36] + "…" if len(short) > 36 else short
             return f"Part {idx + 1}"
 
-        # Group nodes by part name; flag isolated (degree=0) or under-connected
+        # Group nodes by part basename; flag isolated (degree=0) or under-connected
         _grp: dict = {}
         for _gi, _gn in enumerate(part_names):
-            _grp.setdefault(_gn, []).append(_gi)
+            _key = _basename(_gn) if _gn else f"__solo_{_gi}"
+            _grp.setdefault(_key, []).append(_gi)
 
         not_assembled = []   # degree=0 — no contact at all
         under_connected = [] # degree>0 but < group max — not properly mated
@@ -1078,10 +1111,16 @@ with col_right:
                 _degrees = _ir.get("node_degrees", [])
                 _pnames  = _ir.get("part_names", [])
 
-                # Group node indices by part name
+                # Group node indices by part basename (last "/" segment)
+                def _bn(s):
+                    if s and "/" in s:
+                        return s.rstrip("/").split("/")[-1].strip()
+                    return s or ""
+
                 _grp: dict = {}
                 for _gi, _gn in enumerate(_pnames):
-                    _grp.setdefault(_gn, []).append(_gi)
+                    _key = _bn(_gn) if _gn else f"__solo_{_gi}"
+                    _grp.setdefault(_key, []).append(_gi)
 
                 for _gn, _gnodes in _grp.items():
                     _degs_in_grp = [_degrees[_i] for _i in _gnodes if _i < len(_degrees)]
