@@ -24,3 +24,6 @@ back_end/results/
 
 # 3D model source files (large binary assets — not tracked in git)
 Source_3d_models/
+
+# Trained model exports (large — keep locally, not in git)
+trained_models/*.pt

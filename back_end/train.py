@@ -9,6 +9,7 @@ import argparse
 import json
 import os
 import time
+from datetime import datetime
 from pathlib import Path
 
 import torch
@@ -159,8 +160,27 @@ def main():
     with open(res_dir / "test_metrics.json", "w") as f:
         json.dump({k: round(v, 4) for k, v in test_metrics.items()}, f, indent=2)
 
-    print(f"\n  Results saved → {res_dir}")
-    print(f"  Best checkpoint → {ckpt_dir / 'best.pt'}")
+    # ── Save timestamped trained model ────────────────────────────────────
+    tm_dir = Path(cfg["paths"]["trained_models"])
+    tm_dir.mkdir(parents=True, exist_ok=True)
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    auc_tag = f"auc{best_auc:.4f}".replace(".", "")
+    tm_path = tm_dir / f"assembly_gnn_{ts}_{auc_tag}.pt"
+
+    torch.save({
+        "epoch":        ckpt["epoch"],
+        "auc":          best_auc,
+        "test_metrics": {k: round(v, 4) for k, v in test_metrics.items()},
+        "trained_at":   datetime.now().isoformat(),
+        "source_dir":   cfg["data"]["source_dir"],
+        "gnn":          gnn.state_dict(),
+        "lp":           lp.state_dict(),
+        "cfg":          cfg,
+    }, tm_path)
+
+    print(f"\n  Results saved        → {res_dir}")
+    print(f"  Best checkpoint      → {ckpt_dir / 'best.pt'}")
+    print(f"  Trained model export → {tm_path}")
 
 
 if __name__ == "__main__":

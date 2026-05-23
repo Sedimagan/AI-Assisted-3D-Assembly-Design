@@ -29,5 +29,6 @@ evaluation:
   # Phase 2: top_k: [1, 3, 5, 10]  for next-component ranking
 
 paths:
-  checkpoints: "checkpoints"
-  results:     "results"
+  checkpoints:    "checkpoints"
+  results:        "results"
+  trained_models: "../trained_models"   # timestamped exports saved here
