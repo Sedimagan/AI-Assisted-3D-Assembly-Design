@@ -218,11 +218,14 @@ def render_log(entries: list) -> str:
 
 # ── Inference helpers ─────────────────────────────────────────────────────────
 
-def _run_inference(step_bytes: bytes) -> dict:
+def _run_inference(step_bytes: bytes,
+                   source_dir: str = "",
+                   uploaded_name: str = "") -> dict:
     """
     Write STEP bytes to a cache file then run missing-component prediction
     in a subprocess (avoids gmsh + PyTorch signal-handler conflicts).
-    Returns a dict with keys: n_nodes, n_edges, missing_links  or  error.
+    Returns a dict with keys: n_nodes, n_edges, missing_links,
+    centroids, part_names, node_degrees, potentially_missing  or  error.
     """
     _STEP_CACHE.parent.mkdir(parents=True, exist_ok=True)
     _STEP_CACHE.write_bytes(step_bytes)
@@ -344,6 +347,118 @@ def _run_inference(step_bytes: bytes) -> dict:
 
         part_names = [n if n else f"Part {{i+1}}" for i, n in enumerate(raw_names)]
 
+        # ── Auto-reference: find best-matching source assembly ────────────────
+        # Normalise filename (strip test prefixes / version suffixes) so
+        # "disp_bolt_License Plate Bracket Assembly_3.step" matches
+        # "License Plate Bracket Assembly.STEP" in source folder.
+        import os as _os
+
+        def _norm(s):
+            s = s.lower()
+            if '.' in s:
+                s = s.rsplit('.', 1)[0]
+            for _pfx in ('disp_bolt_', 'disp_', 'wo_bolt_', 'wo_',
+                         'test_', 'modified_', 'without_', 'missing_'):
+                if s.startswith(_pfx):
+                    s = s[len(_pfx):]
+                    break
+            while s and s[-1].isdigit():
+                s = s[:-1]
+            return s.rstrip('_ ').strip()
+
+        def _bn(s):
+            if s and '/' in s:
+                return s.rstrip('/').split('/')[-1].strip()
+            return s or ''
+
+        _src_dir    = {repr(source_dir)}
+        _test_norm  = _norm({repr(uploaded_name)})
+        _ref_path   = None
+        _best_score = 0.0
+
+        if _os.path.isdir(_src_dir):
+            for _sf in _os.listdir(_src_dir):
+                if not _sf.lower().endswith(('.step', '.stp')):
+                    continue
+                _sn = _norm(_sf)
+                if _sn == _test_norm:
+                    _ref_path = _os.path.join(_src_dir, _sf)
+                    break
+                _tw = set(_test_norm.replace('_', ' ').split())
+                _sw = set(_sn.replace('_', ' ').split())
+                _sc = len(_tw & _sw) / max(len(_tw | _sw), 1)
+                if _sc > _best_score:
+                    _best_score = _sc
+                    if _sc >= 0.5:
+                        _ref_path = _os.path.join(_src_dir, _sf)
+
+        potentially_missing = []
+        if _ref_path and _ref_path != {repr(str(_STEP_CACHE))}:
+            _rnames = []
+            _rctrs  = []
+            gmsh.initialize()
+            gmsh.option.setNumber("General.Terminal", 0)
+            try:
+                gmsh.merge(_ref_path)
+                gmsh.model.occ.synchronize()
+                _rvols = gmsh.model.occ.getEntities(3)
+                _rpre = {{}}
+                for _rd, _rt in _rvols:
+                    _rn = gmsh.model.getEntityName(_rd, _rt)
+                    _rpre[(_rd, _rt)] = _rn.strip() if _rn else ""
+                _rinh = {{}}
+                if _rvols:
+                    _rfo, _rfm = gmsh.model.occ.fragment(_rvols, [])
+                    gmsh.model.occ.synchronize()
+                    for _ri, (_rd, _rt) in enumerate(_rvols):
+                        _rpn = _rpre[(_rd, _rt)]
+                        if _rpn and _ri < len(_rfm):
+                            for _rcd, _rct in _rfm[_ri]:
+                                if _rcd == 3:
+                                    _rinh[(_rcd, _rct)] = _rpn
+                    _rvols = gmsh.model.occ.getEntities(3)
+                for _rd, _rt in _rvols:
+                    _rb = gmsh.model.occ.getBoundingBox(_rd, _rt)
+                    _rctrs.append([(_rb[0]+_rb[3])/2, (_rb[1]+_rb[4])/2, (_rb[2]+_rb[5])/2])
+                    _ren = gmsh.model.getEntityName(_rd, _rt)
+                    if _ren and _ren.strip():
+                        _rnames.append(_ren.strip())
+                    elif (_rd, _rt) in _rinh:
+                        _rnames.append(_rinh[(_rd, _rt)])
+                    else:
+                        _rnames.append("")
+            except Exception:
+                pass
+            finally:
+                gmsh.finalize()
+
+            # Jaccard-match test vs reference component counts by basename
+            def _grp(names, ctrs):
+                g = {{}}
+                for _n, _c in zip(names, ctrs):
+                    _k = _bn(_n)
+                    if _k: g.setdefault(_k, []).append(_c)
+                return g
+
+            _tg = _grp(part_names, centroids)
+            _rg = _grp(_rnames,    _rctrs)
+
+            for _nm, _rcs in _rg.items():
+                _tcs = _tg.get(_nm, [])
+                if len(_tcs) >= len(_rcs):
+                    continue
+                _used = set()
+                for _tc in _tcs:
+                    _bi, _bd = None, float('inf')
+                    for _i, _rc in enumerate(_rcs):
+                        if _i in _used: continue
+                        _d = sum((_a-_b)**2 for _a, _b in zip(_tc, _rc))
+                        if _d < _bd: _bd, _bi = _d, _i
+                    if _bi is not None: _used.add(_bi)
+                for _i, _rc in enumerate(_rcs):
+                    if _i not in _used:
+                        potentially_missing.append({{"name": _nm, "centroid": _rc}})
+
         out = {{
             "n_nodes": int(graph.num_nodes),
             "n_edges": int(graph.edge_index.size(1)),
@@ -351,9 +466,10 @@ def _run_inference(step_bytes: bytes) -> dict:
                 {{"src": int(u), "dst": int(v), "confidence": float(s)}}
                 for (u, v), s in results
             ],
-            "centroids":    centroids,
-            "part_names":   part_names,
-            "node_degrees": node_degrees,
+            "centroids":          centroids,
+            "part_names":         part_names,
+            "node_degrees":       node_degrees,
+            "potentially_missing": potentially_missing,
         }}
         print(json.dumps(out))
     """)
@@ -472,8 +588,28 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
                 )
             rows += lbl + link_rows
 
-        if not all_flagged and not missing:
-            rows = "<p style='color:#4caf82;font-size:0.78rem;'>✓ Assembly appears complete — no missing links found.</p>"
+        # ── Section 3: potentially missing components (auto reference match) ────
+        pot_missing = result.get("potentially_missing", [])
+        if pot_missing:
+            rows += (
+                '<p style="font-size:0.76rem;font-weight:700;color:#f97316;'
+                'margin:8px 0 5px;">🔍 Potentially Missing Components</p>'
+            )
+            for mc in pot_missing:
+                mn = mc["name"]
+                mn_s = (mn[:36] + "…") if len(mn) > 36 else mn
+                rows += (
+                    f'<div style="display:flex;align-items:center;gap:6px;'
+                    f'font-size:0.72rem;margin-bottom:5px;">'
+                    f'<span style="color:#f97316;font-size:0.78rem;">❓</span>'
+                    f'<span style="color:#c2440e;font-weight:600;">{mn_s}</span>'
+                    f'<span style="color:#888;font-size:0.68rem;">'
+                    f'— not found in assembly</span>'
+                    f'</div>'
+                )
+
+        if not all_flagged and not missing and not pot_missing:
+            rows = "<p style='color:#4caf82;font-size:0.78rem;'>✓ Assembly appears complete — no issues found.</p>"
 
         return (
             f'<div style="{PANEL}padding:14px;overflow-y:auto;max-height:280px;">'
@@ -1193,6 +1329,24 @@ with col_right:
                                    roughness=0.5, fresnel=0.2),
                     lightposition=dict(x=100, y=100, z=100),
                 ))
+
+            # Orange cross markers at estimated locations of missing components
+            _pot = (st.session_state.inference_result or {}).get("potentially_missing", [])
+            for _mc in _pot:
+                _cx, _cy, _cz = _mc["centroid"]
+                _mn = _mc["name"]
+                _ms = (_mn[:26] + "…") if len(_mn) > 26 else _mn
+                fig.add_trace(go.Scatter3d(
+                    x=[_cx], y=[_cy], z=[_cz],
+                    mode="markers",
+                    marker=dict(symbol="cross", size=14, color="#f97316",
+                                line=dict(color="#ffffff", width=2)),
+                    name=f"❓ {_ms}",
+                    showlegend=True,
+                    hovertext=f"Missing component:<br>{_mn}",
+                    hoverinfo="text",
+                ))
+
             fig.update_layout(
                 scene=dict(
                     bgcolor=BG_MAP[bg_color], aspectmode="data",
@@ -1258,7 +1412,11 @@ with col_left:
         if st.session_state.inference_done_for != st.session_state.pred_name:
             with st.spinner("🔍 Predicting missing components…"):
                 log("🔍  Running GNN inference…")
-                _res = _run_inference(st.session_state.pred_bytes)
+                _res = _run_inference(
+                    st.session_state.pred_bytes,
+                    source_dir=st.session_state.source_3d_dir,
+                    uploaded_name=st.session_state.pred_name or "",
+                )
                 st.session_state.inference_result   = _res
                 st.session_state.inference_done_for = st.session_state.pred_name
                 if "error" not in _res:
