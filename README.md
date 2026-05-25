@@ -380,6 +380,7 @@ Each export contains: epoch · best AUC · test metrics · `trained_at` timestam
 |---|---|
 | **Setup** | `uv` (package manager) · `bootstrap.sh` · `.env` |
 | **CAD parsing** | `gmsh` + OpenCASCADE (STEP → solid bodies + surface adjacency) |
+| **Geometry enrichment** *(planned — Phase 2)* | CGAL (`python-cgal`) — exact surface area · volume · SDF · convexity ratio · curvature for richer GNN node features |
 | **Graph ML** | PyTorch Geometric · GAT · RandomLinkSplit |
 | **AI Orchestration** | Google Gemini (`gemini-2.0-flash`) · `skills_agent.py` |
 | **Front-end** | Streamlit · Plotly `Mesh3d` · PyVista (offscreen STL load) |
@@ -425,6 +426,67 @@ Survey papers are available in [`Literature_survey_papers/`](./Literature_survey
 | (2023). **Heterogeneous Graph Contrastive Learning** | arXiv: 2303.00995 | [PDF](./Literature_survey_papers/Heterogeneous%20Graph%20Contrastive%20Learning_2303.00995v1.pdf) |
 
 **Foundational references** (cited in thesis): Kipf & Welling (2017) — GCN · Veličković et al. (2018) — GAT · Hamilton et al. (2017) — GraphSAGE · Koch et al. (2019) — ABC Dataset · Mo et al. (2019) — PartNet · Ying et al. (2019) — GNNExplainer.
+
+---
+
+## Additional Research & Planned Enhancement: CGAL Integration
+
+> **Triggered by:** First Review feedback — Prof. Sagarika Borah, 24 May 2026
+
+### Background
+
+During the First Review, Prof. Sagarika Borah suggested exploring **CGAL** (Computational Geometry Algorithms Library) as a means to strengthen the geometric grounding of the project. CGAL is the industry/academic standard C++ library for exact computational geometry — covering Boolean operations on polyhedra, exact surface area and volume computation, Shape Diameter Function (SDF), mesh processing, and more. It has limited Python bindings (`python-cgal`).
+
+### Why It Is Relevant
+
+The current pipeline (`dataset.py`) extracts 13-dimensional node features using gmsh's OpenCASCADE kernel: bounding-box dimensions, a bbox-approximated surface area, and OCC volume. These are geometrically coarse — a shaft, a plate, and a housing can produce similar feature vectors because bbox proportions overlap. Richer geometry would give the GAT better signal to distinguish component types before link prediction runs.
+
+Additionally, contact detection currently relies on gmsh's `occ.fragment()` shared-surface-tag approach with a 1 % area threshold workaround to filter floating-point noise. CGAL uses **exact arithmetic predicates**, which would eliminate the need for that empirical threshold entirely.
+
+### Planned Integration Points
+
+CGAL does not read STEP files, so gmsh + OCC remains the entry point. CGAL would be inserted as an **enrichment layer** after gmsh parses each solid body and before the PyG graph is assembled:
+
+```
+STEP file
+   │
+   ▼  gmsh (OpenCASCADE) — existing stage
+   │  Parse solid bodies, fragment for contact detection
+   │
+   ▼  CGAL enrichment layer — planned addition
+   │  Per-body mesh exported as .off / .obj
+   │  Compute: exact surface area · volume · Shape Diameter Function (SDF)
+   │           convexity ratio (convex hull vol / actual vol)
+   │           principal curvature (shaft vs flat part discrimination)
+   │
+   ▼  Augmented node feature vector (13-dim → ~18-dim)
+   │
+   ▼  AssemblyGNN (3-layer GAT) — unchanged architecture
+```
+
+### Planned Additional Node Features
+
+| Feature | Description | CGAL API |
+|---|---|---|
+| **Exact surface area** | Replaces bbox approximation with the actual mesh surface area | `Polygon_mesh_processing::area()` |
+| **Exact volume** | Replaces OCC `getMass()` with exact closed-mesh integral | `Polygon_mesh_processing::volume()` |
+| **Shape Diameter Function (SDF)** | Local thickness measure; discriminates thin fasteners from thick housings | `CGAL::mesh_segmentation_via_sdf_values()` |
+| **Convexity ratio** | `convex_hull_vol / actual_vol`; discriminates complex shaped parts from simple ones | `convex_hull_3()` |
+| **Principal curvature ratio** | `max_curvature / min_curvature`; identifies shaft-like vs flat geometry | `Monge_via_jet_fitting` |
+
+### Expected Impact
+
+- Richer node features should improve the GAT's ability to distinguish component types, which in turn should improve missing-link AUC beyond the Phase 1 baseline.
+- Exact contact detection removes the empirical 1 % threshold, making the edge-building step more principled and reproducible across different STEP files.
+- Provides a clear, academically grounded novelty contribution for Phase 2 that builds on the Phase 1 baseline.
+
+### Implementation Plan (Phase 2)
+
+1. Add `cgal` (via `python-cgal` or Conda) to `back_end/requirements.txt`
+2. Write `back_end/cgal_features.py` — converts gmsh-extracted body meshes to CGAL `Surface_mesh`, computes the five features above
+3. Expand `_parse_step()` in `dataset.py` to call `cgal_features.extract(body_mesh)` per node and append to the feature vector
+4. Update `config.yaml` and `model.py` `in_dim` to reflect the new feature dimensionality
+5. Re-train and compare AUC-ROC before/after feature enrichment as an ablation study
 
 ---
 
