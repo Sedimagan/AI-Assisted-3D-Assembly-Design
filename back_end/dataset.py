@@ -222,8 +222,12 @@ class AssemblyDataset(InMemoryDataset):
         else:
             print(f"  No STEP files found in {self.source_dir}.")
 
-        if len(graphs) < 10:
-            graphs += _generate_synthetic(max(100, 300 - len(graphs)))
+        if len(graphs) == 0:
+            raise RuntimeError(
+                "No valid multi-body assembly graphs found in source directory. "
+                "Check that Source_3d_models/ contains STEP files with ≥2 solid bodies."
+            )
+        print(f"  Using {len(graphs)} real assembly graph(s) — no synthetic data.")
 
         data, slices = self.collate(graphs)
         torch.save((data, slices), self.processed_paths[0])
