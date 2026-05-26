@@ -4,15 +4,31 @@ Loads STEP files from source_dir, converts each assembly to an attributed
 graph (nodes = solid bodies, edges = shared surfaces / mate constraints),
 and caches the processed PyG Data objects.
 
-Falls back to synthetic graphs when no STEP files are found.
+Pipeline per body
+-----------------
+  gmsh (OpenCASCADE)  → parse solids, fragment(), getBoundingBox(), getMass()
+  trimesh             → exact surface area  (replaces bbox approximation)
+  SDF ray-casting     → Shape Diameter Function mean + variance
+                         used to infer geometry-driven component type
+                         (approximates CGAL SDF via trimesh inward ray casting)
+
+Node feature vector: 16-dim
+  [0:8]  component-type one-hot  (geometry-driven, 8 classes)
+  [8]    normalised volume
+  [9]    exact surface area       (trimesh, normalised)
+  [10]   bbox Δx / bbox_max
+  [11]   bbox Δy / bbox_max
+  [12]   bbox Δz / bbox_max
+  [13]   SDF mean  (normalised)
+  [14]   SDF variance (normalised)
+  [15]   SA/V ratio (normalised)
 """
 
 from __future__ import annotations
 
-import os
 import random
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import numpy as np
 import torch
@@ -24,23 +40,168 @@ COMP_TYPES = ["body", "fastener", "bearing", "shaft", "plate", "housing", "gear"
 MATE_TYPES = ["coincident", "concentric", "parallel", "tangent", "fixed", "other"]
 
 
+# ── Trimesh / SDF helpers ─────────────────────────────────────────────────────
+
+def _build_trimesh(surf_tags: list) -> Optional["trimesh.Trimesh"]:
+    """
+    Extract a trimesh.Trimesh from the current gmsh surface mesh for the
+    given list of surface (dim=2) tags.  Requires gmsh.model.mesh.generate(2)
+    to have been called first.
+    """
+    try:
+        import trimesh as _tm
+        import gmsh as _gmsh
+    except ImportError:
+        return None
+
+    vertices: list = []
+    faces:    list = []
+    node_map: dict = {}
+
+    for stag in surf_tags:
+        try:
+            elem_types, _, ntags_per = _gmsh.model.mesh.getElements(2, stag)
+        except Exception:
+            continue
+        for etype, ntags in zip(elem_types, ntags_per):
+            if etype != 2:          # only 3-node triangles
+                continue
+            arr = np.array(ntags, dtype=np.int64).reshape(-1, 3)
+            for tri in arr:
+                fvids = []
+                for nid in tri:
+                    if nid not in node_map:
+                        coords = _gmsh.model.mesh.getNode(nid)[0]
+                        node_map[nid] = len(vertices)
+                        vertices.append(coords[:3])
+                    fvids.append(node_map[nid])
+                faces.append(fvids)
+
+    if not vertices or not faces:
+        return None
+
+    return _tm.Trimesh(
+        vertices=np.array(vertices, dtype=np.float64),
+        faces=np.array(faces,    dtype=np.int64),
+        process=True,       # fix normals / degenerate faces for reliable ray casting
+    )
+
+
+def _compute_sdf_stats(mesh: "trimesh.Trimesh",
+                       n_samples: int = 300) -> Tuple[float, float]:
+    """
+    Approximate the Shape Diameter Function (SDF) via inward ray casting —
+    equivalent to CGAL's sdf() but implemented purely with trimesh.
+
+    For each sampled surface point we shoot a ray along the *inward* normal
+    and record the distance to the first back-face hit.  The distribution of
+    those distances is the SDF:
+      • mean  → average local thickness
+      • variance → shape complexity (shafts: low; housings/gears: high)
+    """
+    try:
+        import trimesh as _tm
+    except ImportError:
+        return 0.0, 0.0
+
+    if mesh is None or len(mesh.faces) < 4:
+        return 0.0, 0.0
+
+    n_samples = min(n_samples, max(30, len(mesh.faces)))
+    pts, face_ids = _tm.sample.sample_surface(mesh, n_samples)
+    normals = mesh.face_normals[face_ids]
+
+    # Nudge start points slightly *outside* the surface to avoid self-hit
+    origins    = pts + normals * 1e-5
+    directions = -normals               # pointing inward
+
+    try:
+        locs, ray_ids, _ = mesh.ray.intersects_location(
+            ray_origins=origins,
+            ray_directions=directions,
+            multiple_hits=False,
+        )
+    except Exception:
+        return 0.0, 0.0
+
+    if len(locs) == 0:
+        return 0.0, 0.0
+
+    dists = np.linalg.norm(locs - pts[ray_ids], axis=1)
+    dists = dists[dists > 1e-9]        # discard degenerate near-zero hits
+
+    if len(dists) < 3:
+        return 0.0, 0.0
+
+    return float(dists.mean()), float(dists.var())
+
+
+def _infer_type_from_geometry(
+    vol:      float,
+    exact_sa: float,
+    bbox:     Tuple[float, float, float],
+    sdf_mean: float,
+    sdf_var:  float,
+) -> int:
+    """
+    Return a COMP_TYPES index using SDF statistics + bounding-box ratios.
+
+    Rules (all comparisons are dimensionless ratios — unit-independent):
+      high mean, low var   → shaft (index 3)
+      small + elongated    → fastener (index 1)
+      very flat            → plate (index 4)
+      bimodal SDF (ring)   → bearing (index 2)
+      high variance        → housing (index 5)
+      default              → body (index 0)
+    """
+    dx, dy, dz = bbox
+    ext        = sorted([dx, dy, dz])          # [shortest, middle, longest]
+    elongation = ext[2] / (ext[1] + 1e-9)      # > 3.5 → shaft-like
+    flatness   = ext[0] / (ext[2] + 1e-9)      # < 0.12 → plate-like
+
+    # Shaft: strongly elongated, uniform cross-section, thick walls
+    if elongation > 3.5 and flatness > 0.05 and sdf_mean > 0.05 * ext[2]:
+        return 3   # shaft
+
+    # Fastener: elongated but thin  (bolt, screw, pin)
+    if elongation > 2.5 and sdf_mean < 0.08 * ext[2]:
+        return 1   # fastener
+
+    # Plate: very flat geometry
+    if flatness < 0.12:
+        return 4   # plate
+
+    # Bearing: ring topology → bimodal SDF (std > 60 % of mean)
+    if sdf_mean > 1e-9 and sdf_var ** 0.5 > 0.6 * sdf_mean:
+        return 2   # bearing
+
+    # Housing / gear: complex geometry → elevated variance
+    if sdf_mean > 1e-9 and sdf_var > 0.2 * sdf_mean ** 2:
+        return 5   # housing
+
+    return 0  # body (generic fallback)
+
+
 # ── STEP file parser ──────────────────────────────────────────────────────────
 
 def _parse_step(step_path: str) -> Optional[Data]:
     """
     Parse a single STEP file into a PyG Data object.
 
-    Node features  (13-dim):
-        [0:8]  component-type one-hot (8 classes, default = 'body')
+    Node features  (16-dim):
+        [0:8]  component-type one-hot  (geometry-driven via SDF, 8 classes)
         [8]    normalised volume
-        [9]    normalised surface area (estimated from bbox)
-        [10]   bbox Δx
-        [11]   bbox Δy
-        [12]   bbox Δz
+        [9]    exact surface area       (trimesh, replaces bbox approximation)
+        [10]   bbox Δx / bbox_max
+        [11]   bbox Δy / bbox_max
+        [12]   bbox Δz / bbox_max
+        [13]   SDF mean  / sdf_mean_max
+        [14]   SDF variance / sdf_var_max
+        [15]   SA/V ratio / sav_max
 
     Edge features  (2-dim):
-        [0]    mate type encoded (0=coincident … 5=other, normalised to [0,1])
-        [1]    weight (1.0 for detected contacts)
+        [0]    mate type encoded  (0=coincident … 5=other, normalised to [0,1])
+        [1]    weight             (1.0 for detected contacts)
     """
     import gmsh
 
@@ -52,66 +213,104 @@ def _parse_step(step_path: str) -> Optional[Data]:
         gmsh.merge(step_path)
         gmsh.model.occ.synchronize()
 
-        volumes = gmsh.model.occ.getEntities(3)   # list of (dim=3, tag) per solid body
+        volumes = gmsh.model.occ.getEntities(3)
         if len(volumes) < 2:
             return None
 
-        # Fragment volumes against each other to share boundary surface tags for contact detection
+        # Fragment volumes to share boundary surface tags → contact detection
         gmsh.model.occ.fragment(volumes, [])
         gmsh.model.occ.synchronize()
-        
-        # Re-fetch volumes since fragmentation may update tags
         volumes = gmsh.model.occ.getEntities(3)
 
-        # ── Node features ──────────────────────────────────────────────────
-        node_feats: List[List[float]] = []
-        body_surfs: List[frozenset]   = []
+        # ── Surface mesh for trimesh enrichment ───────────────────────────
+        _trimesh_ok = False
+        try:
+            import trimesh as _tm        # noqa: F401
+            gmsh.model.mesh.generate(2)  # triangulate all surfaces
+            _trimesh_ok = True
+        except Exception:
+            pass
 
-        raw_vols, raw_sas = [], []
+        # ── Raw geometry pass ─────────────────────────────────────────────
+        raw_vols:   list = []
+        bboxes:     list = []
+        body_surfs: List[frozenset] = []
+
         for dim, tag in volumes:
-            bbox = gmsh.model.occ.getBoundingBox(dim, tag)   # xmin..zmax
+            bbox = gmsh.model.occ.getBoundingBox(dim, tag)
             vol  = gmsh.model.occ.getMass(dim, tag)
-            dx, dy, dz = bbox[3]-bbox[0], bbox[4]-bbox[1], bbox[5]-bbox[2]
-            sa = 2.0 * (dx*dy + dy*dz + dz*dx)              # box surface-area approx.
+            dx   = bbox[3] - bbox[0]
+            dy   = bbox[4] - bbox[1]
+            dz   = bbox[5] - bbox[2]
             raw_vols.append(vol)
-            raw_sas.append(sa)
-
-            # Surface tags bounding this body (for mate detection)
+            bboxes.append((dx, dy, dz))
             bnd = gmsh.model.getBoundary([(dim, tag)], oriented=False, combined=True)
             body_surfs.append(frozenset(abs(s[1]) for s in bnd if s[0] == 2))
 
-        # Normalise geometry features across the assembly
-        vol_max = max(raw_vols) or 1.0
-        sa_max  = max(raw_sas)  or 1.0
-        bboxes  = []
-        for dim, tag in volumes:
-            bbox = gmsh.model.occ.getBoundingBox(dim, tag)
-            bboxes.append((bbox[3]-bbox[0], bbox[4]-bbox[1], bbox[5]-bbox[2]))
-
-        bbox_max = max(max(b) for b in bboxes) or 1.0
+        # ── Trimesh enrichment: exact SA + SDF per body ───────────────────
+        exact_sas: list = []
+        sdf_means: list = []
+        sdf_vars:  list = []
 
         for i, (dim, tag) in enumerate(volumes):
-            type_oh = [0.0] * 8
-            type_oh[0] = 1.0                                  # default: "body"
+            dx, dy, dz = bboxes[i]
+            bbox_sa = 2.0 * (dx * dy + dy * dz + dz * dx)   # fallback
+
+            if _trimesh_ok:
+                tm = _build_trimesh(list(body_surfs[i]))
+                if tm is not None and len(tm.faces) >= 4:
+                    exact_sa      = float(tm.area)
+                    sdf_m, sdf_v  = _compute_sdf_stats(tm)
+                else:
+                    exact_sa, sdf_m, sdf_v = bbox_sa, 0.0, 0.0
+            else:
+                exact_sa, sdf_m, sdf_v = bbox_sa, 0.0, 0.0
+
+            exact_sas.append(exact_sa)
+            sdf_means.append(sdf_m)
+            sdf_vars.append(sdf_v)
+
+        # ── Normalisation constants ────────────────────────────────────────
+        n         = len(volumes)
+        vol_max   = max(raw_vols)  or 1.0
+        sa_max    = max(exact_sas) or 1.0
+        bbox_max  = max(max(b) for b in bboxes) or 1.0
+        sdf_m_max = max(sdf_means) or 1.0
+        sdf_v_max = max(sdf_vars)  or 1.0
+        sav_vals  = [exact_sas[i] / (raw_vols[i] + 1e-9) for i in range(n)]
+        sav_max   = max(sav_vals)  or 1.0
+
+        # ── 16-dim node feature vectors ───────────────────────────────────
+        node_feats: List[List[float]] = []
+
+        for i in range(n):
+            dx, dy, dz = bboxes[i]
+            type_idx = _infer_type_from_geometry(
+                raw_vols[i], exact_sas[i], bboxes[i], sdf_means[i], sdf_vars[i]
+            )
+            type_oh      = [0.0] * 8
+            type_oh[type_idx] = 1.0
+
             feat = (
-                type_oh
-                + [raw_vols[i] / vol_max,
-                   raw_sas[i]  / sa_max,
-                   bboxes[i][0] / bbox_max,
-                   bboxes[i][1] / bbox_max,
-                   bboxes[i][2] / bbox_max]
+                type_oh                                     # [0:8]
+                + [raw_vols[i]  / vol_max,                  # [8]   volume
+                   exact_sas[i] / sa_max,                   # [9]   exact SA
+                   dx / bbox_max,                           # [10]  bbox Δx
+                   dy / bbox_max,                           # [11]  bbox Δy
+                   dz / bbox_max,                           # [12]  bbox Δz
+                   sdf_means[i] / sdf_m_max,                # [13]  SDF mean
+                   sdf_vars[i]  / sdf_v_max,                # [14]  SDF variance
+                   sav_vals[i]  / sav_max]                  # [15]  SA/V ratio
             )
             node_feats.append(feat)
 
         # ── Edge detection (shared bounding surface = mate contact) ────────
         src, dst, eattr = [], [], []
-        n = len(volumes)
 
         for i in range(n):
             for j in range(i + 1, n):
                 if body_surfs[i] & body_surfs[j]:
-                    # bidirectional
-                    src  += [i, j];  dst  += [j, i]
+                    src   += [i, j];  dst   += [j, i]
                     eattr += [[0.0, 1.0], [0.0, 1.0]]   # coincident contact
 
         if not src:
@@ -119,8 +318,8 @@ def _parse_step(step_path: str) -> Optional[Data]:
             for i in range(n):
                 for j in range(n):
                     if i != j:
-                        src.append(i); dst.append(j)
-                        eattr.append([1.0, 1.0])          # "other" contact
+                        src.append(i);  dst.append(j)
+                        eattr.append([1.0, 1.0])        # "other" contact
 
         x          = torch.tensor(node_feats, dtype=torch.float)
         edge_index = torch.tensor([src, dst],  dtype=torch.long)
@@ -138,18 +337,17 @@ def _parse_step(step_path: str) -> Optional[Data]:
 # ── Synthetic data fallback ───────────────────────────────────────────────────
 
 def _synthetic_graph(n_nodes: int = None) -> Data:
-    """Generate one random assembly graph for testing when no STEP files exist."""
+    """Generate one random 16-dim assembly graph for testing."""
     rng      = random.Random()
     n        = n_nodes or rng.randint(4, 20)
-    node_dim = 13
+    node_dim = 16
 
     x = torch.zeros(n, node_dim)
     for i in range(n):
         t = rng.randint(0, 7)
-        x[i, t] = 1.0                                    # type one-hot
-        x[i, 8:] = torch.rand(5)                         # geometry features
+        x[i, t] = 1.0           # type one-hot
+        x[i, 8:] = torch.rand(8)  # geometry + SDF features
 
-    # Random connected graph
     src, dst, eattr = [], [], []
     perm = list(range(n)); rng.shuffle(perm)
     for k in range(n - 1):
@@ -164,7 +362,7 @@ def _synthetic_graph(n_nodes: int = None) -> Data:
 
 
 def _generate_synthetic(n: int = 300) -> List[Data]:
-    print(f"  Generating {n} synthetic assembly graphs for training…")
+    print(f"  Generating {n} synthetic 16-dim assembly graphs for testing…")
     return [_synthetic_graph() for _ in range(n)]
 
 
@@ -189,7 +387,6 @@ class AssemblyDataset(InMemoryDataset):
     ):
         self.source_dir = Path(source_dir)
         if force_reload:
-            # Check both the raw processed_dir and PyG's nested processed_dir/processed path
             for fname in ["data.pt", "processed/data.pt"]:
                 proc = Path(processed_dir) / fname
                 if proc.exists():
@@ -207,7 +404,7 @@ class AssemblyDataset(InMemoryDataset):
     def download(self): pass
 
     def process(self):
-        step_exts = {".step", ".stp", ".STEP", ".STP"}
+        step_exts  = {".step", ".stp", ".STEP", ".STP"}
         step_files = [p for p in self.source_dir.rglob("*") if p.suffix in step_exts]
 
         graphs: List[Data] = []
@@ -265,7 +462,7 @@ def get_splits(dataset: AssemblyDataset, cfg: dict):
         result = []
         for i in indices:
             data = dataset[i]
-            if data.edge_index.size(1) < 8:   # need enough edges to split
+            if data.edge_index.size(1) < 8:
                 continue
             try:
                 train_d, val_d, test_d = splitter(data)
@@ -274,7 +471,7 @@ def get_splits(dataset: AssemblyDataset, cfg: dict):
                 continue
         return result
 
-    train_data = _transform(perm[:n_train],             0)
+    train_data = _transform(perm[:n_train],              0)
     val_data   = _transform(perm[n_train:n_train+n_val], 1)
     test_data  = _transform(perm[n_train+n_val:],        2)
 

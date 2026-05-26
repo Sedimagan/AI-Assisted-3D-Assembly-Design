@@ -7,7 +7,7 @@ data:
   mask_ratio:  [0.20, 0.40]   # fraction of edges masked per graph for partial-graph training
 
 model:
-  in_dim:     13              # node feature dimension
+  in_dim:     16              # node feature dimension (16-dim: 8 type + vol + exact-SA + 3 bbox + SDF-mean + SDF-var + SA/V)
   edge_dim:   2               # edge feature dimension
   hidden_dim: 128
   out_dim:    64

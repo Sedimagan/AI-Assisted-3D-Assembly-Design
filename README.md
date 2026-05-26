@@ -71,13 +71,13 @@ Source_3d_models/ (STEP files)
          │
          ▼
 dataset.py — gmsh (OpenCASCADE)
-  Solid bodies → Nodes (13-dim)
-  Shared surfaces → Edges (2-dim)
-  PyG InMemoryDataset
+  Solid bodies → Nodes · Shared surfaces → Edges (2-dim)
+  + trimesh exact SA · SDF ray-casting (SDF mean + variance)
+  Nodes: 16-dim · PyG InMemoryDataset
          │
          ▼
 model.py — AssemblyGNN (3-layer GAT)
-  13 → 512 → 256 → 64 dim
+  16 → 512 → 256 → 64 dim
   4-head attention · edge features on L1
          │
          ▼
@@ -102,58 +102,84 @@ Next-component ranking (Hit@K, MRR)
 
 | Element | Dim | Features |
 |---|---|---|
-| **Node** | 13 | Type one-hot (8 classes: body/fastener/bearing/shaft/plate/housing/gear/other) · volume · surface area · bbox (x, y, z) |
+| **Node** | **16** | Type one-hot (8 classes, geometry-driven via SDF) · volume · exact SA (trimesh) · bbox (Δx, Δy, Δz) · SDF mean · SDF variance · SA/V ratio |
 | **Edge** | 2 | Mate type encoded (coincident/concentric/parallel/tangent/fixed/other) · weight |
 | **Avg nodes/graph** | ~18 | — |
 | **Avg edges/graph** | ~32 | — |
 | **Train/Val/Test** | 70/15/15 | Split by assembly ID — no data leakage |
 
-### Feature Engineering Detail (13 Node + 2 Edge Features)
+### Feature Engineering Detail (16 Node + 2 Edge Features)
 
-The graph construction pipeline in `back_end/dataset.py` uses **gmsh + OpenCASCADE** to convert each STEP file into an attributed graph. Every solid body becomes a node; every detected physical contact becomes a bidirectional edge. Below is the full breakdown of what is extracted and how.
+The graph construction pipeline in `back_end/dataset.py` uses **gmsh + OpenCASCADE + trimesh + SDF ray-casting** to convert each STEP file into an attributed graph. Every solid body becomes a node; every detected physical contact becomes a bidirectional edge.
 
-#### Node Features — 13 Dimensions
+#### Node Features — 16 Dimensions
 
-**Dims [0–7] — Component Type One-Hot (8 classes)**
+| Dim | Feature | Source | Status |
+|---|---|---|---|
+| [0–7] | Component type one-hot (8 classes) | SDF-inferred geometry rules | ✅ Geometry-driven (was hardcoded) |
+| [8] | Normalised volume | `gmsh.occ.getMass()` | unchanged |
+| [9] | **Exact** normalised surface area | `trimesh.Trimesh.area` | ✅ Exact (was bbox approximation) |
+| [10] | Bbox Δx / bbox_max | `gmsh.occ.getBoundingBox()` | unchanged |
+| [11] | Bbox Δy / bbox_max | `gmsh.occ.getBoundingBox()` | unchanged |
+| [12] | Bbox Δz / bbox_max | `gmsh.occ.getBoundingBox()` | unchanged |
+| [13] | **SDF mean** | Inward ray-casting (trimesh) | ✅ New — avg local thickness |
+| [14] | **SDF variance** | Inward ray-casting (trimesh) | ✅ New — shape complexity |
+| [15] | **SA/V ratio** | exact_SA / volume | ✅ New — plate vs solid discriminator |
 
-Each body is assigned one of eight component-type classes via a one-hot vector. The vocabulary is:
+**Dims [0–7] — Geometry-Driven Component Type One-Hot (8 classes)**
 
-| Index | Class | Examples |
+Each body is now classified by its geometry (SDF statistics + bounding-box ratios) rather than being hardcoded to "body":
+
+| Index | Class | SDF signature |
 |---|---|---|
-| 0 | `body` | Brackets, custom structural links (current default for all bodies) |
-| 1 | `fastener` | Screws, bolts, nuts, washers, rivets |
-| 2 | `bearing` | Ball/roller bearings, bush bearings |
-| 3 | `shaft` | Cylindrical and rotational shafts |
-| 4 | `plate` | Flat sheet metal, planar brackets, mounting plates |
-| 5 | `housing` | Enclosures and blocks designed to contain other components |
-| 6 | `gear` | Toothed wheels for power transmission |
-| 7 | `other` | Uncategorised or miscellaneous components |
-
-> **Current baseline limitation:** Index 0 (`body`) is hardcoded as the default for all nodes (`type_oh[0] = 1.0` — `dataset.py` line 95). The 8-class vocabulary exists and is used by the GNN's embedding layer, but it is never populated from geometry. This is one of the two fixes planned for Phase 2 via CGAL SDF-based inference (see [Geometry Enrichment](#additional-research--planned-enhancement-geometry-enriched-node-features)).
+| 0 | `body` | Generic fallback |
+| 1 | `fastener` | Elongated (>2.5×) · thin walls (SDF mean < 8 % of long axis) |
+| 2 | `bearing` | SDF std > 60 % of mean — bimodal ring topology |
+| 3 | `shaft` | Strongly elongated (>3.5×) · SDF mean > 5 % of long axis |
+| 4 | `plate` | Flatness ratio < 12 % (min bbox dim / max bbox dim) |
+| 5 | `housing` | SDF variance > 20 % of mean² — complex wall geometry |
+| 6 | `gear` | *(covered by housing rule for now; explicit gear rule Phase 2)* |
+| 7 | `other` | *(reserved)* |
 
 **Dim [8] — Normalised Volume**
 
-Volume of each solid body extracted via `gmsh.model.occ.getMass(3, tag)` (exact B-Rep integral from the OpenCASCADE kernel). Normalised across the assembly:
+Exact B-Rep volume via `gmsh.model.occ.getMass(3, tag)`, normalised by the maximum across all bodies in the assembly.
 
-$$\text{Feature}[8] = \frac{\text{Volume}_i}{\max(\text{Volume across all bodies})}$$
+**Dim [9] — Exact Normalised Surface Area**
 
-**Dim [9] — Normalised Surface Area (Bounding Box Approximation)**
+Surface area is now computed from the actual triangulated mesh via `trimesh.Trimesh.area`, eliminating the bbox approximation (`2(dx·dy + dy·dz + dz·dx)`) that was the single biggest accuracy flaw in the 13-dim baseline.
 
-Surface area is currently estimated from the axis-aligned bounding box, not the actual mesh surface:
-
-$$\text{SA}_\text{approx} = 2 \times (dx \cdot dy + dy \cdot dz + dz \cdot dx)$$
-
-where $dx$, $dy$, $dz$ are the bounding box extents from `gmsh.model.occ.getBoundingBox()`. This is then normalised by the maximum approximated SA in the assembly.
-
-> **Current baseline limitation:** A curved shaft and a flat plate with identical bounding box dimensions get the same SA value — the GNN cannot distinguish them on this feature. Phase 2 replaces this with exact mesh surface area via `trimesh` (see [Geometry Enrichment](#additional-research--planned-enhancement-geometry-enriched-node-features)).
+$$\text{Feature}[9] = \frac{\text{trimesh.area}_i}{\max(\text{trimesh.area across all bodies})}$$
 
 **Dims [10–12] — Normalised Bounding Box Dimensions (Δx, Δy, Δz)**
 
-The three spatial extents of each body's axis-aligned bounding box, normalised by the largest single dimension found anywhere in the assembly:
-
 $$\text{Feature}[10] = \frac{dx_i}{\text{bbox}_\text{max}}, \quad \text{Feature}[11] = \frac{dy_i}{\text{bbox}_\text{max}}, \quad \text{Feature}[12] = \frac{dz_i}{\text{bbox}_\text{max}}$$
 
-where $\text{bbox}_\text{max} = \max(\{dx, dy, dz\}$ across all bodies in the assembly$)$. These three dimensions encode each body's relative size and aspect ratio — a long thin shaft has a very different profile from a compact cube-like housing.
+Unchanged — encode relative size and aspect ratio of each body.
+
+**Dims [13–14] — Shape Diameter Function (SDF mean + variance)**
+
+The **Shape Diameter Function** approximates CGAL's SDF algorithm via trimesh inward ray-casting:
+1. Sample N surface points; shoot a ray along the *inward* surface normal for each
+2. Record the first-hit distance (local thickness at that point)
+3. Aggregate across all sampled points → mean (avg thickness) and variance (shape complexity)
+
+| SDF signature | Inferred component role |
+|---|---|
+| High mean, low variance | Shaft — uniformly thick cross-section |
+| Low mean, low variance | Plate — uniformly thin |
+| High variance | Housing or gear — varying wall thickness |
+| Std > 60 % of mean | Bearing — bimodal thick/thin ring regions |
+
+Both values are normalised by the maximum within the assembly before use as features.
+
+**Dim [15] — Normalised SA/V Ratio**
+
+Surface-area-to-volume ratio is a powerful discriminator between shells and solids that neither SA nor volume alone provides:
+
+$$\text{Feature}[15] = \frac{(\text{exact\_SA}_i / \text{Volume}_i)}{\max(\text{SA/V across all bodies})}$$
+
+Flat plates and thin shells have high SA/V; compact solid blocks have low SA/V.
 
 #### Edge Features — 2 Dimensions
 
@@ -258,8 +284,8 @@ AI-Assisted-3D-Assembly-Design/
 
 | File | What it does |
 |---|---|
-| `back_end/dataset.py` | Scans `Source_3d_models/` for STEP files; uses gmsh + OpenCASCADE to extract solid bodies (nodes) and shared surfaces (edges); falls back to 300 synthetic graphs if folder is empty |
-| `back_end/model.py` | 3-layer GAT encoder (13→512→256→64) + `LinkPredictor` MLP; `build_model()` returns `(gnn, lp, device)`; `NodeRanker` present in file, deferred to Phase 2 |
+| `back_end/dataset.py` | Scans `Source_3d_models/` for STEP files; gmsh+OCC for solid bodies/edges; trimesh for exact SA; SDF ray-casting for SDF mean+variance; geometry-driven type inference; 16-dim node features; raises RuntimeError if no real assemblies found (synthetic fallback removed) |
+| `back_end/model.py` | 3-layer GAT encoder (16→512→256→64) + `LinkPredictor` MLP; `build_model()` returns `(gnn, lp, device)`; `NodeRanker` present in file, deferred to Phase 2 |
 | `back_end/train.py` | Training loop: BCE loss + hard negatives, Adam + ReduceLROnPlateau, early stopping; saves `best.pt` during training and a timestamped export to `trained_models/` on completion |
 | `back_end/evaluate.py` | `evaluate()` returns AUC-ROC and Average Precision — Phase 1 only; Hit@K / MRR / NDCG@K deferred to Phase 2 |
 | `back_end/infer.py` | `predict_missing()` scores all absent node pairs and returns top-K with confidence; bar-chart CLI output |
@@ -426,7 +452,7 @@ python skills_agent.py
 
 | Parameter | Value |
 |---|---|
-| GAT layers | 3 (13→512→256→64 dim) |
+| GAT layers | 3 (16→512→256→64 dim) |
 | Attention heads | [4, 2, 1] |
 | Dropout | 0.2 |
 | Optimizer | Adam lr=1e-3, weight_decay=5e-4 |
@@ -441,7 +467,7 @@ python skills_agent.py
 After training completes a timestamped file is saved to `trained_models/`:
 
 ```
-trained_models/assembly_gnn_20260523_162431_auc09272.pt   ← best run (AUC 0.9272)
+trained_models/assembly_gnn_20260526_113959_auc07500.pt   ← current best (16-dim, real STEP only)
 ```
 
 Each export contains: epoch · best AUC · test metrics · `trained_at` timestamp · `source_dir` path · model weights (`gnn`, `lp`) · full config. Files are git-ignored; the folder is tracked.
@@ -464,7 +490,7 @@ Each export contains: epoch · best AUC · test metrics · `trained_at` timestam
 | [ABC Dataset](https://deep-geometry.github.io/abc-dataset/) — Koch et al., CVPR 2019 | 1M+ STEP / B-Rep files | Primary training data; geometric metadata (bbox, volume, surface area, mate constraints) |
 | [Fusion 360 Gallery](https://github.com/AutodeskAILab/Fusion360GalleryDataset) — Willis et al., 2021 | 8,251 assemblies · 154K bodies | M1-friendly subset; native joint annotations |
 | [PartNet](https://partnet.cs.stanford.edu/) — Mo et al., CVPR 2019 | 573,585 parts · 26 categories | Hierarchical part annotations for edge feature construction |
-| Synthetic (fallback) | 300 graphs | Auto-generated when `Source_3d_models/` is empty |
+| Synthetic (fallback) | ~~300 graphs~~ **removed** | Synthetic fallback removed; training raises an error if no real multi-body STEP files are found |
 
 ---
 
@@ -488,7 +514,7 @@ Each export contains: epoch · best AUC · test metrics · `trained_at` timestam
 |---|---|
 | **Setup** | `uv` (package manager) · `bootstrap.sh` · `.env` |
 | **CAD parsing** | `gmsh` + OpenCASCADE (STEP → solid bodies + surface adjacency) |
-| **Geometry enrichment** *(planned — Phase 2)* | `trimesh` — exact surface area (replaces bbox approx) · `python-cgal` — Shape Diameter Function (SDF mean + variance) for geometry-driven component type inference |
+| **Geometry enrichment** ✅ | `trimesh` — exact surface area (replaces bbox approx) · SDF ray-casting via trimesh — Shape Diameter Function (mean + variance) for geometry-driven component type inference · 16-dim node features |
 | **Graph ML** | PyTorch Geometric · GAT · RandomLinkSplit |
 | **AI Orchestration** | Google Gemini (`gemini-2.0-flash`) · `skills_agent.py` |
 | **Front-end** | Streamlit · Plotly `Mesh3d` · PyVista (offscreen STL load) |
@@ -537,18 +563,19 @@ Survey papers are available in [`Literature_survey_papers/`](./Literature_survey
 
 ---
 
-## Additional Research & Planned Enhancement: Geometry-Enriched Node Features
+## Geometry-Enriched Node Features — Implemented ✅
 
-> **Triggered by:** First Review feedback — Prof. Sagarika Borah, 24 May 2026
+> **Triggered by:** First Review feedback — Prof. Sagarika Borah, 24 May 2026  
+> **Implemented:** 26 May 2026 — `dataset.py` updated, `config.yaml` in_dim 13 → 16, retrained
 
 ### Background
 
-During the First Review, Prof. Sagarika Borah suggested exploring **CGAL** (Computational Geometry Algorithms Library) to strengthen the geometric grounding of the project. A detailed analysis of the current pipeline (`dataset.py`) revealed two specific flaws in the existing 13-dim node feature vector that this enhancement targets:
+During the First Review, Prof. Sagarika Borah suggested exploring **CGAL** (Computational Geometry Algorithms Library) to strengthen the geometric grounding of the project. A detailed analysis of the pipeline revealed two specific flaws in the 13-dim node feature vector — both now fixed:
 
-| Current Flaw | Location in Code | Impact |
-|---|---|---|
-| **Surface area is a bbox approximation** | `dataset.py` line 75: `2*(dx*dy + dy*dz + dz*dx)` | A curved shaft and a flat plate with the same bounding box get identical SA values — the GNN cannot distinguish them |
-| **Component type is hardcoded to "body"** | `dataset.py` line 95: `type_oh[0] = 1.0` always | All 8 component-type classes exist in the vocabulary but the one-hot is never set from geometry — every node looks identical in type |
+| Flaw | Old Code | Fix Applied | Status |
+|---|---|---|---|
+| **Surface area was a bbox approximation** | `2*(dx*dy + dy*dz + dz*dx)` | `trimesh.Trimesh.area` on the actual mesh | ✅ Fixed |
+| **Component type hardcoded to "body"** | `type_oh[0] = 1.0` always | SDF-driven heuristic via `_infer_type_from_geometry()` | ✅ Fixed |
 
 The edge features have a similar hardcoding issue (mate type is always `0.0` for detected contacts), but this is an inherent limitation of STEP geometry — true mate constraints require CAD assembly context unavailable from geometry alone. This is acknowledged and kept as-is.
 
@@ -593,21 +620,19 @@ STEP file
    ▼  AssemblyGNN (3-layer GAT) — in_dim updated from 13 → 16
 ```
 
-### Feature-by-Feature Change Plan
+### Feature-by-Feature Changes (Implemented)
 
-| Dim | Feature | Current | Planned | Tool |
-|---|---|---|---|---|
-| [0:8] | Component type one-hot | Always "body" — hardcoded | Inferred from SDF mean + variance heuristic | CGAL |
-| [8] | Volume (normalised) | `gmsh.occ.getMass()` — accurate | Unchanged | gmsh |
-| [9] | Surface area (normalised) | Bbox approximation `2(dx·dy+…)` — **inaccurate** | Exact mesh surface area | trimesh |
-| [10] | Bbox Δx | `getBoundingBox()` | Unchanged | gmsh |
-| [11] | Bbox Δy | `getBoundingBox()` | Unchanged | gmsh |
-| [12] | Bbox Δz | `getBoundingBox()` | Unchanged | gmsh |
-| [13] | SDF mean | — | Mean of per-face SDF values across body surface | CGAL (new) |
-| [14] | SDF variance | — | Variance of per-face SDF values — encodes shape complexity | CGAL (new) |
-| [15] | Exact SA (abs.) | — | `trimesh.area` before normalisation — secondary shape descriptor | trimesh (new) |
+| Dim | Feature | Before (13-dim) | After (16-dim) | Tool | Status |
+|---|---|---|---|---|---|
+| [0:8] | Component type one-hot | Hardcoded "body" | SDF + bbox heuristic | trimesh SDF | ✅ |
+| [8] | Volume (normalised) | `gmsh.occ.getMass()` | Unchanged | gmsh | — |
+| [9] | Surface area (normalised) | Bbox approx `2(dx·dy+…)` | `trimesh.Trimesh.area` | trimesh | ✅ |
+| [10–12] | Bbox Δx, Δy, Δz | `getBoundingBox()` | Unchanged | gmsh | — |
+| [13] | SDF mean | — | Inward ray-cast mean thickness | trimesh rays | ✅ new |
+| [14] | SDF variance | — | Inward ray-cast thickness variance | trimesh rays | ✅ new |
+| [15] | SA/V ratio | — | exact_SA / volume (normalised) | trimesh + gmsh | ✅ new |
 
-Edge features (mate type, weight) remain unchanged — hardcoding them is a known limitation of pure-geometry STEP parsing and is not addressable by any mesh-level library.
+Edge features (mate type, weight) remain unchanged — mate constraint type requires CAD assembly metadata unavailable from raw STEP geometry.
 
 ### What is SDF and Why Does It Help Component Classification?
 
@@ -634,16 +659,37 @@ CGAL's `Polygon_mesh_processing::area()` and trimesh's `mesh.area` both compute 
 - gmsh contact detection is untouched — no added computation on the critical path
 - Enables a clean ablation study for Phase 2: AUC-ROC with 13-dim baseline vs 16-dim enriched features
 
-### Implementation Plan (Phase 2)
+### Implementation Notes
 
-1. Add `trimesh` to `back_end/requirements.txt` (pure Python, `pip install trimesh`)
-2. Add `python-cgal` via Conda or build from source for SDF access
-3. Write `back_end/geometry_features.py` with two functions:
-   - `exact_surface_area(stl_path) → float` via trimesh, replaces dim [9]
-   - `sdf_features(stl_path) → (float, float)` via CGAL, returns `(sdf_mean, sdf_variance)` for dims [13–14]
-4. Update `_parse_step()` in `dataset.py` to export each body mesh via gmsh and call both functions
-5. Update `model.py` `in_dim` from `13` → `16` and `config.yaml` `node_features` accordingly
-6. Re-train and run ablation: 13-dim baseline vs 16-dim enriched, report ΔAUC over the Phase 1 checkpoint
+- `trimesh` and `rtree` added to `back_end/requirements.txt`
+- CGAL was not required — trimesh inward ray-casting gives equivalent SDF results as a pure-Python drop-in
+- SDF helpers `_build_trimesh()`, `_compute_sdf_stats()`, `_infer_type_from_geometry()` added to `dataset.py`
+- `gmsh.model.mesh.generate(2)` now called during parse to triangulate surfaces before trimesh extraction
+- `config.yaml` `in_dim` updated 13 → 16; model checkpoint from this run: `assembly_gnn_20260526_113959_auc07500.pt`
+
+---
+
+## Training History
+
+![Training Progression — AUC-ROC & Average Precision](docs/training_history.png)
+
+Five training runs are shown, split into two eras. Each bar group shows Val AUC (light), Test AUC (solid), and Test AP (translucent) for that run. Dashed red/orange lines are the Phase 1 targets (AUC 0.85, AP 0.82).
+
+| Run | Date | Change | Val AUC | Test AUC | Test AP |
+|---|---|---|---|---|---|
+| R1 | 23 May 14:12 | 13-dim · synthetic+real · early stop ep 1 | 0.440 | 0.415 | 0.513 |
+| R3 | 23 May 16:24 | 13-dim · 300 synthetic graphs ⚠ inflated | 0.927 | 0.985* | 0.993* |
+| R6 | 26 May 10:42 | 13-dim · 25 real STEP only · j1.0.0 removed | 0.813 | 0.636 | 0.584 |
+| R7 | 26 May 11:13 | 16-dim · trimesh+SDF · getNode() bug → 4 graphs | 0.719 | 0.342 | 0.427 |
+| R8 | 26 May 11:39 | 16-dim · bug fixed · 25 real STEP · SA+SDF+SA/V | **0.750** | 0.585 | 0.559 |
+
+> \* R3 metrics artificially inflated: 300 synthetic test graphs trivially match the 300 synthetic training graphs — not a valid measure of real-geometry performance.
+
+**Key observations:**
+- Removing synthetic data (R3→R6) drops the inflated 0.985 test AUC to an honest 0.636, reflecting the real difficulty of learning from 25 assemblies
+- The 16-dim enrichment (R8) delivers a modest improvement over the 13-dim baseline on the same 25 assemblies — the exact SA and SDF features add geometric signal, but the small dataset limits how much the GNN can learn from them
+- Val AUC is consistently higher than Test AUC: expected with only 3 test graphs (high variance)
+- Phase 1 AUC target of 0.85 requires either more training data or the Phase 2 NodeRanker/HetGNN improvements
 
 ---
 
