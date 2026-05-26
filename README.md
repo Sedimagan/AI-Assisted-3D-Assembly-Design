@@ -108,6 +108,114 @@ Next-component ranking (Hit@K, MRR)
 | **Avg edges/graph** | ~32 | — |
 | **Train/Val/Test** | 70/15/15 | Split by assembly ID — no data leakage |
 
+### Feature Engineering Detail (13 Node + 2 Edge Features)
+
+The graph construction pipeline in `back_end/dataset.py` uses **gmsh + OpenCASCADE** to convert each STEP file into an attributed graph. Every solid body becomes a node; every detected physical contact becomes a bidirectional edge. Below is the full breakdown of what is extracted and how.
+
+#### Node Features — 13 Dimensions
+
+**Dims [0–7] — Component Type One-Hot (8 classes)**
+
+Each body is assigned one of eight component-type classes via a one-hot vector. The vocabulary is:
+
+| Index | Class | Examples |
+|---|---|---|
+| 0 | `body` | Brackets, custom structural links (current default for all bodies) |
+| 1 | `fastener` | Screws, bolts, nuts, washers, rivets |
+| 2 | `bearing` | Ball/roller bearings, bush bearings |
+| 3 | `shaft` | Cylindrical and rotational shafts |
+| 4 | `plate` | Flat sheet metal, planar brackets, mounting plates |
+| 5 | `housing` | Enclosures and blocks designed to contain other components |
+| 6 | `gear` | Toothed wheels for power transmission |
+| 7 | `other` | Uncategorised or miscellaneous components |
+
+> **Current baseline limitation:** Index 0 (`body`) is hardcoded as the default for all nodes (`type_oh[0] = 1.0` — `dataset.py` line 95). The 8-class vocabulary exists and is used by the GNN's embedding layer, but it is never populated from geometry. This is one of the two fixes planned for Phase 2 via CGAL SDF-based inference (see [Geometry Enrichment](#additional-research--planned-enhancement-geometry-enriched-node-features)).
+
+**Dim [8] — Normalised Volume**
+
+Volume of each solid body extracted via `gmsh.model.occ.getMass(3, tag)` (exact B-Rep integral from the OpenCASCADE kernel). Normalised across the assembly:
+
+$$\text{Feature}[8] = \frac{\text{Volume}_i}{\max(\text{Volume across all bodies})}$$
+
+**Dim [9] — Normalised Surface Area (Bounding Box Approximation)**
+
+Surface area is currently estimated from the axis-aligned bounding box, not the actual mesh surface:
+
+$$\text{SA}_\text{approx} = 2 \times (dx \cdot dy + dy \cdot dz + dz \cdot dx)$$
+
+where $dx$, $dy$, $dz$ are the bounding box extents from `gmsh.model.occ.getBoundingBox()`. This is then normalised by the maximum approximated SA in the assembly.
+
+> **Current baseline limitation:** A curved shaft and a flat plate with identical bounding box dimensions get the same SA value — the GNN cannot distinguish them on this feature. Phase 2 replaces this with exact mesh surface area via `trimesh` (see [Geometry Enrichment](#additional-research--planned-enhancement-geometry-enriched-node-features)).
+
+**Dims [10–12] — Normalised Bounding Box Dimensions (Δx, Δy, Δz)**
+
+The three spatial extents of each body's axis-aligned bounding box, normalised by the largest single dimension found anywhere in the assembly:
+
+$$\text{Feature}[10] = \frac{dx_i}{\text{bbox}_\text{max}}, \quad \text{Feature}[11] = \frac{dy_i}{\text{bbox}_\text{max}}, \quad \text{Feature}[12] = \frac{dz_i}{\text{bbox}_\text{max}}$$
+
+where $\text{bbox}_\text{max} = \max(\{dx, dy, dz\}$ across all bodies in the assembly$)$. These three dimensions encode each body's relative size and aspect ratio — a long thin shaft has a very different profile from a compact cube-like housing.
+
+#### Edge Features — 2 Dimensions
+
+Edges are bidirectional (each contact produces two directed edges, one in each direction). Both share the same attribute vector.
+
+**Dim [0] — Normalised Mate Type**
+
+Encodes the category of the physical constraint between two contacting bodies. The vocabulary is:
+
+| Index | Mate Type | Normalised Value | Meaning |
+|---|---|---|---|
+| 0 | `coincident` | 0.0 | Face-to-face planar contact (default for all detected contacts) |
+| 1 | `concentric` | 0.2 | Shared axis — shaft through bore, bearing in housing |
+| 2 | `parallel` | 0.4 | Parallel faces without touching |
+| 3 | `tangent` | 0.6 | Curved surface touching flat or curved surface |
+| 4 | `fixed` | 0.8 | Rigid ground constraint |
+| 5 | `other` | 1.0 | Fallback — used when graph is fully connected due to no detected contacts |
+
+> **Current baseline limitation:** All detected contacts are hardcoded to `0.0` (coincident) and all fallback edges to `1.0` (other) — `dataset.py` lines 115 and 123. True mate constraint type (concentric vs tangent etc.) is not extractable from raw STEP geometry alone; it requires CAD assembly constraint metadata. This limitation is acknowledged and carried forward as-is.
+
+**Dim [1] — Edge Weight (Contact Presence)**
+
+A scalar set to `1.0` for all edges in the current implementation, indicating the presence of a detected or inferred connection. No partial contact weighting is applied in Phase 1.
+
+#### Geometric Extraction Mechanism in gmsh
+
+The contact detection pipeline relies on two key gmsh operations:
+
+**Step 1 — Boolean Fragmentation**
+
+```python
+gmsh.model.occ.fragment(volumes, [])
+```
+
+By default, STEP bodies are independent solids with no shared topology. The `fragment()` operation performs a Boolean intersection of all volumes against each other, forcing bodies that are physically touching to share the *exact same* boundary surface tags. Without this step, no shared surfaces exist and no edges can be detected.
+
+**Step 2 — Boundary Surface Extraction**
+
+```python
+bnd = gmsh.model.getBoundary([(dim, tag)], oriented=False, combined=True)
+body_surfs.append(frozenset(abs(s[1]) for s in bnd if s[0] == 2))
+```
+
+For each body the 2D boundary surface tags are collected into a `frozenset`. An edge is then created between body $i$ and body $j$ whenever their surface sets intersect:
+
+```python
+if body_surfs[i] & body_surfs[j]:
+    # physical contact detected → add bidirectional edge
+```
+
+**Step 3 — Area Threshold (Inference / App Only)**
+
+In `front_end/app.py`, contact detection during inference applies an additional area threshold to filter out numerical overlaps from slightly misaligned parts:
+
+```python
+_shared_sa = sum(gmsh.model.occ.getMass(2, st) for st in shared_surfaces)
+if _shared_sa / _min_body_sa >= 0.01:   # shared area ≥ 1% of smaller body
+    # valid mate contact
+```
+
+This threshold is applied only in the Streamlit inference path (not during training), as the training STEP files are assumed to be geometrically clean assemblies.
+
 ---
 
 ## Codebase
