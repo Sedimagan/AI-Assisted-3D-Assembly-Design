@@ -380,7 +380,7 @@ Each export contains: epoch · best AUC · test metrics · `trained_at` timestam
 |---|---|
 | **Setup** | `uv` (package manager) · `bootstrap.sh` · `.env` |
 | **CAD parsing** | `gmsh` + OpenCASCADE (STEP → solid bodies + surface adjacency) |
-| **Geometry enrichment** *(planned — Phase 2)* | CGAL (`python-cgal`) — exact surface area · volume · SDF · convexity ratio · curvature for richer GNN node features |
+| **Geometry enrichment** *(planned — Phase 2)* | `trimesh` — exact surface area (replaces bbox approx) · `python-cgal` — Shape Diameter Function (SDF mean + variance) for geometry-driven component type inference |
 | **Graph ML** | PyTorch Geometric · GAT · RandomLinkSplit |
 | **AI Orchestration** | Google Gemini (`gemini-2.0-flash`) · `skills_agent.py` |
 | **Front-end** | Streamlit · Plotly `Mesh3d` · PyVista (offscreen STL load) |
@@ -429,64 +429,113 @@ Survey papers are available in [`Literature_survey_papers/`](./Literature_survey
 
 ---
 
-## Additional Research & Planned Enhancement: CGAL Integration
+## Additional Research & Planned Enhancement: Geometry-Enriched Node Features
 
 > **Triggered by:** First Review feedback — Prof. Sagarika Borah, 24 May 2026
 
 ### Background
 
-During the First Review, Prof. Sagarika Borah suggested exploring **CGAL** (Computational Geometry Algorithms Library) as a means to strengthen the geometric grounding of the project. CGAL is the industry/academic standard C++ library for exact computational geometry — covering Boolean operations on polyhedra, exact surface area and volume computation, Shape Diameter Function (SDF), mesh processing, and more. It has limited Python bindings (`python-cgal`).
+During the First Review, Prof. Sagarika Borah suggested exploring **CGAL** (Computational Geometry Algorithms Library) to strengthen the geometric grounding of the project. A detailed analysis of the current pipeline (`dataset.py`) revealed two specific flaws in the existing 13-dim node feature vector that this enhancement targets:
 
-### Why It Is Relevant
+| Current Flaw | Location in Code | Impact |
+|---|---|---|
+| **Surface area is a bbox approximation** | `dataset.py` line 75: `2*(dx*dy + dy*dz + dz*dx)` | A curved shaft and a flat plate with the same bounding box get identical SA values — the GNN cannot distinguish them |
+| **Component type is hardcoded to "body"** | `dataset.py` line 95: `type_oh[0] = 1.0` always | All 8 component-type classes exist in the vocabulary but the one-hot is never set from geometry — every node looks identical in type |
 
-The current pipeline (`dataset.py`) extracts 13-dimensional node features using gmsh's OpenCASCADE kernel: bounding-box dimensions, a bbox-approximated surface area, and OCC volume. These are geometrically coarse — a shaft, a plate, and a housing can produce similar feature vectors because bbox proportions overlap. Richer geometry would give the GAT better signal to distinguish component types before link prediction runs.
+The edge features have a similar hardcoding issue (mate type is always `0.0` for detected contacts), but this is an inherent limitation of STEP geometry — true mate constraints require CAD assembly context unavailable from geometry alone. This is acknowledged and kept as-is.
 
-Additionally, contact detection currently relies on gmsh's `occ.fragment()` shared-surface-tag approach with a 1 % area threshold workaround to filter floating-point noise. CGAL uses **exact arithmetic predicates**, which would eliminate the need for that empirical threshold entirely.
+### Why Not Replace gmsh?
 
-### Planned Integration Points
+CGAL cannot read STEP files. gmsh + OpenCASCADE remains mandatory for three reasons:
 
-CGAL does not read STEP files, so gmsh + OCC remains the entry point. CGAL would be inserted as an **enrichment layer** after gmsh parses each solid body and before the PyG graph is assembled:
+1. **STEP parsing** — only OCC-based kernels (gmsh, pythonocc, FreeCAD) can parse ISO 10303 STEP
+2. **Contact detection** — `occ.fragment()` is a single B-Rep topology operation; replacing it with CGAL's pairwise `do_intersect()` mesh tests would be O(n²) and computationally heavier, not lighter
+3. **Inference path** — users upload `.step` / `.stp` files; gmsh is always needed at inference time regardless of training strategy
+
+### Refined Tool Split: gmsh + trimesh + CGAL
+
+The enrichment is divided across three tools by responsibility, keeping computation minimal:
 
 ```
 STEP file
    │
-   ▼  gmsh (OpenCASCADE) — existing stage
-   │  Parse solid bodies, fragment for contact detection
+   ▼  gmsh (OpenCASCADE) — unchanged, stays as entry point
+   │  • Parse solid bodies from STEP
+   │  • occ.fragment() → contact detection (fast B-Rep topology, keep as-is)
+   │  • getBoundingBox() → Δx, Δy, Δz
+   │  • getMass() → volume
+   │  • Export each body as .stl mesh for downstream enrichment
    │
-   ▼  CGAL enrichment layer — planned addition
-   │  Per-body mesh exported as .off / .obj
-   │  Compute: exact surface area · volume · Shape Diameter Function (SDF)
-   │           convexity ratio (convex hull vol / actual vol)
-   │           principal curvature (shaft vs flat part discrimination)
+   ▼  trimesh — lightweight pure-Python enrichment (pip install, no build)
+   │  • Exact surface area  ← replaces bbox approximation (fixes Flaw 1)
+   │  • Milliseconds per body; zero C++ overhead
    │
-   ▼  Augmented node feature vector (13-dim → ~18-dim)
+   ▼  CGAL — only for what trimesh cannot do
+   │  • Shape Diameter Function (SDF) per body
+   │    → mean SDF + SDF variance used to infer component type:
+   │       high mean, low variance   → shaft / fastener
+   │       low mean, low variance    → plate
+   │       high variance             → housing / gear
+   │       bimodal distribution      → bearing
+   │    (fixes Flaw 2 — component type one-hot becomes geometry-driven)
    │
-   ▼  AssemblyGNN (3-layer GAT) — unchanged architecture
+   ▼  Augmented node feature vector: 13-dim → 16-dim
+      (exact SA replaces bbox approx; SDF mean + variance added as new dims)
+   │
+   ▼  AssemblyGNN (3-layer GAT) — in_dim updated from 13 → 16
 ```
 
-### Planned Additional Node Features
+### Feature-by-Feature Change Plan
 
-| Feature | Description | CGAL API |
-|---|---|---|
-| **Exact surface area** | Replaces bbox approximation with the actual mesh surface area | `Polygon_mesh_processing::area()` |
-| **Exact volume** | Replaces OCC `getMass()` with exact closed-mesh integral | `Polygon_mesh_processing::volume()` |
-| **Shape Diameter Function (SDF)** | Local thickness measure; discriminates thin fasteners from thick housings | `CGAL::mesh_segmentation_via_sdf_values()` |
-| **Convexity ratio** | `convex_hull_vol / actual_vol`; discriminates complex shaped parts from simple ones | `convex_hull_3()` |
-| **Principal curvature ratio** | `max_curvature / min_curvature`; identifies shaft-like vs flat geometry | `Monge_via_jet_fitting` |
+| Dim | Feature | Current | Planned | Tool |
+|---|---|---|---|---|
+| [0:8] | Component type one-hot | Always "body" — hardcoded | Inferred from SDF mean + variance heuristic | CGAL |
+| [8] | Volume (normalised) | `gmsh.occ.getMass()` — accurate | Unchanged | gmsh |
+| [9] | Surface area (normalised) | Bbox approximation `2(dx·dy+…)` — **inaccurate** | Exact mesh surface area | trimesh |
+| [10] | Bbox Δx | `getBoundingBox()` | Unchanged | gmsh |
+| [11] | Bbox Δy | `getBoundingBox()` | Unchanged | gmsh |
+| [12] | Bbox Δz | `getBoundingBox()` | Unchanged | gmsh |
+| [13] | SDF mean | — | Mean of per-face SDF values across body surface | CGAL (new) |
+| [14] | SDF variance | — | Variance of per-face SDF values — encodes shape complexity | CGAL (new) |
+| [15] | Exact SA (abs.) | — | `trimesh.area` before normalisation — secondary shape descriptor | trimesh (new) |
+
+Edge features (mate type, weight) remain unchanged — hardcoding them is a known limitation of pure-geometry STEP parsing and is not addressable by any mesh-level library.
+
+### What is SDF and Why Does It Help Component Classification?
+
+The **Shape Diameter Function** measures the local thickness of a 3D body at each surface point by casting rays inward and recording the diameter of the shape at that location.
+
+| Component | SDF mean | SDF variance | Interpretation |
+|---|---|---|---|
+| Shaft / bolt | High | Low | Uniformly thick cylinder throughout |
+| Flat plate | Low | Low | Uniformly thin cross-section |
+| Housing / gear | Any | High | Varying wall thickness — complex geometry |
+| Bearing | Medium | Medium-high | Concentric thick/thin ring regions |
+
+Using `SDF mean` [13] and `SDF variance` [14] as two new node features directly enables the GNN to distinguish these roles without a labelled component-type training dataset — the geometry itself carries the signal.
+
+### Why trimesh Instead of CGAL for Surface Area?
+
+CGAL's `Polygon_mesh_processing::area()` and trimesh's `mesh.area` both compute exact surface area from triangle meshes — they give identical results. trimesh is a pure-Python library that installs with a single `pip install` and runs in milliseconds. Invoking CGAL for this one operation would require a C++ build environment (Conda or compilation from source) for no additional accuracy. CGAL is reserved exclusively for SDF, which has no equivalent in trimesh or any other pure-Python library.
 
 ### Expected Impact
 
-- Richer node features should improve the GAT's ability to distinguish component types, which in turn should improve missing-link AUC beyond the Phase 1 baseline.
-- Exact contact detection removes the empirical 1 % threshold, making the edge-building step more principled and reproducible across different STEP files.
-- Provides a clear, academically grounded novelty contribution for Phase 2 that builds on the Phase 1 baseline.
+- Exact surface area replaces the bbox approximation — the single most impactful fix in the current feature set
+- SDF-driven component type inference activates the 8-class one-hot that is currently frozen at "body" for all nodes
+- Two new scalar features (SDF mean, SDF variance) add geometric signal that directly correlates with assembly role
+- gmsh contact detection is untouched — no added computation on the critical path
+- Enables a clean ablation study for Phase 2: AUC-ROC with 13-dim baseline vs 16-dim enriched features
 
 ### Implementation Plan (Phase 2)
 
-1. Add `cgal` (via `python-cgal` or Conda) to `back_end/requirements.txt`
-2. Write `back_end/cgal_features.py` — converts gmsh-extracted body meshes to CGAL `Surface_mesh`, computes the five features above
-3. Expand `_parse_step()` in `dataset.py` to call `cgal_features.extract(body_mesh)` per node and append to the feature vector
-4. Update `config.yaml` and `model.py` `in_dim` to reflect the new feature dimensionality
-5. Re-train and compare AUC-ROC before/after feature enrichment as an ablation study
+1. Add `trimesh` to `back_end/requirements.txt` (pure Python, `pip install trimesh`)
+2. Add `python-cgal` via Conda or build from source for SDF access
+3. Write `back_end/geometry_features.py` with two functions:
+   - `exact_surface_area(stl_path) → float` via trimesh, replaces dim [9]
+   - `sdf_features(stl_path) → (float, float)` via CGAL, returns `(sdf_mean, sdf_variance)` for dims [13–14]
+4. Update `_parse_step()` in `dataset.py` to export each body mesh via gmsh and call both functions
+5. Update `model.py` `in_dim` from `13` → `16` and `config.yaml` `node_features` accordingly
+6. Re-train and run ablation: 13-dim baseline vs 16-dim enriched, report ΔAUC over the Phase 1 checkpoint
 
 ---
 

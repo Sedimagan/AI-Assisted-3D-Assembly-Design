@@ -15,7 +15,8 @@
       "Bash(command -v 7za)",
       "Bash(brew install *)",
       "Bash(7z x *)",
-      "Bash(wait)"
+      "Bash(wait)",
+      "Bash(bash *)"
     ]
   }
 }
