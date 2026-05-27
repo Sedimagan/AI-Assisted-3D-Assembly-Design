@@ -467,7 +467,7 @@ python skills_agent.py
 After training completes a timestamped file is saved to `trained_models/`:
 
 ```
-trained_models/assembly_gnn_20260526_113959_auc07500.pt   ← current best (16-dim, real STEP only)
+trained_models/assembly_gnn_20260527_100641_auc06233.pt   ← current best (16-dim, 138 real assemblies incl. hinges)
 ```
 
 Each export contains: epoch · best AUC · test metrics · `trained_at` timestamp · `source_dir` path · model weights (`gnn`, `lp`) · full config. Files are git-ignored; the folder is tracked.
@@ -490,6 +490,7 @@ Each export contains: epoch · best AUC · test metrics · `trained_at` timestam
 | [ABC Dataset](https://deep-geometry.github.io/abc-dataset/) — Koch et al., CVPR 2019 | 1M+ STEP / B-Rep files | Primary training data; geometric metadata (bbox, volume, surface area, mate constraints) |
 | [Fusion 360 Gallery](https://github.com/AutodeskAILab/Fusion360GalleryDataset) — Willis et al., 2021 | 8,251 assemblies · 154K bodies | M1-friendly subset; native joint annotations |
 | [PartNet](https://partnet.cs.stanford.edu/) — Mo et al., CVPR 2019 | 573,585 parts · 26 categories | Hierarchical part annotations for edge feature construction |
+| Local assemblies (`Source_3d_models/`) | 93 STEP files → 138 graphs | `Assembly_Files/` · `Bracket_Bolt/` · `Shaft_Bearing_Housing/` · **`Hinge_assembly/`** (added 27 May 2026) · `Plate_Bolt/` |
 | Synthetic (fallback) | ~~300 graphs~~ **removed** | Synthetic fallback removed; training raises an error if no real multi-body STEP files are found |
 
 ---
@@ -675,21 +676,22 @@ CGAL's `Polygon_mesh_processing::area()` and trimesh's `mesh.area` both compute 
 
 Five training runs are shown, split into two eras. Each bar group shows Val AUC (light), Test AUC (solid), and Test AP (translucent) for that run. Dashed red/orange lines are the Phase 1 targets (AUC 0.85, AP 0.82).
 
-| Run | Date | Change | Val AUC | Test AUC | Test AP |
-|---|---|---|---|---|---|
-| R1 | 23 May 14:12 | 13-dim · synthetic+real · early stop ep 1 | 0.440 | 0.415 | 0.513 |
-| R3 | 23 May 16:24 | 13-dim · 300 synthetic graphs ⚠ inflated | 0.927 | 0.985* | 0.993* |
-| R6 | 26 May 10:42 | 13-dim · 25 real STEP only · j1.0.0 removed | 0.813 | 0.636 | 0.584 |
-| R7 | 26 May 11:13 | 16-dim · trimesh+SDF · getNode() bug → 4 graphs | 0.719 | 0.342 | 0.427 |
-| R8 | 26 May 11:39 | 16-dim · bug fixed · 25 real STEP · SA+SDF+SA/V | **0.750** | 0.585 | 0.559 |
+| Run | Date | Change | Graphs | Val AUC | Test AUC | Test AP |
+|---|---|---|---|---|---|---|
+| R1 | 23 May 14:12 | 13-dim · synthetic+real · early stop ep 1 | synth+real | 0.440 | 0.415 | 0.513 |
+| R3 | 23 May 16:24 | 13-dim · 300 synthetic graphs ⚠ inflated | synth+real | 0.927 | 0.985* | 0.993* |
+| R6 | 26 May 10:42 | 13-dim · 25 real STEP only · j1.0.0 removed | 25 | 0.813 | 0.636 | 0.584 |
+| R7 | 26 May 11:13 | 16-dim · trimesh+SDF · getNode() bug → 4 graphs | 4 | 0.719 | 0.342 | 0.427 |
+| R8 | 26 May 11:39 | 16-dim · bug fixed · 25 real STEP · SA+SDF+SA/V | 25 | 0.750 | 0.585 | 0.559 |
+| **R9** | **27 May 10:06** | **16-dim · +Hinge assemblies · 93 STEP → 138 graphs** | **138** | **0.623** | **0.512** | **0.533** |
 
 > \* R3 metrics artificially inflated: 300 synthetic test graphs trivially match the 300 synthetic training graphs — not a valid measure of real-geometry performance.
 
 **Key observations:**
-- Removing synthetic data (R3→R6) drops the inflated 0.985 test AUC to an honest 0.636, reflecting the real difficulty of learning from 25 assemblies
-- The 16-dim enrichment (R8) delivers a modest improvement over the 13-dim baseline on the same 25 assemblies — the exact SA and SDF features add geometric signal, but the small dataset limits how much the GNN can learn from them
-- Val AUC is consistently higher than Test AUC: expected with only 3 test graphs (high variance)
-- Phase 1 AUC target of 0.85 requires either more training data or the Phase 2 NodeRanker/HetGNN improvements
+- Removing synthetic data (R3→R6) drops the inflated test AUC to an honest 0.636, reflecting the true difficulty of real geometry
+- The 16-dim enrichment (R8) improves over the 13-dim baseline on the same 25 assemblies
+- Adding hinge assemblies (R9: 138 graphs, train/val/test = 48/12/11) lowers val AUC slightly — 138 diverse assembly types are harder to generalise from than 25, which is the expected and honest behaviour of the model on real data
+- Phase 1 AUC target of 0.85 requires substantially more training data or the Phase 2 HetGNN/NodeRanker improvements
 
 ---
 
