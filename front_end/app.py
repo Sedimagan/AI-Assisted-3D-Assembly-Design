@@ -11,7 +11,8 @@ from pathlib import Path
 # Project root — resolved once here so all helpers can reference it
 _PROJ_ROOT  = Path(__file__).resolve().parent.parent
 _CKPT_PATH  = _PROJ_ROOT / "back_end" / "checkpoints" / "best.pt"
-_STEP_CACHE = _PROJ_ROOT / ".logs" / "inference_input.step"
+_STEP_CACHE   = _PROJ_ROOT / ".logs" / "inference_input.step"
+_TMPL_DB_PATH = _PROJ_ROOT / "back_end" / "data" / "assembly_templates.json"
 
 os.environ["DISPLAY"] = ":99"
 import pyvista as pv
@@ -240,13 +241,70 @@ def _run_inference(step_bytes: bytes,
         graph = _parse_step({repr(str(_STEP_CACHE))})
         n_bodies = graph.num_nodes if graph is not None else 0
         if n_bodies < 2:
+            # ── Single-body (or empty) upload: geometry analysis + template match ──
+            import gmsh as _sb_gmsh
+            _sb_gmsh.initialize()
+            _sb_gmsh.option.setNumber("General.Terminal", 0)
+            _sb_gmsh.model.add("sb_analysis")
+            _sb_vols_data = []
+            try:
+                _sb_gmsh.merge({repr(str(_STEP_CACHE))})
+                _sb_gmsh.model.occ.synchronize()
+                _sb_vols = _sb_gmsh.model.occ.getEntities(3)
+                for _sv_d, _sv_t in _sb_vols:
+                    _sv_bb  = _sb_gmsh.model.occ.getBoundingBox(_sv_d, _sv_t)
+                    _sv_vol = _sb_gmsh.model.occ.getMass(_sv_d, _sv_t)
+                    _sv_dx  = _sv_bb[3] - _sv_bb[0]
+                    _sv_dy  = _sv_bb[4] - _sv_bb[1]
+                    _sv_dz  = _sv_bb[5] - _sv_bb[2]
+                    _sv_nm  = _sb_gmsh.model.getEntityName(_sv_d, _sv_t)
+                    _sb_vols_data.append({{
+                        "vol": _sv_vol, "dx": _sv_dx, "dy": _sv_dy, "dz": _sv_dz,
+                        "centroid": [(_sv_bb[0]+_sv_bb[3])/2,
+                                     (_sv_bb[1]+_sv_bb[4])/2,
+                                     (_sv_bb[2]+_sv_bb[5])/2],
+                        "name": _sv_nm.strip() if _sv_nm else "",
+                    }})
+            except Exception:
+                pass
+            finally:
+                _sb_gmsh.finalize()
+
+            if not _sb_vols_data:
+                print(json.dumps({{"error": "No solid bodies found in the uploaded STEP file."}}))
+                sys.exit(0)
+
+            from dataset import _infer_type_from_geometry, COMP_TYPES as _CT
+            _sv      = _sb_vols_data[0]
+            _sb_sa   = 2.0 * (_sv["dx"]*_sv["dy"] + _sv["dy"]*_sv["dz"] + _sv["dz"]*_sv["dx"])
+            _sb_tidx = _infer_type_from_geometry(
+                _sv["vol"], _sb_sa, (_sv["dx"], _sv["dy"], _sv["dz"]), 0.0, 0.0)
+            _sb_type = _CT[_sb_tidx]
+            _sb_name = _sv["name"] if _sv["name"] else "Part 1"
+
+            _tmpl_sb = None; _miss_sb = []
+            try:
+                from assembly_templates import AssemblyTemplateDB as _ATDB
+                _db_sb = _ATDB({repr(str(_TMPL_DB_PATH))})
+                if _db_sb.load():
+                    _tm_sb, _tc_sb = _db_sb.match([_sb_type])
+                    if _tm_sb:
+                        _tmpl_sb = {{"label": _tm_sb["label"], "category": _tm_sb["category"],
+                                     "confidence": round(_tc_sb, 3),
+                                     "n_assemblies": _tm_sb.get("n_assemblies", 0)}}
+                        _miss_sb = _db_sb.get_missing([_sb_type], _tm_sb)
+            except Exception:
+                pass
+
             print(json.dumps({{
-                "error": (
-                    f"This file has {{n_bodies}} solid body. "
-                    "Upload a multi-body assembly STEP file (e.g. Assembly5.stp). "
-                    "Individual part files from j1.0.0/joint/ are single components — "
-                    "they cannot be used for missing link prediction."
-                )
+                "n_nodes": 1, "n_edges": 0, "missing_links": [],
+                "centroids":   [_sv["centroid"]],
+                "part_names":  [_sb_name],
+                "node_degrees": [0],
+                "potentially_missing": [],
+                "assembly_match":       _tmpl_sb,
+                "template_missing":     _miss_sb,
+                "single_body_analysis": True,
             }}))
             sys.exit(0)
 
@@ -459,6 +517,24 @@ def _run_inference(step_bytes: bytes,
                     if _i not in _used:
                         potentially_missing.append({{"name": _nm, "centroid": _rc}})
 
+        # ── Template matching ──────────────────────────────────────────────────
+        _tmpl_match = None; _tmpl_missing = []
+        try:
+            from assembly_templates import AssemblyTemplateDB as _ATDB2
+            from dataset import COMP_TYPES as _CT2
+            _db2 = _ATDB2({repr(str(_TMPL_DB_PATH))})
+            if _db2.load():
+                _tidxs  = graph.x[:, :8].argmax(dim=1).tolist()
+                _ptypes = [_CT2[int(j)] for j in _tidxs]
+                _tm2, _tc2 = _db2.match(_ptypes)
+                if _tm2:
+                    _tmpl_match = {{"label": _tm2["label"], "category": _tm2["category"],
+                                    "confidence": round(_tc2, 3),
+                                    "n_assemblies": _tm2.get("n_assemblies", 0)}}
+                    _tmpl_missing = _db2.get_missing(_ptypes, _tm2)
+        except Exception:
+            pass
+
         out = {{
             "n_nodes": int(graph.num_nodes),
             "n_edges": int(graph.edge_index.size(1)),
@@ -466,10 +542,13 @@ def _run_inference(step_bytes: bytes,
                 {{"src": int(u), "dst": int(v), "confidence": float(s)}}
                 for (u, v), s in results
             ],
-            "centroids":          centroids,
-            "part_names":         part_names,
-            "node_degrees":       node_degrees,
-            "potentially_missing": potentially_missing,
+            "centroids":            centroids,
+            "part_names":           part_names,
+            "node_degrees":         node_degrees,
+            "potentially_missing":  potentially_missing,
+            "assembly_match":       _tmpl_match,
+            "template_missing":     _tmpl_missing,
+            "single_body_analysis": False,
         }}
         print(json.dumps(out))
     """)
@@ -504,7 +583,10 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
         n_nodes      = result.get("n_nodes", 0)
         n_edges      = result.get("n_edges", 0)
         part_names   = result.get("part_names", [])
-        node_degrees = result.get("node_degrees", [])
+        node_degrees   = result.get("node_degrees", [])
+        assembly_match = result.get("assembly_match")
+        tmpl_missing   = result.get("template_missing", [])
+        single_body    = result.get("single_body_analysis", False)
 
         def _basename(s):
             if s and "/" in s:
@@ -518,32 +600,54 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
                 return short[:36] + "…" if len(short) > 36 else short
             return f"Part {idx + 1}"
 
-        # Group nodes by part basename; flag isolated (degree=0) or under-connected
-        _grp: dict = {}
-        for _gi, _gn in enumerate(part_names):
-            _key = _basename(_gn) if _gn else f"__solo_{_gi}"
-            _grp.setdefault(_key, []).append(_gi)
+        not_assembled   = []   # degree=0 — no contact at all
+        under_connected = []   # degree>0 but < group max — not properly mated
 
-        not_assembled = []   # degree=0 — no contact at all
-        under_connected = [] # degree>0 but < group max — not properly mated
+        if not single_body:
+            # Group nodes by part basename; flag isolated or under-connected
+            _grp: dict = {}
+            for _gi, _gn in enumerate(part_names):
+                _key = _basename(_gn) if _gn else f"__solo_{_gi}"
+                _grp.setdefault(_key, []).append(_gi)
 
-        for _gn, _gnodes in _grp.items():
-            _degs = [node_degrees[_i] for _i in _gnodes if _i < len(node_degrees)]
-            _max  = max(_degs) if _degs else 0
-            for _gi in _gnodes:
-                if _gi >= len(node_degrees):
-                    continue
-                _d = node_degrees[_gi]
-                if len(_gnodes) > 1:
-                    if _d == 0:
-                        not_assembled.append(_gi)
-                    elif _d < _max:
-                        under_connected.append(_gi)
-                else:
-                    if _d == 0:
-                        not_assembled.append(_gi)
+            for _gn, _gnodes in _grp.items():
+                _degs = [node_degrees[_i] for _i in _gnodes if _i < len(node_degrees)]
+                _max  = max(_degs) if _degs else 0
+                for _gi in _gnodes:
+                    if _gi >= len(node_degrees):
+                        continue
+                    _d = node_degrees[_gi]
+                    if len(_gnodes) > 1:
+                        if _d == 0:
+                            not_assembled.append(_gi)
+                        elif _d < _max:
+                            under_connected.append(_gi)
+                    else:
+                        if _d == 0:
+                            not_assembled.append(_gi)
 
         rows = ""
+
+        # ── Section 0: Assembly type identification ───────────────────────────
+        if assembly_match:
+            _am_conf = assembly_match.get("confidence", 0)
+            _am_pct  = int(_am_conf * 100)
+            _am_col  = "#4caf82" if _am_conf >= 0.6 else "#5b9bd5" if _am_conf >= 0.35 else "#999"
+            _am_n    = assembly_match.get("n_assemblies", 0)
+            rows += (
+                '<p style="font-size:0.76rem;font-weight:700;color:#a78bfa;'
+                'margin:0 0 5px;">🔮 Assembly Type Identified</p>'
+                f'<div style="background:rgba(79,62,160,0.12);border:1px solid #4f3ea0;'
+                f'border-radius:5px;padding:5px 8px;margin-bottom:8px;">'
+                f'<span style="color:#e2d9ff;font-size:0.78rem;font-weight:600;">'
+                f'{assembly_match["label"]}</span>'
+                f'<span style="background:{_am_col};color:#fff;font-size:0.65rem;'
+                f'font-weight:700;padding:1px 6px;border-radius:3px;margin-left:8px;">'
+                f'{_am_pct}%</span>'
+                f'<span style="color:#777;font-size:0.66rem;margin-left:6px;">'
+                f'· {_am_n} training samples</span>'
+                f'</div>'
+            )
 
         # ── Section 1: not assembled / under-connected nodes ──────────────────
         all_flagged = not_assembled + under_connected
@@ -565,7 +669,7 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
                 )
 
         # ── Section 2: GNN missing-link predictions ───────────────────────────
-        if missing:
+        if missing and not single_body:
             lbl = (
                 '<p style="font-size:0.76rem;font-weight:700;color:#5b9bd5;'
                 'margin:8px 0 5px;">🤖 AI Predicted Missing Links</p>'
@@ -608,7 +712,27 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
                     f'</div>'
                 )
 
-        if not all_flagged and not missing and not pot_missing:
+        # ── Section 4: template-based missing components ──────────────────────
+        if tmpl_missing:
+            rows += (
+                '<p style="font-size:0.76rem;font-weight:700;color:#14b8a6;'
+                'margin:8px 0 5px;">📋 Expected Components Missing</p>'
+            )
+            for _mc in tmpl_missing:
+                _mc_cnt = _mc.get("count", 1)
+                _mc_lbl = _mc.get("label", _mc.get("type", "component"))
+                _mc_sfx = f" ×{_mc_cnt}" if _mc_cnt > 1 else ""
+                rows += (
+                    f'<div style="display:flex;align-items:center;gap:6px;'
+                    f'font-size:0.72rem;margin-bottom:5px;">'
+                    f'<span style="color:#14b8a6;font-size:0.78rem;">➕</span>'
+                    f'<span style="color:#0d9488;font-weight:600;">'
+                    f'{_mc_lbl}{_mc_sfx}</span>'
+                    f'</div>'
+                )
+
+        if (not all_flagged and not missing and not pot_missing
+                and not tmpl_missing and not assembly_match):
             rows = "<p style='color:#4caf82;font-size:0.78rem;'>✓ Assembly appears complete — no issues found.</p>"
 
         return (

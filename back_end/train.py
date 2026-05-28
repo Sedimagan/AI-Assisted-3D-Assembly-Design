@@ -182,6 +182,16 @@ def main():
     print(f"  Best checkpoint      → {ckpt_dir / 'best.pt'}")
     print(f"  Trained model export → {tm_path}")
 
+    # ── Assembly template DB ──────────────────────────────────────────────
+    print("\n  Building assembly template cache …")
+    try:
+        from assembly_templates import AssemblyTemplateDB
+        db = AssemblyTemplateDB("data/assembly_templates.json")
+        db.build(cfg["data"]["processed_dir"])
+        db.save()
+    except Exception as e:
+        print(f"  [TemplateDB] Warning: could not build templates — {e}")
+
 
 if __name__ == "__main__":
     main()

@@ -26,6 +26,7 @@ Node feature vector: 16-dim
 
 from __future__ import annotations
 
+import json
 import random
 from pathlib import Path
 from typing import List, Optional, Tuple
@@ -408,6 +409,7 @@ class AssemblyDataset(InMemoryDataset):
         step_files = [p for p in self.source_dir.rglob("*") if p.suffix in step_exts]
 
         graphs: List[Data] = []
+        source_paths: List[str] = []
         if step_files:
             print(f"  Found {len(step_files)} STEP file(s) in {self.source_dir}")
             for sf in sorted(step_files):
@@ -415,6 +417,7 @@ class AssemblyDataset(InMemoryDataset):
                 g = _parse_step(str(sf))
                 if g is not None and g.num_nodes >= 2:
                     graphs.append(g)
+                    source_paths.append(str(sf))
             print(f"  Parsed {len(graphs)} valid assembly graph(s).")
         else:
             print(f"  No STEP files found in {self.source_dir}.")
@@ -428,7 +431,11 @@ class AssemblyDataset(InMemoryDataset):
 
         data, slices = self.collate(graphs)
         torch.save((data, slices), self.processed_paths[0])
+
+        sources_file = Path(self.processed_paths[0]).parent / "sources.json"
+        sources_file.write_text(json.dumps(source_paths, indent=2))
         print(f"  Saved {len(graphs)} graphs → {self.processed_paths[0]}")
+        print(f"  Saved source paths    → {sources_file}")
 
 
 # ── Split helper ──────────────────────────────────────────────────────────────
