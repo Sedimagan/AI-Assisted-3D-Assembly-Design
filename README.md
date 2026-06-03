@@ -43,7 +43,7 @@ cd back_end && python train.py      # GNN training
 
 ## Abstract
 
-Engineering CAD assemblies consist of multiple interconnected components whose correct selection is time-consuming and expertise-dependent. This project trains a **Graph Attention Network (GAT)** on assembly graphs to detect **missing components** via link prediction — Phase 1. A **Gemini-powered Skills AI agent** (AIDA) explains predictions in engineering language. The solution is implemented entirely in Python using PyTorch Geometric, without dependency on proprietary CAD software APIs.
+Engineering CAD assemblies consist of multiple interconnected components whose correct selection is time-consuming and expertise-dependent. This project trains a **Graph Attention Network (GAT)** on assembly graphs to detect **missing components** via link prediction — Phase 1. A **Gemini-powered Skills AI agent** (AIDA) explains predictions in engineering language. An **Assembly Completeness Model** (`AssemblyTemplateDB`) learns per-category component-type distributions from training data and identifies what is missing when a partial or single-component file is uploaded. An **Octree-based Open Surface Detector** (inspired by the spatial partitioning technique in Borah & Borah 2020) identifies the precise mesh surfaces where missing components should be assembled, highlighting them in amber directly on the 3D model. The solution is implemented entirely in Python using PyTorch Geometric, without dependency on proprietary CAD software APIs.
 
 **Phase 2 (planned):** Next-component ranking via NodeRanker (cosine similarity, Hit@K, MRR).
 
@@ -74,6 +74,7 @@ dataset.py — gmsh (OpenCASCADE)
   Solid bodies → Nodes · Shared surfaces → Edges (2-dim)
   + trimesh exact SA · SDF ray-casting (SDF mean + variance)
   Nodes: 16-dim · PyG InMemoryDataset
+  Saves sources.json (source path per graph) alongside data.pt
          │
          ▼
 model.py — AssemblyGNN (3-layer GAT)
@@ -85,6 +86,20 @@ LinkPredictor MLP  [Phase 1]
 MLP(hᵤ‖hᵥ) → BCE
 Missing component detection (AUC-ROC, AP)
          │
+         ├──────────────────────────────────────────────────────┐
+         ▼                                                       ▼
+assembly_templates.py                               surface_analyzer.py
+AssemblyTemplateDB                                  OctreeNode spatial partitioning
+  • Groups training graphs by source folder           (Borah & Borah 2020 concept)
+  • Computes median component-type counts           • After fragment(): free surfaces
+    per category (hinge, shaft+bearing…)              (not shared between 2 bodies)
+  • match() → assembly type + confidence            • Octree clusters nearby free
+  • get_missing() → missing type list                 surface centroids into regions
+  • Works for single-body uploads too               • Flags open mating joints
+  • Cached to data/assembly_templates.json          • Returns triangle mesh per region
+         │                                                       │
+         └─────────────────────┬─────────────────────────────────┘
+                               ▼
          ▼  (Phase 2 — planned)
 NodeRanker · cosine_sim(ctx, cands)
 Next-component ranking (Hit@K, MRR)
@@ -96,6 +111,17 @@ Next-component ranking (Hit@K, MRR)
                   ▼
          front_end/app.py — Streamlit
          Interactive 3D viewer + dual panel UI
+         Left panel — 5 analysis sections:
+           §0 Assembly type badge (purple)
+           §1 Not assembled / under-connected (red)
+           §2 GNN missing links (blue)
+           §3 Auto-reference missing (orange)
+           §4 Template missing components (teal)
+           §5 Open surface joints (amber)
+         Right panel — 3D viewer:
+           Red bodies = not assembled
+           Orange ❓ = auto-reference missing
+           Amber ⬡ = open joints needing assembly
 ```
 
 ### Graph Schema
@@ -261,14 +287,20 @@ AI-Assisted-3D-Assembly-Design/
 │
 ├── back_end/
 │   ├── config.yaml              ← All hyperparameters + data paths
-│   ├── dataset.py               ← STEP → PyG graph pipeline (gmsh parser + synthetic fallback)
+│   ├── dataset.py               ← STEP → PyG graph pipeline; 16-dim features; saves sources.json
 │   ├── model.py                 ← AssemblyGNN · LinkPredictor · NodeRanker
-│   ├── train.py                 ← Training loop · early stopping · checkpointing
+│   ├── train.py                 ← Training loop · early stopping · checkpointing · builds template DB
 │   ├── evaluate.py              ← AUC-ROC · AP · Hit@K · MRR · NDCG@K
 │   ├── infer.py                 ← Inference on any STEP file or demo assembly
 │   ├── skills_agent.py          ← Gemini AI orchestrator with engineering skills
+│   ├── assembly_templates.py    ← AssemblyTemplateDB: per-category component-type distributions
+│   ├── surface_analyzer.py      ← OctreeNode + analyze_open_surfaces() — open joint detection
 │   ├── requirements.txt
 │   ├── data/                    ← Processed graph cache (auto-generated)
+│   │   ├── processed/
+│   │   │   ├── data.pt          ← Collated PyG graph bundle
+│   │   │   └── sources.json     ← Source STEP path per graph (for template DB)
+│   │   └── assembly_templates.json  ← Template cache (built by train.py)
 │   ├── checkpoints/             ← best.pt saved here during training
 │   └── results/                 ← train_log.json + test_metrics.json
 │
@@ -284,13 +316,15 @@ AI-Assisted-3D-Assembly-Design/
 
 | File | What it does |
 |---|---|
-| `back_end/dataset.py` | Scans `Source_3d_models/` for STEP files; gmsh+OCC for solid bodies/edges; trimesh for exact SA; SDF ray-casting for SDF mean+variance; geometry-driven type inference; 16-dim node features; raises RuntimeError if no real assemblies found (synthetic fallback removed) |
+| `back_end/dataset.py` | Scans `Source_3d_models/` for STEP files; gmsh+OCC for solid bodies/edges; trimesh exact SA; SDF ray-casting; geometry-driven type inference; 16-dim node features; saves `sources.json` alongside `data.pt` for template DB |
 | `back_end/model.py` | 3-layer GAT encoder (16→512→256→64) + `LinkPredictor` MLP; `build_model()` returns `(gnn, lp, device)`; `NodeRanker` present in file, deferred to Phase 2 |
-| `back_end/train.py` | Training loop: BCE loss + hard negatives, Adam + ReduceLROnPlateau, early stopping; saves `best.pt` during training and a timestamped export to `trained_models/` on completion |
+| `back_end/train.py` | Training loop: BCE loss + hard negatives, Adam + ReduceLROnPlateau, early stopping; saves `best.pt` + timestamped export; calls `AssemblyTemplateDB.build()` after training to cache templates |
 | `back_end/evaluate.py` | `evaluate()` returns AUC-ROC and Average Precision — Phase 1 only; Hit@K / MRR / NDCG@K deferred to Phase 2 |
 | `back_end/infer.py` | `predict_missing()` scores all absent node pairs and returns top-K with confidence; bar-chart CLI output |
 | `back_end/skills_agent.py` | `AssemblySkillsAgent` — loads skills YAML, builds Gemini system prompt, exposes `explain_prediction()`, `identify_component()`, `suggest_assembly_sequence()`, `answer()` |
-| `front_end/app.py` | Streamlit app — fixed header, dual independent panels (left: inference + AIDA, right: 3D viewer), gmsh subprocess STEP→STL, Plotly `Mesh3d` with red-highlighted not-assembled / under-connected parts, area-thresholded contact detection, group-based under-connection detection by part basename, fragmentation name inheritance, osascript folder picker, background training with unbuffered log streaming |
+| `back_end/assembly_templates.py` | `AssemblyTemplateDB` — loads `data.pt` + `sources.json`, groups graphs by assembly category (top-level folder under `Source_3d_models/`), computes median component-type counts per category; `match()` returns best assembly type + confidence; `get_missing()` returns missing component list; handles single-body uploads |
+| `back_end/surface_analyzer.py` | `OctreeNode` — lightweight 3-D octree for spatial grouping of surface centroids (adapted from Borah & Borah 2020 block decomposition). `analyze_open_surfaces()` — after boolean fragment(), identifies free surfaces (unmated) above area threshold, clusters them via Octree, extracts triangle mesh per region; returns open joint records for amber 3D overlay |
+| `front_end/app.py` | Streamlit app — dual panels; 5-section left inference panel (assembly type, not-assembled, GNN links, auto-reference missing, template missing, open surface joints); 3D viewer with red/orange/amber overlays; gmsh subprocess pipeline; AIDA Gemini explanation |
 
 ---
 
@@ -375,10 +409,39 @@ streamlit run front_end/app.py --server.port 11501
 
 | Panel | Description |
 |---|---|
-| **Left — AI-Assisted Viewer** | Shows "Train first" if no checkpoint. After training: upload a STEP file → runs GNN inference → displays missing component predictions with confidence bars and assembly health status. |
-| **Right — 3D Model Viewer** | Upload any STEP/STP file → gmsh converts → interactive Plotly 3D viewer. Highlighted in red: parts detected as not assembled or under-connected. Independent inference display. |
+| **Left — AI-Assisted Viewer** | Shows "Train first" if no checkpoint. After training: upload a STEP file → runs GNN inference → displays 5 stacked analysis sections (see below). |
+| **Right — 3D Model Viewer** | Upload any STEP/STP file → gmsh converts → interactive Plotly 3D viewer. Bodies highlighted in red (not assembled), orange ❓ cross markers (auto-reference missing), amber ⬡ mesh patches (open joints). |
 
 **After training completes** a green banner appears: *"🎉 Training Complete · AUC X.XXXX — Upload a 3D model in the left panel to predict missing components."*
+
+### Left Inference Panel — Analysis Sections
+
+| Section | Colour | What it shows |
+|---|---|---|
+| **§0 Assembly Type Identified** | Purple `#a78bfa` | Assembly category (e.g. "Hinge Assembly") with a % confidence badge and training sample count |
+| **§1 Not Assembled / Not Properly Mated** | Red `#ef4444` | Bodies with degree = 0 (no contacts) or under-connected vs. their group average |
+| **§2 AI Predicted Missing Links** | Blue `#5b9bd5` | GNN-predicted missing edges with confidence bars (hidden for single-body uploads) |
+| **§3 Potentially Missing Components** | Orange `#f97316` | Components found in the matched reference assembly but absent in the upload |
+| **§4 Expected Components Missing** | Teal `#14b8a6` | Template-DB difference: component types expected by the assembly category but not present |
+| **§5 Open Assembly Joints Detected** | Amber `#f59e0b` | Specific body indices and surface area percentages flagged as open mating joints by the Octree analyser; links to the amber overlays in the 3D viewer |
+
+### 3D Viewer Overlay Colours
+
+| Colour | Symbol | Meaning |
+|---|---|---|
+| Red `#ff4d4d` | Solid body | Not assembled or under-connected (§1) |
+| Orange `#f97316` | ❓ Cross marker | Auto-reference missing component — estimated position |
+| Amber `#f59e0b` | ⬡ Mesh patch | Open mating joint surface — "This area needs components to be assembled" |
+
+### Single-Body Upload Behaviour
+
+Uploading a single-part STEP file (which previously returned an error) now triggers a full geometry analysis:
+
+1. Component type inferred from SDF statistics + bounding-box ratios
+2. Template DB matched against that single type → assembly type identification
+3. Template missing components listed (what else the assembly needs)
+4. Open surface analyser flags which faces of the single body are the expected mating joints
+5. AIDA explanation skipped (no GNN inference possible with 1 body)
 
 ### Assembly Health Detection
 
@@ -516,6 +579,8 @@ Each export contains: epoch · best AUC · test metrics · `trained_at` timestam
 | **Setup** | `uv` (package manager) · `bootstrap.sh` · `.env` |
 | **CAD parsing** | `gmsh` + OpenCASCADE (STEP → solid bodies + surface adjacency) |
 | **Geometry enrichment** ✅ | `trimesh` — exact surface area (replaces bbox approx) · SDF ray-casting via trimesh — Shape Diameter Function (mean + variance) for geometry-driven component type inference · 16-dim node features |
+| **Assembly completeness** ✅ | `assembly_templates.py` — `AssemblyTemplateDB`: per-category component-type templates learned from training data; Jaccard + subset-bonus scoring; handles single-body uploads |
+| **Open surface detection** ✅ | `surface_analyzer.py` — `OctreeNode` spatial partitioning (Borah & Borah 2020 concept); free-surface clustering; triangle mesh extraction; amber 3D overlay in viewer |
 | **Graph ML** | PyTorch Geometric · GAT · RandomLinkSplit |
 | **AI Orchestration** | Google Gemini (`gemini-2.0-flash`) · `skills_agent.py` |
 | **Front-end** | Streamlit · Plotly `Mesh3d` · PyVista (offscreen STL load) |
@@ -560,7 +625,9 @@ Survey papers are available in [`Literature_survey_papers/`](./Literature_survey
 | (2024). **Can GNNs Learn Link Heuristics?** | arXiv: 2411.14711 | [PDF](<./Literature_survey_papers/Can GNNs Learn Link Heuristics_2411.14711v2.pdf>) |
 | (2023). **Heterogeneous Graph Contrastive Learning** | arXiv: 2303.00995 | [PDF](./Literature_survey_papers/Heterogeneous%20Graph%20Contrastive%20Learning_2303.00995v1.pdf) |
 
-**Foundational references** (cited in thesis): Kipf & Welling (2017) — GCN · Veličković et al. (2018) — GAT · Hamilton et al. (2017) — GraphSAGE · Koch et al. (2019) — ABC Dataset · Mo et al. (2019) — PartNet · Ying et al. (2019) — GNNExplainer.
+| Borah S. & Borah B. (2020). **Prediction Error Expansion (PEE) based Reversible polygon mesh watermarking scheme for regional tamper localization** | Multimedia Tools and Applications, Vol. 79 · DOI: 10.1007/s11042-019-08411-5 | [Springer](https://link.springer.com/article/10.1007/s11042-019-08411-5) |
+
+**Foundational references** (cited in thesis): Kipf & Welling (2017) — GCN · Veličković et al. (2018) — GAT · Hamilton et al. (2017) — GraphSAGE · Koch et al. (2019) — ABC Dataset · Mo et al. (2019) — PartNet · Ying et al. (2019) — GNNExplainer · **Borah & Borah (2020) — PEE mesh watermarking (Octree spatial partitioning adapted for open surface detection)**.
 
 ---
 
@@ -667,6 +734,158 @@ CGAL's `Polygon_mesh_processing::area()` and trimesh's `mesh.area` both compute 
 - SDF helpers `_build_trimesh()`, `_compute_sdf_stats()`, `_infer_type_from_geometry()` added to `dataset.py`
 - `gmsh.model.mesh.generate(2)` now called during parse to triangulate surfaces before trimesh extraction
 - `config.yaml` `in_dim` updated 13 → 16; model checkpoint from this run: `assembly_gnn_20260526_113959_auc07500.pt`
+
+---
+
+## Assembly Completeness Model & Open Surface Detection — Implemented ✅
+
+> **Implemented:** 3 June 2026  
+> **Research anchor:** Octree spatial partitioning concept from Prof. Sagarika Borah's publication — *"Prediction Error Expansion (PEE) based Reversible polygon mesh watermarking scheme for regional tamper localization"*, Multimedia Tools and Applications, Vol. 79, pp. 11437–11458, 2020. DOI: [10.1007/s11042-019-08411-5](https://link.springer.com/article/10.1007/s11042-019-08411-5)
+
+### Motivation
+
+The GNN link predictor (Phase 1) answers *"which connection between two existing bodies is missing?"* Two further questions were unanswered:
+
+1. **What kind of assembly is this?** — When a partial or single-part upload arrives, can the system identify which known assembly category it belongs to?
+2. **Which physical surface is the open joint?** — Rather than just naming a missing component type, can the system point to the *exact face* of the model where the missing part should attach?
+
+Both are now answered by two new modules that run in the inference subprocess alongside (not replacing) the existing GNN pipeline.
+
+---
+
+### 1. Assembly Completeness Model (`assembly_templates.py`)
+
+`AssemblyTemplateDB` learns the expected component-type composition of each assembly category and uses it to identify incomplete uploads.
+
+#### Build phase (runs automatically after each training)
+
+`train.py` calls `db.build(processed_dir)` after saving the trained model. The builder:
+- Loads `data.pt` + `sources.json` from the processed dataset directory
+- Groups graphs by their top-level source folder (e.g. `Hinge_assembly/`, `Shaft_Bearing_Housing/`)
+- For each category, computes the **median count** of each component type (`body`, `fastener`, `bearing`, `shaft`, `plate`, `housing`, `gear`, `other`) across all assemblies in that category
+- Saves the result to `data/assembly_templates.json`
+
+#### Inference phase
+
+For each uploaded STEP file the component types are read from `graph.x[:, :8].argmax(dim=1)` (the geometry-driven one-hot set during `_parse_step()`). The template DB then runs:
+
+**`match(present_types)` — assembly identification**
+
+```
+overlap = Σ  min(present_count[t], expected_count[t])  for t in COMP_TYPES
+score   = overlap / max(Σ present_count, Σ expected_count)
++ 25 % bonus when every present type fits inside the template
+  (no unexpected components — tight subset match)
+```
+
+Returns `(template_dict, confidence)`. Minimum confidence threshold: 0.10.
+
+**`get_missing(present_types, template)` — gap analysis**
+
+```python
+for t, needed in template["component_counts"].items():
+    if present_count[t] < needed:
+        missing.append({"type": t, "count": needed - present_count[t], "label": …})
+```
+
+#### UI output
+
+| Section | Display |
+|---|---|
+| **§0 — purple badge** | *"🔮 Assembly Type Identified · Hinge Assembly · 72% · 5 training samples"* |
+| **§4 — teal** | *"📋 Expected Components Missing · ➕ shaft / spindle / pin · ➕ plate ×1"* |
+
+#### Single-body upload
+
+When a STEP file with only one solid body is uploaded (previously shown as an error), the system:
+1. Runs a lightweight gmsh pass to get the body's bounding box and volume
+2. Calls `_infer_type_from_geometry()` to classify the single body (shaft / plate / fastener / …)
+3. Runs `db.match([inferred_type])` → identifies which assembly category it is most likely from
+4. Runs `db.get_missing([inferred_type])` → lists all other component types needed to complete the assembly
+
+Example: uploading a single hinge plate → *"Looks like a plate from a Hinge Assembly (72%). Missing: 1 plate, 1 shaft."*
+
+---
+
+### 2. Open Surface Detection (`surface_analyzer.py`)
+
+#### Research connection — Octree from Borah & Borah (2020)
+
+In the PEE watermarking paper, an Octree partitions the 3D mesh's bounding volume into independent spatial sub-blocks. Each block's vertices are authenticated separately, localising tampered *regions* rather than just detecting global modification. The key insight — **spatial decomposition enables localised, per-region decisions** — is directly reused here for assembly analysis.
+
+| Concept | PEE Watermarking paper | This project |
+|---|---|---|
+| Spatial partition | Octree of mesh vertices | Octree of free-surface centroids |
+| Unit of analysis | Vertex block (for PEH embedding) | Surface cluster (for joint detection) |
+| Per-block decision | Watermark valid / tampered | Surface mated / open joint |
+| Localisation goal | Which mesh region was modified? | Which surface area is missing a component? |
+| Output per block | Regional tamper flag | "This area needs components to be assembled" |
+
+#### Mechanism
+
+```
+STEP file
+   │
+   ▼ gmsh.model.occ.fragment()
+     Surfaces shared by ≥ 2 solid bodies → internal (mated)
+     Surfaces shared by exactly 1 body   → free (boundary)
+   │
+   ▼ Area threshold
+     free surface area / parent body total SA  ≥  4 %
+     (discards fillets, chamfers, tiny faces)
+   │
+   ▼ OctreeNode (max_depth=3)
+     Candidate centroids inserted into 3-D Octree
+     Each non-empty leaf → pick surface with highest area_ratio
+     One Octree region = one "missing component location"
+   │
+   ▼ Triangle mesh extraction
+     gmsh.model.mesh.generate(2)   (coarse, CharacteristicLengthMax=8)
+     _extract_surface_mesh(surf_tag) → vertices + triangles (≤ 300 tris)
+   │
+   ▼ Return list of open joint records
+     {centroid, area, area_ratio, body_idx, vertices, triangles, normal_hint}
+```
+
+#### Octree structure
+
+```
+Octree root  (bounding box of all free-surface centroids)
+├── Octant [0,0,0]  →  surfaces in front-left-bottom → highest area_ratio → ⬡ Open Joint 1
+├── Octant [1,0,0]  →  surfaces in back-left-bottom  → highest area_ratio → ⬡ Open Joint 2
+├── Octant [0,1,1]  →  (empty — all surfaces here are mated)
+└── …  up to 8³ = 512 leaves at depth 3
+```
+
+#### Visual output in 3D viewer
+
+Flagged surfaces are rendered as **amber (`#f59e0b`) semi-transparent `Mesh3d` patches** overlaid directly on the assembly geometry. Hovering over any amber patch shows:
+
+> *"This area needs components to be assembled · Body N · X% of body surface area"*
+
+A single `⬡ Needs Assembly` legend entry covers all flagged patches. The amber patches appear on top of the blue body mesh so they are visually distinct without hiding the geometry underneath (opacity 0.82).
+
+#### UI output
+
+```
+⬡ Open Assembly Joints Detected
+  ⬡  Body 1   [23% of body area]
+       This area needs components to be assembled
+  ⬡  Body 3   [18% of body area]
+       This area needs components to be assembled
+```
+
+---
+
+### Combined inference — what each upload type sees
+
+| Upload | §0 Type | §1 Health | §2 GNN | §3 Auto-ref | §4 Template | §5 Open surfaces |
+|---|---|---|---|---|---|---|
+| Single component | ✅ inferred from geometry | — | — | — | ✅ what else needed | ✅ which faces are open |
+| Partial assembly (2+ bodies) | ✅ from node types | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Full assembly (complete) | ✅ | ✅ | minimal | minimal | minimal | minimal |
+
+All previous output — red ⚠ body highlights, orange ❓ cross markers, AIDA explanation — continues to appear unchanged alongside the new sections.
 
 ---
 
