@@ -296,6 +296,14 @@ def _run_inference(step_bytes: bytes,
             except Exception:
                 pass
 
+            # ── Open surface detection (Octree — Borah & Borah 2020 concept) ──
+            _open_surfs_sb = []
+            try:
+                from surface_analyzer import analyze_open_surfaces as _aos_sb
+                _open_surfs_sb = _aos_sb({repr(str(_STEP_CACHE))})
+            except Exception:
+                pass
+
             print(json.dumps({{
                 "n_nodes": 1, "n_edges": 0, "missing_links": [],
                 "centroids":   [_sv["centroid"]],
@@ -304,6 +312,7 @@ def _run_inference(step_bytes: bytes,
                 "potentially_missing": [],
                 "assembly_match":       _tmpl_sb,
                 "template_missing":     _miss_sb,
+                "open_surfaces":        _open_surfs_sb,
                 "single_body_analysis": True,
             }}))
             sys.exit(0)
@@ -535,6 +544,18 @@ def _run_inference(step_bytes: bytes,
         except Exception:
             pass
 
+        # ── Open surface detection (Octree — Borah & Borah 2020 concept) ──────
+        # Free surfaces (not shared between any two bodies after fragment) that
+        # form a significant fraction of their parent body's total surface area
+        # are clustered via Octree into spatial regions — each region is a
+        # potential location where a missing component should be assembled.
+        _open_surfs = []
+        try:
+            from surface_analyzer import analyze_open_surfaces as _aos
+            _open_surfs = _aos({repr(str(_STEP_CACHE))})
+        except Exception:
+            pass
+
         out = {{
             "n_nodes": int(graph.num_nodes),
             "n_edges": int(graph.edge_index.size(1)),
@@ -548,6 +569,7 @@ def _run_inference(step_bytes: bytes,
             "potentially_missing":  potentially_missing,
             "assembly_match":       _tmpl_match,
             "template_missing":     _tmpl_missing,
+            "open_surfaces":        _open_surfs,
             "single_body_analysis": False,
         }}
         print(json.dumps(out))
@@ -587,6 +609,7 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
         assembly_match = result.get("assembly_match")
         tmpl_missing   = result.get("template_missing", [])
         single_body    = result.get("single_body_analysis", False)
+        open_surfs     = result.get("open_surfaces", [])
 
         def _basename(s):
             if s and "/" in s:
@@ -731,8 +754,32 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
                     f'</div>'
                 )
 
+        # ── Section 5: Open surface joints (Octree spatial analysis) ─────────
+        if open_surfs:
+            rows += (
+                '<p style="font-size:0.76rem;font-weight:700;color:#f59e0b;'
+                'margin:8px 0 5px;">⬡ Open Assembly Joints Detected</p>'
+            )
+            for _os in open_surfs:
+                _os_bi  = _os.get("body_idx", 0)
+                _os_ar  = _os.get("area_ratio", 0)
+                _os_pct = int(_os_ar * 100)
+                rows += (
+                    f'<div style="display:flex;align-items:flex-start;gap:6px;'
+                    f'font-size:0.72rem;margin-bottom:6px;">'
+                    f'<span style="color:#f59e0b;font-size:0.9rem;line-height:1.2;">⬡</span>'
+                    f'<div>'
+                    f'<span style="color:#92400e;font-weight:600;">Body {_os_bi + 1}</span>'
+                    f'<span style="background:#fef3c7;color:#92400e;font-size:0.63rem;'
+                    f'padding:1px 5px;border-radius:3px;margin-left:6px;">'
+                    f'{_os_pct}% of body area</span>'
+                    f'<br><span style="color:#78716c;font-size:0.67rem;">'
+                    f'This area needs components to be assembled</span>'
+                    f'</div></div>'
+                )
+
         if (not all_flagged and not missing and not pot_missing
-                and not tmpl_missing and not assembly_match):
+                and not tmpl_missing and not assembly_match and not open_surfs):
             rows = "<p style='color:#4caf82;font-size:0.78rem;'>✓ Assembly appears complete — no issues found.</p>"
 
         return (
@@ -1469,6 +1516,39 @@ with col_right:
                     showlegend=True,
                     hovertext=f"Missing component:<br>{_mn}",
                     hoverinfo="text",
+                ))
+
+            # ── Amber mesh patches for open joints (Octree surface analysis) ──
+            # Each amber surface = an open mating joint where a missing component
+            # should be assembled (derived from Borah & Borah 2020 Octree concept).
+            _open_surfs_view = (st.session_state.inference_result or {}).get("open_surfaces", [])
+            for _osi, _os in enumerate(_open_surfs_view):
+                _ov = _os.get("vertices", [])
+                _ot = _os.get("triangles", [])
+                if not _ov or not _ot:
+                    continue
+                _ov_arr = np.array(_ov)
+                _ot_arr = np.array(_ot)
+                if len(_ov_arr) < 3 or len(_ot_arr) < 1:
+                    continue
+                _os_bi = _os.get("body_idx", 0)
+                _os_ar = _os.get("area_ratio", 0)
+                fig.add_trace(go.Mesh3d(
+                    x=_ov_arr[:, 0], y=_ov_arr[:, 1], z=_ov_arr[:, 2],
+                    i=_ot_arr[:, 0], j=_ot_arr[:, 1], k=_ot_arr[:, 2],
+                    color="#f59e0b",
+                    opacity=0.82,
+                    flatshading=True,
+                    name="⬡ Needs Assembly",
+                    showlegend=(_osi == 0),   # single legend entry for all
+                    hovertext=(
+                        f"This area needs components to be assembled<br>"
+                        f"Body {_os_bi + 1} · {_os_ar:.0%} of body surface area"
+                    ),
+                    hoverinfo="text",
+                    lighting=dict(ambient=0.7, diffuse=0.6, specular=0.1,
+                                  roughness=0.8, fresnel=0.1),
+                    lightposition=dict(x=100, y=100, z=100),
                 ))
 
             fig.update_layout(
