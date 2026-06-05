@@ -1084,7 +1084,8 @@ def _gmsh_convert(step_path: str, stl_path: str) -> None:
         import gmsh
         gmsh.initialize()
         gmsh.option.setNumber("General.Terminal", 0)
-        gmsh.option.setNumber("Mesh.CharacteristicLengthMax", 5.0)
+        gmsh.option.setNumber("Mesh.CharacteristicLengthMax", 2.0)
+        gmsh.option.setNumber("Mesh.Optimize", 1)
         gmsh.model.add("assembly")
         gmsh.merge({repr(step_path)})
         gmsh.model.mesh.generate(2)
@@ -1117,7 +1118,8 @@ def load_mesh(file_bytes: bytes) -> dict:
                 # ── Try Fast Path ──────────────────────────────────────────
                 gmsh.initialize()
                 gmsh.option.setNumber("General.Terminal", 0)
-                gmsh.option.setNumber("Mesh.CharacteristicLengthMax", 5.0)
+                gmsh.option.setNumber("Mesh.CharacteristicLengthMax", 2.0)
+                gmsh.option.setNumber("Mesh.Optimize", 1)
                 gmsh.model.add("assembly")
                 try:
                     gmsh.merge({repr(sp)})
@@ -1209,7 +1211,8 @@ def load_mesh(file_bytes: bytes) -> dict:
                 for idx, (dim, tag, bbox, centroid) in enumerate(v_info):
                     gmsh.initialize()
                     gmsh.option.setNumber("General.Terminal", 0)
-                    gmsh.option.setNumber("Mesh.CharacteristicLengthMax", 5.0)
+                    gmsh.option.setNumber("Mesh.CharacteristicLengthMax", 2.0)
+                gmsh.option.setNumber("Mesh.Optimize", 1)
                     gmsh.model.add(f"body_{{idx}}")
                     try:
                         gmsh.merge({repr(sp)})
@@ -1496,13 +1499,13 @@ with col_right:
                 fig.add_trace(go.Mesh3d(
                     x=verts[:, 0], y=verts[:, 1], z=verts[:, 2],
                     i=triangles[:, 0], j=triangles[:, 1], k=triangles[:, 2],
-                    color=b_color, opacity=opacity, flatshading=True,
+                    color=b_color, opacity=opacity, flatshading=False,
                     name=name,
                     showlegend=show_leg,
                     hoverinfo="name",
-                    lighting=dict(ambient=0.5, diffuse=0.8, specular=0.3,
-                                   roughness=0.5, fresnel=0.2),
-                    lightposition=dict(x=100, y=100, z=100),
+                    lighting=dict(ambient=0.6, diffuse=0.9, specular=0.5,
+                                   roughness=0.3, fresnel=0.4),
+                    lightposition=dict(x=200, y=300, z=400),
                 ))
 
             # Orange cross markers at estimated locations of missing components
@@ -1565,7 +1568,7 @@ with col_right:
                 scene_camera=CAMERAS[view_preset],
                 margin=dict(l=0, r=0, b=0, t=0),
                 paper_bgcolor="rgba(0,0,0,0)",
-                height=255,
+                height=400,
                 legend=dict(
                     x=0.01, y=0.99,
                     xanchor="left", yanchor="top",
