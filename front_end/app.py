@@ -757,8 +757,10 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
         # ── Section 5: Open surface joints (Octree spatial analysis) ─────────
         if open_surfs:
             rows += (
-                '<p style="font-size:0.76rem;font-weight:700;color:#f59e0b;'
-                'margin:8px 0 5px;">⬡ Open Assembly Joints Detected</p>'
+                '<p style="font-size:0.76rem;font-weight:700;color:#84cc16;'
+                'margin:8px 0 2px;">⬡ Open Assembly Joints Detected</p>'
+                '<p style="font-size:0.65rem;color:#65a30d;margin:0 0 6px;">'
+                'Lime green mesh in 3D viewer — click a legend entry to isolate each joint</p>'
             )
             for _os in open_surfs:
                 _os_bi  = _os.get("body_idx", 0)
@@ -767,13 +769,15 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
                 rows += (
                     f'<div style="display:flex;align-items:flex-start;gap:6px;'
                     f'font-size:0.72rem;margin-bottom:6px;">'
-                    f'<span style="color:#f59e0b;font-size:0.9rem;line-height:1.2;">⬡</span>'
+                    f'<span style="display:inline-block;width:10px;height:10px;'
+                    f'background:#84cc16;border-radius:2px;margin-top:2px;flex-shrink:0;"></span>'
                     f'<div>'
-                    f'<span style="color:#92400e;font-weight:600;">Body {_os_bi + 1}</span>'
-                    f'<span style="background:#fef3c7;color:#92400e;font-size:0.63rem;'
+                    f'<span style="color:#3f6212;font-weight:600;">'
+                    f'⬡ Body {_os_bi + 1}  ({_os_pct}%)</span>'
+                    f'<span style="background:#d9f99d;color:#3f6212;font-size:0.63rem;'
                     f'padding:1px 5px;border-radius:3px;margin-left:6px;">'
                     f'{_os_pct}% of body area</span>'
-                    f'<br><span style="color:#78716c;font-size:0.67rem;">'
+                    f'<br><span style="color:#4d7c0f;font-size:0.67rem;">'
                     f'This area needs components to be assembled</span>'
                     f'</div></div>'
                 )
@@ -1536,11 +1540,11 @@ with col_right:
                 fig.add_trace(go.Mesh3d(
                     x=_ov_arr[:, 0], y=_ov_arr[:, 1], z=_ov_arr[:, 2],
                     i=_ot_arr[:, 0], j=_ot_arr[:, 1], k=_ot_arr[:, 2],
-                    color="#f59e0b",
+                    color="#84cc16",
                     opacity=0.82,
                     flatshading=True,
-                    name="⬡ Needs Assembly",
-                    showlegend=(_osi == 0),   # single legend entry for all
+                    name=f"⬡ Body {_os_bi + 1}  ({int(_os_ar * 100)}%)",
+                    showlegend=True,
                     hovertext=(
                         f"This area needs components to be assembled<br>"
                         f"Body {_os_bi + 1} · {_os_ar:.0%} of body surface area"
