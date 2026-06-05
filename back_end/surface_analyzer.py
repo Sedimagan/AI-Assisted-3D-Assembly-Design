@@ -150,11 +150,16 @@ def _extract_surface_mesh(
     try:
         elem_types, _, ntags_all = gmsh.model.mesh.getElements(2, surf_tag)
         for etype, ntags in zip(elem_types, ntags_all):
-            if etype != 2:          # only 3-node triangles
+            # type 2 = 3-node triangle; type 9 = 6-node (second-order) triangle
+            if etype == 2:
+                stride = 3
+            elif etype == 9:
+                stride = 6   # use only the 3 corner nodes (first 3 per element)
+            else:
                 continue
             arr = list(ntags)
-            for k in range(0, len(arr), 3):
-                tri = arr[k : k + 3]
+            for k in range(0, len(arr), stride):
+                tri = arr[k : k + 3]   # always take first 3 node IDs
                 fvids = []
                 for nid in tri:
                     if nid not in nmap:
@@ -174,6 +179,60 @@ def _extract_surface_mesh(
         triangles = triangles[:max_triangles]
 
     return vertices, triangles
+
+
+# ── Synthetic grid mesh fallback ─────────────────────────────────────────────
+
+def _synthetic_surface_mesh(
+    bbox: List,
+    normal: List,
+    grid_res: int = 10,
+) -> Tuple[List, List]:
+    """
+    Generate a rectangular grid mesh from the surface bounding box and normal.
+
+    Used when gmsh mesh generation produces no triangles so the 3D viewer
+    always has a visible lime-green patch at each open joint location.
+    The patch is a flat grid projected onto the plane perpendicular to the
+    thinnest bounding-box dimension (the approximate surface normal axis).
+    """
+    xmin, ymin, zmin, xmax, ymax, zmax = bbox
+    cx = (xmin + xmax) / 2
+    cy = (ymin + ymax) / 2
+    cz = (zmin + zmax) / 2
+
+    # Determine which axis is the normal
+    try:
+        normal_axis = normal.index(1.0)
+    except ValueError:
+        normal_axis = 2
+
+    pts: List = []
+    n = grid_res
+    if normal_axis == 0:        # surface ⊥ X — span Y and Z
+        us = [ymin + (ymax - ymin) * i / (n - 1) for i in range(n)]
+        vs = [zmin + (zmax - zmin) * j / (n - 1) for j in range(n)]
+        pts = [[cx, u, v] for u in us for v in vs]
+    elif normal_axis == 1:      # surface ⊥ Y — span X and Z
+        us = [xmin + (xmax - xmin) * i / (n - 1) for i in range(n)]
+        vs = [zmin + (zmax - zmin) * j / (n - 1) for j in range(n)]
+        pts = [[u, cy, v] for u in us for v in vs]
+    else:                       # surface ⊥ Z — span X and Y
+        us = [xmin + (xmax - xmin) * i / (n - 1) for i in range(n)]
+        vs = [ymin + (ymax - ymin) * j / (n - 1) for j in range(n)]
+        pts = [[u, v, cz] for u in us for v in vs]
+
+    tris: List = []
+    for i in range(n - 1):
+        for j in range(n - 1):
+            a = i * n + j
+            b = a + 1
+            c = a + n
+            d = c + 1
+            tris.append([a, b, c])
+            tris.append([b, d, c])
+
+    return pts, tris
 
 
 # ── Main analysis function ────────────────────────────────────────────────────
@@ -332,6 +391,9 @@ def analyze_open_surfaces(
             verts, tris = [], []
             if mesh_ok:
                 verts, tris = _extract_surface_mesh(rep["stag"])
+            # Always fall back to synthetic grid so the 3D viewer has a visible patch
+            if not verts or not tris:
+                verts, tris = _synthetic_surface_mesh(rep["bbox"], rep["normal"])
 
             results.append({
                 "centroid":    rep["centroid"],
