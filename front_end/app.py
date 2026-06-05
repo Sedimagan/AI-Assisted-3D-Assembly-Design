@@ -825,21 +825,37 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
 # ── AIDA explanation helper ───────────────────────────────────────────────────
 
 def _run_aida_explain(inference_result: dict) -> str:
-    """Call AssemblySkillsAgent.explain_prediction() in a subprocess."""
+    """Build a three-category assembly summary and ask AIDA to explain it."""
     missing    = inference_result.get("missing_links", [])
     n_nodes    = inference_result.get("n_nodes", 0)
     n_edges    = inference_result.get("n_edges", 0)
     part_names = inference_result.get("part_names", [])
+    pot_miss   = inference_result.get("potentially_missing", [])
+    open_surfs = inference_result.get("open_surfaces", [])
     back_end   = str(_PROJ_ROOT / "back_end")
 
-    # Replace node indices in missing list with part names for AIDA context
     def _pname(i):
         return part_names[i] if i < len(part_names) and part_names[i] else f"Part {i+1}"
 
+    # Category 1 — Not Assembled / Not Properly Mated
+    not_mated = [
+        {"name": m.get("name", f"Part {m.get('node', 0)+1}"),
+         "reason": m.get("reason", "isolated or under-connected")}
+        for m in pot_miss
+    ]
+
+    # Category 2 — AI Predicted Missing Links
     missing_named = [
-        {"src_name": _pname(m["src"]), "dst_name": _pname(m["dst"]),
-         "confidence": m["confidence"]}
+        {"src": _pname(m["src"]), "dst": _pname(m["dst"]),
+         "confidence": round(m["confidence"], 3)}
         for m in missing
+    ]
+
+    # Category 3 — Open Assembly Joints (Octree surface analysis)
+    open_joints = [
+        {"body": m.get("body_idx", 0) + 1,
+         "area_pct": int(m.get("area_ratio", 0) * 100)}
+        for m in open_surfs
     ]
 
     script = textwrap.dedent(f"""\
@@ -848,11 +864,58 @@ def _run_aida_explain(inference_result: dict) -> str:
         try:
             from skills_agent import AssemblySkillsAgent
             agent = AssemblySkillsAgent()
-            missing_fmt = [((m['src_name'], m['dst_name']), m['confidence'])
-                           for m in {repr(missing_named)}]
-            ctx = (f"Assembly with {n_nodes} components and {n_edges} known connections. "
-                   f"Parts: {repr([_pname(i) for i in range(n_nodes)])}")
-            print(agent.explain_prediction(missing=missing_fmt, recs=[], context=ctx))
+
+            not_mated    = {repr(not_mated)}
+            missing_lnks = {repr(missing_named)}
+            open_joints  = {repr(open_joints)}
+            n_nodes      = {n_nodes}
+            n_edges      = {n_edges}
+
+            # ── Category 1 text ───────────────────────────────────────────────
+            if not_mated:
+                nm_lines = "\\n".join(
+                    f"  - {{m['name']}} ({{m['reason']}})" for m in not_mated
+                )
+            else:
+                nm_lines = "  (none)"
+
+            # ── Category 2 text ───────────────────────────────────────────────
+            if missing_lnks:
+                ml_lines = "\\n".join(
+                    f"  - {{m['src']}} ↔ {{m['dst']}} — confidence {{m['confidence']:.3f}}"
+                    for m in missing_lnks
+                )
+            else:
+                ml_lines = "  (none)"
+
+            # ── Category 3 text ───────────────────────────────────────────────
+            if open_joints:
+                oj_lines = "\\n".join(
+                    f"  - Body {{j['body']}}: {{j['area_pct']}}% of body surface area is open"
+                    for j in open_joints
+                )
+            else:
+                oj_lines = "  (none)"
+
+            prompt = (
+                "You are AIDA, an AI Design Assistant for 3D mechanical assembly analysis.\\n"
+                "Assembly overview: " + str(n_nodes) + " components, " + str(n_edges) + " known mating connections.\\n\\n"
+                "Provide a structured engineering summary under exactly these three headings.\\n"
+                "For each heading write 1-2 concise bullet points (plain English, no jargon overload).\\n"
+                "If a category has no findings, write: No issues detected in this category.\\n\\n"
+                "=== 1. Not Assembled / Not Properly Mated ===\\n" + nm_lines + "\\n\\n"
+                "=== 2. AI Predicted Missing Links ===\\n" + ml_lines + "\\n\\n"
+                "=== 3. Open Assembly Joints Detected ===\\n" + oj_lines + "\\n\\n"
+                "Instructions:\\n"
+                "- Under heading 1: explain what not mated means for those specific parts and the likely assembly consequence.\\n"
+                "- Under heading 2: explain what the predicted missing link likely represents mechanically "
+                "(e.g. fastener, bearing seat) and whether the confidence level is high/medium/low.\\n"
+                "- Under heading 3: explain what an open assembly joint means — which body surfaces have "
+                "no mating component and what type of component is likely missing there.\\n"
+                "- End with one overall recommendation sentence.\\n"
+                "- No prose paragraphs outside the bullets. No markdown bold or italic. Keep it under 12 lines total."
+            )
+            print(agent._ask(prompt))
         except Exception as e:
             print(f"[AIDA offline] {{e}}")
     """)
