@@ -1212,7 +1212,7 @@ def load_mesh(file_bytes: bytes) -> dict:
                     gmsh.initialize()
                     gmsh.option.setNumber("General.Terminal", 0)
                     gmsh.option.setNumber("Mesh.CharacteristicLengthMax", 2.0)
-                gmsh.option.setNumber("Mesh.Optimize", 1)
+                    gmsh.option.setNumber("Mesh.Optimize", 1)
                     gmsh.model.add(f"body_{{idx}}")
                     try:
                         gmsh.merge({repr(sp)})
