@@ -909,12 +909,14 @@ def _run_aida_explain(inference_result: dict) -> str:
             n_nodes      = {n_nodes}
             n_edges      = {n_edges}
 
-            # ── Category 1 text ───────────────────────────────────────────────
+            # ── Category 1 text — compact one-line summary per unique part type ─
             if not_mated:
-                nm_lines = "\\n".join(
-                    f"  - {{m['name']}} x{{m['count']}} — {{m['reason']}}"
+                total_flagged = sum(m['count'] for m in not_mated)
+                parts_summary = ", ".join(
+                    f"{{m['name']}} (x{{m['count']}}: {{m['reason']}})"
                     for m in not_mated
                 )
+                nm_lines = f"  {total_flagged} flagged instances — {parts_summary}"
             else:
                 nm_lines = "  (none)"
 
@@ -939,26 +941,24 @@ def _run_aida_explain(inference_result: dict) -> str:
             prompt = (
                 "You are AIDA, an AI Design Assistant for 3D mechanical assembly analysis.\\n"
                 "Assembly: " + str(n_nodes) + " components, " + str(n_edges) + " known connections.\\n\\n"
-                "IMPORTANT: You MUST write all three sections below in full. Do not stop after section 1.\\n\\n"
-                "--- DATA ---\\n"
-                "Section 1 data (Not Assembled / Not Properly Mated):\\n" + nm_lines + "\\n\\n"
-                "Section 2 data (AI Predicted Missing Links):\\n" + ml_lines + "\\n\\n"
-                "Section 3 data (Open Assembly Joints Detected by Octree surface analysis):\\n" + oj_lines + "\\n\\n"
-                "--- YOUR RESPONSE (write all three sections, use bullets) ---\\n\\n"
+                "DATA:\\n"
+                "1. Not Assembled / Not Properly Mated: " + nm_lines + "\\n"
+                "2. AI Predicted Missing Links: " + ml_lines + "\\n"
+                "3. Open Assembly Joints (Octree): " + oj_lines + "\\n\\n"
+                "RULES:\\n"
+                "- Write all four sections below. Do NOT stop early.\\n"
+                "- Max 3 bullet points per section. Each bullet is 1-2 sentences.\\n"
+                "- No markdown bold or italic. Plain text bullets only.\\n\\n"
                 "=== 1. Not Assembled / Not Properly Mated ===\\n"
-                "For each part type: explain mechanically what not-mated or under-connected means, "
-                "the likely root cause, and the assembly consequence. Group repeated part types.\\n\\n"
+                "(Explain the mechanical meaning and assembly consequence — max 3 bullets)\\n\\n"
                 "=== 2. AI Predicted Missing Links ===\\n"
-                "For each predicted link: what mechanical relationship it likely represents "
-                "(fastener, bearing, pin etc.), and rate confidence as high (>0.8) / medium (0.6-0.8) / low (<0.6).\\n\\n"
+                "(For each link: likely component type and confidence level — max 3 bullets)\\n\\n"
                 "=== 3. Open Assembly Joints Detected ===\\n"
-                "For each open-joint body: what type of component is likely missing based on the "
-                "exposed surface area percentage (e.g. nut, plate, housing lid, shaft).\\n\\n"
+                "(For each body: what component is likely missing based on exposed surface — max 3 bullets)\\n\\n"
                 "=== Overall Recommendation ===\\n"
-                "Write 2-3 sentences summarising the key actions the engineer should take.\\n\\n"
-                "Use plain bullet points. No markdown bold or italic. Cover all three sections completely."
+                "(2-3 sentences on what the engineer should do next)"
             )
-            print(agent._ask(prompt))
+            print(agent._ask(prompt, max_tokens=1800))
         except Exception as e:
             print(f"[AIDA offline] {{e}}")
     """)

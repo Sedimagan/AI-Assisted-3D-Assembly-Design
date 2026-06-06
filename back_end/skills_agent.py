@@ -101,14 +101,16 @@ class AssemblySkillsAgent:
 
     # ── Internal helper ───────────────────────────────────────────────────────
 
-    def _ask(self, prompt: str) -> str:
+    def _ask(self, prompt: str, max_tokens: int = 1800) -> str:
         if self._model is None:
             return (
                 "[SkillsAgent offline] Gemini is not configured. "
                 "Set GEMINI_API_KEY in .env to enable AI explanations."
             )
         try:
-            resp = self._model.generate_content(prompt)
+            import google.generativeai as genai
+            cfg = genai.types.GenerationConfig(max_output_tokens=max_tokens)
+            resp = self._model.generate_content(prompt, generation_config=cfg)
             return resp.text.strip()
         except Exception as exc:
             return f"[SkillsAgent error] {exc}"
