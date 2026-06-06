@@ -938,25 +938,25 @@ def _run_aida_explain(inference_result: dict) -> str:
 
             prompt = (
                 "You are AIDA, an AI Design Assistant for 3D mechanical assembly analysis.\\n"
-                "Assembly overview: " + str(n_nodes) + " components, " + str(n_edges) + " known mating connections.\\n\\n"
-                "Write a structured engineering summary under the three headings below.\\n"
-                "Use bullet points. Be thorough but concise — each bullet is 1-2 sentences.\\n"
-                "If a category has no findings, write: No issues detected in this category.\\n\\n"
-                "=== 1. Not Assembled / Not Properly Mated ===\\n" + nm_lines + "\\n\\n"
-                "=== 2. AI Predicted Missing Links ===\\n" + ml_lines + "\\n\\n"
-                "=== 3. Open Assembly Joints Detected ===\\n" + oj_lines + "\\n\\n"
-                "For each heading explain:\\n"
-                "  Heading 1 — For each unique part type listed: what does 'not mated' or 'under-connected' "
-                "mean mechanically, what is the likely root cause (wrong placement, missing mate constraint, "
-                "displaced fastener pattern), and what assembly consequence does it have.\\n"
-                "  Heading 2 — For each predicted missing link: what mechanical relationship it likely "
-                "represents (fastener, pin, bearing seat, press-fit etc.), why the GNN flagged it, and "
-                "whether the confidence is high (>0.8) / medium (0.6-0.8) / low (<0.6).\\n"
-                "  Heading 3 — For each open joint body: what type of mating component is likely missing "
-                "(cover plate, nut, shaft, housing lid, etc.) based on the percentage of exposed surface area, "
-                "and what the Octree spatial analysis implies about the assembly gap.\\n"
-                "End with a 1-2 sentence overall recommendation for the engineer.\\n"
-                "No prose paragraphs. No markdown bold or italic formatting."
+                "Assembly: " + str(n_nodes) + " components, " + str(n_edges) + " known connections.\\n\\n"
+                "IMPORTANT: You MUST write all three sections below in full. Do not stop after section 1.\\n\\n"
+                "--- DATA ---\\n"
+                "Section 1 data (Not Assembled / Not Properly Mated):\\n" + nm_lines + "\\n\\n"
+                "Section 2 data (AI Predicted Missing Links):\\n" + ml_lines + "\\n\\n"
+                "Section 3 data (Open Assembly Joints Detected by Octree surface analysis):\\n" + oj_lines + "\\n\\n"
+                "--- YOUR RESPONSE (write all three sections, use bullets) ---\\n\\n"
+                "=== 1. Not Assembled / Not Properly Mated ===\\n"
+                "For each part type: explain mechanically what not-mated or under-connected means, "
+                "the likely root cause, and the assembly consequence. Group repeated part types.\\n\\n"
+                "=== 2. AI Predicted Missing Links ===\\n"
+                "For each predicted link: what mechanical relationship it likely represents "
+                "(fastener, bearing, pin etc.), and rate confidence as high (>0.8) / medium (0.6-0.8) / low (<0.6).\\n\\n"
+                "=== 3. Open Assembly Joints Detected ===\\n"
+                "For each open-joint body: what type of component is likely missing based on the "
+                "exposed surface area percentage (e.g. nut, plate, housing lid, shaft).\\n\\n"
+                "=== Overall Recommendation ===\\n"
+                "Write 2-3 sentences summarising the key actions the engineer should take.\\n\\n"
+                "Use plain bullet points. No markdown bold or italic. Cover all three sections completely."
             )
             print(agent._ask(prompt))
         except Exception as e:
@@ -964,7 +964,7 @@ def _run_aida_explain(inference_result: dict) -> str:
     """)
     r = subprocess.run(
         [sys.executable, "-c", script],
-        capture_output=True, text=True, timeout=60,
+        capture_output=True, text=True, timeout=90,
     )
     return (r.stdout.strip() or r.stderr.strip()[:300]
             or "AIDA explanation unavailable.")
@@ -1800,7 +1800,7 @@ elif _inf and "error" in _inf:
 else:
     _body = (
         '<p style="font-size:0.84rem;color:#7dd3fc;font-style:italic;margin:0;">'
-        'Upload a 3D model to the right panel — AIDA will explain the missing '
+        'Upload a 3D model to the left panel — AIDA will explain the missing '
         'component predictions in engineering language once inference is complete.'
         '</p>'
     )
