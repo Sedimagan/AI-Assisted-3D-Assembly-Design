@@ -43,7 +43,7 @@ cd back_end && python train.py      # GNN training
 
 ## Abstract
 
-Engineering CAD assemblies consist of multiple interconnected components whose correct selection is time-consuming and expertise-dependent. This project trains a **Graph Attention Network (GAT)** on assembly graphs to detect **missing components** via link prediction — Phase 1. A **Gemini-powered Skills AI agent** (AIDA) explains predictions in engineering language. An **Assembly Completeness Model** (`AssemblyTemplateDB`) learns per-category component-type distributions from training data and identifies what is missing when a partial or single-component file is uploaded. An **Octree-based Open Surface Detector** (inspired by the spatial partitioning technique in Borah & Borah 2020) identifies the precise mesh surfaces where missing components should be assembled, highlighting them in amber directly on the 3D model. The solution is implemented entirely in Python using PyTorch Geometric, without dependency on proprietary CAD software APIs.
+Engineering CAD assemblies consist of multiple interconnected components whose correct selection is time-consuming and expertise-dependent. This project trains a **Graph Attention Network (GAT)** on assembly graphs to detect **missing components** via link prediction — Phase 1. A **Gemini-powered Skills AI agent** (AIDA) explains predictions in engineering language. An **Assembly Completeness Model** (`AssemblyTemplateDB`) learns per-category component-type distributions from training data and identifies what is missing when a partial or single-component file is uploaded. An **Octree-based Open Surface Detector** (inspired by the spatial partitioning technique in Borah & Borah 2020) identifies the precise mesh surfaces where missing components should be assembled, highlighting them in **lime green** directly on the 3D model — each open joint gets its own interactive legend entry. The solution is implemented entirely in Python using PyTorch Geometric, without dependency on proprietary CAD software APIs.
 
 **Phase 2 (planned):** Next-component ranking via NodeRanker (cosine similarity, Hit@K, MRR).
 
@@ -113,15 +113,15 @@ Next-component ranking (Hit@K, MRR)
          Interactive 3D viewer + dual panel UI
          Left panel — 5 analysis sections:
            §0 Assembly type badge (purple)
-           §1 Not assembled / under-connected (red)
-           §2 GNN missing links (blue)
+           §1 Not assembled / under-connected (red) — deduplicated with ×N count badges
+           §2 GNN missing links (blue) — deduplicated with ×N count badges
            §3 Auto-reference missing (orange)
            §4 Template missing components (teal)
-           §5 Open surface joints (amber)
-         Right panel — 3D viewer:
+           §5 Open surface joints (lime green)
+         Right panel — 3D viewer (400 px, smooth shading, CharacteristicLengthMax=2.0):
            Red bodies = not assembled
            Orange ❓ = auto-reference missing
-           Amber ⬡ = open joints needing assembly
+           Lime green ⬡ = open joints — one legend entry per joint, click to isolate
 ```
 
 ### Graph Schema
@@ -323,8 +323,8 @@ AI-Assisted-3D-Assembly-Design/
 | `back_end/infer.py` | `predict_missing()` scores all absent node pairs and returns top-K with confidence; bar-chart CLI output |
 | `back_end/skills_agent.py` | `AssemblySkillsAgent` — loads skills YAML, builds Gemini system prompt, exposes `explain_prediction()`, `identify_component()`, `suggest_assembly_sequence()`, `answer()` |
 | `back_end/assembly_templates.py` | `AssemblyTemplateDB` — loads `data.pt` + `sources.json`, groups graphs by assembly category (top-level folder under `Source_3d_models/`), computes median component-type counts per category; `match()` returns best assembly type + confidence; `get_missing()` returns missing component list; handles single-body uploads |
-| `back_end/surface_analyzer.py` | `OctreeNode` — lightweight 3-D octree for spatial grouping of surface centroids (adapted from Borah & Borah 2020 block decomposition). `analyze_open_surfaces()` — after boolean fragment(), identifies free surfaces (unmated) above area threshold, clusters them via Octree, extracts triangle mesh per region; returns open joint records for amber 3D overlay |
-| `front_end/app.py` | Streamlit app — dual panels; 5-section left inference panel (assembly type, not-assembled, GNN links, auto-reference missing, template missing, open surface joints); 3D viewer with red/orange/amber overlays; gmsh subprocess pipeline; AIDA Gemini explanation |
+| `back_end/surface_analyzer.py` | `OctreeNode` — lightweight 3-D octree for spatial grouping of surface centroids (adapted from Borah & Borah 2020 block decomposition). `analyze_open_surfaces()` — after boolean fragment(), identifies free surfaces (unmated) above area threshold, clusters them via Octree, extracts triangle mesh per region (handles type-2 and type-9 elements; `_synthetic_surface_mesh()` fallback guarantees a visible patch); returns open joint records for lime-green 3D overlay |
+| `front_end/app.py` | Streamlit app — dual panels (both 400 px); 6-section left inference panel (assembly type, not-assembled with ×N dedup, GNN links with ×N dedup, auto-reference missing, template missing, open surface joints); 3D viewer with red/orange/lime-green overlays, smooth Phong shading, CharacteristicLengthMax=2.0; AIDA 4-section structured explanation with line-by-line HTML renderer |
 
 ---
 
@@ -335,16 +335,20 @@ The project uses **Google Gemini** as an AI orchestrator configured with mechani
 ### Pipeline
 
 ```
-GNN predictions (missing component links — Phase 1)
+GNN predictions + node_degrees + open_surfaces (all three categories)
          │
          ▼
 AssemblySkillsAgent  ←  skills/engineering_3d_assembly.yaml
          │                (persona + 6 skill domains + response rules)
          ▼
-Gemini (gemini-2.0-flash)
+Gemini (gemini-2.0-flash)  [max_output_tokens=2500]
          │
          ▼
-3–4 bullet engineering explanation (displayed in AIDA panel)
+Structured 4-section explanation displayed in AIDA panel:
+  === 1. Not Assembled / Not Properly Mated ===
+  === 2. AI Predicted Missing Links ===
+  === 3. Open Assembly Joints Detected ===
+  === Overall Recommendation ===
 ```
 
 ### Skill domains
@@ -373,7 +377,9 @@ print(agent.explain_prediction(
 
 Set `GEMINI_API_KEY` in `.env`. The agent degrades gracefully (offline mode) without a key.
 
-AIDA responses are constrained to **3–4 concise bullet points** covering: what the top missing link represents mechanically, the implied mate constraint type, confidence level interpretation, and any unusual finding worth verifying. The AIDA panel is displayed prominently with a vivid blue gradient at the bottom of the left inference panel.
+AIDA now produces a **structured 4-section response** covering all three analysis categories and an overall engineering recommendation. The prompt passes compact summaries of all three data categories (not-mated nodes grouped by unique name with counts, predicted links, open joint bodies) and explicitly instructs the model to complete all four sections with at most 3 bullets per section.
+
+**AIDA panel rendering:** The response is parsed line-by-line into styled HTML — section headings (`=== … ===`) render in sky-blue bold, bullet lines (`*`, `-`) in bright white, and plain text in the same bright colour — so all four sections are fully legible on the dark blue gradient background. `html.escape()` is applied before injection to prevent special characters in the Gemini output from breaking the HTML structure.
 
 ---
 
@@ -416,14 +422,16 @@ streamlit run front_end/app.py --server.port 11501
 
 ### Left Inference Panel — Analysis Sections
 
+The left panel height is **400 px** (matching the 3D viewer) with `overflow-y: auto` scroll.
+
 | Section | Colour | What it shows |
 |---|---|---|
 | **§0 Assembly Type Identified** | Purple `#a78bfa` | Assembly category (e.g. "Hinge Assembly") with a % confidence badge and training sample count |
-| **§1 Not Assembled / Not Properly Mated** | Red `#ef4444` | Bodies with degree = 0 (no contacts) or under-connected vs. their group average |
-| **§2 AI Predicted Missing Links** | Blue `#5b9bd5` | GNN-predicted missing edges with confidence bars (hidden for single-body uploads) |
+| **§1 Not Assembled / Not Properly Mated** | Red `#ef4444` | Bodies with degree = 0 (no contacts) or under-connected vs. their group average. **Deduplicated** — repeated instances grouped into one row with a red ×N count badge |
+| **§2 AI Predicted Missing Links** | Blue `#5b9bd5` | GNN-predicted missing edges with confidence bars (hidden for single-body uploads). **Deduplicated** — same-named pairs merged with a blue ×N count badge showing highest confidence |
 | **§3 Potentially Missing Components** | Orange `#f97316` | Components found in the matched reference assembly but absent in the upload |
 | **§4 Expected Components Missing** | Teal `#14b8a6` | Template-DB difference: component types expected by the assembly category but not present |
-| **§5 Open Assembly Joints Detected** | Amber `#f59e0b` | Specific body indices and surface area percentages flagged as open mating joints by the Octree analyser; links to the amber overlays in the 3D viewer |
+| **§5 Open Assembly Joints Detected** | Lime green `#84cc16` | Specific body indices and surface area percentages flagged as open mating joints by the Octree analyser. Each entry has a lime-green square swatch. Hint: *"click a legend entry in the 3D viewer to isolate each joint"* |
 
 ### 3D Viewer Overlay Colours
 
@@ -431,7 +439,17 @@ streamlit run front_end/app.py --server.port 11501
 |---|---|---|
 | Red `#ff4d4d` | Solid body | Not assembled or under-connected (§1) |
 | Orange `#f97316` | ❓ Cross marker | Auto-reference missing component — estimated position |
-| Amber `#f59e0b` | ⬡ Mesh patch | Open mating joint surface — "This area needs components to be assembled" |
+| Lime green `#84cc16` | ⬡ Mesh patch | Open mating joint surface — "This area needs components to be assembled"; one labelled legend entry per joint (e.g. `⬡ Body 26 (43%)`); click legend to isolate |
+
+### 3D Viewer Quality
+
+| Setting | Value | Effect |
+|---|---|---|
+| `CharacteristicLengthMax` | 2.0 (was 5.0) | ~6× denser mesh — curved surfaces are smooth |
+| `Mesh.Optimize` | on | Better triangle aspect ratios |
+| `flatshading` | `False` | Phong smooth shading — no hard facet edges |
+| Lighting | ambient 0.6 / diffuse 0.9 / specular 0.5 | Sharper highlights and depth |
+| Viewer height | 400 px (was 255 px) | 57 % larger canvas |
 
 ### Single-Body Upload Behaviour
 
@@ -580,7 +598,7 @@ Each export contains: epoch · best AUC · test metrics · `trained_at` timestam
 | **CAD parsing** | `gmsh` + OpenCASCADE (STEP → solid bodies + surface adjacency) |
 | **Geometry enrichment** ✅ | `trimesh` — exact surface area (replaces bbox approx) · SDF ray-casting via trimesh — Shape Diameter Function (mean + variance) for geometry-driven component type inference · 16-dim node features |
 | **Assembly completeness** ✅ | `assembly_templates.py` — `AssemblyTemplateDB`: per-category component-type templates learned from training data; Jaccard + subset-bonus scoring; handles single-body uploads |
-| **Open surface detection** ✅ | `surface_analyzer.py` — `OctreeNode` spatial partitioning (Borah & Borah 2020 concept); free-surface clustering; triangle mesh extraction; amber 3D overlay in viewer |
+| **Open surface detection** ✅ | `surface_analyzer.py` — `OctreeNode` spatial partitioning (Borah & Borah 2020 concept); free-surface clustering; triangle mesh extraction (type-2/9 elements + synthetic grid fallback); lime-green per-joint 3D overlay with interactive legend |
 | **Graph ML** | PyTorch Geometric · GAT · RandomLinkSplit |
 | **AI Orchestration** | Google Gemini (`gemini-2.0-flash`) · `skills_agent.py` |
 | **Front-end** | Streamlit · Plotly `Mesh3d` · PyVista (offscreen STL load) |
@@ -842,6 +860,9 @@ STEP file
    ▼ Triangle mesh extraction
      gmsh.model.mesh.generate(2)   (coarse, CharacteristicLengthMax=8)
      _extract_surface_mesh(surf_tag) → vertices + triangles (≤ 300 tris)
+     Handles 3-node (type 2) and 6-node second-order (type 9) triangles
+     Fallback: _synthetic_surface_mesh() — 10×10 flat grid from bbox + normal
+     (guarantees a visible patch even when gmsh meshing fails)
    │
    ▼ Return list of open joint records
      {centroid, area, area_ratio, body_idx, vertices, triangles, normal_hint}
@@ -859,21 +880,25 @@ Octree root  (bounding box of all free-surface centroids)
 
 #### Visual output in 3D viewer
 
-Flagged surfaces are rendered as **amber (`#f59e0b`) semi-transparent `Mesh3d` patches** overlaid directly on the assembly geometry. Hovering over any amber patch shows:
+Flagged surfaces are rendered as **lime-green (`#84cc16`) semi-transparent `Mesh3d` patches** overlaid directly on the assembly geometry. Each open joint gets its **own labelled legend entry** (e.g. `⬡ Body 26  (43%)`); clicking a legend entry in the Plotly viewer isolates that joint for inspection. Hovering over any patch shows:
 
 > *"This area needs components to be assembled · Body N · X% of body surface area"*
 
-A single `⬡ Needs Assembly` legend entry covers all flagged patches. The amber patches appear on top of the blue body mesh so they are visually distinct without hiding the geometry underneath (opacity 0.82).
+The lime-green patches appear on top of the grey/blue body mesh with opacity 0.82 — visually distinct without hiding the geometry underneath.
 
-#### UI output
+#### UI output (left panel §5)
 
 ```
 ⬡ Open Assembly Joints Detected
-  ⬡  Body 1   [23% of body area]
+  Lime green mesh in 3D viewer — click a legend entry to isolate each joint
+
+  ■  ⬡ Body 26  (43%)   43% of body area
        This area needs components to be assembled
-  ⬡  Body 3   [18% of body area]
+  ■  ⬡ Body 15  (30%)   30% of body area
        This area needs components to be assembled
 ```
+
+*(■ = lime-green square swatch colour indicator)*
 
 ---
 
