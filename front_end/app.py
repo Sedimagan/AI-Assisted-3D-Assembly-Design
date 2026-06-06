@@ -679,15 +679,26 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
                 '<p style="font-size:0.76rem;font-weight:700;color:#ef4444;'
                 'margin:0 0 5px;">🔴 Not Assembled / Not Properly Mated</p>'
             )
+            # Group by (name, label) so repeated instances show as one entry + count
+            _seen_flagged: dict = {}
             for i in all_flagged:
-                label = ("no connections in assembly"
-                         if i in not_assembled else "under-connected — not properly mated")
+                _lbl = ("no connections in assembly"
+                        if i in not_assembled else "under-connected — not properly mated")
+                _key = (_pname(i), _lbl)
+                _seen_flagged[_key] = _seen_flagged.get(_key, 0) + 1
+            for (_nm, _lbl), _cnt in _seen_flagged.items():
+                _cnt_badge = (
+                    f'<span style="background:#fde8e8;color:#c0392b;font-size:0.62rem;'
+                    f'font-weight:700;padding:1px 5px;border-radius:3px;margin-left:4px;">'
+                    f'×{_cnt}</span>' if _cnt > 1 else ""
+                )
                 rows += (
                     f'<div style="display:flex;align-items:center;gap:6px;'
                     f'font-size:0.72rem;margin-bottom:5px;">'
                     f'<span style="color:#ef4444;font-size:0.78rem;">⚠</span>'
-                    f'<span style="color:#cc2222;font-weight:600;">{_pname(i)}</span>'
-                    f'<span style="color:#888;font-size:0.68rem;">— {label}</span>'
+                    f'<span style="color:#cc2222;font-weight:600;">{_nm}</span>'
+                    f'{_cnt_badge}'
+                    f'<span style="color:#888;font-size:0.68rem;">— {_lbl}</span>'
                     f'</div>'
                 )
 
@@ -697,21 +708,36 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
                 '<p style="font-size:0.76rem;font-weight:700;color:#5b9bd5;'
                 'margin:8px 0 5px;">🤖 AI Predicted Missing Links</p>'
             )
-            link_rows = ""
+            # Group by (src_name, dst_name) keeping highest confidence per pair
+            _seen_links: dict = {}
             for lk in missing:
                 u, v, s = lk["src"], lk["dst"], lk["confidence"]
-                pct = int(s * 100)
-                col = "#4caf82" if s >= 0.8 else "#5b9bd5" if s >= 0.5 else "#e08850"
+                _lk_key = (_pname(u), _pname(v))
+                if _lk_key not in _seen_links or s > _seen_links[_lk_key][0]:
+                    _seen_links[_lk_key] = (s, _seen_links.get(_lk_key, (0, 0))[1] + 1)
+                else:
+                    _seen_links[_lk_key] = (_seen_links[_lk_key][0],
+                                            _seen_links[_lk_key][1] + 1)
+            link_rows = ""
+            for (_pu, _pv), (_s, _lcnt) in _seen_links.items():
+                pct = int(_s * 100)
+                col = "#4caf82" if _s >= 0.8 else "#5b9bd5" if _s >= 0.5 else "#e08850"
+                _lk_badge = (
+                    f'<span style="background:#e8f0fe;color:#3b5bdb;font-size:0.62rem;'
+                    f'font-weight:700;padding:1px 5px;border-radius:3px;margin-left:4px;">'
+                    f'×{_lcnt}</span>' if _lcnt > 1 else ""
+                )
                 link_rows += (
                     f'<div style="display:flex;align-items:center;gap:8px;'
                     f'font-size:0.72rem;margin-bottom:6px;">'
                     f'<span style="color:#333;white-space:nowrap;min-width:120px;font-weight:600;">'
-                    f'{_pname(u)} ↔ {_pname(v)}</span>'
+                    f'{_pu} ↔ {_pv}</span>'
+                    f'{_lk_badge}'
                     f'<div style="flex:1;background:#dce8f0;border-radius:3px;height:7px;">'
                     f'<div style="width:{pct}%;background:{col};border-radius:3px;height:7px;"></div>'
                     f'</div>'
                     f'<span style="color:{col};font-weight:700;min-width:36px;text-align:right;">'
-                    f'{s:.3f}</span></div>'
+                    f'{_s:.3f}</span></div>'
                 )
             rows += lbl + link_rows
 
