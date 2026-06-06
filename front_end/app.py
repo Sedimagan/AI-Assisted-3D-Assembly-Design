@@ -916,7 +916,7 @@ def _run_aida_explain(inference_result: dict) -> str:
                     f"{{m['name']}} (x{{m['count']}}: {{m['reason']}})"
                     for m in not_mated
                 )
-                nm_lines = f"  {total_flagged} flagged instances — {parts_summary}"
+                nm_lines = "  " + str(total_flagged) + " flagged — " + parts_summary
             else:
                 nm_lines = "  (none)"
 
@@ -945,20 +945,19 @@ def _run_aida_explain(inference_result: dict) -> str:
                 "1. Not Assembled / Not Properly Mated: " + nm_lines + "\\n"
                 "2. AI Predicted Missing Links: " + ml_lines + "\\n"
                 "3. Open Assembly Joints (Octree): " + oj_lines + "\\n\\n"
-                "RULES:\\n"
-                "- Write all four sections below. Do NOT stop early.\\n"
-                "- Max 3 bullet points per section. Each bullet is 1-2 sentences.\\n"
-                "- No markdown bold or italic. Plain text bullets only.\\n\\n"
-                "=== 1. Not Assembled / Not Properly Mated ===\\n"
-                "(Explain the mechanical meaning and assembly consequence — max 3 bullets)\\n\\n"
-                "=== 2. AI Predicted Missing Links ===\\n"
-                "(For each link: likely component type and confidence level — max 3 bullets)\\n\\n"
-                "=== 3. Open Assembly Joints Detected ===\\n"
-                "(For each body: what component is likely missing based on exposed surface — max 3 bullets)\\n\\n"
-                "=== Overall Recommendation ===\\n"
-                "(2-3 sentences on what the engineer should do next)"
+                "STRICT RULES — follow exactly:\\n"
+                "- Write ALL FOUR sections. Do NOT stop after section 1.\\n"
+                "- Section 1: write EXACTLY 2 bullets — one for the 'no connections' group, one for the 'under-connected' group. Do NOT write a bullet per part name.\\n"
+                "- Section 2: write one bullet per predicted link (max 3 bullets total).\\n"
+                "- Section 3: write one bullet per open joint body (max 4 bullets total).\\n"
+                "- Section 4: write 2 sentences max.\\n"
+                "- Plain text bullets only. No markdown bold or italic.\\n\\n"
+                "=== 1. Not Assembled / Not Properly Mated ===\\n\\n"
+                "=== 2. AI Predicted Missing Links ===\\n\\n"
+                "=== 3. Open Assembly Joints Detected ===\\n\\n"
+                "=== Overall Recommendation ==="
             )
-            print(agent._ask(prompt, max_tokens=1800))
+            print(agent._ask(prompt, max_tokens=2500))
         except Exception as e:
             print(f"[AIDA offline] {{e}}")
     """)
@@ -1794,7 +1793,32 @@ if (
 # Render AIDA panel
 _expl_text = st.session_state.aida_explanation
 if _expl_text:
-    _body = f'<p style="font-size:0.88rem;color:#e0f2fe;line-height:1.9;white-space:pre-wrap;margin:0;">{_expl_text}</p>'
+    import html as _html
+    _lines = []
+    for _ln in _expl_text.splitlines():
+        _esc = _html.escape(_ln)
+        if _esc.startswith("===") and _esc.endswith("==="):
+            # Section heading — bright sky-blue, bold
+            _lines.append(
+                f'<p style="font-size:0.82rem;font-weight:700;color:#7dd3fc;'
+                f'margin:10px 0 4px;">{_esc}</p>'
+            )
+        elif _esc.startswith(("* ", "- ", "• ")):
+            # Bullet — white text
+            _bullet = _esc[2:]
+            _lines.append(
+                f'<p style="font-size:0.85rem;color:#e0f2fe;line-height:1.7;'
+                f'margin:2px 0 2px 8px;">• {_bullet}</p>'
+            )
+        elif _esc.strip() == "":
+            _lines.append('<div style="height:4px;"></div>')
+        else:
+            # Plain text (non-bullet body lines) — same bright white
+            _lines.append(
+                f'<p style="font-size:0.85rem;color:#e0f2fe;line-height:1.7;'
+                f'margin:2px 0;">{_esc}</p>'
+            )
+    _body = "".join(_lines)
 elif _inf and "error" in _inf:
     _body = '<p style="font-size:0.84rem;color:#fca5a5;margin:0;">Inference error — no explanation available.</p>'
 else:
