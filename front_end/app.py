@@ -592,7 +592,7 @@ def _run_inference(step_bytes: bytes,
 def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
     """Return the HTML for the right viewer panel based on inference state."""
     PANEL = (
-        "border:1.5px solid #2a4060;border-radius:8px;height:260px;"
+        "border:1.5px solid #2a4060;border-radius:8px;height:400px;"
         "background:#f8f9fb;"
     )
     CENTER = (
@@ -787,7 +787,7 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
             rows = "<p style='color:#4caf82;font-size:0.78rem;'>✓ Assembly appears complete — no issues found.</p>"
 
         return (
-            f'<div style="{PANEL}padding:14px;overflow-y:auto;max-height:280px;">'
+            f'<div style="{PANEL}padding:14px;overflow-y:auto;max-height:400px;">'
             f'<p style="font-size:0.72rem;color:#888;margin:0 0 6px;">'
             f'{n_nodes} components · {n_edges} known connections</p>'
             f'{rows}</div>'
@@ -826,23 +826,61 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
 
 def _run_aida_explain(inference_result: dict) -> str:
     """Build a three-category assembly summary and ask AIDA to explain it."""
-    missing    = inference_result.get("missing_links", [])
-    n_nodes    = inference_result.get("n_nodes", 0)
-    n_edges    = inference_result.get("n_edges", 0)
-    part_names = inference_result.get("part_names", [])
-    pot_miss   = inference_result.get("potentially_missing", [])
-    open_surfs = inference_result.get("open_surfaces", [])
-    back_end   = str(_PROJ_ROOT / "back_end")
+    missing      = inference_result.get("missing_links", [])
+    n_nodes      = inference_result.get("n_nodes", 0)
+    n_edges      = inference_result.get("n_edges", 0)
+    part_names   = inference_result.get("part_names", [])
+    node_degrees = inference_result.get("node_degrees", [])
+    open_surfs   = inference_result.get("open_surfaces", [])
+    back_end     = str(_PROJ_ROOT / "back_end")
+
+    def _basename(s):
+        if s and "/" in s:
+            return s.rstrip("/").split("/")[-1].strip()
+        return s or ""
 
     def _pname(i):
-        return part_names[i] if i < len(part_names) and part_names[i] else f"Part {i+1}"
+        if i < len(part_names) and part_names[i]:
+            short = _basename(part_names[i])
+            return short[:48] + "…" if len(short) > 48 else short
+        return f"Part {i+1}"
 
-    # Category 1 — Not Assembled / Not Properly Mated
-    not_mated = [
-        {"name": m.get("name", f"Part {m.get('node', 0)+1}"),
-         "reason": m.get("reason", "isolated or under-connected")}
-        for m in pot_miss
-    ]
+    # Category 1 — replicate the exact grouping logic from _right_panel_html
+    _grp: dict = {}
+    for _gi, _gn in enumerate(part_names):
+        _key = _basename(_gn) if _gn else f"__solo_{_gi}"
+        _grp.setdefault(_key, []).append(_gi)
+
+    not_assembled:   list = []
+    under_connected: list = []
+    for _gnodes in _grp.values():
+        _degs = [node_degrees[_i] for _i in _gnodes if _i < len(node_degrees)]
+        _max  = max(_degs) if _degs else 0
+        for _gi in _gnodes:
+            if _gi >= len(node_degrees):
+                continue
+            _d = node_degrees[_gi]
+            if len(_gnodes) > 1:
+                if _d == 0:
+                    not_assembled.append(_gi)
+                elif _d < _max:
+                    under_connected.append(_gi)
+            else:
+                if _d == 0:
+                    not_assembled.append(_gi)
+
+    # Group by unique name for a compact AIDA summary
+    def _group_by_name(indices, label):
+        counts: dict = {}
+        for i in indices:
+            n = _pname(i)
+            counts[n] = counts.get(n, 0) + 1
+        return [{"name": n, "count": c, "reason": label} for n, c in counts.items()]
+
+    not_mated = (
+        _group_by_name(not_assembled,   "no connections in assembly") +
+        _group_by_name(under_connected, "under-connected — not properly mated")
+    )
 
     # Category 2 — AI Predicted Missing Links
     missing_named = [
@@ -874,7 +912,8 @@ def _run_aida_explain(inference_result: dict) -> str:
             # ── Category 1 text ───────────────────────────────────────────────
             if not_mated:
                 nm_lines = "\\n".join(
-                    f"  - {{m['name']}} ({{m['reason']}})" for m in not_mated
+                    f"  - {{m['name']}} x{{m['count']}} — {{m['reason']}}"
+                    for m in not_mated
                 )
             else:
                 nm_lines = "  (none)"
@@ -900,20 +939,24 @@ def _run_aida_explain(inference_result: dict) -> str:
             prompt = (
                 "You are AIDA, an AI Design Assistant for 3D mechanical assembly analysis.\\n"
                 "Assembly overview: " + str(n_nodes) + " components, " + str(n_edges) + " known mating connections.\\n\\n"
-                "Provide a structured engineering summary under exactly these three headings.\\n"
-                "For each heading write 1-2 concise bullet points (plain English, no jargon overload).\\n"
+                "Write a structured engineering summary under the three headings below.\\n"
+                "Use bullet points. Be thorough but concise — each bullet is 1-2 sentences.\\n"
                 "If a category has no findings, write: No issues detected in this category.\\n\\n"
                 "=== 1. Not Assembled / Not Properly Mated ===\\n" + nm_lines + "\\n\\n"
                 "=== 2. AI Predicted Missing Links ===\\n" + ml_lines + "\\n\\n"
                 "=== 3. Open Assembly Joints Detected ===\\n" + oj_lines + "\\n\\n"
-                "Instructions:\\n"
-                "- Under heading 1: explain what not mated means for those specific parts and the likely assembly consequence.\\n"
-                "- Under heading 2: explain what the predicted missing link likely represents mechanically "
-                "(e.g. fastener, bearing seat) and whether the confidence level is high/medium/low.\\n"
-                "- Under heading 3: explain what an open assembly joint means — which body surfaces have "
-                "no mating component and what type of component is likely missing there.\\n"
-                "- End with one overall recommendation sentence.\\n"
-                "- No prose paragraphs outside the bullets. No markdown bold or italic. Keep it under 12 lines total."
+                "For each heading explain:\\n"
+                "  Heading 1 — For each unique part type listed: what does 'not mated' or 'under-connected' "
+                "mean mechanically, what is the likely root cause (wrong placement, missing mate constraint, "
+                "displaced fastener pattern), and what assembly consequence does it have.\\n"
+                "  Heading 2 — For each predicted missing link: what mechanical relationship it likely "
+                "represents (fastener, pin, bearing seat, press-fit etc.), why the GNN flagged it, and "
+                "whether the confidence is high (>0.8) / medium (0.6-0.8) / low (<0.6).\\n"
+                "  Heading 3 — For each open joint body: what type of mating component is likely missing "
+                "(cover plate, nut, shaft, housing lid, etc.) based on the percentage of exposed surface area, "
+                "and what the Octree spatial analysis implies about the assembly gap.\\n"
+                "End with a 1-2 sentence overall recommendation for the engineer.\\n"
+                "No prose paragraphs. No markdown bold or italic formatting."
             )
             print(agent._ask(prompt))
         except Exception as e:
