@@ -405,8 +405,16 @@ class AssemblyDataset(InMemoryDataset):
     def download(self): pass
 
     def process(self):
+        import re as _re
+        _UUID_RE = _re.compile(
+            r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+            _re.IGNORECASE,
+        )
         step_exts  = {".step", ".stp", ".STEP", ".STP"}
-        step_files = [p for p in self.source_dir.rglob("*") if p.suffix in step_exts]
+        step_files = [
+            p for p in self.source_dir.rglob("*")
+            if p.suffix in step_exts and not _UUID_RE.match(p.stem)
+        ]
 
         graphs: List[Data] = []
         source_paths: List[str] = []
