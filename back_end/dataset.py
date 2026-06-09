@@ -343,8 +343,14 @@ def _parse_step(step_path: str) -> Optional[Data]:
 def _parse_step_worker(step_path: str, result_queue: "_mp.Queue") -> None:
     """Worker target: parse one STEP file and push result onto the queue."""
     try:
+        import io
         result = _parse_step(step_path)
-        result_queue.put(("ok", result))
+        if result is not None:
+            buf = io.BytesIO()
+            torch.save(result, buf)
+            result_queue.put(("ok", buf.getvalue()))
+        else:
+            result_queue.put(("ok", None))
     except Exception as exc:
         result_queue.put(("error", str(exc)))
 
@@ -378,7 +384,13 @@ def _parse_step_with_timeout(
 
     if not q.empty():
         status, payload = q.get_nowait()
-        return (payload if status == "ok" else None), status
+        if status == "ok":
+            if payload is None:
+                return None, "ok"
+            import io
+            data = torch.load(io.BytesIO(payload), weights_only=False)
+            return data, "ok"
+        return None, "error"
 
     return None, "error"
 
