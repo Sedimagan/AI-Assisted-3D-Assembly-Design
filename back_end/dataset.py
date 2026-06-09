@@ -27,7 +27,10 @@ Node feature vector: 16-dim
 from __future__ import annotations
 
 import json
+import multiprocessing as _mp
 import random
+import shutil
+import time
 from pathlib import Path
 from typing import List, Optional, Tuple
 
@@ -335,6 +338,51 @@ def _parse_step(step_path: str) -> Optional[Data]:
         gmsh.finalize()
 
 
+# ── Timeout wrapper for _parse_step ──────────────────────────────────────────
+
+def _parse_step_worker(step_path: str, result_queue: "_mp.Queue") -> None:
+    """Worker target: parse one STEP file and push result onto the queue."""
+    try:
+        result = _parse_step(step_path)
+        result_queue.put(("ok", result))
+    except Exception as exc:
+        result_queue.put(("error", str(exc)))
+
+
+def _parse_step_with_timeout(
+    step_path: str,
+    timeout_secs: int = 300,
+) -> tuple:
+    """
+    Run _parse_step in a child process.  If the child does not finish within
+    timeout_secs it is killed and the file is reported as timed-out.
+
+    Returns
+    -------
+    (Data | None, status)
+      status: "ok" | "timeout" | "error"
+    """
+    ctx = _mp.get_context("spawn")   # fresh interpreter — avoids gmsh state leaks
+    q   = ctx.Queue()
+    p   = ctx.Process(target=_parse_step_worker, args=(step_path, q), daemon=True)
+    p.start()
+    p.join(timeout=timeout_secs)
+
+    if p.is_alive():
+        p.terminate()
+        p.join(5)
+        if p.is_alive():
+            p.kill()
+            p.join()
+        return None, "timeout"
+
+    if not q.empty():
+        status, payload = q.get_nowait()
+        return (payload if status == "ok" else None), status
+
+    return None, "error"
+
+
 # ── Synthetic data fallback ───────────────────────────────────────────────────
 
 def _synthetic_graph(n_nodes: int = None) -> Data:
@@ -416,19 +464,69 @@ class AssemblyDataset(InMemoryDataset):
             if p.suffix in step_exts and not _UUID_RE.match(p.stem)
         ]
 
-        graphs: List[Data] = []
-        source_paths: List[str] = []
+        graphs:       List[Data] = []
+        source_paths: List[str]  = []
+        skipped:      List[dict] = []
+        _skipped_dir  = self.source_dir / "skipped_models"
+        _TIMEOUT      = 300   # seconds per file
+
         if step_files:
-            print(f"  Found {len(step_files)} STEP file(s) in {self.source_dir}")
-            for sf in sorted(step_files):
-                print(f"  Parsing: {sf.name}")
-                g = _parse_step(str(sf))
+            print(f"  Found {len(step_files)} STEP file(s) in {self.source_dir}",
+                  flush=True)
+            for idx, sf in enumerate(sorted(step_files), 1):
+                print(f"  [{idx}/{len(step_files)}] Parsing: {sf.name}", flush=True)
+                t0 = time.time()
+                g, status = _parse_step_with_timeout(str(sf), timeout_secs=_TIMEOUT)
+                elapsed = round(time.time() - t0, 1)
+
+                if status == "timeout":
+                    print(f"  [TIMEOUT] {sf.name} — exceeded {_TIMEOUT}s "
+                          f"({elapsed}s) — skipping", flush=True)
+                    entry = {
+                        "file":    str(sf),
+                        "folder":  str(sf.parent),
+                        "reason":  f"timeout — exceeded {_TIMEOUT}s",
+                        "elapsed": elapsed,
+                    }
+                    skipped.append(entry)
+                    # Move the entire model folder into skipped_models/
+                    if sf.parent != self.source_dir:   # only if in a sub-folder
+                        _skipped_dir.mkdir(exist_ok=True)
+                        dest = _skipped_dir / sf.parent.name
+                        if not dest.exists():
+                            shutil.move(str(sf.parent), str(dest))
+                            entry["moved_to"] = str(dest)
+                    continue
+
+                if status == "error":
+                    print(f"  [ERROR]   {sf.name} — parse failed", flush=True)
+                    continue
+
                 if g is not None and g.num_nodes >= 2:
                     graphs.append(g)
                     source_paths.append(str(sf))
-            print(f"  Parsed {len(graphs)} valid assembly graph(s).")
+                    print(f"  [OK]      {sf.name} — {g.num_nodes} nodes  "
+                          f"{g.edge_index.size(1)//2} edges  ({elapsed}s)", flush=True)
+
+            print(f"  Parsed {len(graphs)} valid  |  "
+                  f"Skipped {len(skipped)} (timeout)", flush=True)
+
+            # ── Write skipped report ──────────────────────────────────────
+            if skipped:
+                report = {
+                    "source_dir":   str(self.source_dir),
+                    "timeout_secs": _TIMEOUT,
+                    "total_found":  len(step_files),
+                    "total_parsed": len(graphs),
+                    "total_skipped": len(skipped),
+                    "skipped_models_folder": str(_skipped_dir),
+                    "entries": skipped,
+                }
+                report_path = self.source_dir / "skipped_models_report.json"
+                report_path.write_text(json.dumps(report, indent=2))
+                print(f"  Skipped report → {report_path}", flush=True)
         else:
-            print(f"  No STEP files found in {self.source_dir}.")
+            print(f"  No STEP files found in {self.source_dir}.", flush=True)
 
         if len(graphs) == 0:
             raise RuntimeError(
