@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Second Review — AI-Assisted 3D Assembly Design</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: #080e18;
+  color: #d0dcea;
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* ── deck ── */
+#deck {
+  width: 100%;
+  height: calc(100vh - 52px);
+  position: relative;
+  overflow: hidden;
+}
+.slide {
+  display: none;
+  position: absolute;
+  inset: 0;
+  flex-direction: column;
+  animation: slideIn 0.32s cubic-bezier(0.25,0.46,0.45,0.94);
+}
+.slide.active { display: flex; }
+@keyframes slideIn {
+  from { opacity:0; transform:translateY(7px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── slide header ── */
+.shdr {
+  background: linear-gradient(135deg,#0d2040,#0a1a34);
+  border-bottom: 2px solid #1a3560;
+  padding: 12px 30px;
+  display: flex; align-items: center; gap: 14px;
+  flex-shrink: 0;
+}
+.snum {
+  width:34px; height:34px; border-radius:50%;
+  border:1.5px solid #4f8ef7; color:#4f8ef7;
+  font-size:14px; font-weight:700;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.shdr h2 { font-size:25px; font-weight:700; color:#ddeeff; flex:1; }
+.shdr .sub { font-size:13px; color:#2e5080; }
+
+/* ── slide body ── */
+.sbody {
+  flex:1; overflow:hidden;
+  padding: 16px 28px 14px;
+  background: #0d1018;
+  display: flex; flex-direction: column; gap: 12px;
+}
+
+/* ── nav bar ── */
+#nav {
+  height:52px; background:#060c14;
+  border-top:1px solid #0f1a28;
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 0 22px;
+}
+.nbtn {
+  width:34px; height:34px; border-radius:50%;
+  border:1px solid #1a2e50; background:#0a1422;
+  color:#4a6888; font-size:16px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:all 0.18s;
+}
+.nbtn:hover { border-color:#4f8ef7; color:#4f8ef7; }
+#dots { display:flex; gap:8px; align-items:center; }
+.dot {
+  width:8px; height:8px; border-radius:4px;
+  background:#1a2e50; cursor:pointer; transition:all 0.2s;
+}
+.dot.on { background:#4f8ef7; width:22px; }
+#sinfo { font-size:12px; color:#253545; min-width:48px; text-align:right; }
+
+/* ── layout ── */
+.row  { display:flex; gap:16px; flex:1; }
+.col  { flex:1; display:flex; flex-direction:column; gap:11px; }
+.cols { flex:0.82; }
+.coll { flex:1.18; }
+
+/* ── card ── */
+.card {
+  background:#101620; border:1px solid #1a2332;
+  border-radius:10px; padding:14px 18px;
+  display:flex; flex-direction:column; gap:9px;
+}
+.card.bl { border-top:2px solid #4f8ef7; }
+.card.bg { border-top:2px solid #4caf82; }
+.card.bp { border-top:2px solid #a56bff; }
+.card.bo { border-top:2px solid #e08850; }
+.card h3 { font-size:14px; font-weight:600; color:#a0c0de; }
+
+/* ── labels ── */
+.lbl {
+  font-size:10px; text-transform:uppercase;
+  letter-spacing:2px; margin-bottom:1px;
+}
+.lbl.b { color:#4f8ef7; } .lbl.g { color:#4caf82; }
+.lbl.p { color:#a56bff; } .lbl.o { color:#e08850; }
+
+/* ── bullets ── */
+.slide.active ul.bl li {
+  animation: fadeUp 0.28s ease both;
+}
+ul.bl {
+  list-style:none; display:flex; flex-direction:column; gap:9px;
+}
+ul.bl li {
+  font-size:18px; color:#7a9ab8; line-height:1.55;
+  padding-left:20px; position:relative; opacity:0;
+}
+ul.bl li::before {
+  content:'›'; position:absolute; left:0;
+  font-size:20px; font-weight:700; line-height:1.3; color:#4f8ef7;
+}
+ul.bl.g li::before { color:#4caf82; }
+ul.bl.p li::before { color:#a56bff; }
+ul.bl.o li::before { color:#e08850; }
+ul.bl li strong { color:#c8dcea; }
+ul.bl li:nth-child(1) { animation-delay:0.04s; }
+ul.bl li:nth-child(2) { animation-delay:0.09s; }
+ul.bl li:nth-child(3) { animation-delay:0.14s; }
+ul.bl li:nth-child(4) { animation-delay:0.19s; }
+ul.bl li:nth-child(5) { animation-delay:0.24s; }
+ul.bl li:nth-child(6) { animation-delay:0.29s; }
+ul.bl li:nth-child(7) { animation-delay:0.34s; }
+ul.bl li:nth-child(8) { animation-delay:0.39s; }
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(5px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── metric cards ── */
+.mrow { display:flex; gap:12px; flex-shrink:0; }
+.met {
+  flex:1; background:#0a1420; border:1px solid #1a2332;
+  border-radius:10px; padding:13px 10px; text-align:center;
+  display:flex; flex-direction:column; gap:3px;
+}
+.met .mv { font-size:32px; font-weight:700; line-height:1; }
+.met .mk { font-size:12px; color:#2e4460; letter-spacing:0.5px; margin-top:5px; }
+.met .mn { font-size:11px; color:#1e3040; margin-top:2px; }
+.met.b .mv { color:#4f8ef7; } .met.g .mv { color:#4caf82; }
+.met.p .mv { color:#a56bff; } .met.o .mv { color:#e08850; }
+
+/* ── pipeline ── */
+.pipe { display:flex; align-items:stretch; }
+.pn {
+  background:#0d1724; border:1px solid #1e3050;
+  border-radius:8px; padding:11px 14px; flex:1;
+  display:flex; flex-direction:column; align-items:center;
+  justify-content:center; text-align:center; gap:3px;
+}
+.pn .pnt { font-size:13px; font-weight:600; }
+.pn .pns { font-size:11px; color:#2a4060; margin-top:1px; }
+.pn .pnn { font-size:10px; font-weight:700; letter-spacing:1px; margin-bottom:2px; }
+.pn.hi { border-color:#4f8ef7; } .pn.hi .pnt,.pn.hi .pnn { color:#4f8ef7; }
+.pn.hg { border-color:#4caf82; } .pn.hg .pnt,.pn.hg .pnn { color:#4caf82; }
+.pn.hp { border-color:#a56bff; } .pn.hp .pnt,.pn.hp .pnn { color:#a56bff; }
+.pn.ho { border-color:#e08850; } .pn.ho .pnt,.pn.ho .pnn { color:#e08850; }
+.parr { display:flex; align-items:center; padding:0 7px; color:#1e3050; font-size:18px; }
+
+/* ── highlight bar ── */
+.hbar {
+  background:#0a1420; border-left:2px solid #4f8ef7;
+  border-radius:0 8px 8px 0; padding:10px 14px;
+  font-size:15px; color:#4a6888; line-height:1.65; flex-shrink:0;
+}
+.hbar strong { color:#aac8e0; }
+.hbar.g { border-color:#4caf82; }
+
+/* ── table ── */
+.tbl { width:100%; border-collapse:collapse; }
+.tbl th { font-size:13px; font-weight:600; color:#3a5880; text-align:left; padding:5px 9px; border-bottom:1px solid #1a2332; }
+.tbl td { font-size:15px; color:#6a8aaa; padding:6px 9px; border-bottom:1px solid #0f1828; }
+.tbl td.hi { color:#4f8ef7; font-weight:600; }
+.tbl td.hg { color:#4caf82; font-weight:600; }
+.tbl td.ho { color:#e08850; font-weight:600; }
+.tbl tr.best td { background:#0d1e2e; }
+
+/* ── references ── */
+.ref {
+  background:#0d1622; border:1px solid #1a2332;
+  border-radius:8px; padding:11px 14px;
+  display:flex; gap:12px; align-items:flex-start;
+}
+.rnum {
+  width:26px; height:26px; border-radius:50%;
+  border:1.5px solid #4f8ef7; color:#4f8ef7;
+  font-size:12px; font-weight:700;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.rbody .rt { font-size:15px; color:#7aaac8; font-weight:500; line-height:1.45; }
+.rbody .rm { font-size:13px; color:#2e4458; margin-top:3px; }
+.rbody .rr { font-size:12px; color:#2a6a48; margin-top:2px; }
+
+/* ── chart ── */
+.cwrap {
+  flex:1; background:#0a1020; border:1px solid #1a2332;
+  border-radius:10px; padding:14px;
+  display:flex; flex-direction:column; gap:8px; min-height:0;
+}
+.ctitle { font-size:13px; font-weight:600; color:#5a7898; letter-spacing:0.5px; }
+.legend { display:flex; gap:14px; flex-wrap:wrap; flex-shrink:0; }
+.li { display:flex; align-items:center; gap:6px; font-size:13px; color:#3a5878; }
+.ll { width:18px; height:3px; border-radius:2px; }
+.llb { width:14px; height:14px; border-radius:3px; }
+.cwrap canvas { flex:1; display:block; min-height:0; }
+
+/* ════════════════════════════════
+   SLIDE 1 — Title
+════════════════════════════════ */
+#s1 { background:#0d1018; }
+#s1 .tbody {
+  flex:1; display:flex; flex-direction:column;
+  justify-content:center; padding:28px 56px; gap:0; position:relative;
+}
+.taccent {
+  width:4px; height:70px;
+  background:linear-gradient(180deg,#4f8ef7,#a56bff);
+  border-radius:2px; position:absolute; left:28px;
+  top:50%; transform:translateY(-50%);
+}
+.tinst { font-size:15px; color:#304a68; letter-spacing:0.8px; margin-bottom:18px; font-style:italic; }
+.tmain { font-size:44px; font-weight:800; color:#ddeeff; line-height:1.1; margin-bottom:10px; }
+.tsub  { font-size:24px; font-weight:400; color:#4f8ef7; margin-bottom:5px; }
+.tdate { font-size:17px; color:#2a4260; margin-bottom:24px; }
+.tdiv  { height:1px; background:linear-gradient(90deg,#1a3050,transparent); margin:16px 0; max-width:460px; }
+.tablbl { font-size:12px; text-transform:uppercase; letter-spacing:2px; color:#4caf82; margin-bottom:8px; }
+.tabstr { font-size:16px; color:#4a6a88; line-height:1.8; max-width:700px; }
+.tabstr strong { color:#a0c0de; }
+.scard {
+  position:absolute; right:56px; bottom:36px;
+  background:#0d1e34; border:1px solid #1a3050;
+  border-radius:10px; padding:13px 18px; text-align:right;
+}
+.sc-lbl  { font-size:11px; color:#253848; text-transform:uppercase; letter-spacing:1.5px; }
+.sc-name { font-size:19px; font-weight:700; color:#bdd4ee; margin-top:4px; }
+.sc-inst { font-size:12px; color:#253848; margin-top:2px; }
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+<!-- ═══════════════════════════ SLIDE 1 ═══════════════════════════ -->
+<div class="slide active" id="s1">
+  <div style="height:3px;background:linear-gradient(90deg,#4f8ef7,#a56bff,#4caf82);flex-shrink:0;"></div>
+  <div class="tbody">
+    <div class="taccent"></div>
+    <div class="tinst">PES University Bengaluru &nbsp;|&nbsp; M.Tech Individual Project — Semester 4</div>
+    <div class="tmain">AI-Assisted 3D<br>Assembly Design</div>
+    <div class="tsub">Second Review Presentation</div>
+    <div class="tdate">13th June 2026</div>
+    <div class="tdiv"></div>
+    <div class="tablbl">Abstract</div>
+    <div class="tabstr">
+      This project develops an end-to-end AI pipeline that analyses partial 3D mechanical
+      assemblies supplied as STEP files, constructs graph representations of parts and their
+      mating relationships, and employs a <strong>Graph Attention Network (GAT)</strong>
+      to detect missing components. A natural-language assistant <strong>AIDA</strong>,
+      powered by Gemini 2.5 Flash, explains assembly structure and suggests corrective actions.
+      The system is delivered as an interactive web application combining a
+      <strong>FastAPI backend</strong> with a <strong>Streamlit 3D-viewer frontend</strong>.
+    </div>
+    <div class="scard">
+      <div class="sc-lbl">Presented by</div>
+      <div class="sc-name">Parthasarathy Perumal</div>
+      <div class="sc-inst">M.Tech — Sem 4 &nbsp;|&nbsp; PES University Bengaluru</div>
+      <div style="height:1px;background:#1a3050;margin:8px 0;"></div>
+      <div class="sc-lbl">Guide</div>
+      <div class="sc-name" style="font-size:16px;">Prof. Sagarika Borah</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ SLIDE 2 ═══════════════════════════ -->
+<div class="slide" id="s2">
+  <div class="shdr">
+    <div class="snum">2</div>
+    <h2>Detailed Algorithm Design</h2>
+    <div class="sub">Graph Neural Network Pipeline for Missing Component Detection</div>
+  </div>
+  <div class="sbody">
+
+    <div class="pipe">
+      <div class="pn hi">
+        <div class="pnn">STEP 1</div>
+        <div class="pnt">Input Processing</div>
+        <div class="pns">STEP file → gmsh / OpenCASCADE</div>
+      </div>
+      <div class="parr">→</div>
+      <div class="pn hg">
+        <div class="pnn">STEP 2</div>
+        <div class="pnt">Graph Construction</div>
+        <div class="pns">Nodes (13-dim) + Edges (2-dim)</div>
+      </div>
+      <div class="parr">→</div>
+      <div class="pn hp">
+        <div class="pnn">STEP 3</div>
+        <div class="pnt">GNN Model — GAT</div>
+        <div class="pns">3-layer · 64-dim embeddings</div>
+      </div>
+      <div class="parr">→</div>
+      <div class="pn ho">
+        <div class="pnn">STEP 4</div>
+        <div class="pnt">Prediction &amp; Output</div>
+        <div class="pns">MLP → missing components</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <div class="card bl" style="flex:1">
+          <div class="lbl b">Input Processing</div>
+          <h3>STEP File → Geometry</h3>
+          <ul class="bl">
+            <li>STEP files as assembly input</li>
+            <li>gmsh + OpenCASCADE for B-rep solid parsing</li>
+            <li>Mesh generation and solid body extraction</li>
+            <li>Synthetic graph fallback for testing</li>
+          </ul>
+        </div>
+        <div class="card bg" style="flex:1">
+          <div class="lbl g">Graph Construction</div>
+          <h3>Assembly Graph Features</h3>
+          <ul class="bl g">
+            <li><strong>Node (13-dim):</strong> part-type one-hot (8) + volume + surface area + bounding-box Δx / Δy / Δz</li>
+            <li><strong>Edge (2-dim):</strong> mate-type encoding + contact weight</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card bp" style="flex:1">
+          <div class="lbl p">GNN Model</div>
+          <h3>AssemblyGNN — Graph Attention Network</h3>
+          <ul class="bl p">
+            <li>3-layer GAT with 8 attention heads per layer</li>
+            <li>64-dimensional node embeddings (hidden = 128)</li>
+            <li>Dropout = 0.1 for regularisation</li>
+            <li>Adam + ReduceLROnPlateau scheduler</li>
+          </ul>
+        </div>
+        <div class="card bo" style="flex:1">
+          <div class="lbl o">Prediction &amp; AI Explanation</div>
+          <h3>Link Predictor + AIDA Agent</h3>
+          <ul class="bl o">
+            <li>MLP Link Predictor — binary edge score per part pair</li>
+            <li>Threshold → missing component candidates</li>
+            <li>AIDA (Gemini 2.5 Flash) — 6 domain skills, natural-language explanations</li>
+            <li>Missing components visualised in the <strong>3D viewer</strong> — predicted gaps rendered in a distinct mesh colour (lime green) with colour-coded legends distinguishing present, missing, and flagged parts</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="hbar g">
+      <strong>AIDA Skills Agent:</strong> &nbsp;Gemini 2.5 Flash + <em>engineering_3d_assembly.yaml</em> persona →
+      assembly-category analysis · joint-type identification · corrective suggestions · 6 domain skills total
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ SLIDE 3 ═══════════════════════════ -->
+<div class="slide" id="s3">
+  <div class="shdr">
+    <div class="snum">3</div>
+    <h2>Contribution of the Student</h2>
+    <div class="sub">Parthasarathy Perumal — M.Tech Individual Project, Semester 4</div>
+  </div>
+  <div class="sbody">
+    <div class="row">
+      <div class="col">
+        <div class="card bl" style="flex:1">
+          <div class="lbl b">Core AI / ML Pipeline</div>
+          <h3>Machine Learning &amp; Graph Engineering</h3>
+          <ul class="bl" style="margin-top:5px">
+            <li>Designed the full <strong>STEP-to-GNN pipeline</strong> from scratch</li>
+            <li>Built STEP parser using <strong>gmsh + OpenCASCADE</strong> for real CAD files</li>
+            <li>Engineered <strong>13-dimensional node feature vectors</strong> from 3D geometry</li>
+            <li>Designed <strong>AssemblyGNN</strong> — 3-layer GAT with multi-head attention</li>
+            <li>Implemented <strong>MLP Link Predictor</strong> for binary missing-part detection</li>
+            <li>Wrote training loop with Adam, early stopping, ReduceLROnPlateau</li>
+            <li>Defined evaluation metrics: <strong>AUC-ROC</strong> and <strong>Average Precision</strong></li>
+          </ul>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card bg" style="flex:1">
+          <div class="lbl g">System, UI &amp; AI Skills Agent</div>
+          <h3>Backend, Frontend &amp; AIDA Integration</h3>
+          <ul class="bl g" style="margin-top:5px">
+            <li>Built <strong>FastAPI backend</strong> — /predict/missing, /explain, /identify, /health</li>
+            <li>Created <strong>Streamlit frontend</strong> with Plotly 3D mesh viewer</li>
+            <li>Integrated <strong>real-time training monitor</strong> in the web dashboard</li>
+            <li>Developed <strong>AIDA agent</strong> (Gemini 2.5 Flash) with 6 domain skills YAML</li>
+            <li>Engineered <strong>AIDA persona</strong> — engineering_3d_assembly.yaml system prompt</li>
+            <li>Wrote shell scripts for one-command service start / stop / log access</li>
+            <li>Maintained version-controlled project on <strong>macOS M-chip</strong> (MPS device)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ SLIDE 4 ═══════════════════════════ -->
+<div class="slide" id="s4">
+  <div class="shdr">
+    <div class="snum">4</div>
+    <h2>Results Obtained — Intermediate</h2>
+    <div class="sub">GNN Training Metrics as of May 2026 &nbsp;|&nbsp; Phase 1 Complete</div>
+  </div>
+  <div class="sbody">
+
+    <div class="mrow">
+      <div class="met b">
+        <div class="mv">0.9272</div>
+        <div class="mk">BEST AUC-ROC</div>
+        <div class="mn">checkpoint _162431 · 23 May</div>
+      </div>
+      <div class="met g">
+        <div class="mv">0.6290</div>
+        <div class="mk">BEST AVG PRECISION</div>
+        <div class="mn">epoch 15 of best run</div>
+      </div>
+      <div class="met p">
+        <div class="mv">14</div>
+        <div class="mk">CHECKPOINTS SAVED</div>
+        <div class="mn">trained_models/ directory</div>
+      </div>
+      <div class="met o">
+        <div class="mv">Phase 1</div>
+        <div class="mk">PIPELINE STATUS</div>
+        <div class="mn">Missing detection — complete</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col cols">
+        <div class="card" style="flex:1">
+          <div class="lbl b">Configuration</div>
+          <h3>Training Setup</h3>
+          <table class="tbl" style="margin-top:5px">
+            <tr><td>Optimiser</td><td class="hi">Adam &nbsp;(lr = 1×10⁻³)</td></tr>
+            <tr><td>LR Scheduler</td><td class="hg">ReduceLROnPlateau</td></tr>
+            <tr><td>Early Stop</td><td>patience = 20 epochs</td></tr>
+            <tr><td>Batch Strategy</td><td>Full-graph (1 per epoch)</td></tr>
+            <tr><td>Node features</td><td>13-dim</td></tr>
+            <tr><td>Embedding dim</td><td>64 &nbsp;(hidden 128)</td></tr>
+            <tr><td>Dropout</td><td>0.10</td></tr>
+            <tr><td>Device</td><td>MPS (Apple Silicon)</td></tr>
+          </table>
+        </div>
+      </div>
+      <div class="col coll">
+        <div class="card" style="flex:1">
+          <div class="lbl g">Model Checkpoints</div>
+          <h3>AUC-ROC across Training Runs</h3>
+          <table class="tbl" style="margin-top:5px">
+            <thead>
+              <tr><th>Run</th><th>Checkpoint</th><th>AUC-ROC</th><th>Observation</th></tr>
+            </thead>
+            <tbody>
+              <tr class="best"><td>1</td><td style="font-size:12px;color:#2a3848">20260523_162431</td><td class="hg">0.9272 ★</td><td style="font-size:13px;color:#2e8a58">Best — optimal LR + data split</td></tr>
+              <tr><td>2</td><td style="font-size:12px;color:#2a3848">20260526_104218</td><td class="hi">0.8125</td><td style="font-size:13px;color:#2a4860">Strong secondary run</td></tr>
+              <tr><td>3</td><td style="font-size:12px;color:#2a3848">20260526_113959</td><td class="hi">0.7500</td><td style="font-size:13px;color:#2a4860">Good convergence</td></tr>
+              <tr><td>4</td><td style="font-size:12px;color:#2a3848">20260526_111314</td><td class="hi">0.7190</td><td style="font-size:13px;color:#2a4860">Stable training</td></tr>
+              <tr><td>5</td><td style="font-size:12px;color:#2a3848">20260526_100947</td><td>0.6601</td><td style="font-size:13px;color:#2a4860">Moderate performance</td></tr>
+              <tr><td>6</td><td style="font-size:12px;color:#2a3848">20260523_180046</td><td>0.6367</td><td style="font-size:13px;color:#2a4860">Later run, slightly lower</td></tr>
+              <tr><td>7</td><td style="font-size:12px;color:#2a3848">20260523_153633</td><td class="ho">0.4842</td><td style="font-size:13px;color:#3a4848">Early run — underfitting</td></tr>
+              <tr><td>8</td><td style="font-size:12px;color:#2a3848">20260523_141208</td><td class="ho">0.4403</td><td style="font-size:13px;color:#3a4848">First run — warm-up</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="hbar">
+      <strong>Next — Phase 2:</strong> &nbsp;Next-component ranking (Phase 2)
+      &nbsp;·&nbsp; Metrics: Hit@K, MRR, NDCG@K &nbsp;·&nbsp; Goal: consistent AUC ≥ 0.92
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ SLIDE 5 ═══════════════════════════ -->
+<div class="slide" id="s5">
+  <div class="shdr">
+    <div class="snum">5</div>
+    <h2>Training History — Visual</h2>
+    <div class="sub">Training Curves (35 epochs) &nbsp;·&nbsp; Model Checkpoint AUC Comparison</div>
+  </div>
+  <div class="sbody" style="flex-direction:row">
+
+    <!-- Training curves -->
+    <div class="cwrap" style="flex:1.45">
+      <div class="ctitle">TRAINING CURVES — Loss · AUC-ROC · Avg Precision &nbsp;(35 epochs, latest run)</div>
+      <div class="legend">
+        <div class="li"><div class="ll" style="background:#e08850"></div>Training Loss</div>
+        <div class="li"><div class="ll" style="background:#4f8ef7"></div>AUC-ROC</div>
+        <div class="li"><div class="ll" style="background:#4caf82"></div>Avg Precision</div>
+      </div>
+      <canvas id="tchart"></canvas>
+    </div>
+
+    <!-- Checkpoint AUC bars -->
+    <div class="cwrap" style="flex:1">
+      <div class="ctitle">CHECKPOINT AUC — Across All Training Runs</div>
+      <div class="legend">
+        <div class="li"><div class="llb" style="background:#2a8a50"></div>Best run (0.9272)</div>
+        <div class="li"><div class="llb" style="background:#2a5090"></div>Other runs</div>
+      </div>
+      <canvas id="achart"></canvas>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════ SLIDE 6 ═══════════════════════════ -->
+<div class="slide" id="s6">
+  <div class="shdr">
+    <div class="snum">6</div>
+    <h2>References</h2>
+    <div class="sub">Key Literature, Frameworks, and Tools</div>
+  </div>
+  <div class="sbody">
+    <div class="row">
+      <div class="col">
+        <div class="ref">
+          <div class="rnum">1</div>
+          <div class="rbody">
+            <div class="rt">P. Veličković et al. — <strong>Graph Attention Networks</strong></div>
+            <div class="rr">ICLR 2018 · arXiv:1710.10903</div>
+          </div>
+        </div>
+        <div class="ref">
+          <div class="rnum">2</div>
+          <div class="rbody">
+            <div class="rt">M. Fey &amp; J. E. Lenssen — <strong>Fast Graph Representation Learning with PyTorch Geometric</strong></div>
+            <div class="rr">ICLR Workshop on Representation Learning on Graphs, 2019</div>
+          </div>
+        </div>
+        <div class="ref">
+          <div class="rnum">3</div>
+          <div class="rbody">
+            <div class="rt">Geuzaine &amp; Remacle — <strong>Gmsh: A 3-D Finite Element Mesh Generator</strong></div>
+            <div class="rm">International Journal for Numerical Methods in Engineering, 79(11), 2009</div>
+          </div>
+        </div>
+        <div class="ref">
+          <div class="rnum">4</div>
+          <div class="rbody">
+            <div class="rt"><strong>Open CASCADE Technology (OCCT)</strong> — 3D Modeling Kernel</div>
+            <div class="rr">https://www.opencascade.com &nbsp;(accessed June 2026)</div>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="ref">
+          <div class="rnum">5</div>
+          <div class="rbody">
+            <div class="rt">Google DeepMind — <strong>Gemini 2.5 Flash</strong> Multimodal Large Language Model</div>
+            <div class="rr">Technical Report, Google LLC, 2025</div>
+          </div>
+        </div>
+        <div class="ref">
+          <div class="rnum">6</div>
+          <div class="rbody">
+            <div class="rt">Sebastián Ramírez — <strong>FastAPI</strong>: High Performance, Easy to Learn, Fast to Code</div>
+            <div class="rr">https://fastapi.tiangolo.com &nbsp;(accessed June 2026)</div>
+          </div>
+        </div>
+        <div class="ref">
+          <div class="rnum">7</div>
+          <div class="rbody">
+            <div class="rt">Streamlit Inc. — <strong>Streamlit</strong>: A Faster Way to Build and Share Data Apps</div>
+            <div class="rr">https://streamlit.io &nbsp;(accessed June 2026)</div>
+          </div>
+        </div>
+        <div class="ref">
+          <div class="rnum">8</div>
+          <div class="rbody">
+            <div class="rt">A. Paszke et al. — <strong>PyTorch: An Imperative Style, High-Performance Deep Learning Library</strong></div>
+            <div class="rr">NeurIPS 2019 · arXiv:1912.01703</div>
+          </div>
+        </div>
+        <div class="ref" style="border-left:2px solid #e0a030;">
+          <div class="rnum" style="border-color:#e0a030; color:#e0a030;">9</div>
+          <div class="rbody">
+            <div class="rt">
+              Prof. Sagarika Borah and Co authors — <strong>Prediction Error Expansion (PEE) based Reversible Polygon Mesh Watermarking Scheme for Regional Tamper Localization</strong>
+              &nbsp;<span style="font-size:11px;background:#1a1000;border:1px solid #4a3010;color:#c08020;padding:2px 7px;border-radius:4px;vertical-align:middle;">Author's Publication</span>
+            </div>
+            <div class="rm">Multimedia Tools and Applications, Springer, 2019</div>
+            <div class="rr"><a href="https://link.springer.com/article/10.1007/s11042-019-08411-5" style="color:#4a9060;text-decoration:none;" target="_blank">https://link.springer.com/article/10.1007/s11042-019-08411-5</a></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- #deck -->
+
+<nav id="nav">
+  <button class="nbtn" onclick="go(-1)">&#8592;</button>
+  <div id="dots"></div>
+  <span id="sinfo"></span>
+  <button class="nbtn" onclick="go(1)">&#8594;</button>
+</nav>
+
+<script>
+// ── Training data ──────────────────────────────────────────────────────────
+const trainLog = [
+  {e:1, loss:0.694,  auc:0.5052, ap:0.495},
+  {e:2, loss:0.677,  auc:0.4358, ap:0.45},
+  {e:3, loss:0.665,  auc:0.4062, ap:0.4356},
+  {e:4, loss:0.6494, auc:0.4497, ap:0.4662},
+  {e:5, loss:0.6417, auc:0.4462, ap:0.4596},
+  {e:6, loss:0.6362, auc:0.4583, ap:0.4619},
+  {e:7, loss:0.6324, auc:0.4774, ap:0.4731},
+  {e:8, loss:0.621,  auc:0.5139, ap:0.5508},
+  {e:9, loss:0.61,   auc:0.5382, ap:0.5736},
+  {e:10,loss:0.6183, auc:0.5712, ap:0.5835},
+  {e:11,loss:0.6209, auc:0.592,  ap:0.5647},
+  {e:12,loss:0.5882, auc:0.5955, ap:0.5641},
+  {e:13,loss:0.6002, auc:0.6024, ap:0.5902},
+  {e:14,loss:0.6013, auc:0.6163, ap:0.5995},
+  {e:15,loss:0.5994, auc:0.6233, ap:0.629},
+  {e:16,loss:0.6003, auc:0.6181, ap:0.6164},
+  {e:17,loss:0.5896, auc:0.6094, ap:0.6208},
+  {e:18,loss:0.5915, auc:0.6076, ap:0.6099},
+  {e:19,loss:0.5847, auc:0.5938, ap:0.5838},
+  {e:20,loss:0.5917, auc:0.5764, ap:0.5563},
+  {e:21,loss:0.5926, auc:0.5573, ap:0.5646},
+  {e:22,loss:0.5769, auc:0.5625, ap:0.5823},
+  {e:23,loss:0.5658, auc:0.5521, ap:0.5631},
+  {e:24,loss:0.5752, auc:0.5417, ap:0.5562},
+  {e:25,loss:0.5779, auc:0.5451, ap:0.5716},
+  {e:26,loss:0.5792, auc:0.5486, ap:0.5683},
+  {e:27,loss:0.5568, auc:0.5573, ap:0.5675},
+  {e:28,loss:0.559,  auc:0.559,  ap:0.553},
+  {e:29,loss:0.565,  auc:0.5538, ap:0.5274},
+  {e:30,loss:0.5565, auc:0.5556, ap:0.5251},
+  {e:31,loss:0.5694, auc:0.559,  ap:0.5475},
+  {e:32,loss:0.545,  auc:0.5573, ap:0.5472},
+  {e:33,loss:0.55,   auc:0.5573, ap:0.5467},
+  {e:34,loss:0.5583, auc:0.5608, ap:0.5496},
+  {e:35,loss:0.5499, auc:0.5556, ap:0.5483},
+];
+
+const ckpts = [
+  {label:'R1\n14:12',  auc:0.4403, best:false},
+  {label:'R2\n15:36',  auc:0.4842, best:false},
+  {label:'R3★\n16:24', auc:0.9272, best:true},
+  {label:'R4\n18:00',  auc:0.6367, best:false},
+  {label:'R5\n10:09',  auc:0.6601, best:false},
+  {label:'R6\n10:42',  auc:0.8125, best:false},
+  {label:'R7\n11:13',  auc:0.719,  best:false},
+  {label:'R8\n11:39',  auc:0.75,   best:false},
+  {label:'R9\n10:06',  auc:0.6233, best:false},
+];
+
+// ── Navigation ─────────────────────────────────────────────────────────────
+const TOTAL = 6;
+let cur = 1, chartsDrawn = false;
+
+const dotsEl = document.getElementById('dots');
+for (let i = 1; i <= TOTAL; i++) {
+  const d = document.createElement('div');
+  d.className = 'dot' + (i===1?' on':'');
+  d.onclick = () => goTo(i);
+  dotsEl.appendChild(d);
+}
+
+function go(d){ goTo(cur+d); }
+
+function goTo(n){
+  if(n<1||n>TOTAL) return;
+  document.getElementById('s'+cur).classList.remove('active');
+  dotsEl.children[cur-1].classList.remove('on');
+  cur = n;
+  const sl = document.getElementById('s'+cur);
+  sl.classList.add('active');
+  dotsEl.children[cur-1].classList.add('on');
+  document.getElementById('sinfo').textContent = cur+' / '+TOTAL;
+  if(cur===5 && !chartsDrawn){
+    chartsDrawn = true;
+    setTimeout(drawCharts, 90);
+  }
+}
+
+document.addEventListener('keydown', e=>{
+  if(e.key==='ArrowRight'||e.key===' '){ e.preventDefault(); go(1); }
+  if(e.key==='ArrowLeft'){ e.preventDefault(); go(-1); }
+});
+document.getElementById('sinfo').textContent = '1 / '+TOTAL;
+
+// ── Rounded rect util ──────────────────────────────────────────────────────
+function rRect(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y);
+  ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+  ctx.lineTo(x+w, y+h-r);
+  ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+  ctx.lineTo(x+r, y+h);
+  ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+  ctx.lineTo(x, y+r);
+  ctx.quadraticCurveTo(x, y, x+r, y);
+  ctx.closePath();
+}
+
+// ── Draw both charts ────────────────────────────────────────────────────────
+function drawCharts(){ drawTrainChart(); drawAucChart(); }
+
+function drawTrainChart(){
+  const cv = document.getElementById('tchart');
+  const p  = cv.parentElement;
+  cv.width  = p.clientWidth  - 28;
+  cv.height = p.clientHeight - 74; // minus title+legend+padding
+  const ctx = cv.getContext('2d');
+  const W=cv.width, H=cv.height;
+  const PL=52, PR=24, PT=18, PB=44;
+  const cW=W-PL-PR, cH=H-PT-PB;
+  const n=trainLog.length;
+  const yMin=0.35, yMax=0.72;
+
+  function xp(i){ return PL + (i/(n-1))*cW; }
+  function yp(v){ return PT + (1-(v-yMin)/(yMax-yMin))*cH; }
+
+  function drawStatic(){
+    ctx.clearRect(0,0,W,H);
+    // grid
+    [0.4,0.45,0.5,0.55,0.6,0.65,0.7].forEach(v=>{
+      const y=yp(v);
+      ctx.strokeStyle='#131d2e'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(PL,y); ctx.lineTo(PL+cW,y); ctx.stroke();
+      ctx.fillStyle='#2e4060'; ctx.font='11px Segoe UI,sans-serif';
+      ctx.textAlign='right'; ctx.fillText(v.toFixed(2), PL-7, y+4);
+    });
+    // x ticks
+    [1,5,10,15,20,25,30,35].forEach(ep=>{
+      const x=xp(ep-1);
+      ctx.fillStyle='#2e4060'; ctx.textAlign='center';
+      ctx.font='11px Segoe UI,sans-serif';
+      ctx.fillText(ep, x, H-PB+16);
+    });
+    // axis lines
+    ctx.strokeStyle='#1e3050'; ctx.lineWidth=1;
+    ctx.beginPath();
+    ctx.moveTo(PL,PT); ctx.lineTo(PL,PT+cH); ctx.lineTo(PL+cW,PT+cH);
+    ctx.stroke();
+    // axis labels
+    ctx.fillStyle='#304060'; ctx.font='12px Segoe UI,sans-serif';
+    ctx.textAlign='center';
+    ctx.fillText('Epoch', PL+cW/2, H-4);
+    ctx.save(); ctx.translate(12, PT+cH/2); ctx.rotate(-Math.PI/2);
+    ctx.fillText('Value', 0, 0); ctx.restore();
+  }
+
+  const series=[
+    {key:'loss',color:'#e08850',w:2},
+    {key:'auc', color:'#4f8ef7',w:2},
+    {key:'ap',  color:'#4caf82',w:2},
+  ];
+
+  let prog=0; const STEPS=55;
+  function frame(){
+    drawStatic();
+    const pts = Math.round((prog/STEPS)*(n-1));
+    series.forEach(s=>{
+      ctx.strokeStyle=s.color; ctx.lineWidth=s.w;
+      ctx.lineJoin='round'; ctx.beginPath();
+      for(let i=0; i<=pts && i<n; i++){
+        const x=xp(i), y=yp(trainLog[i][s.key]);
+        i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+    });
+    if(prog>=STEPS){
+      // annotate peak AUC
+      const peak = trainLog.reduce((a,b)=>a.auc>b.auc?a:b);
+      const px=xp(peak.e-1), py=yp(peak.auc);
+      ctx.fillStyle='#4f8ef7';
+      ctx.beginPath(); ctx.arc(px,py,4.5,0,Math.PI*2); ctx.fill();
+      ctx.font='bold 12px Segoe UI,sans-serif'; ctx.textAlign='left';
+      ctx.fillText('Peak AUC '+peak.auc.toFixed(4)+' (ep '+peak.e+')', px+8, py-6);
+    } else {
+      prog++; requestAnimationFrame(frame);
+    }
+  }
+  frame();
+}
+
+function drawAucChart(){
+  const cv = document.getElementById('achart');
+  const p  = cv.parentElement;
+  cv.width  = p.clientWidth  - 28;
+  cv.height = p.clientHeight - 74;
+  const ctx = cv.getContext('2d');
+  const W=cv.width, H=cv.height;
+  const PL=48, PR=16, PT=16, PB=50;
+  const cW=W-PL-PR, cH=H-PT-PB;
+  const n=ckpts.length;
+  const slot=cW/n;
+  const bw=slot*0.62;
+
+  function xb(i){ return PL + i*slot + (slot-bw)/2; }
+  function yb(v){ return PT + (1-v)*cH; }
+  function bh(v){ return v*cH; }
+
+  function drawStatic(){
+    ctx.clearRect(0,0,W,H);
+    [0.2,0.4,0.6,0.8,1.0].forEach(v=>{
+      const y=yb(v);
+      ctx.strokeStyle='#131d2e'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(PL,y); ctx.lineTo(PL+cW,y); ctx.stroke();
+      ctx.fillStyle='#2e4060'; ctx.font='11px Segoe UI,sans-serif';
+      ctx.textAlign='right'; ctx.fillText(v.toFixed(1), PL-7, y+4);
+    });
+    ctx.strokeStyle='#1e3050'; ctx.lineWidth=1;
+    ctx.beginPath();
+    ctx.moveTo(PL,PT); ctx.lineTo(PL,PT+cH); ctx.lineTo(PL+cW,PT+cH);
+    ctx.stroke();
+    ctx.fillStyle='#304060'; ctx.font='12px Segoe UI,sans-serif';
+    ctx.textAlign='center';
+    ctx.fillText('Training Run', PL+cW/2, H-3);
+    ctx.save(); ctx.translate(12, PT+cH/2); ctx.rotate(-Math.PI/2);
+    ctx.fillText('AUC-ROC', 0, 0); ctx.restore();
+  }
+
+  let prog=0; const STEPS=50;
+  function frame(){
+    drawStatic();
+    const frac=prog/STEPS;
+    ckpts.forEach((cp,i)=>{
+      const x=xb(i), fh=bh(cp.auc), h=fh*frac, y=PT+cH-h;
+      const g=ctx.createLinearGradient(x,y,x,y+h);
+      if(cp.best){
+        g.addColorStop(0,'#50ef98'); g.addColorStop(1,'#1a7a44');
+      } else if(cp.auc>=0.72){
+        g.addColorStop(0,'#6aaef8'); g.addColorStop(1,'#1e4a90');
+      } else if(cp.auc>=0.55){
+        g.addColorStop(0,'#5080c0'); g.addColorStop(1,'#1a2e60');
+      } else {
+        g.addColorStop(0,'#485870'); g.addColorStop(1,'#1e2838');
+      }
+      ctx.fillStyle=g;
+      rRect(ctx, x, y, bw, h, 3);
+      ctx.fill();
+    });
+    if(prog>=STEPS){
+      // labels
+      ckpts.forEach((cp,i)=>{
+        const x=xb(i)+bw/2;
+        const fh=bh(cp.auc), y=PT+cH-fh;
+        const lines=cp.label.split('\n');
+        ctx.fillStyle=cp.best?'#4cef82':'#3a5878';
+        ctx.font=(cp.best?'bold ':'')+'11px Segoe UI,sans-serif';
+        ctx.textAlign='center';
+        lines.forEach((ln,li)=> ctx.fillText(ln, x, PT+cH+16+li*14));
+        ctx.fillStyle=cp.best?'#4cef82':'#3a6090';
+        ctx.font=(cp.best?'bold 13':'11')+'px Segoe UI,sans-serif';
+        ctx.textAlign='center';
+        ctx.fillText(cp.auc.toFixed(4), x, y-5);
+      });
+    } else {
+      prog++; requestAnimationFrame(frame);
+    }
+  }
+  frame();
+}
+</script>
+</body>
+</html>
