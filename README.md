@@ -130,8 +130,9 @@ Next-component ranking (Hit@K, MRR)
 |---|---|---|
 | **Node** | **16** | Type one-hot (8 classes, geometry-driven via SDF) · volume · exact SA (trimesh) · bbox (Δx, Δy, Δz) · SDF mean · SDF variance · SA/V ratio |
 | **Edge** | 2 | Mate type encoded (coincident/concentric/parallel/tangent/fixed/other) · weight |
-| **Avg nodes/graph** | ~18 | — |
-| **Avg edges/graph** | ~32 | — |
+| **Total assemblies** | 780 | 643 Fusion360 + 137 curated local |
+| **Avg nodes/graph** | 31.8 (median 11) | Range: 2 – 448 |
+| **Avg edges/graph** | 42.5 (median 12) | Range: 1 – 687 |
 | **Train/Val/Test** | 70/15/15 | Split by assembly ID — no data leakage |
 
 ### Feature Engineering Detail (16 Node + 2 Edge Features)
@@ -316,7 +317,7 @@ AI-Assisted-3D-Assembly-Design/
 
 | File | What it does |
 |---|---|
-| `back_end/dataset.py` | Scans `Source_3d_models/` for STEP files; gmsh+OCC for solid bodies/edges; trimesh exact SA; SDF ray-casting; geometry-driven type inference; 16-dim node features; saves `sources.json` alongside `data.pt` for template DB |
+| `back_end/dataset.py` | Scans `Source_3d_models/` for STEP files; UUID-named individual body STEPs filtered out; per-file 5-min timeout via `multiprocessing` spawn — timed-out folders moved to `skipped_models/` with JSON report; gmsh+OCC for solid bodies/edges; trimesh exact SA; SDF ray-casting; geometry-driven type inference; 16-dim node features; saves `sources.json` alongside `data.pt` for template DB |
 | `back_end/model.py` | 3-layer GAT encoder (16→512→256→64) + `LinkPredictor` MLP; `build_model()` returns `(gnn, lp, device)`; `NodeRanker` present in file, deferred to Phase 2 |
 | `back_end/train.py` | Training loop: BCE loss + hard negatives, Adam + ReduceLROnPlateau, early stopping; saves `best.pt` + timestamped export; calls `AssemblyTemplateDB.build()` after training to cache templates |
 | `back_end/evaluate.py` | `evaluate()` returns AUC-ROC and Average Precision — Phase 1 only; Hit@K / MRR / NDCG@K deferred to Phase 2 |
@@ -418,7 +419,7 @@ streamlit run front_end/app.py --server.port 11501
 | **Left — AI-Assisted Viewer** | Shows "Train first" if no checkpoint. After training: upload a STEP file → runs GNN inference → displays 5 stacked analysis sections (see below). |
 | **Right — 3D Model Viewer** | Upload any STEP/STP file → gmsh converts → interactive Plotly 3D viewer. Bodies highlighted in red (not assembled), orange ❓ cross markers (auto-reference missing), amber ⬡ mesh patches (open joints). |
 
-**After training completes** a green banner appears: *"🎉 Training Complete · AUC X.XXXX — Upload a 3D model in the left panel to predict missing components."*
+**After training completes** a green banner appears: *"🎉 Training Complete · AUC X.XXXX · AP X.XXXX — Model ready!"*. A persistent **model metrics badge** (AUC-ROC + Avg Precision) is shown at the top of the left inference panel, colour-coded green (≥ 0.70) / amber (≥ 0.55) / red (< 0.55).
 
 ### Left Inference Panel — Analysis Sections
 
@@ -548,7 +549,7 @@ python skills_agent.py
 After training completes a timestamped file is saved to `trained_models/`:
 
 ```
-trained_models/assembly_gnn_20260527_100641_auc06233.pt   ← current best (16-dim, 138 real assemblies incl. hinges)
+trained_models/assembly_gnn_20260610_120044_auc05943.pt   ← current best (16-dim, 780 real assemblies, Fusion360 dataset)
 ```
 
 Each export contains: epoch · best AUC · test metrics · `trained_at` timestamp · `source_dir` path · model weights (`gnn`, `lp`) · full config. Files are git-ignored; the folder is tracked.
@@ -569,10 +570,64 @@ Each export contains: epoch · best AUC · test metrics · `trained_at` timestam
 | Dataset | Size | Role |
 |---|---|---|
 | [ABC Dataset](https://deep-geometry.github.io/abc-dataset/) — Koch et al., CVPR 2019 | 1M+ STEP / B-Rep files | Primary training data; geometric metadata (bbox, volume, surface area, mate constraints) |
-| [Fusion 360 Gallery](https://github.com/AutodeskAILab/Fusion360GalleryDataset) — Willis et al., 2021 | 8,251 assemblies · 154K bodies | M1-friendly subset; native joint annotations |
+| [Fusion 360 Gallery](https://github.com/AutodeskAILab/Fusion360GalleryDataset) — Willis et al., 2021 | 8,251 assemblies · 154K bodies | **Integrated (Jun 2026)** — 751 `assembly.step` files extracted from `a1.0.0_00.7z`; UUID-named individual body STEPs filtered; 643 assemblies parsed successfully (45 timed-out and quarantined, 63 single-body/invalid) |
 | [PartNet](https://partnet.cs.stanford.edu/) — Mo et al., CVPR 2019 | 573,585 parts · 26 categories | Hierarchical part annotations for edge feature construction |
-| Local assemblies (`Source_3d_models/`) | 93 STEP files → 138 graphs | `Assembly_Files/` · `Bracket_Bolt/` · `Shaft_Bearing_Housing/` · **`Hinge_assembly/`** (added 27 May 2026) · `Plate_Bolt/` |
+| Local assemblies (`Source_3d_models/`) | 187 STEP files → 137 graphs | `Assembly_Files/` · `Bracket_Bolt/` · `Shaft_Bearing_Housing/` · `Hinge_assembly/` · `Plate_Bolt/` |
+| **Total training graphs** | **780** | 643 Fusion360 + 137 curated local; 24,811 total nodes · 33,166 total edges |
 | Synthetic (fallback) | ~~300 graphs~~ **removed** | Synthetic fallback removed; training raises an error if no real multi-body STEP files are found |
+
+### Dataset Insights — R10 Training Set (780 assemblies)
+
+> Statistics computed from `data.pt` + `sources.json` after Fusion360 integration (10 Jun 2026).
+
+#### Graph Size Distribution
+
+| Metric | Nodes (bodies/graph) | Edges (contacts/graph) |
+|---|---|---|
+| **Minimum** | 2 | 1 |
+| **Maximum** | 448 | 687 |
+| **Mean** | 31.8 | 42.5 |
+| **Median** | 11 | 12 |
+| **Total (all graphs)** | 24,811 | 33,166 |
+
+#### Assembly Size Buckets
+
+| Size class | Bodies per assembly | Count | % of dataset |
+|---|---|---|---|
+| **Small** | 2 – 5 | 270 | 34.6 % |
+| **Medium** | 6 – 20 | 244 | 31.3 % |
+| **Large** | 21 – 50 | 140 | 17.9 % |
+| **Extra-large** | > 50 | 126 | 16.2 % |
+
+The long tail of extra-large assemblies (up to 448 bodies) comes predominantly from Fusion360 industrial models.
+
+#### Source Breakdown
+
+| Source | Assemblies | Notes |
+|---|---|---|
+| Fusion360 Gallery (a1.0.0_00) | 643 | Extracted from 751 STEP files; 45 quarantined (>5 min timeout), 63 single-body/invalid |
+| Local curated (`Source_3d_models/`) | 137 | Assembly_Files, Bracket_Bolt, Shaft_Bearing_Housing, Hinge_assembly, Plate_Bolt |
+
+#### Template Categories Built (6 categories from 780 assemblies)
+
+| Category | Avg bodies | Dominant types |
+|---|---|---|
+| Mechanical Assembly | ~51 | body 30, fastener 14, plate 14 |
+| Bracket + Bolt Assembly | ~12 | body 8, fastener 4, plate 4 |
+| Fusion360 Assy Dataset | ~14 | body 9, fastener 6, bearing 1, plate 4, housing 1 |
+| Hinge Assembly | ~3 | body 2, fastener 1, plate 1 |
+| Plate + Bolt Assembly | ~21 | body 14, fastener 4, plate 3 |
+| Shaft + Bearing + Housing Assembly | ~10 | body 7, fastener 4, plate 1, housing 1 |
+
+#### Dataset Processing — Timeout & Skip
+
+The Fusion360 dataset includes large assemblies that can take hours to parse with gmsh boolean fragment operations. A per-file **5-minute timeout** is enforced via `multiprocessing` spawn:
+
+| Outcome | Count | Action |
+|---|---|---|
+| Parsed successfully | 780 | Included in training |
+| Timeout (> 300 s) | 45 | Folder moved to `skipped_models/`; logged in `skipped_models_report.json` |
+| Error / single-body | 113 | Silently skipped (`_parse_step` returns `None`) |
 
 ---
 
@@ -927,7 +982,8 @@ Five training runs are shown, split into two eras. Each bar group shows Val AUC 
 | R6 | 26 May 10:42 | 13-dim · 25 real STEP only · j1.0.0 removed | 25 | 0.813 | 0.636 | 0.584 |
 | R7 | 26 May 11:13 | 16-dim · trimesh+SDF · getNode() bug → 4 graphs | 4 | 0.719 | 0.342 | 0.427 |
 | R8 | 26 May 11:39 | 16-dim · bug fixed · 25 real STEP · SA+SDF+SA/V | 25 | 0.750 | 0.585 | 0.559 |
-| **R9** | **27 May 10:06** | **16-dim · +Hinge assemblies · 93 STEP → 138 graphs** | **138** | **0.623** | **0.512** | **0.533** |
+| R9 | 27 May 10:06 | 16-dim · +Hinge assemblies · 93 STEP → 138 graphs | 138 | 0.623 | 0.512 | 0.533 |
+| **R10** | **10 Jun 12:00** | **16-dim · +Fusion360 Gallery dataset · 938 STEP → 780 graphs · early stop ep 58** | **780** | **0.585** | **0.604** | **0.577** |
 
 > \* R3 metrics artificially inflated: 300 synthetic test graphs trivially match the 300 synthetic training graphs — not a valid measure of real-geometry performance.
 
@@ -935,7 +991,8 @@ Five training runs are shown, split into two eras. Each bar group shows Val AUC 
 - Removing synthetic data (R3→R6) drops the inflated test AUC to an honest 0.636, reflecting the true difficulty of real geometry
 - The 16-dim enrichment (R8) improves over the 13-dim baseline on the same 25 assemblies
 - Adding hinge assemblies (R9: 138 graphs, train/val/test = 48/12/11) lowers val AUC slightly — 138 diverse assembly types are harder to generalise from than 25, which is the expected and honest behaviour of the model on real data
-- Phase 1 AUC target of 0.85 requires substantially more training data or the Phase 2 HetGNN/NodeRanker improvements
+- **R10 (+Fusion360):** Adding 643 Fusion360 assemblies raises the graph count to 780. Test AUC improves from 0.512 → 0.604 and Test AP from 0.533 → 0.577 — the first clear benefit of large-scale real-world data. Early stopping triggered at epoch 58 (loss 0.401 → 0.647 over training)
+- Phase 1 AUC target of 0.85 requires Phase 2 HetGNN/NodeRanker improvements or further dataset expansion
 
 ---
 

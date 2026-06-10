@@ -172,6 +172,8 @@ if "training_just_done" not in st.session_state:
     st.session_state.training_just_done = False
 if "last_train_auc" not in st.session_state:
     st.session_state.last_train_auc = None
+if "last_train_ap" not in st.session_state:
+    st.session_state.last_train_ap = None
 if "aida_explanation" not in st.session_state:
     st.session_state.aida_explanation   = None
 if "aida_explain_for" not in st.session_state:
@@ -1046,6 +1048,7 @@ _MILESTONE_RE = re.compile(
 _EPOCH_RE   = re.compile(r"Ep\s+(\d+)/")
 _AUC_RE     = re.compile(r"AUC=([0-9.]+)")
 _TEST_AUC   = re.compile(r"auc\s*:\s*([0-9.]+)", re.IGNORECASE)
+_TEST_AP    = re.compile(r"ap\s*:\s*([0-9.]+)",  re.IGNORECASE)
 
 
 def _emoji_for(line: str) -> str:
@@ -1109,10 +1112,13 @@ def _poll_training() -> None:
         if not line:
             continue
 
-        # Capture test AUC for the completion banner
+        # Capture test AUC and AP for the completion banner
         ta = _TEST_AUC.search(line)
         if ta:
             st.session_state.last_train_auc = float(ta.group(1))
+        pa = _TEST_AP.search(line)
+        if pa:
+            st.session_state.last_train_ap = float(pa.group(1))
 
         # Always log milestone lines
         if _MILESTONE_RE.search(line):
@@ -1128,7 +1134,9 @@ def _poll_training() -> None:
 
     # Mark done when process exits
     if not _is_training() and st.session_state.get("training_pid"):
-        auc_str = (f"  (AUC {st.session_state.last_train_auc:.4f})"
+        auc_str = (f"  (AUC {st.session_state.last_train_auc:.4f}"
+                   + (f"  AP {st.session_state.last_train_ap:.4f}" if st.session_state.last_train_ap else "")
+                   + ")"
                    if st.session_state.last_train_auc else "")
         log(f"✅  Training complete{auc_str} — upload a 3D model to predict missing components")
         st.session_state.training_pid       = None
@@ -1451,8 +1459,10 @@ def load_mesh(file_bytes: bytes) -> dict:
 if st.session_state.training_just_done and _CKPT_PATH.exists():
     auc_tag = (f" · AUC {st.session_state.last_train_auc:.4f}"
                if st.session_state.last_train_auc else "")
+    ap_tag  = (f" · AP {st.session_state.last_train_ap:.4f}"
+               if st.session_state.last_train_ap else "")
     st.success(
-        f"🎉 **Training Complete{auc_tag}** — Model ready!  "
+        f"🎉 **Training Complete{auc_tag}{ap_tag}** — Model ready!  "
         f"Upload a 3D model in the left panel to predict missing components.",
         icon="✅",
     )
@@ -1726,6 +1736,34 @@ with col_left:
         "🤖 AI-Assisted 3D Assembly Design Viewer</p>",
         unsafe_allow_html=True,
     )
+
+    # ── Model metrics badge (persistent, reads from test_metrics.json) ──────
+    _metrics_file = _PROJ_ROOT / "back_end" / "results" / "test_metrics.json"
+    if _CKPT_PATH.exists() and _metrics_file.exists():
+        try:
+            _m = json.loads(_metrics_file.read_text())
+            _m_auc = _m.get("auc", 0)
+            _m_ap  = _m.get("ap",  0)
+            _auc_pct = int(_m_auc * 100)
+            _ap_pct  = int(_m_ap  * 100)
+            # Colour the AUC badge: green ≥70, amber ≥55, red <55
+            _auc_col = "#16a34a" if _m_auc >= 0.70 else ("#d97706" if _m_auc >= 0.55 else "#dc2626")
+            _ap_col  = "#16a34a" if _m_ap  >= 0.70 else ("#d97706" if _m_ap  >= 0.55 else "#dc2626")
+            st.markdown(
+                '<div style="display:flex;gap:8px;align-items:center;'
+                'margin:0 0 6px;flex-wrap:wrap;">'
+                '<span style="font-size:0.72rem;color:#6b7280;">Model metrics:</span>'
+                f'<span style="background:{_auc_col};color:#fff;font-size:0.72rem;'
+                f'font-weight:700;padding:2px 8px;border-radius:12px;">'
+                f'AUC-ROC {_m_auc:.4f}</span>'
+                f'<span style="background:{_ap_col};color:#fff;font-size:0.72rem;'
+                f'font-weight:700;padding:2px 8px;border-radius:12px;">'
+                f'Avg Precision {_m_ap:.4f}</span>'
+                '</div>',
+                unsafe_allow_html=True,
+            )
+        except Exception:
+            pass
 
     if not _CKPT_PATH.exists():
         # Training not done yet
