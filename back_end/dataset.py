@@ -186,9 +186,22 @@ def _infer_type_from_geometry(
     return 0  # body (generic fallback)
 
 
+# ── Size-filter sentinels ─────────────────────────────────────────────────────
+
+class _SkipTooManyNodes(Exception):
+    """Raised when a STEP file has more bodies than the configured threshold."""
+
+class _SkipTooManyEdges(Exception):
+    """Raised when a STEP file has more contacts than the configured threshold."""
+
+
 # ── STEP file parser ──────────────────────────────────────────────────────────
 
-def _parse_step(step_path: str) -> Optional[Data]:
+def _parse_step(
+    step_path: str,
+    max_nodes: int = 9999,
+    max_edges: int = 9999,
+) -> Optional[Data]:
     """
     Parse a single STEP file into a PyG Data object.
 
@@ -221,6 +234,12 @@ def _parse_step(step_path: str) -> Optional[Data]:
         if len(volumes) < 2:
             return None
 
+        # ── Pre-check: node count (fast — before expensive fragment()) ────
+        if len(volumes) > max_nodes:
+            raise _SkipTooManyNodes(
+                f"{len(volumes)} bodies (threshold {max_nodes})"
+            )
+
         # Fragment volumes to share boundary surface tags → contact detection
         gmsh.model.occ.fragment(volumes, [])
         gmsh.model.occ.synchronize()
@@ -250,6 +269,18 @@ def _parse_step(step_path: str) -> Optional[Data]:
             bboxes.append((dx, dy, dz))
             bnd = gmsh.model.getBoundary([(dim, tag)], oriented=False, combined=True)
             body_surfs.append(frozenset(abs(s[1]) for s in bnd if s[0] == 2))
+
+        # ── Pre-check: edge count (before expensive trimesh+SDF) ─────────
+        _n_dir_edges = sum(
+            2 for i in range(len(volumes))
+            for j in range(i + 1, len(volumes))
+            if body_surfs[i] & body_surfs[j]
+        )
+        if _n_dir_edges > max_edges:
+            raise _SkipTooManyEdges(
+                f"{_n_dir_edges} directed edges / {_n_dir_edges // 2} contacts "
+                f"(threshold {max_edges})"
+            )
 
         # ── Trimesh enrichment: exact SA + SDF per body ───────────────────
         exact_sas: list = []
@@ -330,6 +361,8 @@ def _parse_step(step_path: str) -> Optional[Data]:
         edge_attr  = torch.tensor(eattr,        dtype=torch.float)
         return Data(x=x, edge_index=edge_index, edge_attr=edge_attr)
 
+    except (_SkipTooManyNodes, _SkipTooManyEdges):
+        raise   # propagate up to worker — these are handled, not errors
     except Exception as exc:
         print(f"    [skip] {Path(step_path).name}: {exc}")
         return None
@@ -340,37 +373,51 @@ def _parse_step(step_path: str) -> Optional[Data]:
 
 # ── Timeout wrapper for _parse_step ──────────────────────────────────────────
 
-def _parse_step_worker(step_path: str, result_queue: "_mp.Queue") -> None:
+def _parse_step_worker(
+    step_path: str,
+    result_queue: "_mp.Queue",
+    max_nodes: int,
+    max_edges: int,
+) -> None:
     """Worker target: parse one STEP file and push result onto the queue."""
     try:
         import io
-        result = _parse_step(step_path)
+        result = _parse_step(step_path, max_nodes=max_nodes, max_edges=max_edges)
         if result is not None:
             buf = io.BytesIO()
             torch.save(result, buf)
             result_queue.put(("ok", buf.getvalue()))
         else:
             result_queue.put(("ok", None))
+    except _SkipTooManyNodes as exc:
+        result_queue.put(("too_many_nodes", str(exc)))
+    except _SkipTooManyEdges as exc:
+        result_queue.put(("too_many_edges", str(exc)))
     except Exception as exc:
         result_queue.put(("error", str(exc)))
 
 
 def _parse_step_with_timeout(
     step_path: str,
-    timeout_secs: int = 300,
+    timeout_secs: int = 120,
+    max_nodes:    int = 20,
+    max_edges:    int = 60,
 ) -> tuple:
     """
-    Run _parse_step in a child process.  If the child does not finish within
-    timeout_secs it is killed and the file is reported as timed-out.
+    Run _parse_step in a child process with size and time limits.
 
     Returns
     -------
     (Data | None, status)
-      status: "ok" | "timeout" | "error"
+      status: "ok" | "timeout" | "too_many_nodes" | "too_many_edges" | "error"
     """
     ctx = _mp.get_context("spawn")   # fresh interpreter — avoids gmsh state leaks
     q   = ctx.Queue()
-    p   = ctx.Process(target=_parse_step_worker, args=(step_path, q), daemon=True)
+    p   = ctx.Process(
+        target=_parse_step_worker,
+        args=(step_path, q, max_nodes, max_edges),
+        daemon=True,
+    )
     p.start()
     p.join(timeout=timeout_secs)
 
@@ -390,7 +437,7 @@ def _parse_step_with_timeout(
             import io
             data = torch.load(io.BytesIO(payload), weights_only=False)
             return data, "ok"
-        return None, "error"
+        return None, status   # "too_many_nodes" | "too_many_edges" | "error"
 
     return None, "error"
 
@@ -479,59 +526,122 @@ class AssemblyDataset(InMemoryDataset):
         graphs:       List[Data] = []
         source_paths: List[str]  = []
         skipped:      List[dict] = []
-        _skipped_dir  = self.source_dir / "skipped_models"
-        _TIMEOUT      = 300   # seconds per file
+
+        # ── Thresholds ────────────────────────────────────────────────────
+        _TIMEOUT   = 120   # seconds per file (was 300)
+        _MAX_NODES = 20    # bodies — M1-friendly limit (74% of Fusion360 pass)
+        _MAX_EDGES = 60    # directed edges (≈ 30 contacts) — 3× dataset mean
+
+        _skipped_dir       = self.source_dir / "skipped_models"
+        _skip_nodes_dir    = _skipped_dir / f"nodes_gt_{_MAX_NODES}"
+        _skip_edges_dir    = _skipped_dir / f"edges_gt_{_MAX_EDGES}"
+        _skip_timeout_dir  = _skipped_dir / "timeout"
+
+        def _move_folder(sf: Path, dest_dir: Path) -> Optional[str]:
+            """Move sf's parent folder into dest_dir; return dest path or None."""
+            if sf.parent == self.source_dir:
+                return None   # file sits directly in source_dir — don't move
+            dest_dir.mkdir(parents=True, exist_ok=True)
+            dest = dest_dir / sf.parent.name
+            if not dest.exists():
+                shutil.move(str(sf.parent), str(dest))
+                return str(dest)
+            return str(dest)
 
         if step_files:
             print(f"  Found {len(step_files)} STEP file(s) in {self.source_dir}",
                   flush=True)
+            print(f"  Thresholds — nodes ≤ {_MAX_NODES}  edges ≤ {_MAX_EDGES}"
+                  f"  timeout {_TIMEOUT}s", flush=True)
+
             for idx, sf in enumerate(sorted(step_files), 1):
                 print(f"  [{idx}/{len(step_files)}] Parsing: {sf.name}", flush=True)
                 t0 = time.time()
-                g, status = _parse_step_with_timeout(str(sf), timeout_secs=_TIMEOUT)
+                g, status = _parse_step_with_timeout(
+                    str(sf),
+                    timeout_secs=_TIMEOUT,
+                    max_nodes=_MAX_NODES,
+                    max_edges=_MAX_EDGES,
+                )
                 elapsed = round(time.time() - t0, 1)
 
-                if status == "timeout":
-                    print(f"  [TIMEOUT] {sf.name} — exceeded {_TIMEOUT}s "
-                          f"({elapsed}s) — skipping", flush=True)
-                    entry = {
-                        "file":    str(sf),
-                        "folder":  str(sf.parent),
-                        "reason":  f"timeout — exceeded {_TIMEOUT}s",
-                        "elapsed": elapsed,
-                    }
+                if status == "too_many_nodes":
+                    print(f"  [SKIP-NODES] {sf.name} — nodes > {_MAX_NODES} "
+                          f"({elapsed}s)", flush=True)
+                    entry = {"file": str(sf), "folder": str(sf.parent),
+                             "reason": f"nodes > {_MAX_NODES}", "elapsed": elapsed}
+                    dest = _move_folder(sf, _skip_nodes_dir)
+                    if dest:
+                        entry["moved_to"] = dest
                     skipped.append(entry)
-                    # Move the entire model folder into skipped_models/
-                    if sf.parent != self.source_dir:   # only if in a sub-folder
-                        _skipped_dir.mkdir(exist_ok=True)
-                        dest = _skipped_dir / sf.parent.name
-                        if not dest.exists():
-                            shutil.move(str(sf.parent), str(dest))
-                            entry["moved_to"] = str(dest)
+                    continue
+
+                if status == "too_many_edges":
+                    print(f"  [SKIP-EDGES] {sf.name} — edges > {_MAX_EDGES} "
+                          f"({elapsed}s)", flush=True)
+                    entry = {"file": str(sf), "folder": str(sf.parent),
+                             "reason": f"edges > {_MAX_EDGES}", "elapsed": elapsed}
+                    dest = _move_folder(sf, _skip_edges_dir)
+                    if dest:
+                        entry["moved_to"] = dest
+                    skipped.append(entry)
+                    continue
+
+                if status == "timeout":
+                    print(f"  [TIMEOUT]    {sf.name} — exceeded {_TIMEOUT}s "
+                          f"({elapsed}s)", flush=True)
+                    entry = {"file": str(sf), "folder": str(sf.parent),
+                             "reason": f"timeout > {_TIMEOUT}s", "elapsed": elapsed}
+                    dest = _move_folder(sf, _skip_timeout_dir)
+                    if dest:
+                        entry["moved_to"] = dest
+                    skipped.append(entry)
                     continue
 
                 if status == "error":
-                    print(f"  [ERROR]   {sf.name} — parse failed", flush=True)
+                    print(f"  [ERROR]      {sf.name} — parse failed", flush=True)
                     continue
 
                 if g is not None and g.num_nodes >= 2:
                     graphs.append(g)
                     source_paths.append(str(sf))
-                    print(f"  [OK]      {sf.name} — {g.num_nodes} nodes  "
+                    print(f"  [OK]  {sf.name} — {g.num_nodes} nodes  "
                           f"{g.edge_index.size(1)//2} edges  ({elapsed}s)", flush=True)
 
-            print(f"  Parsed {len(graphs)} valid  |  "
-                  f"Skipped {len(skipped)} (timeout)", flush=True)
+            n_nodes_skip = sum(1 for e in skipped if f"nodes >"  in e["reason"])
+            n_edges_skip = sum(1 for e in skipped if f"edges >"  in e["reason"])
+            n_time_skip  = sum(1 for e in skipped if "timeout"   in e["reason"])
+            print(
+                f"  Parsed {len(graphs)} valid  |  "
+                f"Skipped {len(skipped)} total "
+                f"(nodes>{_MAX_NODES}: {n_nodes_skip}  "
+                f"edges>{_MAX_EDGES}: {n_edges_skip}  "
+                f"timeout: {n_time_skip})",
+                flush=True,
+            )
 
             # ── Write skipped report ──────────────────────────────────────
             if skipped:
                 report = {
-                    "source_dir":   str(self.source_dir),
-                    "timeout_secs": _TIMEOUT,
-                    "total_found":  len(step_files),
-                    "total_parsed": len(graphs),
-                    "total_skipped": len(skipped),
-                    "skipped_models_folder": str(_skipped_dir),
+                    "source_dir":        str(self.source_dir),
+                    "thresholds": {
+                        "max_nodes":    _MAX_NODES,
+                        "max_edges":    _MAX_EDGES,
+                        "timeout_secs": _TIMEOUT,
+                    },
+                    "total_found":       len(step_files),
+                    "total_parsed":      len(graphs),
+                    "total_skipped":     len(skipped),
+                    "skipped_breakdown": {
+                        f"nodes_gt_{_MAX_NODES}": n_nodes_skip,
+                        f"edges_gt_{_MAX_EDGES}": n_edges_skip,
+                        "timeout":                n_time_skip,
+                    },
+                    "skipped_folders": {
+                        f"nodes_gt_{_MAX_NODES}": str(_skip_nodes_dir),
+                        f"edges_gt_{_MAX_EDGES}": str(_skip_edges_dir),
+                        "timeout":                str(_skip_timeout_dir),
+                    },
                     "entries": skipped,
                 }
                 report_path = self.source_dir / "skipped_models_report.json"
