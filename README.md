@@ -549,7 +549,8 @@ python skills_agent.py
 After training completes a timestamped file is saved to `trained_models/`:
 
 ```
-trained_models/assembly_gnn_20260610_120044_auc05943.pt   ← current best (16-dim, 780 real assemblies, Fusion360 dataset)
+trained_models/assembly_gnn_20260613_125353_auc07809.pt   ← current best (R11 — 16-dim, 416 graphs, size-filtered, val AUC 0.781)
+trained_models/assembly_gnn_20260610_120044_auc05943.pt   ← R10 (16-dim, 780 graphs, Fusion360 full, test AUC 0.604)
 ```
 
 Each export contains: epoch · best AUC · test metrics · `trained_at` timestamp · `source_dir` path · model weights (`gnn`, `lp`) · full config. Files are git-ignored; the folder is tracked.
@@ -619,15 +620,29 @@ The long tail of extra-large assemblies (up to 448 bodies) comes predominantly f
 | Plate + Bolt Assembly | ~21 | body 14, fastener 4, plate 3 |
 | Shaft + Bearing + Housing Assembly | ~10 | body 7, fastener 4, plate 1, housing 1 |
 
-#### Dataset Processing — Timeout & Skip
+#### Dataset Processing — Size Filters & Skip Policy (R11)
 
-The Fusion360 dataset includes large assemblies that can take hours to parse with gmsh boolean fragment operations. A per-file **5-minute timeout** is enforced via `multiprocessing` spawn:
+Three automatic filters prevent large assemblies from blocking training on M1. Each filter moves the offending folder to a dedicated subdirectory and writes an entry to `skipped_models_report.json`:
 
-| Outcome | Count | Action |
+| Filter | Threshold | Folder | Rationale |
+|---|---|---|---|
+| **Node count** | > 20 bodies | `skipped_models/nodes_gt_20/` | 74% of Fusion360 assemblies pass; >20 bodies slow gmsh fragment() significantly |
+| **Edge count** | > 60 directed edges | `skipped_models/edges_gt_60/` | 3× dataset mean (20.7 avg contacts); filters densely-connected assemblies before expensive trimesh+SDF |
+| **Parse timeout** | > 120 s | `skipped_models/timeout/` | Reduced from 300s; assemblies still running after 2 min are pathological |
+
+**R11 skip summary (753 STEP files scanned):**
+
+| Outcome | Count | Reason |
 |---|---|---|
-| Parsed successfully | 780 | Included in training |
-| Timeout (> 300 s) | 45 | Folder moved to `skipped_models/`; logged in `skipped_models_report.json` |
-| Error / single-body | 113 | Silently skipped (`_parse_step` returns `None`) |
+| ✅ Parsed successfully | 416 | Included in training |
+| ⛔ Nodes > 20 | 162 | Moved to `skipped_models/nodes_gt_20/` |
+| ⛔ Edges > 60 | 67 | Moved to `skipped_models/edges_gt_60/` |
+| ⏱ Timeout > 120s | 4 | Moved to `skipped_models/timeout/` |
+| ❌ Error / single-body | 104 | Silently skipped (`_parse_step` returns `None`) |
+
+> The full per-file breakdown is in `Source_3d_models/skipped_models_report.json` — includes file path, reason, elapsed time, and destination folder.
+
+**Node check** happens before `fragment()` (fast — just load + synchronize). **Edge check** happens after `fragment()` but before trimesh+SDF (avoids the most expensive per-body computation for dense graphs). This two-stage approach minimises wasted parse time.
 
 ---
 
@@ -982,8 +997,9 @@ Five training runs are shown, split into two eras. Each bar group shows Val AUC 
 | R6 | 26 May 10:42 | 13-dim · 25 real STEP only · j1.0.0 removed | 25 | 0.813 | 0.636 | 0.584 |
 | R7 | 26 May 11:13 | 16-dim · trimesh+SDF · getNode() bug → 4 graphs | 4 | 0.719 | 0.342 | 0.427 |
 | R8 | 26 May 11:39 | 16-dim · bug fixed · 25 real STEP · SA+SDF+SA/V | 25 | 0.750 | 0.585 | 0.559 |
-| R9 | 27 May 10:06 | 16-dim · +Hinge assemblies · 93 STEP → 138 graphs | 138 | 0.623 | 0.512 | 0.533 |
-| **R10** | **10 Jun 12:00** | **16-dim · +Fusion360 Gallery dataset · 938 STEP → 780 graphs · early stop ep 58** | **780** | **0.585** | **0.604** | **0.577** |
+| R9  | 27 May 10:06 | 16-dim · +Hinge assemblies · 93 STEP → 138 graphs | 138 | 0.623 | 0.512 | 0.533 |
+| R10 | 10 Jun 12:00 | 16-dim · +Fusion360 Gallery · 938 STEP → 780 graphs · early stop ep 58 | 780 | 0.585 | 0.604 | 0.577 |
+| **R11** | **13 Jun 12:53** | **16-dim · size filters (nodes≤20, edges≤60, timeout 120s) · 753 STEP → 416 graphs · early stop ep 26** | **416** | **0.781** | **0.538** | **0.592** |
 
 > \* R3 metrics artificially inflated: 300 synthetic test graphs trivially match the 300 synthetic training graphs — not a valid measure of real-geometry performance.
 
@@ -991,8 +1007,9 @@ Five training runs are shown, split into two eras. Each bar group shows Val AUC 
 - Removing synthetic data (R3→R6) drops the inflated test AUC to an honest 0.636, reflecting the true difficulty of real geometry
 - The 16-dim enrichment (R8) improves over the 13-dim baseline on the same 25 assemblies
 - Adding hinge assemblies (R9: 138 graphs, train/val/test = 48/12/11) lowers val AUC slightly — 138 diverse assembly types are harder to generalise from than 25, which is the expected and honest behaviour of the model on real data
-- **R10 (+Fusion360):** Adding 643 Fusion360 assemblies raises the graph count to 780. Test AUC improves from 0.512 → 0.604 and Test AP from 0.533 → 0.577 — the first clear benefit of large-scale real-world data. Early stopping triggered at epoch 58 (loss 0.401 → 0.647 over training)
-- Phase 1 AUC target of 0.85 requires Phase 2 HetGNN/NodeRanker improvements or further dataset expansion
+- **R10 (+Fusion360):** Adding 643 Fusion360 assemblies raises the graph count to 780. Test AUC 0.604 / AP 0.577 — first clear benefit of large-scale real-world data. Early stopping at epoch 58
+- **R11 (size-filtered):** Applying node ≤ 20 / edge ≤ 60 / 120s filters produces 416 graphs (162 skipped for nodes, 67 for edges, 4 timeout). Val AUC hits 0.781 — highest so far — but test AUC drops to 0.538, revealing overfitting on the smaller, more homogeneous split. Training converges in only 26 epochs (~4× faster than R10)
+- **Next step:** Tune thresholds or combine R10 volume with R11 quality filtering to balance dataset size vs. graph homogeneity
 
 ---
 

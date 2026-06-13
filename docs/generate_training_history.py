@@ -32,6 +32,9 @@ runs = [
     dict(id="R10", date="10 Jun\n12:00", graphs="780 real",
          note="+Fusion360 Gallery dataset\n938 STEP → 780 graphs (45 skipped)\nEarly stop ep 58 · loss 0.401\n5-min timeout per file",
          val_auc=0.585, test_auc=0.604, test_ap=0.577, synthetic=False),
+    dict(id="R11", date="13 Jun\n12:53", graphs="416 real",
+         note="Size filters: nodes≤20, edges≤60, 120s timeout\n753 STEP → 416 graphs\n162 nodes skip · 67 edges skip · 4 timeout\nEarly stop ep 26 (~4× faster than R10)",
+         val_auc=0.781, test_auc=0.538, test_ap=0.592, synthetic=False),
 ]
 
 n   = len(runs)
@@ -136,6 +139,9 @@ for (row, col), cell in tbl.get_celld().items():
     if row > 0 and runs[row-1]["id"] == "R10":
         cell.set_facecolor("#0d2b0d")
         cell.set_text_props(color="#86efac", fontweight="bold")
+    if row > 0 and runs[row-1]["id"] == "R11":
+        cell.set_facecolor("#2b2800")
+        cell.set_text_props(color="#fde68a", fontweight="bold")
 
 ax.text(0.5, -0.42, "* Inflated: synthetic test graphs trivially match synthetic training patterns.",
         transform=ax.transAxes, ha="center", color=SUBTEXT, fontsize=7.5, style="italic")
@@ -147,7 +153,7 @@ ax_log.text(0.5, 0.97, "Change Log", transform=ax_log.transAxes,
 log_colors = {
     "R1": "#90caf9", "R3": "#ffa726", "R6": "#4caf50",
     "R7": "#ef9a9a", "R8": "#80cbc4", "R9": "#ce93d8",
-    "R10": "#86efac",
+    "R10": "#86efac", "R11": "#fde68a",
 }
 y_pos = 0.91
 for r in runs:
