@@ -549,7 +549,8 @@ python skills_agent.py
 After training completes a timestamped file is saved to `trained_models/`:
 
 ```
-trained_models/assembly_gnn_20260613_125353_auc07809.pt   ← current best (R11 — 16-dim, 416 graphs, size-filtered, val AUC 0.781)
+trained_models/assembly_gnn_20260613_180449_auc06591.pt   ← current best (R12 — 5-fold CV, 416 graphs, best fold val AUC 0.659, mean test AUC 0.697)
+trained_models/assembly_gnn_20260613_125353_auc07809.pt   ← R11 (16-dim, 416 graphs, size-filtered, val AUC 0.781)
 trained_models/assembly_gnn_20260610_120044_auc05943.pt   ← R10 (16-dim, 780 graphs, Fusion360 full, test AUC 0.604)
 ```
 
@@ -988,7 +989,7 @@ All previous output — red ⚠ body highlights, orange ❓ cross markers, AIDA 
 
 ![Training Progression — AUC-ROC & Average Precision](docs/training_history.png)
 
-Five training runs are shown, split into two eras. Each bar group shows Val AUC (light), Test AUC (solid), and Test AP (translucent) for that run. Dashed red/orange lines are the Phase 1 targets (AUC 0.85, AP 0.82).
+Nine training runs are shown, split into two eras. Each bar group shows Val AUC (light), Test AUC (solid), and Test AP (translucent) for that run. Dashed red/orange lines are the Phase 1 targets (AUC 0.85, AP 0.82). R12 reports metrics from the best fold of 5-fold CV.
 
 | Run | Date | Change | Graphs | Val AUC | Test AUC | Test AP |
 |---|---|---|---|---|---|---|
@@ -999,9 +1000,21 @@ Five training runs are shown, split into two eras. Each bar group shows Val AUC 
 | R8 | 26 May 11:39 | 16-dim · bug fixed · 25 real STEP · SA+SDF+SA/V | 25 | 0.750 | 0.585 | 0.559 |
 | R9  | 27 May 10:06 | 16-dim · +Hinge assemblies · 93 STEP → 138 graphs | 138 | 0.623 | 0.512 | 0.533 |
 | R10 | 10 Jun 12:00 | 16-dim · +Fusion360 Gallery · 938 STEP → 780 graphs · early stop ep 58 | 780 | 0.585 | 0.604 | 0.577 |
-| **R11** | **13 Jun 12:53** | **16-dim · size filters (nodes≤20, edges≤60, timeout 120s) · 753 STEP → 416 graphs · early stop ep 26** | **416** | **0.781** | **0.538** | **0.592** |
+| R11 | 13 Jun 12:53 | 16-dim · size filters (nodes≤20, edges≤60, timeout 120s) · 753 STEP → 416 graphs · early stop ep 26 | 416 | 0.781 | 0.538 | 0.592 |
+| **R12** | **13 Jun 18:04** | **16-dim · 5-fold CV on 416 graphs · Mean AUC 0.697±0.024 · Mean AP 0.827±0.038** | **416** | **0.659** | **0.667** | **0.781** |
 
 > \* R3 metrics artificially inflated: 300 synthetic test graphs trivially match the 300 synthetic training graphs — not a valid measure of real-geometry performance.
+
+#### R12 — 5-Fold Cross-Validation Detail
+
+| Fold | Val AUC (best ep) | Test AUC | Test AP | Early stop ep |
+|---|---|---|---|---|
+| 1 | 0.659 (best overall) | 0.663 | 0.781 | 37 |
+| 2 | — | 0.710 | 0.854 | 33 |
+| 3 | — | 0.692 | 0.789 | 22 |
+| 4 | — | 0.727 | 0.856 | 40 |
+| 5 | — | 0.691 | 0.854 | 21 |
+| **Mean** | | **0.697 ± 0.024** | **0.827 ± 0.038** | |
 
 **Key observations:**
 - Removing synthetic data (R3→R6) drops the inflated test AUC to an honest 0.636, reflecting the true difficulty of real geometry
@@ -1009,7 +1022,7 @@ Five training runs are shown, split into two eras. Each bar group shows Val AUC 
 - Adding hinge assemblies (R9: 138 graphs, train/val/test = 48/12/11) lowers val AUC slightly — 138 diverse assembly types are harder to generalise from than 25, which is the expected and honest behaviour of the model on real data
 - **R10 (+Fusion360):** Adding 643 Fusion360 assemblies raises the graph count to 780. Test AUC 0.604 / AP 0.577 — first clear benefit of large-scale real-world data. Early stopping at epoch 58
 - **R11 (size-filtered):** Applying node ≤ 20 / edge ≤ 60 / 120s filters produces 416 graphs (162 skipped for nodes, 67 for edges, 4 timeout). Val AUC hits 0.781 — highest so far — but test AUC drops to 0.538, revealing overfitting on the smaller, more homogeneous split. Training converges in only 26 epochs (~4× faster than R10)
-- **Next step:** Tune thresholds or combine R10 volume with R11 quality filtering to balance dataset size vs. graph homogeneity
+- **R12 (5-fold CV):** Cross-validation reveals the R11 high val AUC was partially a lucky split. The mean test AUC across folds is 0.697 ± 0.024 and mean AP is 0.827 ± 0.038 — a significantly more reliable generalisation estimate. AP above 0.82 already meets the Phase 1 target. Low AUC std (±0.024) confirms the model is consistent across data splits
 
 ---
 

@@ -35,6 +35,9 @@ runs = [
     dict(id="R11", date="13 Jun\n12:53", graphs="416 real",
          note="Size filters: nodes≤20, edges≤60, 120s timeout\n753 STEP → 416 graphs\n162 nodes skip · 67 edges skip · 4 timeout\nEarly stop ep 26 (~4× faster than R10)",
          val_auc=0.781, test_auc=0.538, test_ap=0.592, synthetic=False),
+    dict(id="R12", date="13 Jun\n18:04", graphs="416 real",
+         note="5-Fold Cross-Validation introduced\nMean AUC=0.697±0.024 · Mean AP=0.827±0.038\nBest fold test AUC=0.667 · AP=0.781\nMore robust generalisation estimate",
+         val_auc=0.659, test_auc=0.667, test_ap=0.781, synthetic=False),
 ]
 
 n   = len(runs)
@@ -120,7 +123,7 @@ ax.legend(handles=legend_patches, loc="upper left", facecolor=PANEL,
 col_labels = ["Run", "Date", "Node Dims", "Graphs", "Val AUC", "Test AUC", "Test AP"]
 table_data = [
     [r["id"], r["date"].replace("\n", " "),
-     "13-dim" if r["id"] in ("R1","R3","R6") else "16-dim",
+     "13-dim" if r["id"] in ("R1","R3","R6") else "16-dim (5-fold CV)" if r["id"] == "R12" else "16-dim",
      r["graphs"],
      f"{r['val_auc']:.3f}", f"{r['test_auc']:.3f}", f"{r['test_ap']:.3f}"]
     for r in runs
@@ -142,6 +145,9 @@ for (row, col), cell in tbl.get_celld().items():
     if row > 0 and runs[row-1]["id"] == "R11":
         cell.set_facecolor("#2b2800")
         cell.set_text_props(color="#fde68a", fontweight="bold")
+    if row > 0 and runs[row-1]["id"] == "R12":
+        cell.set_facecolor("#1a0b2e")
+        cell.set_text_props(color="#c084fc", fontweight="bold")
 
 ax.text(0.5, -0.42, "* Inflated: synthetic test graphs trivially match synthetic training patterns.",
         transform=ax.transAxes, ha="center", color=SUBTEXT, fontsize=7.5, style="italic")
@@ -153,7 +159,7 @@ ax_log.text(0.5, 0.97, "Change Log", transform=ax_log.transAxes,
 log_colors = {
     "R1": "#90caf9", "R3": "#ffa726", "R6": "#4caf50",
     "R7": "#ef9a9a", "R8": "#80cbc4", "R9": "#ce93d8",
-    "R10": "#86efac", "R11": "#fde68a",
+    "R10": "#86efac", "R11": "#fde68a", "R12": "#c084fc",
 }
 y_pos = 0.91
 for r in runs:
