@@ -23,6 +23,7 @@ training:
   lr_patience:  8             # ReduceLROnPlateau patience
   lr_factor:    0.5
   neg_ratio:    1.0           # negatives per positive edge
+  n_folds:      5             # K in K-fold cross-validation
 
 evaluation:
   # Phase 1: AUC-ROC and Average Precision only (link prediction)

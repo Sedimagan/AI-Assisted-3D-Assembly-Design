@@ -36,6 +36,7 @@ from typing import List, Optional, Tuple
 
 import numpy as np
 import torch
+from sklearn.model_selection import KFold
 from torch_geometric.data import Data, InMemoryDataset
 from torch_geometric.transforms import RandomLinkSplit
 
@@ -668,22 +669,27 @@ class AssemblyDataset(InMemoryDataset):
 
 # ── Split helper ──────────────────────────────────────────────────────────────
 
-def get_splits(dataset: AssemblyDataset, cfg: dict):
+def get_splits(dataset: AssemblyDataset, cfg: dict, fold_idx: int = 0, n_folds: int = 5):
     """
-    Split the dataset into train / val / test lists, then apply
-    RandomLinkSplit to each individual graph.
+    Fixed test set (15%) + KFold cross-validation on the remaining 85%.
 
-    RandomLinkSplit must be applied per-graph (it expects a Data object,
-    not an InMemoryDataset).  Graphs with fewer than 8 directed edges are
-    skipped to ensure the split can always allocate at least one val/test edge.
+    fold_idx selects which of the n_folds splits is used as validation;
+    the rest form the training set.  RandomLinkSplit is applied per-graph.
+    Graphs with fewer than 8 directed edges are skipped.
     """
-    n       = len(dataset)
-    n_test  = max(1, int(n * cfg["data"]["test_ratio"]))
-    n_val   = max(1, int(n * cfg["data"]["val_ratio"]))
-    n_train = max(1, n - n_val - n_test)
+    n      = len(dataset)
+    n_test = max(1, int(n * cfg["data"]["test_ratio"]))
 
     torch.manual_seed(42)
-    perm = torch.randperm(n).tolist()
+    perm     = torch.randperm(n).tolist()
+    test_idx = perm[:n_test]
+    train_val = perm[n_test:]
+
+    kf    = KFold(n_splits=n_folds, shuffle=True, random_state=42)
+    folds = list(kf.split(train_val))
+    train_rel_idx, val_rel_idx = folds[fold_idx]
+    train_idx = [train_val[i] for i in train_rel_idx]
+    val_idx   = [train_val[i] for i in val_rel_idx]
 
     splitter = RandomLinkSplit(
         num_val                    = 0.1,
@@ -706,10 +712,10 @@ def get_splits(dataset: AssemblyDataset, cfg: dict):
                 continue
         return result
 
-    train_data = _transform(perm[:n_train],              0)
-    val_data   = _transform(perm[n_train:n_train+n_val], 1)
-    test_data  = _transform(perm[n_train+n_val:],        2)
+    train_data = _transform(train_idx, 0)
+    val_data   = _transform(val_idx,   1)
+    test_data  = _transform(test_idx,  2)
 
-    print(f"  Splits — train: {len(train_data)}  val: {len(val_data)}"
-          f"  test: {len(test_data)}  (skipped graphs with <8 edges)")
+    print(f"  Fold {fold_idx + 1}/{n_folds} — train: {len(train_data)}"
+          f"  val: {len(val_data)}  test: {len(test_data)}")
     return train_data, val_data, test_data
