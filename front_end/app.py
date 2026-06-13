@@ -174,6 +174,8 @@ if "last_train_auc" not in st.session_state:
     st.session_state.last_train_auc = None
 if "last_train_ap" not in st.session_state:
     st.session_state.last_train_ap = None
+if "last_cv_summary" not in st.session_state:
+    st.session_state.last_cv_summary = None
 if "aida_explanation" not in st.session_state:
     st.session_state.aida_explanation   = None
 if "aida_explain_for" not in st.session_state:
@@ -1043,12 +1045,16 @@ _MILESTONE_RE = re.compile(
     r"|✓ New best|New best AUC|checkpoint saved" # best model
     r"|Early stop"                               # early stopping
     r"|── Test|auc\s*:|ap\s*:|Results saved|Best checkpoint"  # test results
+    r"|FOLD \d+|Fold \d+ test|CV Summary|Mean AUC|Mean AP|Best overall"  # CV
     r"|Traceback|Error|Exception"                # errors
 )
 _EPOCH_RE   = re.compile(r"Ep\s+(\d+)/")
 _AUC_RE     = re.compile(r"AUC=([0-9.]+)")
 _TEST_AUC   = re.compile(r"auc\s*:\s*([0-9.]+)", re.IGNORECASE)
 _TEST_AP    = re.compile(r"ap\s*:\s*([0-9.]+)",  re.IGNORECASE)
+_FOLD_TEST  = re.compile(r"Fold\s+(\d+)\s+test\s*—\s*AUC=([0-9.]+)\s+AP=([0-9.]+)", re.IGNORECASE)
+_MEAN_AUC   = re.compile(r"Mean AUC\s*=\s*([0-9.]+)\s*[±+/-]+\s*([0-9.]+)", re.IGNORECASE)
+_MEAN_AP    = re.compile(r"Mean AP\s*=\s*([0-9.]+)\s*[±+/-]+\s*([0-9.]+)",  re.IGNORECASE)
 
 
 def _emoji_for(line: str) -> str:
@@ -1063,6 +1069,11 @@ def _emoji_for(line: str) -> str:
     if any(x in line for x in ("✓", "New best", "checkpoint")):
         return "✅"
     if "Early stop" in line:                       return "⏸️"
+    if "FOLD" in line:                             return "🔁"
+    if "Fold" in line and "test" in line.lower():  return "📊"
+    if "CV Summary" in line:                       return "📋"
+    if "Mean AUC" in line or "Mean AP" in line:    return "📈"
+    if "Best overall" in line:                     return "🏆"
     if any(x in line.lower() for x in ("auc", "ap :", "results saved", "best checkpoint")):
         return "📈"
     if any(x in line for x in ("Error", "Traceback", "Exception")):
@@ -1112,13 +1123,37 @@ def _poll_training() -> None:
         if not line:
             continue
 
-        # Capture test AUC and AP for the completion banner
+        # Capture test AUC / AP for the completion banner
         ta = _TEST_AUC.search(line)
         if ta:
             st.session_state.last_train_auc = float(ta.group(1))
         pa = _TEST_AP.search(line)
         if pa:
             st.session_state.last_train_ap = float(pa.group(1))
+
+        # Capture per-fold test results into cv_summary
+        ft = _FOLD_TEST.search(line)
+        if ft:
+            cv = st.session_state.last_cv_summary or {"fold_aucs": [], "fold_aps": []}
+            cv["fold_aucs"].append(float(ft.group(2)))
+            cv["fold_aps"].append(float(ft.group(3)))
+            st.session_state.last_cv_summary = cv
+
+        # Capture mean AUC ± std
+        ma = _MEAN_AUC.search(line)
+        if ma:
+            cv = st.session_state.last_cv_summary or {"fold_aucs": [], "fold_aps": []}
+            cv["mean_auc"] = float(ma.group(1))
+            cv["std_auc"]  = float(ma.group(2))
+            st.session_state.last_cv_summary = cv
+
+        # Capture mean AP ± std
+        mp = _MEAN_AP.search(line)
+        if mp:
+            cv = st.session_state.last_cv_summary or {"fold_aucs": [], "fold_aps": []}
+            cv["mean_ap"] = float(mp.group(1))
+            cv["std_ap"]  = float(mp.group(2))
+            st.session_state.last_cv_summary = cv
 
         # Always log milestone lines
         if _MILESTONE_RE.search(line):
@@ -1134,10 +1169,15 @@ def _poll_training() -> None:
 
     # Mark done when process exits
     if not _is_training() and st.session_state.get("training_pid"):
-        auc_str = (f"  (AUC {st.session_state.last_train_auc:.4f}"
-                   + (f"  AP {st.session_state.last_train_ap:.4f}" if st.session_state.last_train_ap else "")
-                   + ")"
-                   if st.session_state.last_train_auc else "")
+        cv = st.session_state.last_cv_summary
+        if cv and cv.get("mean_auc"):
+            auc_str = (f"  (mean AUC {cv['mean_auc']:.4f}±{cv.get('std_auc',0):.4f}"
+                       f"  mean AP {cv['mean_ap']:.4f}±{cv.get('std_ap',0):.4f})")
+        else:
+            auc_str = (f"  (AUC {st.session_state.last_train_auc:.4f}"
+                       + (f"  AP {st.session_state.last_train_ap:.4f}" if st.session_state.last_train_ap else "")
+                       + ")"
+                       if st.session_state.last_train_auc else "")
         log(f"✅  Training complete{auc_str} — upload a 3D model to predict missing components")
         st.session_state.training_pid       = None
         st.session_state.training_just_done = True
@@ -1457,12 +1497,19 @@ def load_mesh(file_bytes: bytes) -> dict:
 # ── Always-visible dual-panel layout ─────────────────────────────────────────
 # ── Training completion banner ────────────────────────────────────────────────
 if st.session_state.training_just_done and _CKPT_PATH.exists():
-    auc_tag = (f" · AUC {st.session_state.last_train_auc:.4f}"
-               if st.session_state.last_train_auc else "")
-    ap_tag  = (f" · AP {st.session_state.last_train_ap:.4f}"
-               if st.session_state.last_train_ap else "")
+    _cv = st.session_state.last_cv_summary
+    if _cv and _cv.get("mean_auc"):
+        _n = len(_cv.get("fold_aucs", []))
+        _banner_tag = (f" · {_n}-Fold CV  mean AUC {_cv['mean_auc']:.4f}±{_cv.get('std_auc',0):.4f}"
+                       f"  mean AP {_cv['mean_ap']:.4f}±{_cv.get('std_ap',0):.4f}")
+    else:
+        _auc_tag = (f" · AUC {st.session_state.last_train_auc:.4f}"
+                    if st.session_state.last_train_auc else "")
+        _ap_tag  = (f" · AP {st.session_state.last_train_ap:.4f}"
+                    if st.session_state.last_train_ap else "")
+        _banner_tag = _auc_tag + _ap_tag
     st.success(
-        f"🎉 **Training Complete{auc_tag}{ap_tag}** — Model ready!  "
+        f"🎉 **Training Complete{_banner_tag}** — Model ready!  "
         f"Upload a 3D model in the left panel to predict missing components.",
         icon="✅",
     )
@@ -1738,30 +1785,72 @@ with col_left:
     )
 
     # ── Model metrics badge (persistent, reads from test_metrics.json) ──────
-    _metrics_file = _PROJ_ROOT / "back_end" / "results" / "test_metrics.json"
+    _metrics_file  = _PROJ_ROOT / "back_end" / "results" / "test_metrics.json"
+    _cv_file       = _PROJ_ROOT / "back_end" / "results" / "cv_summary.json"
     if _CKPT_PATH.exists() and _metrics_file.exists():
         try:
             _m = json.loads(_metrics_file.read_text())
             _m_auc = _m.get("auc", 0)
             _m_ap  = _m.get("ap",  0)
-            _auc_pct = int(_m_auc * 100)
-            _ap_pct  = int(_m_ap  * 100)
-            # Colour the AUC badge: green ≥70, amber ≥55, red <55
-            _auc_col = "#16a34a" if _m_auc >= 0.70 else ("#d97706" if _m_auc >= 0.55 else "#dc2626")
-            _ap_col  = "#16a34a" if _m_ap  >= 0.70 else ("#d97706" if _m_ap  >= 0.55 else "#dc2626")
-            st.markdown(
-                '<div style="display:flex;gap:8px;align-items:center;'
-                'margin:0 0 6px;flex-wrap:wrap;">'
-                '<span style="font-size:0.72rem;color:#6b7280;">Model metrics:</span>'
-                f'<span style="background:{_auc_col};color:#fff;font-size:0.72rem;'
-                f'font-weight:700;padding:2px 8px;border-radius:12px;">'
-                f'AUC-ROC {_m_auc:.4f}</span>'
-                f'<span style="background:{_ap_col};color:#fff;font-size:0.72rem;'
-                f'font-weight:700;padding:2px 8px;border-radius:12px;">'
-                f'Avg Precision {_m_ap:.4f}</span>'
-                '</div>',
-                unsafe_allow_html=True,
-            )
+            # Load CV summary if available (prefer file over session state)
+            _cv = None
+            if _cv_file.exists():
+                _cv = json.loads(_cv_file.read_text())
+            elif st.session_state.last_cv_summary:
+                _cv = st.session_state.last_cv_summary
+
+            # If CV summary exists, show mean metrics as primary badges
+            if _cv and _cv.get("mean_auc"):
+                _b_auc = _cv["mean_auc"];  _b_std_auc = _cv.get("std_auc", 0)
+                _b_ap  = _cv["mean_ap"];   _b_std_ap  = _cv.get("std_ap",  0)
+                _auc_col = "#16a34a" if _b_auc >= 0.70 else ("#d97706" if _b_auc >= 0.55 else "#dc2626")
+                _ap_col  = "#16a34a" if _b_ap  >= 0.70 else ("#d97706" if _b_ap  >= 0.55 else "#dc2626")
+                _n_folds = _cv.get("n_folds", len(_cv.get("fold_aucs", [])))
+                st.markdown(
+                    '<div style="display:flex;gap:8px;align-items:center;'
+                    'margin:0 0 4px;flex-wrap:wrap;">'
+                    f'<span style="font-size:0.72rem;color:#6b7280;">'
+                    f'{_n_folds}-Fold CV:</span>'
+                    f'<span style="background:{_auc_col};color:#fff;font-size:0.72rem;'
+                    f'font-weight:700;padding:2px 8px;border-radius:12px;">'
+                    f'AUC {_b_auc:.4f} ±{_b_std_auc:.4f}</span>'
+                    f'<span style="background:{_ap_col};color:#fff;font-size:0.72rem;'
+                    f'font-weight:700;padding:2px 8px;border-radius:12px;">'
+                    f'AP {_b_ap:.4f} ±{_b_std_ap:.4f}</span>'
+                    '</div>',
+                    unsafe_allow_html=True,
+                )
+                # Per-fold breakdown in expander
+                with st.expander("📊 Per-fold results", expanded=False):
+                    _fold_aucs = _cv.get("fold_aucs", [])
+                    _fold_aps  = _cv.get("fold_aps",  [])
+                    _best_fold = _cv.get("best_fold", -1)
+                    _rows = []
+                    for _fi, (_fa, _fp) in enumerate(zip(_fold_aucs, _fold_aps)):
+                        _star = " ★" if _fi == _best_fold else ""
+                        _rows.append({"Fold": f"{_fi+1}{_star}", "AUC": f"{_fa:.4f}", "AP": f"{_fp:.4f}"})
+                    import pandas as _pd
+                    _df = _pd.DataFrame(_rows)
+                    st.dataframe(_df, hide_index=True, use_container_width=True)
+                    st.caption(f"★ best fold (used for best_overall.pt)  ·  "
+                               f"Best fold test AUC {_m_auc:.4f}  AP {_m_ap:.4f}")
+            else:
+                # No CV — show single-run badges
+                _auc_col = "#16a34a" if _m_auc >= 0.70 else ("#d97706" if _m_auc >= 0.55 else "#dc2626")
+                _ap_col  = "#16a34a" if _m_ap  >= 0.70 else ("#d97706" if _m_ap  >= 0.55 else "#dc2626")
+                st.markdown(
+                    '<div style="display:flex;gap:8px;align-items:center;'
+                    'margin:0 0 6px;flex-wrap:wrap;">'
+                    '<span style="font-size:0.72rem;color:#6b7280;">Model metrics:</span>'
+                    f'<span style="background:{_auc_col};color:#fff;font-size:0.72rem;'
+                    f'font-weight:700;padding:2px 8px;border-radius:12px;">'
+                    f'AUC-ROC {_m_auc:.4f}</span>'
+                    f'<span style="background:{_ap_col};color:#fff;font-size:0.72rem;'
+                    f'font-weight:700;padding:2px 8px;border-radius:12px;">'
+                    f'Avg Precision {_m_ap:.4f}</span>'
+                    '</div>',
+                    unsafe_allow_html=True,
+                )
         except Exception:
             pass
 
