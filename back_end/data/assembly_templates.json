@@ -1,48 +1,14 @@
 [
   {
-    "category": "assembly_files",
-    "label": "Mechanical Assembly",
-    "component_counts": {
-      "body": 30,
-      "fastener": 14,
-      "plate": 14
-    },
-    "total_bodies": 51,
-    "examples": [
-      "Assembly5.stp",
-      "Lift Cart.STEP"
-    ],
-    "n_assemblies": 2
-  },
-  {
-    "category": "bracket_bolt",
-    "label": "Bracket + Bolt Assembly",
-    "component_counts": {
-      "body": 8,
-      "fastener": 4,
-      "plate": 4
-    },
-    "total_bodies": 12,
-    "examples": [
-      "Wall Bearing.STEP",
-      "Spindle Bracket.step",
-      "Spindle Mounting Bracket 80mm.step",
-      "GUIDE ROLLER ASSEMBLY.STEP",
-      "Ass'y, Tramp Stamp with License Plate Bracket.stp"
-    ],
-    "n_assemblies": 12
-  },
-  {
     "category": "fusion360_assy_dataset",
     "label": "Fusion360 Assy Dataset",
     "component_counts": {
-      "body": 9,
-      "fastener": 6,
+      "body": 4,
+      "fastener": 2,
       "bearing": 1,
-      "plate": 4,
-      "housing": 1
+      "plate": 2
     },
-    "total_bodies": 14,
+    "total_bodies": 6,
     "examples": [
       "assembly.step",
       "assembly.step",
@@ -50,61 +16,6 @@
       "assembly.step",
       "assembly.step"
     ],
-    "n_assemblies": 643
-  },
-  {
-    "category": "hinge_assembly",
-    "label": "Hinge Assembly",
-    "component_counts": {
-      "body": 2,
-      "fastener": 1,
-      "plate": 1
-    },
-    "total_bodies": 3,
-    "examples": [
-      "\u041f\u0435\u0442\u043b\u044f \u043a\u0430\u0440\u0442\u043e\u0447\u043d\u0430\u044f 110\u044540.STEP",
-      "20x20 3D Print Hinge.STEP",
-      "3.5 INCH NO SQUEAK DOOR HINGE BUTT HINGE INTERIOR DOOR.stp",
-      "hinge.STEP",
-      "Basetech Hinge Width 60mm.step"
-    ],
-    "n_assemblies": 103
-  },
-  {
-    "category": "plate_bolt",
-    "label": "Plate + Bolt Assembly",
-    "component_counts": {
-      "body": 14,
-      "fastener": 4,
-      "plate": 3
-    },
-    "total_bodies": 21,
-    "examples": [
-      "Caster wheel Assembly23.stp",
-      "Plate_ASM11Plate_ASMPlate_Assembly A.1.stp",
-      "circular pattern..STEP",
-      "Guide Roller Assembly.STEP",
-      "Ass'y, Tramp Stamp with License Plate Bracket.stp"
-    ],
-    "n_assemblies": 11
-  },
-  {
-    "category": "shaft_bearing_housing",
-    "label": "Shaft + Bearing + Housing Assembly",
-    "component_counts": {
-      "body": 7,
-      "fastener": 4,
-      "plate": 1,
-      "housing": 1
-    },
-    "total_bodies": 10,
-    "examples": [
-      "asm0002_asm.stp",
-      "Pedestal Bearing.stp",
-      "Pillow Block Bearing.STEP",
-      "plumber block.stp",
-      "Asm7.stp"
-    ],
-    "n_assemblies": 9
+    "n_assemblies": 416
   }
 ]
