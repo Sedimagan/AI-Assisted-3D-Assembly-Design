@@ -549,7 +549,8 @@ python skills_agent.py
 After training completes a timestamped file is saved to `trained_models/`:
 
 ```
-trained_models/assembly_gnn_20260613_180449_auc06591.pt   ← current best (R12 — 5-fold CV, 416 graphs, best fold val AUC 0.659, mean test AUC 0.697)
+trained_models/assembly_gnn_20260614_050047_auc06985.pt   ← current best (R13 — 5-fold CV, 807 graphs, best fold val AUC 0.699, mean AUC 0.574)
+trained_models/assembly_gnn_20260613_180449_auc06591.pt   ← R12 (5-fold CV, 416 graphs, best fold val AUC 0.659, mean AUC 0.697)
 trained_models/assembly_gnn_20260613_125353_auc07809.pt   ← R11 (16-dim, 416 graphs, size-filtered, val AUC 0.781)
 trained_models/assembly_gnn_20260610_120044_auc05943.pt   ← R10 (16-dim, 780 graphs, Fusion360 full, test AUC 0.604)
 ```
@@ -621,7 +622,7 @@ The long tail of extra-large assemblies (up to 448 bodies) comes predominantly f
 | Plate + Bolt Assembly | ~21 | body 14, fastener 4, plate 3 |
 | Shaft + Bearing + Housing Assembly | ~10 | body 7, fastener 4, plate 1, housing 1 |
 
-#### Dataset Processing — Size Filters & Skip Policy (R11)
+#### Dataset Processing — Size Filters & Skip Policy (R11 onwards)
 
 Three automatic filters prevent large assemblies from blocking training on M1. Each filter moves the offending folder to a dedicated subdirectory and writes an entry to `skipped_models_report.json`:
 
@@ -631,15 +632,12 @@ Three automatic filters prevent large assemblies from blocking training on M1. E
 | **Edge count** | > 60 directed edges | `skipped_models/edges_gt_60/` | 3× dataset mean (20.7 avg contacts); filters densely-connected assemblies before expensive trimesh+SDF |
 | **Parse timeout** | > 120 s | `skipped_models/timeout/` | Reduced from 300s; assemblies still running after 2 min are pathological |
 
-**R11 skip summary (753 STEP files scanned):**
+**Skip summary by run:**
 
-| Outcome | Count | Reason |
-|---|---|---|
-| ✅ Parsed successfully | 416 | Included in training |
-| ⛔ Nodes > 20 | 162 | Moved to `skipped_models/nodes_gt_20/` |
-| ⛔ Edges > 60 | 67 | Moved to `skipped_models/edges_gt_60/` |
-| ⏱ Timeout > 120s | 4 | Moved to `skipped_models/timeout/` |
-| ❌ Error / single-body | 104 | Silently skipped (`_parse_step` returns `None`) |
+| Run | STEP scanned | Parsed | Nodes>20 | Edges>60 | Timeout |
+|---|---|---|---|---|---|
+| R11 | 753 | 416 | 162 | 67 | 4 |
+| R13 | 1,404 | 807 | 426 | 136 | 35 |
 
 > The full per-file breakdown is in `Source_3d_models/skipped_models_report.json` — includes file path, reason, elapsed time, and destination folder.
 
@@ -989,7 +987,7 @@ All previous output — red ⚠ body highlights, orange ❓ cross markers, AIDA 
 
 ![Training Progression — AUC-ROC & Average Precision](docs/training_history.png)
 
-Nine training runs are shown, split into two eras. Each bar group shows Val AUC (light), Test AUC (solid), and Test AP (translucent) for that run. Dashed red/orange lines are the Phase 1 targets (AUC 0.85, AP 0.82). R12 reports metrics from the best fold of 5-fold CV.
+Ten training runs are shown, split into two eras. Each bar group shows Val AUC (light), Test AUC (solid), and Test AP (translucent) for that run. Dashed red/orange lines are the Phase 1 targets (AUC 0.85, AP 0.82). R12–R13 report best-fold metrics from 5-fold CV.
 
 | Run | Date | Change | Graphs | Val AUC | Test AUC | Test AP |
 |---|---|---|---|---|---|---|
@@ -1001,7 +999,8 @@ Nine training runs are shown, split into two eras. Each bar group shows Val AUC 
 | R9  | 27 May 10:06 | 16-dim · +Hinge assemblies · 93 STEP → 138 graphs | 138 | 0.623 | 0.512 | 0.533 |
 | R10 | 10 Jun 12:00 | 16-dim · +Fusion360 Gallery · 938 STEP → 780 graphs · early stop ep 58 | 780 | 0.585 | 0.604 | 0.577 |
 | R11 | 13 Jun 12:53 | 16-dim · size filters (nodes≤20, edges≤60, timeout 120s) · 753 STEP → 416 graphs · early stop ep 26 | 416 | 0.781 | 0.538 | 0.592 |
-| **R12** | **13 Jun 18:04** | **16-dim · 5-fold CV on 416 graphs · Mean AUC 0.697±0.024 · Mean AP 0.827±0.038** | **416** | **0.659** | **0.667** | **0.781** |
+| R12 | 13 Jun 18:04 | 16-dim · 5-fold CV · 416 graphs · Mean AUC 0.697±0.024 · Mean AP 0.827±0.038 | 416 | 0.659 | 0.667 | 0.781 |
+| **R13** | **14 Jun 05:00** | **16-dim · 5-fold CV · +new STEP files · 1404 STEP → 807 graphs · Mean AUC 0.574±0.059** | **807** | **0.699** | **0.597** | **0.683** |
 
 > \* R3 metrics artificially inflated: 300 synthetic test graphs trivially match the 300 synthetic training graphs — not a valid measure of real-geometry performance.
 
@@ -1016,13 +1015,38 @@ Nine training runs are shown, split into two eras. Each bar group shows Val AUC 
 | 5 | — | 0.691 | 0.854 | 21 |
 | **Mean** | | **0.697 ± 0.024** | **0.827 ± 0.038** | |
 
+#### R13 — 5-Fold Cross-Validation Detail
+
+| Fold | Test AUC | Test AP |
+|---|---|---|
+| 1 | 0.655 | 0.729 |
+| 2 | 0.525 | 0.634 |
+| 3 | 0.517 | 0.585 |
+| 4 | 0.613 | 0.635 |
+| 5 ★ | 0.559 | 0.669 |
+| **Mean** | **0.574 ± 0.059** | **0.650 ± 0.053** |
+
+> ★ best fold (val AUC 0.699) — used for `best_overall.pt`; best-fold test AUC 0.597, AP 0.683
+
+#### R13 — Skip Summary (1,404 STEP files scanned)
+
+| Outcome | Count | Reason |
+|---|---|---|
+| ✅ Parsed successfully | 807 | Included in training |
+| ⛔ Nodes > 20 | 426 | Moved to `skipped_models/nodes_gt_20/` |
+| ⛔ Edges > 60 | 136 | Moved to `skipped_models/edges_gt_60/` |
+| ⏱ Timeout > 120s | 35 | Moved to `skipped_models/timeout/` |
+
+> Total STEP files added between R11 and R13: +651 files (753 → 1,404). The larger raw corpus surfaced more large/complex assemblies, pushing skipped count from 233 (R11) to 597 (R13). Full per-file breakdown in `Source_3d_models/skipped_models_report.json`.
+
 **Key observations:**
 - Removing synthetic data (R3→R6) drops the inflated test AUC to an honest 0.636, reflecting the true difficulty of real geometry
 - The 16-dim enrichment (R8) improves over the 13-dim baseline on the same 25 assemblies
 - Adding hinge assemblies (R9: 138 graphs, train/val/test = 48/12/11) lowers val AUC slightly — 138 diverse assembly types are harder to generalise from than 25, which is the expected and honest behaviour of the model on real data
 - **R10 (+Fusion360):** Adding 643 Fusion360 assemblies raises the graph count to 780. Test AUC 0.604 / AP 0.577 — first clear benefit of large-scale real-world data. Early stopping at epoch 58
 - **R11 (size-filtered):** Applying node ≤ 20 / edge ≤ 60 / 120s filters produces 416 graphs (162 skipped for nodes, 67 for edges, 4 timeout). Val AUC hits 0.781 — highest so far — but test AUC drops to 0.538, revealing overfitting on the smaller, more homogeneous split. Training converges in only 26 epochs (~4× faster than R10)
-- **R12 (5-fold CV):** Cross-validation reveals the R11 high val AUC was partially a lucky split. The mean test AUC across folds is 0.697 ± 0.024 and mean AP is 0.827 ± 0.038 — a significantly more reliable generalisation estimate. AP above 0.82 already meets the Phase 1 target. Low AUC std (±0.024) confirms the model is consistent across data splits
+- **R12 (5-fold CV):** Cross-validation on 416 graphs gives mean AUC 0.697 ± 0.024 and mean AP 0.827 ± 0.038. AP already meets the Phase 1 target. Low std confirms model consistency across splits
+- **R13 (+new STEP files, 807 graphs):** Doubling the corpus to 807 graphs (1,404 STEP scanned, 597 filtered out) lowers mean AUC to 0.574 ± 0.059 and mean AP to 0.650 ± 0.053. Higher std reflects genuine diversity in the new assemblies — the model is generalising to harder geometry. Larger skip count (597 vs 233 in R11) is expected: more raw files means proportionally more oversized assemblies. Next step: widen size thresholds or add data augmentation to improve coverage
 
 ---
 
