@@ -5,6 +5,11 @@ data:
   val_ratio:   0.15
   test_ratio:  0.15
   mask_ratio:  [0.20, 0.40]   # fraction of edges masked per graph for partial-graph training
+  categories:                  # only scan these subdirectories (null = all)
+    - "Mechanical Engineering"
+    - "Machine design"
+    - "Automotive"
+    - "Tools"
 
 model:
   in_dim:     16              # node feature dimension (16-dim: 8 type + vol + exact-SA + 3 bbox + SDF-mean + SDF-var + SA/V)

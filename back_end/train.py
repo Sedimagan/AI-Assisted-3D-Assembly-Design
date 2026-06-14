@@ -67,6 +67,7 @@ def main():
         source_dir    = cfg["data"]["source_dir"],
         processed_dir = cfg["data"]["processed_dir"],
         force_reload  = args.force_reload,
+        categories    = cfg["data"].get("categories") or None,
     )
     print(f"      {len(dataset)} graphs loaded.")
 

@@ -491,10 +491,12 @@ class AssemblyDataset(InMemoryDataset):
         source_dir: str,
         processed_dir: str,
         force_reload: bool = False,
+        categories: Optional[List[str]] = None,
         transform=None,
         pre_transform=None,
     ):
         self.source_dir = Path(source_dir)
+        self.categories = categories  # if set, only scan files under these subdirs
         if force_reload:
             for fname in ["data.pt", "processed/data.pt"]:
                 proc = Path(processed_dir) / fname
@@ -523,6 +525,15 @@ class AssemblyDataset(InMemoryDataset):
             p for p in self.source_dir.rglob("*")
             if p.suffix in step_exts and not _UUID_RE.match(p.stem)
         ]
+        # Filter to specific category subdirectories when requested
+        if self.categories:
+            _cats_set = set(self.categories)
+            step_files = [
+                p for p in step_files
+                if any(part in _cats_set for part in p.parts)
+            ]
+            print(f"  Category filter: {self.categories}")
+            print(f"  {len(step_files)} STEP files after category filter")
 
         graphs:       List[Data] = []
         source_paths: List[str]  = []

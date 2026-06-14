@@ -41,6 +41,9 @@ runs = [
     dict(id="R13", date="14 Jun\n05:00", graphs="807 real",
          note="+New STEP files · 1404 STEP → 807 graphs\n597 skipped (nodes:426 edges:136 timeout:35)\n5-Fold CV · Mean AUC=0.574±0.059\nMean AP=0.650±0.053 · Best fold val AUC=0.699",
          val_auc=0.699, test_auc=0.597, test_ap=0.683, synthetic=False),
+    dict(id="R14", date="14 Jun\n10:08", graphs="270 real",
+         note="Category filter: Mech.Eng + Mach.Design\n+ Automotive + Tools only\n306 STEP → 270 graphs · 0 skipped\n5-Fold CV · Mean AUC=0.624±0.036 · Mean AP=0.734±0.015",
+         val_auc=0.715, test_auc=0.641, test_ap=0.738, synthetic=False),
 ]
 
 n   = len(runs)
@@ -126,7 +129,7 @@ ax.legend(handles=legend_patches, loc="upper left", facecolor=PANEL,
 col_labels = ["Run", "Date", "Node Dims", "Graphs", "Val AUC", "Test AUC", "Test AP"]
 table_data = [
     [r["id"], r["date"].replace("\n", " "),
-     "13-dim" if r["id"] in ("R1","R3","R6") else "16-dim (5-fold CV)" if r["id"] in ("R12","R13") else "16-dim",
+     "13-dim" if r["id"] in ("R1","R3","R6") else "16-dim (5-fold CV)" if r["id"] in ("R12","R13","R14") else "16-dim",
      r["graphs"],
      f"{r['val_auc']:.3f}", f"{r['test_auc']:.3f}", f"{r['test_ap']:.3f}"]
     for r in runs
@@ -154,6 +157,9 @@ for (row, col), cell in tbl.get_celld().items():
     if row > 0 and runs[row-1]["id"] == "R13":
         cell.set_facecolor("#2e0f1a")
         cell.set_text_props(color="#f9a8d4", fontweight="bold")
+    if row > 0 and runs[row-1]["id"] == "R14":
+        cell.set_facecolor("#082030")
+        cell.set_text_props(color="#67e8f9", fontweight="bold")
 
 ax.text(0.5, -0.42, "* Inflated: synthetic test graphs trivially match synthetic training patterns.",
         transform=ax.transAxes, ha="center", color=SUBTEXT, fontsize=7.5, style="italic")
@@ -165,7 +171,7 @@ ax_log.text(0.5, 0.97, "Change Log", transform=ax_log.transAxes,
 log_colors = {
     "R1": "#90caf9", "R3": "#ffa726", "R6": "#4caf50",
     "R7": "#ef9a9a", "R8": "#80cbc4", "R9": "#ce93d8",
-    "R10": "#86efac", "R11": "#fde68a", "R12": "#c084fc", "R13": "#f9a8d4",
+    "R10": "#86efac", "R11": "#fde68a", "R12": "#c084fc", "R13": "#f9a8d4", "R14": "#67e8f9",
 }
 y_pos = 0.91
 for r in runs:
