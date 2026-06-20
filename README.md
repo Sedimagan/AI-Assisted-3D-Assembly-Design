@@ -1000,7 +1000,7 @@ Eleven training runs are shown, split into two eras. Each bar group shows Val AU
 | R9  | 27 May 10:06 | 16-dim · +Hinge assemblies · 93 STEP → 138 graphs | 138 | 0.623 | 0.512 | 0.533 |
 | R10 | 10 Jun 12:00 | 16-dim · +Fusion360 Gallery · 938 STEP → 780 graphs · early stop ep 58 | 780 | 0.585 | 0.604 | 0.577 |
 | R11 | 13 Jun 12:53 | 16-dim · size filters (nodes≤20, edges≤60, timeout 120s) · 753 STEP → 416 graphs · early stop ep 26 | 416 | 0.781 | 0.538 | 0.592 |
-| R12 | 13 Jun 18:04 | 16-dim · 5-fold CV · 416 graphs · Mean AUC 0.697±0.024 · Mean AP 0.827±0.038 | 416 | 0.659 | 0.667 | 0.781 |
+| R12 | 13 Jun 18:04 | 16-dim · 5-fold CV · 416 graphs · Mean AUC 0.697±0.024 · Mean AP 0.827±0.038 | 416 | 0.659 | 0.663 | 0.782 |
 | R13 | 14 Jun 05:00 | 16-dim · 5-fold CV · +new STEP files · 1404 STEP → 807 graphs · Mean AUC 0.574±0.059 | 807 | 0.699 | 0.597 | 0.683 |
 | **R14** | **14 Jun 10:08** | **16-dim · 5-fold CV · category filter (Mech.Eng + Mach.Design + Automotive + Tools) · 306 STEP → 270 graphs · 0 skipped · Mean AUC 0.624±0.036** | **270** | **0.715** | **0.641** | **0.738** |
 
@@ -1010,7 +1010,7 @@ Eleven training runs are shown, split into two eras. Each bar group shows Val AU
 
 | Fold | Val AUC (best ep) | Test AUC | Test AP | Early stop ep |
 |---|---|---|---|---|
-| 1 | 0.659 (best overall) | 0.663 | 0.781 | 37 |
+| 1 ★ | 0.659 (best overall) | 0.663 | 0.782 | 37 |
 | 2 | — | 0.710 | 0.854 | 33 |
 | 3 | — | 0.692 | 0.789 | 22 |
 | 4 | — | 0.727 | 0.856 | 40 |
