@@ -73,13 +73,13 @@ Source_3d_models/ (STEP files)
 dataset.py — gmsh (OpenCASCADE)
   Solid bodies → Nodes · Shared surfaces → Edges (2-dim)
   + trimesh exact SA · SDF ray-casting (SDF mean + variance)
-  Nodes: 16-dim · PyG InMemoryDataset
+  Nodes: 18-dim · PyG InMemoryDataset
   Saves sources.json (source path per graph) alongside data.pt
          │
          ▼
 model.py — AssemblyGNN (3-layer GAT)
-  16 → 512 → 256 → 64 dim
-  4-head attention · edge features on L1
+  18 → 1024 → 512 → 64 dim
+  [8,4,1]-head attention · edge features on L1
          │
          ▼
 LinkPredictor MLP  [Phase 1]
@@ -128,30 +128,32 @@ Next-component ranking (Hit@K, MRR)
 
 | Element | Dim | Features |
 |---|---|---|
-| **Node** | **16** | Type one-hot (8 classes, geometry-driven via SDF) · volume · exact SA (trimesh) · bbox (Δx, Δy, Δz) · SDF mean · SDF variance · SA/V ratio |
+| **Node** | **18** | Type one-hot (8 classes, geometry-driven via SDF) · volume · exact SA (trimesh) · elongation · flatness · aspect x/y · aspect y/z · sphericity · SDF mean · SDF variance · SA/V ratio |
 | **Edge** | 2 | Mate type encoded (coincident/concentric/parallel/tangent/fixed/other) · weight |
 | **Total assemblies** | 780 | 643 Fusion360 + 137 curated local |
 | **Avg nodes/graph** | 31.8 (median 11) | Range: 2 – 448 |
 | **Avg edges/graph** | 42.5 (median 12) | Range: 1 – 687 |
 | **Train/Val/Test** | 70/15/15 | Split by assembly ID — no data leakage |
 
-### Feature Engineering Detail (16 Node + 2 Edge Features)
+### Feature Engineering Detail (18 Node + 2 Edge Features)
 
 The graph construction pipeline in `back_end/dataset.py` uses **gmsh + OpenCASCADE + trimesh + SDF ray-casting** to convert each STEP file into an attributed graph. Every solid body becomes a node; every detected physical contact becomes a bidirectional edge.
 
-#### Node Features — 16 Dimensions
+#### Node Features — 18 Dimensions
 
 | Dim | Feature | Source | Status |
 |---|---|---|---|
 | [0–7] | Component type one-hot (8 classes) | SDF-inferred geometry rules | ✅ Geometry-driven (was hardcoded) |
 | [8] | Normalised volume | `gmsh.occ.getMass()` | unchanged |
 | [9] | **Exact** normalised surface area | `trimesh.Trimesh.area` | ✅ Exact (was bbox approximation) |
-| [10] | Bbox Δx / bbox_max | `gmsh.occ.getBoundingBox()` | unchanged |
-| [11] | Bbox Δy / bbox_max | `gmsh.occ.getBoundingBox()` | unchanged |
-| [12] | Bbox Δz / bbox_max | `gmsh.occ.getBoundingBox()` | unchanged |
-| [13] | **SDF mean** | Inward ray-casting (trimesh) | ✅ New — avg local thickness |
-| [14] | **SDF variance** | Inward ray-casting (trimesh) | ✅ New — shape complexity |
-| [15] | **SA/V ratio** | exact_SA / volume | ✅ New — plate vs solid discriminator |
+| [10] | **Elongation** — longest / mid axis | sorted bbox axes | ✅ New (R15) — replaces bbox Δx |
+| [11] | **Flatness** — min / max axis | sorted bbox axes | ✅ New (R15) — replaces bbox Δy |
+| [12] | **Aspect x/y** — dx/(dy+ε) normalised | `gmsh.occ.getBoundingBox()` | ✅ New (R15) — replaces bbox Δz |
+| [13] | **Aspect y/z** — dy/(dz+ε) normalised | `gmsh.occ.getBoundingBox()` | ✅ New (R15) |
+| [14] | **Sphericity** — π^⅓(6V)^⅔ / SA | gmsh + trimesh | ✅ New (R15) — rotation-invariant |
+| [15] | **SDF mean** | Inward ray-casting (trimesh) | ✅ avg local thickness |
+| [16] | **SDF variance** | Inward ray-casting (trimesh) | ✅ shape complexity |
+| [17] | **SA/V ratio** | exact_SA / volume | ✅ plate vs solid discriminator |
 
 **Dims [0–7] — Geometry-Driven Component Type One-Hot (8 classes)**
 
@@ -534,22 +536,23 @@ python skills_agent.py
 
 | Parameter | Value |
 |---|---|
-| GAT layers | 3 (16→512→256→64 dim) |
-| Attention heads | [4, 2, 1] |
+| GAT layers | 3 (18→1024→512→64 dim) |
+| Attention heads | [8, 4, 1] |
 | Dropout | 0.2 |
 | Optimizer | Adam lr=1e-3, weight_decay=5e-4 |
 | LR schedule | ReduceLROnPlateau (factor=0.5, patience=8) |
 | Early stopping | patience=20 |
 | Max epochs | 200 |
 | Batch size | 32 graphs |
-| Neg sampling ratio | 1:1 pos/neg |
+| Neg sampling ratio | 0.5 per positive (+ hard negatives weighted 0.3×) |
 
 ### Trained model output
 
 After training completes a timestamped file is saved to `trained_models/`:
 
 ```
-trained_models/assembly_gnn_20260614_100837_auc07152.pt   ← current best (R14 — category filter, 270 graphs, best fold val AUC 0.715, mean AUC 0.624)
+trained_models/assembly_gnn_20260620_103030_auc09018.pt   ← current best (R15 — P1–P6, 18-dim, heads [8,4,1], hard negatives, 270 graphs, best fold val AUC 0.902, mean AUC 0.726)
+trained_models/assembly_gnn_20260614_100837_auc07152.pt   ← R14 (category filter, 270 graphs, best fold val AUC 0.715, mean AUC 0.624)
 trained_models/assembly_gnn_20260614_050047_auc06985.pt   ← R13 (5-fold CV, 807 graphs, best fold val AUC 0.699, mean AUC 0.574)
 trained_models/assembly_gnn_20260613_180449_auc06591.pt   ← R12 (5-fold CV, 416 graphs, best fold val AUC 0.659, mean AUC 0.697)
 trained_models/assembly_gnn_20260613_125353_auc07809.pt   ← R11 (16-dim, 416 graphs, size-filtered, val AUC 0.781)
@@ -988,7 +991,7 @@ All previous output — red ⚠ body highlights, orange ❓ cross markers, AIDA 
 
 ![Training Progression — AUC-ROC & Average Precision](docs/training_history.png)
 
-Eleven training runs are shown, split into two eras. Each bar group shows Val AUC (light), Test AUC (solid), and Test AP (translucent) for that run. Dashed red/orange lines are the Phase 1 targets (AUC 0.85, AP 0.82). R12–R14 report best-fold metrics from 5-fold CV.
+Twelve training runs are shown, split into two eras. Each bar group shows Val AUC (light), Test AUC (solid), and Test AP (translucent) for that run. Dashed red/orange lines are the Phase 1 targets (AUC 0.85, AP 0.82). R12–R15 report best-fold metrics from 5-fold CV.
 
 | Run | Date | Change | Graphs | Val AUC | Test AUC | Test AP |
 |---|---|---|---|---|---|---|
@@ -1002,7 +1005,8 @@ Eleven training runs are shown, split into two eras. Each bar group shows Val AU
 | R11 | 13 Jun 12:53 | 16-dim · size filters (nodes≤20, edges≤60, timeout 120s) · 753 STEP → 416 graphs · early stop ep 26 | 416 | 0.781 | 0.538 | 0.592 |
 | R12 | 13 Jun 18:04 | 16-dim · 5-fold CV · 416 graphs · Mean AUC 0.697±0.024 · Mean AP 0.827±0.038 | 416 | 0.659 | 0.663 | 0.782 |
 | R13 | 14 Jun 05:00 | 16-dim · 5-fold CV · +new STEP files · 1404 STEP → 807 graphs · Mean AUC 0.574±0.059 | 807 | 0.699 | 0.597 | 0.683 |
-| **R14** | **14 Jun 10:08** | **16-dim · 5-fold CV · category filter (Mech.Eng + Mach.Design + Automotive + Tools) · 306 STEP → 270 graphs · 0 skipped · Mean AUC 0.624±0.036** | **270** | **0.715** | **0.641** | **0.738** |
+| R14 | 14 Jun 10:08 | 16-dim · 5-fold CV · category filter (Mech.Eng + Mach.Design + Automotive + Tools) · 306 STEP → 270 graphs · 0 skipped · Mean AUC 0.624±0.036 | 270 | 0.715 | 0.641 | 0.738 |
+| **R15** | **20 Jun 10:30** | **18-dim · P1–P6 · heads [8,4,1] · affine-invariant features · hard negatives · structured synthetics · neg_ratio=0.5 · 5-fold CV · Mean AUC=0.726±0.041 · Mean AP=0.917±0.012** | **270** | **0.902** | **0.614** | **0.879** |
 
 > \* R3 metrics artificially inflated: 300 synthetic test graphs trivially match the 300 synthetic training graphs — not a valid measure of real-geometry performance.
 
@@ -1047,6 +1051,21 @@ Eleven training runs are shown, split into two eras. Each bar group shows Val AU
 
 **Notable:** 0 assemblies skipped — all 306 files from these 4 engineering-focused categories fell within the nodes ≤ 20 / edges ≤ 60 thresholds. This confirms these categories contain predominantly compact, well-structured assemblies suited to the model's current size constraints.
 
+#### R15 — 5-Fold Cross-Validation Detail (P1–P6 Improvements)
+
+**Changes vs R14:** 18-dim affine-invariant features (elongation/flatness/aspect/sphericity) · GAT heads [8,4,1] · hard negative sampling (0.3× weight) · structured synthetic graphs · neg_ratio=0.5
+
+| Fold | Val AUC (best ep) | Test AUC | Test AP |
+|---|---|---|---|
+| 1 | — | 0.7302 | 0.9162 |
+| 2 ★ | 0.9018 (best overall) | 0.7354 | 0.9158 |
+| 3 | — | 0.6561 | 0.8984 |
+| 4 | — | 0.7566 | 0.9289 |
+| 5 | — | 0.7513 | 0.9272 |
+| **Mean** | | **0.726 ± 0.041** | **0.917 ± 0.012** |
+
+> ★ best fold (val AUC 0.902) — used for `best_overall.pt`; final test eval AUC 0.614, AP 0.879. Mean AP 0.917 far exceeds the Phase 1 target of 0.82. AUC improved from 0.624 (R14) to 0.726 (+10 points), still short of 0.85 target.
+
 #### R13 — Skip Summary (1,404 STEP files scanned)
 
 | Outcome | Count | Reason |
@@ -1067,6 +1086,7 @@ Eleven training runs are shown, split into two eras. Each bar group shows Val AU
 - **R12 (5-fold CV):** Cross-validation on 416 graphs gives mean AUC 0.697 ± 0.024 and mean AP 0.827 ± 0.038. AP already meets the Phase 1 target. Low std confirms model consistency across splits
 - **R13 (+new STEP files, 807 graphs):** Doubling the corpus to 807 graphs (1,404 STEP scanned, 597 filtered out) lowers mean AUC to 0.574 ± 0.059 and mean AP to 0.650 ± 0.053. Higher std reflects genuine diversity in the new assemblies — the model is generalising to harder geometry. Larger skip count (597 vs 233 in R11) is expected: more raw files means proportionally more oversized assemblies
 - **R14 (category filter — 270 graphs):** Restricting to Mechanical Engineering, Machine design, Automotive, and Tools yields 270 highly curated graphs from 306 STEP files — 0 skipped, confirming these categories are structurally compact. Mean AUC 0.624 ± 0.036, mean AP 0.734 ± 0.015. The very low AP std (±0.015) shows the model is highly consistent across folds on domain-focused data. AUC improves over R13 despite a smaller corpus, validating the hypothesis that domain-focused training beats broad noisy data at this scale
+- **R15 (P1–P6 — 18-dim, heads [8,4,1], hard negatives — 270 graphs):** Six simultaneous improvements over R14: (P1) GAT heads widened to [8,4,1], (P2) 18-dim features replacing rotation-sensitive bbox deltas with affine-invariant elongation/flatness/aspect/sphericity, (P3) structured synthetic bolt/shaft/mixed templates, (P4) hard-negative sampling added to the loss (0.3× BCE weight), (P5) neg_ratio halved to 0.5, (P6) 5-fold CV already active. Mean AUC jumps to 0.726 ± 0.041 (+10 points over R14), mean AP reaches 0.917 ± 0.012 — comfortably exceeding the Phase 1 AP target of 0.82. AUC is still below the 0.85 target; next step is adding more curated STEP files (GrabCAD, NIST MBE)
 
 ---
 
