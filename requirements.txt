@@ -1,0 +1,21 @@
+# Front-end
+streamlit>=1.35.0
+plotly>=5.0.0
+
+# Back-end / ML
+torch>=2.0.0
+torch-geometric>=2.3.0
+numpy>=1.24.0
+scikit-learn>=1.3.0
+PyYAML>=6.0
+tqdm>=4.65.0
+trimesh>=4.0.0
+rtree>=1.0.0
+python-dotenv>=1.0.0
+
+# Gemini AI
+google-generativeai>=0.7.0
+
+# 3D geometry
+gmsh>=4.11.0
+pyvista>=0.43.0

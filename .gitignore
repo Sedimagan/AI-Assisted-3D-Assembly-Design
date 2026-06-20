@@ -7,8 +7,9 @@ __pycache__/
 *.pyo
 .venv/
 
-# Environment
+# Environment / Secrets
 .env
+.streamlit/secrets.toml
 
 # Service runtime
 .pids/

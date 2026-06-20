@@ -1,0 +1,12 @@
+.git
+.env
+.streamlit/secrets.toml
+.venv
+__pycache__
+*.pyc
+.DS_Store
+Source_3d_models
+Test_3D_models
+.logs
+.pids
+*.FCBak

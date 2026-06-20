@@ -29,6 +29,18 @@ try:
 except ImportError:
     pass  # python-dotenv not installed; rely on shell environment
 
+
+def _get_secret(key: str, default: str = "") -> str:
+    """Read from env vars first, then Streamlit secrets (for cloud deployment)."""
+    val = os.getenv(key)
+    if val:
+        return val
+    try:
+        import streamlit as st
+        return st.secrets.get(key, default)
+    except Exception:
+        return default
+
 try:
     import google.generativeai as genai
     _GENAI_AVAILABLE = True
@@ -71,33 +83,34 @@ class AssemblySkillsAgent:
     """
 
     def __init__(self, profile: str | None = None):
-        self.profile = profile or os.getenv("SKILLS_PROFILE", "engineering_3d_assembly")
-        self.model_name = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
-        self.temperature = float(os.getenv("SKILLS_TEMPERATURE", "0.3"))
-        self.max_tokens  = int(os.getenv("SKILLS_MAX_OUTPUT_TOKENS", "300"))
+        self.profile = profile or _get_secret("SKILLS_PROFILE", "engineering_3d_assembly")
+        self.model_name = _get_secret("GEMINI_MODEL", "gemini-2.0-flash")
+        self.temperature = float(_get_secret("SKILLS_TEMPERATURE", "0.3"))
+        self.max_tokens  = int(_get_secret("SKILLS_MAX_OUTPUT_TOKENS", "300"))
 
         skills = _load_skills(self.profile)
         self._system_prompt = _build_system_prompt(skills)
         self._agent_name    = skills.get("name", "AIDA")
 
         self._model = None
-        if _GENAI_AVAILABLE and os.getenv("GEMINI_API_KEY"):
-            genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+        _api_key = _get_secret("GEMINI_API_KEY")
+        if _GENAI_AVAILABLE and _api_key:
+            genai.configure(api_key=_api_key)
             self._model = genai.GenerativeModel(
                 model_name         = self.model_name,
                 system_instruction = self._system_prompt,
                 generation_config  = {
                     "temperature":        self.temperature,
                     "max_output_tokens":  self.max_tokens,
-                    "top_p":              float(os.getenv("SKILLS_TOP_P", "0.9")),
+                    "top_p":              float(_get_secret("SKILLS_TOP_P", "0.9")),
                 },
             )
         else:
             if not _GENAI_AVAILABLE:
                 print("[SkillsAgent] google-generativeai not installed. "
                       "Run: pip install google-generativeai")
-            elif not os.getenv("GEMINI_API_KEY"):
-                print("[SkillsAgent] GEMINI_API_KEY not set in .env")
+            elif not _api_key:
+                print("[SkillsAgent] GEMINI_API_KEY not set in .env or st.secrets")
 
     # ── Internal helper ───────────────────────────────────────────────────────
 

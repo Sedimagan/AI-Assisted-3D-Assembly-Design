@@ -14,9 +14,17 @@ _CKPT_PATH  = _PROJ_ROOT / "back_end" / "checkpoints" / "best_overall.pt"
 _STEP_CACHE   = _PROJ_ROOT / ".logs" / "inference_input.step"
 _TMPL_DB_PATH = _PROJ_ROOT / "back_end" / "data" / "assembly_templates.json"
 
-os.environ["DISPLAY"] = ":99"
+if not os.environ.get("DISPLAY"):
+    os.environ["DISPLAY"] = ":99"
 import pyvista as pv
 pv.OFF_SCREEN = True
+
+# Load .env for local dev; on Streamlit Cloud, secrets come from st.secrets
+try:
+    from dotenv import load_dotenv
+    load_dotenv(_PROJ_ROOT / ".env")
+except ImportError:
+    pass
 
 import streamlit as st
 import streamlit.components.v1
@@ -1001,16 +1009,23 @@ def _run_aida_explain(inference_result: dict) -> str:
 
 # ── Source folder helper ──────────────────────────────────────────────────────
 def _pick_source_folder() -> str | None:
-    """Open a native macOS folder-picker; return the chosen path or None."""
-    result = subprocess.run(
-        ["osascript", "-e",
-         'set p to POSIX path of (choose folder with prompt '
-         '"Select the folder containing your 3D model files (.step / .stp)")'
-         ],
-        capture_output=True, text=True, timeout=120,
-    )
-    if result.returncode == 0:
-        return result.stdout.strip().rstrip("/") or None
+    """Open a native macOS folder-picker; return the chosen path or None.
+    Returns None on non-macOS platforms (cloud deployments)."""
+    import platform
+    if platform.system() != "Darwin":
+        return None
+    try:
+        result = subprocess.run(
+            ["osascript", "-e",
+             'set p to POSIX path of (choose folder with prompt '
+             '"Select the folder containing your 3D model files (.step / .stp)")'
+             ],
+            capture_output=True, text=True, timeout=120,
+        )
+        if result.returncode == 0:
+            return result.stdout.strip().rstrip("/") or None
+    except FileNotFoundError:
+        pass
     return None
 
 
