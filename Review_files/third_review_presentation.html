@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Third Review — AI-Assisted 3D Assembly Design</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: #080e18;
+  color: #d0dcea;
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* ── deck ── */
+#deck {
+  width: 100%;
+  height: calc(100vh - 52px);
+  position: relative;
+  overflow: hidden;
+}
+.slide {
+  display: none;
+  position: absolute;
+  inset: 0;
+  flex-direction: column;
+  animation: slideIn 0.32s cubic-bezier(0.25,0.46,0.45,0.94);
+}
+.slide.active { display: flex; }
+@keyframes slideIn {
+  from { opacity:0; transform:translateY(7px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── slide header ── */
+.shdr {
+  background: linear-gradient(135deg,#0d2040,#0a1a34);
+  border-bottom: 2px solid #1a3560;
+  padding: 12px 30px;
+  display: flex; align-items: center; gap: 14px;
+  flex-shrink: 0;
+}
+.snum {
+  width:34px; height:34px; border-radius:50%;
+  border:1.5px solid #4f8ef7; color:#4f8ef7;
+  font-size:14px; font-weight:700;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.shdr h2 { font-size:25px; font-weight:700; color:#ddeeff; flex:1; }
+.shdr .sub { font-size:13px; color:#2e5080; }
+
+/* ── home button ── */
+.home-btn {
+  width:34px; height:34px; border-radius:50%;
+  border:1.5px solid #4f8ef7; background:transparent;
+  color:#4f8ef7; font-size:16px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:all 0.18s; flex-shrink:0;
+  text-decoration:none;
+}
+.home-btn:hover { background:#4f8ef7; color:#fff; }
+
+/* ── slide body ── */
+.sbody {
+  flex:1; overflow:hidden;
+  padding: 16px 28px 14px;
+  background: #0d1018;
+  display: flex; flex-direction: column; gap: 12px;
+}
+
+/* ── nav bar ── */
+#nav {
+  height:52px; background:#060c14;
+  border-top:1px solid #0f1a28;
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 0 22px;
+}
+.nbtn {
+  width:34px; height:34px; border-radius:50%;
+  border:1px solid #1a2e50; background:#0a1422;
+  color:#4a6888; font-size:16px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:all 0.18s;
+}
+.nbtn:hover { border-color:#4f8ef7; color:#4f8ef7; }
+#dots { display:flex; gap:8px; align-items:center; }
+.dot {
+  width:8px; height:8px; border-radius:4px;
+  background:#1a2e50; cursor:pointer; transition:all 0.2s;
+}
+.dot.on { background:#4f8ef7; width:22px; }
+#sinfo { font-size:12px; color:#253545; min-width:48px; text-align:right; }
+
+/* ── layout ── */
+.row  { display:flex; gap:16px; flex:1; min-height:0; }
+.col  { flex:1; display:flex; flex-direction:column; gap:11px; min-height:0; }
+.cols { flex:0.82; }
+.coll { flex:1.18; }
+
+/* ── card ── */
+.card {
+  background:#101620; border:1px solid #1a2332;
+  border-radius:10px; padding:14px 18px;
+  display:flex; flex-direction:column; gap:9px;
+  overflow-y:auto;
+}
+.card.bl { border-top:2px solid #4f8ef7; }
+.card.bg { border-top:2px solid #4caf82; }
+.card.bp { border-top:2px solid #a56bff; }
+.card.bo { border-top:2px solid #e08850; }
+.card.bt { border-top:2px solid #14b8a6; }
+.card.by { border-top:2px solid #eab308; }
+
+.card h3 {
+  font-size:15px; font-weight:700; color:#8ab4f8;
+  display:flex; align-items:center; gap:8px;
+}
+.card p, .card li { font-size:13.5px; line-height:1.65; color:#a0b8cc; }
+.card ul { padding-left:1.2rem; }
+.card li { margin-bottom:3px; }
+.card strong { color:#c8d8e8; }
+
+/* ── table ── */
+table {
+  width:100%; border-collapse:collapse; font-size:13px;
+}
+th {
+  background:#14202e; color:#8ab4f8; font-weight:600;
+  padding:7px 10px; text-align:left; border-bottom:1.5px solid #1e3a5f;
+  white-space:nowrap;
+}
+td {
+  padding:6px 10px; border-bottom:1px solid #151e2a; color:#a0b8cc;
+}
+tr:hover td { background:rgba(79,142,247,0.05); }
+td.num { text-align:right; font-variant-numeric:tabular-nums; }
+
+/* ── agenda grid ── */
+.agenda-grid {
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:14px; padding:12px 0;
+}
+.agenda-item {
+  display:flex; align-items:center; gap:14px;
+  padding:14px 20px;
+  background:#101620; border:1px solid #1a2332;
+  border-radius:10px; cursor:pointer;
+  transition:all 0.22s; text-decoration:none;
+}
+.agenda-item:hover {
+  border-color:#4f8ef7;
+  background:#141e2e;
+  transform:translateY(-2px);
+  box-shadow:0 4px 12px rgba(79,142,247,0.15);
+}
+.agenda-num {
+  width:38px; height:38px; border-radius:50%;
+  background:linear-gradient(135deg,#1e3a8a,#2563eb);
+  color:#fff; font-weight:700; font-size:15px;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.agenda-label {
+  font-size:15px; font-weight:600; color:#c8d8e8;
+}
+
+/* ── badge ── */
+.badge {
+  display:inline-block; font-size:11px; font-weight:700;
+  padding:2px 9px; border-radius:10px;
+}
+.badge-green  { background:#166534; color:#bbf7d0; }
+.badge-blue   { background:#1e3a8a; color:#bfdbfe; }
+.badge-amber  { background:#78350f; color:#fde68a; }
+.badge-red    { background:#7f1d1d; color:#fecaca; }
+.badge-purple { background:#4c1d95; color:#ddd6fe; }
+.badge-teal   { background:#134e4a; color:#99f6e4; }
+
+/* ── metric ── */
+.metric-row {
+  display:flex; gap:12px; flex-wrap:wrap;
+}
+.metric {
+  background:#0d1828; border:1px solid #1a3060;
+  border-radius:8px; padding:10px 16px;
+  text-align:center; min-width:130px;
+}
+.metric .val {
+  font-size:26px; font-weight:700; color:#4f8ef7;
+  font-variant-numeric:tabular-nums;
+}
+.metric .lbl {
+  font-size:11px; color:#506878; margin-top:2px;
+}
+
+/* ── facing slide ── */
+.facing {
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  height:100%; text-align:center;
+  background:radial-gradient(ellipse at 50% 40%, #0f2744 0%, #080e18 70%);
+  padding:24px;
+}
+.facing .icon { font-size:52px; margin-bottom:12px; }
+.facing h1 {
+  font-size:36px; font-weight:800; color:#fff;
+  letter-spacing:0.5px; margin-bottom:6px;
+}
+.facing .tagline {
+  font-size:16px; color:#38bdf8; font-weight:500;
+  margin-bottom:24px;
+}
+.facing .meta-row {
+  display:flex; gap:28px; align-items:center;
+  font-size:13px; color:#6b8bad; flex-wrap:wrap;
+  justify-content:center; margin-bottom:8px;
+}
+.facing .meta-row strong { color:#a0c4e8; }
+.facing .review-badge {
+  display:inline-block; background:linear-gradient(135deg,#1e3a8a,#2563eb);
+  color:#fff; font-size:13px; font-weight:700;
+  padding:5px 18px; border-radius:20px; margin-bottom:28px;
+  letter-spacing:0.5px;
+}
+
+/* ── demo slide ── */
+.demo-center {
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  height:100%; gap:20px; text-align:center;
+}
+.demo-btn {
+  display:inline-flex; align-items:center; gap:12px;
+  background:linear-gradient(135deg,#1e3a8a,#2563eb);
+  color:#fff; font-size:18px; font-weight:700;
+  padding:16px 40px; border-radius:14px;
+  text-decoration:none; transition:all 0.22s;
+  box-shadow:0 4px 20px rgba(37,99,235,0.4);
+}
+.demo-btn:hover {
+  transform:translateY(-3px);
+  box-shadow:0 8px 30px rgba(37,99,235,0.6);
+}
+
+/* ── flow diagram (text-based) ── */
+.flow-box {
+  background:#0d1828; border:1px solid #1e3a5f;
+  border-radius:8px; padding:8px 14px;
+  text-align:center; font-size:12.5px; font-weight:600;
+  color:#8ab4f8;
+}
+.flow-arrow {
+  text-align:center; font-size:18px; color:#2e5080; line-height:1.2;
+}
+
+/* scrollbar */
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:#1a2e50; border-radius:3px; }
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 1 — FACING / AGENDA                                            -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="slide active" id="s1">
+  <div class="sbody" style="padding:0;">
+    <div class="facing">
+      <div class="icon">🔩</div>
+      <h1>AI-Assisted 3D Assembly Design</h1>
+      <div class="tagline">Predicting Missing Components in CAD Assemblies using Graph Neural Networks</div>
+      <div class="review-badge">THIRD REVIEW — Phase 1</div>
+      <div class="meta-row">
+        <span><strong>Student:</strong> Parthasarathy Perumal</span>
+        <span><strong>Guide:</strong> Prof. Sagarika Borah</span>
+      </div>
+      <div class="meta-row">
+        <span>M.Tech Data Science &amp; AI, Sem 4</span>
+        <span>PES University, Electronic City, Bengaluru</span>
+      </div>
+
+      <div style="margin-top:24px;width:100%;max-width:680px;">
+        <div style="font-size:14px;font-weight:700;color:#4f8ef7;margin-bottom:12px;letter-spacing:0.5px;">AGENDA</div>
+        <div class="agenda-grid">
+          <a class="agenda-item" onclick="go(2)">
+            <div class="agenda-num">1</div>
+            <div class="agenda-label">Title &amp; Abstract</div>
+          </a>
+          <a class="agenda-item" onclick="go(3)">
+            <div class="agenda-num">2</div>
+            <div class="agenda-label">Overall Design</div>
+          </a>
+          <a class="agenda-item" onclick="go(4)">
+            <div class="agenda-num">3</div>
+            <div class="agenda-label">Experimental Results</div>
+          </a>
+          <a class="agenda-item" onclick="go(5)">
+            <div class="agenda-num">4</div>
+            <div class="agenda-label">Performance Evaluation</div>
+          </a>
+          <a class="agenda-item" onclick="go(6)">
+            <div class="agenda-num">5</div>
+            <div class="agenda-label">Model Comparison</div>
+          </a>
+          <a class="agenda-item" onclick="go(7)">
+            <div class="agenda-num">6</div>
+            <div class="agenda-label">References</div>
+          </a>
+          <a class="agenda-item" onclick="go(8)" style="grid-column:1/3;">
+            <div class="agenda-num" style="background:linear-gradient(135deg,#166534,#22c55e);">7</div>
+            <div class="agenda-label">Live Demo &rarr; http://localhost:8501</div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 2 — TITLE & ABSTRACT                                           -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="slide" id="s2">
+  <div class="shdr">
+    <div class="snum">1</div>
+    <h2>Title &amp; Abstract</h2>
+    <button class="home-btn" onclick="go(1)" title="Back to Agenda">⌂</button>
+  </div>
+  <div class="sbody">
+    <div class="row">
+      <div class="col">
+        <div class="card bl" style="flex:none;">
+          <h3>Project Title</h3>
+          <p style="font-size:17px;font-weight:600;color:#ddeeff;line-height:1.5;">
+            AI-Assisted 3D Assembly Design: Predicting Missing Components in CAD Assemblies using Graph Neural Networks
+          </p>
+        </div>
+        <div class="card bg" style="flex:1;">
+          <h3>Abstract</h3>
+          <p>Engineering CAD assemblies consist of multiple interconnected components whose correct selection is
+            time-consuming and expertise-dependent. This project trains a <strong>Graph Attention Network (GAT)</strong>
+            on assembly graphs to detect <strong>missing components</strong> via link prediction.</p>
+          <p>A <strong>Gemini-powered Skills AI agent</strong> (AIDA) explains predictions in engineering language.
+            An <strong>Assembly Completeness Model</strong> learns per-category component-type distributions and
+            identifies what is missing from partial or single-component uploads.</p>
+          <p>An <strong>Octree-based Open Surface Detector</strong> (inspired by Borah &amp; Borah 2020)
+            identifies the precise mesh surfaces where missing components should be assembled,
+            highlighting them in lime green directly on the 3D model.</p>
+          <p>The solution is implemented entirely in Python using PyTorch Geometric,
+            <strong>without dependency on proprietary CAD software APIs</strong>.</p>
+        </div>
+      </div>
+      <div class="col cols">
+        <div class="card bp">
+          <h3>Key Contributions</h3>
+          <ul>
+            <li><strong>GNN-based link prediction</strong> for missing component detection in 3D assemblies</li>
+            <li><strong>21-dimensional node features</strong> — geometry-driven SDF + affine-invariant shape descriptors</li>
+            <li><strong>Assembly Completeness Model</strong> — template-based gap analysis per assembly category</li>
+            <li><strong>Octree open surface detection</strong> — spatial localisation of unmated joints</li>
+            <li><strong>AIDA</strong> — Gemini AI agent for engineering-language explanations</li>
+            <li><strong>End-to-end Streamlit app</strong> — interactive 3D viewer with dual-panel analysis</li>
+          </ul>
+        </div>
+        <div class="card bo">
+          <h3>Project Details</h3>
+          <table>
+            <tr><td><strong>Student</strong></td><td>Parthasarathy Perumal</td></tr>
+            <tr><td><strong>Guide</strong></td><td>Prof. Sagarika Borah</td></tr>
+            <tr><td><strong>Programme</strong></td><td>M.Tech DS &amp; AI, Sem 4</td></tr>
+            <tr><td><strong>University</strong></td><td>PES University, Bengaluru</td></tr>
+            <tr><td><strong>Phase 1</strong></td><td>May 10 – Jul 10, 2026</td></tr>
+            <tr><td><strong>Phase 2</strong></td><td>Jul 10 – Sep 10, 2026</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 3 — OVERALL DESIGN                                             -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="slide" id="s3">
+  <div class="shdr">
+    <div class="snum">2</div>
+    <h2>Overall Design</h2>
+    <button class="home-btn" onclick="go(1)" title="Back to Agenda">⌂</button>
+  </div>
+  <div class="sbody">
+    <div class="row">
+      <div class="col coll">
+        <div class="card bl" style="flex:1;">
+          <h3>System Architecture</h3>
+          <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;">
+            <div class="flow-box">Source_3d_models/ (STEP files — 780 assemblies)</div>
+            <div class="flow-arrow">▼</div>
+            <div class="flow-box">dataset.py — gmsh (OpenCASCADE)<br>
+              <span style="color:#6b8bad;">Solid bodies → Nodes (21-dim) · Shared surfaces → Edges (2-dim)</span></div>
+            <div class="flow-arrow">▼</div>
+            <div class="flow-box">model.py — AssemblyGNN (3-layer GAT)<br>
+              <span style="color:#6b8bad;">21 → 1024 → 512 → 64 dim · [8,4,1]-head attention</span></div>
+            <div class="flow-arrow">▼</div>
+            <div style="display:flex;gap:8px;">
+              <div class="flow-box" style="flex:1;">LinkPredictor MLP<br>
+                <span style="color:#6b8bad;">MLP(h<sub>u</sub>‖h<sub>v</sub>) → BCE</span></div>
+              <div class="flow-box" style="flex:1;">AssemblyTemplateDB<br>
+                <span style="color:#6b8bad;">Category matching + gap analysis</span></div>
+              <div class="flow-box" style="flex:1;">OctreeNode<br>
+                <span style="color:#6b8bad;">Open surface detection</span></div>
+            </div>
+            <div class="flow-arrow">▼</div>
+            <div class="flow-box">skills_agent.py — Gemini AI (AIDA) · 4-section engineering explanation</div>
+            <div class="flow-arrow">▼</div>
+            <div class="flow-box" style="border-color:#4caf82;">front_end/app.py — Streamlit Interactive 3D Viewer + Dual Panel UI</div>
+          </div>
+        </div>
+      </div>
+      <div class="col cols">
+        <div class="card bg">
+          <h3>Graph Schema</h3>
+          <table>
+            <tr><th>Element</th><th>Dim</th><th>Features</th></tr>
+            <tr><td><strong>Node</strong></td><td class="num">21</td>
+              <td>Type one-hot (8) · volume · exact SA · bbox · elongation · flatness · aspect · sphericity · SDF mean/var · SA/V</td></tr>
+            <tr><td><strong>Edge</strong></td><td class="num">2</td>
+              <td>Mate type (coincident/concentric/…) · weight</td></tr>
+          </table>
+        </div>
+        <div class="card bp">
+          <h3>Dataset</h3>
+          <table>
+            <tr><td><strong>Total assemblies</strong></td><td class="num">780</td></tr>
+            <tr><td><strong>Fusion360 Gallery</strong></td><td class="num">643</td></tr>
+            <tr><td><strong>Local curated</strong></td><td class="num">137</td></tr>
+            <tr><td><strong>Training subset (R16)</strong></td><td class="num">270</td></tr>
+            <tr><td><strong>Avg nodes/graph</strong></td><td class="num">31.8</td></tr>
+            <tr><td><strong>Avg edges/graph</strong></td><td class="num">42.5</td></tr>
+            <tr><td><strong>Train/Val/Test</strong></td><td>70 / 15 / 15</td></tr>
+          </table>
+        </div>
+        <div class="card bo">
+          <h3>Technology Stack</h3>
+          <ul>
+            <li><strong>CAD Parsing:</strong> gmsh + OpenCASCADE</li>
+            <li><strong>Geometry:</strong> trimesh (exact SA, SDF ray-casting)</li>
+            <li><strong>Graph ML:</strong> PyTorch Geometric · GAT</li>
+            <li><strong>AI Agent:</strong> Google Gemini (AIDA)</li>
+            <li><strong>Front-end:</strong> Streamlit · Plotly Mesh3d</li>
+            <li><strong>Open Surfaces:</strong> Octree (Borah &amp; Borah 2020)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 4 — EXPERIMENTAL RESULTS                                       -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="slide" id="s4">
+  <div class="shdr">
+    <div class="snum">3</div>
+    <h2>Experimental Results</h2>
+    <button class="home-btn" onclick="go(1)" title="Back to Agenda">⌂</button>
+  </div>
+  <div class="sbody">
+    <div class="row">
+      <div class="col coll">
+        <div class="card bl" style="flex:1;">
+          <h3>Training History — 16 Runs</h3>
+          <div style="overflow-x:auto;">
+            <table style="font-size:12px;">
+              <thead>
+                <tr><th>Run</th><th>Change</th><th>Graphs</th><th>Val AUC</th><th>Test AUC</th><th>Test AP</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>R6</td><td>13-dim · 25 real STEP only</td><td class="num">25</td><td class="num">0.813</td><td class="num">0.636</td><td class="num">0.584</td></tr>
+                <tr><td>R8</td><td>16-dim · trimesh+SDF · 25 STEP</td><td class="num">25</td><td class="num">0.750</td><td class="num">0.585</td><td class="num">0.559</td></tr>
+                <tr><td>R10</td><td>+Fusion360 Gallery · 780 graphs</td><td class="num">780</td><td class="num">0.585</td><td class="num">0.604</td><td class="num">0.577</td></tr>
+                <tr><td>R11</td><td>Size filters · 416 graphs</td><td class="num">416</td><td class="num">0.781</td><td class="num">0.538</td><td class="num">0.592</td></tr>
+                <tr><td>R12</td><td>5-fold CV · 416 graphs</td><td class="num">416</td><td class="num">0.659</td><td class="num">0.697*</td><td class="num">0.827*</td></tr>
+                <tr><td>R14</td><td>Category filter · 270 graphs</td><td class="num">270</td><td class="num">0.715</td><td class="num">0.624*</td><td class="num">0.734*</td></tr>
+                <tr style="background:rgba(79,142,247,0.08);">
+                  <td><strong>R15</strong></td><td>18-dim · P1–P6 · heads [8,4,1]</td><td class="num">270</td><td class="num"><strong>0.902</strong></td><td class="num"><strong>0.726*</strong></td><td class="num"><strong>0.917*</strong></td></tr>
+                <tr style="background:rgba(167,139,250,0.08);">
+                  <td><strong>R16</strong></td><td>21-dim · bbox+affine features</td><td class="num">270</td><td class="num"><strong>0.902</strong></td><td class="num">0.659*</td><td class="num">0.894*</td></tr>
+              </tbody>
+            </table>
+            <p style="font-size:11px;color:#506878;margin-top:4px;">* Mean values from 5-fold cross-validation</p>
+          </div>
+        </div>
+      </div>
+      <div class="col cols">
+        <div class="card bg">
+          <h3>Best Results (R15)</h3>
+          <div class="metric-row">
+            <div class="metric">
+              <div class="val">0.726</div>
+              <div class="lbl">Mean AUC-ROC</div>
+            </div>
+            <div class="metric">
+              <div class="val" style="color:#4caf82;">0.917</div>
+              <div class="lbl">Mean Avg Precision</div>
+            </div>
+            <div class="metric">
+              <div class="val" style="color:#a56bff;">0.902</div>
+              <div class="lbl">Best Fold Val AUC</div>
+            </div>
+          </div>
+          <p style="margin-top:6px;"><span class="badge badge-green">AP 0.917 exceeds Phase 1 target of 0.82</span></p>
+        </div>
+        <div class="card bo">
+          <h3>Current Model (R16)</h3>
+          <div class="metric-row">
+            <div class="metric">
+              <div class="val">0.659</div>
+              <div class="lbl">Mean AUC-ROC</div>
+            </div>
+            <div class="metric">
+              <div class="val" style="color:#4caf82;">0.894</div>
+              <div class="lbl">Mean Avg Precision</div>
+            </div>
+          </div>
+          <p style="margin-top:6px;">21-dim features (bbox + affine-invariant)</p>
+          <p>5-fold CV · 270 graphs · Best fold val AUC 0.902</p>
+        </div>
+        <div class="card bp">
+          <h3>Phase 1 Targets</h3>
+          <table>
+            <tr><td>AUC-ROC</td><td class="num">&ge; 0.85</td><td><span class="badge badge-amber">In progress</span></td></tr>
+            <tr><td>Avg Precision</td><td class="num">&ge; 0.82</td><td><span class="badge badge-green">Achieved (0.917)</span></td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 5 — PERFORMANCE EVALUATION                                     -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="slide" id="s5">
+  <div class="shdr">
+    <div class="snum">4</div>
+    <h2>Performance Evaluation</h2>
+    <button class="home-btn" onclick="go(1)" title="Back to Agenda">⌂</button>
+  </div>
+  <div class="sbody">
+    <div class="row">
+      <div class="col">
+        <div class="card bl">
+          <h3>R15 — 5-Fold Cross-Validation (Best Run)</h3>
+          <table>
+            <thead><tr><th>Fold</th><th>Test AUC</th><th>Test AP</th></tr></thead>
+            <tbody>
+              <tr><td>Fold 1</td><td class="num">0.7302</td><td class="num">0.9162</td></tr>
+              <tr><td>Fold 2 ★</td><td class="num">0.7354</td><td class="num">0.9158</td></tr>
+              <tr><td>Fold 3</td><td class="num">0.6561</td><td class="num">0.8984</td></tr>
+              <tr><td>Fold 4</td><td class="num">0.7566</td><td class="num">0.9289</td></tr>
+              <tr><td>Fold 5</td><td class="num">0.7513</td><td class="num">0.9272</td></tr>
+              <tr style="font-weight:700;">
+                <td>Mean ± Std</td>
+                <td class="num">0.726 ± 0.041</td>
+                <td class="num">0.917 ± 0.012</td></tr>
+            </tbody>
+          </table>
+          <p>★ Best fold (val AUC 0.902) — used for best_overall.pt</p>
+        </div>
+        <div class="card bg">
+          <h3>Key Improvements over R14 → R15</h3>
+          <ul>
+            <li><strong>P1:</strong> GAT heads widened to [8, 4, 1] — richer multi-head attention</li>
+            <li><strong>P2:</strong> 18-dim affine-invariant features replace rotation-sensitive bbox deltas</li>
+            <li><strong>P3:</strong> Structured synthetic bolt/shaft/mixed templates</li>
+            <li><strong>P4:</strong> Hard-negative sampling (0.3× BCE weight)</li>
+            <li><strong>P5:</strong> neg_ratio halved to 0.5</li>
+            <li><strong>P6:</strong> Mean AUC +10 points (0.624 → 0.726)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card bp">
+          <h3>R16 — 5-Fold Cross-Validation (Current)</h3>
+          <table>
+            <thead><tr><th>Fold</th><th>Test AUC</th><th>Test AP</th></tr></thead>
+            <tbody>
+              <tr><td>Fold 1</td><td class="num">0.5238</td><td class="num">0.8425</td></tr>
+              <tr><td>Fold 2 ★</td><td class="num">0.6349</td><td class="num">0.8867</td></tr>
+              <tr><td>Fold 3</td><td class="num">0.7037</td><td class="num">0.9120</td></tr>
+              <tr><td>Fold 4</td><td class="num">0.7143</td><td class="num">0.9158</td></tr>
+              <tr><td>Fold 5</td><td class="num">0.7196</td><td class="num">0.9145</td></tr>
+              <tr style="font-weight:700;">
+                <td>Mean ± Std</td>
+                <td class="num">0.659 ± 0.083</td>
+                <td class="num">0.894 ± 0.031</td></tr>
+            </tbody>
+          </table>
+          <p>★ Best fold (val AUC 0.902) · Fold 1 outlier (0.524) drags the mean</p>
+        </div>
+        <div class="card bo">
+          <h3>Analysis — What Works / What Needs Improvement</h3>
+          <table>
+            <tr><td style="color:#4caf82;">✓</td><td><strong>Average Precision</strong> consistently above 0.89 across all runs</td></tr>
+            <tr><td style="color:#4caf82;">✓</td><td><strong>Affine-invariant features</strong> (elongation, sphericity) improve geometric grounding</td></tr>
+            <tr><td style="color:#4caf82;">✓</td><td><strong>Hard negative sampling</strong> sharpens the decision boundary</td></tr>
+            <tr><td style="color:#e08850;">△</td><td><strong>AUC-ROC</strong> still below 0.85 target — needs more training data or deeper architecture</td></tr>
+            <tr><td style="color:#e08850;">△</td><td><strong>Fold variance</strong> in R16 (±0.083) suggests 270 graphs may be insufficient for 21-dim features</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 6 — MODEL COMPARISON                                           -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="slide" id="s6">
+  <div class="shdr">
+    <div class="snum">5</div>
+    <h2>Model Comparison</h2>
+    <button class="home-btn" onclick="go(1)" title="Back to Agenda">⌂</button>
+  </div>
+  <div class="sbody">
+    <div class="row">
+      <div class="col">
+        <div class="card bl" style="flex:1;">
+          <h3>Feature Dimension Evolution</h3>
+          <table>
+            <thead><tr><th>Version</th><th>Dims</th><th>Key Changes</th><th>Mean AUC</th><th>Mean AP</th></tr></thead>
+            <tbody>
+              <tr><td>13-dim (R6)</td><td class="num">13</td><td>Baseline · hardcoded types</td><td class="num">—</td><td class="num">—</td></tr>
+              <tr><td>16-dim (R8–R14)</td><td class="num">16</td><td>+trimesh SA · +SDF · +SA/V</td><td class="num">0.624</td><td class="num">0.734</td></tr>
+              <tr><td>18-dim (R15)</td><td class="num">18</td><td>Affine-invariant (replaced bbox)</td><td class="num"><strong>0.726</strong></td><td class="num"><strong>0.917</strong></td></tr>
+              <tr><td>21-dim (R16)</td><td class="num">21</td><td>bbox + affine combined</td><td class="num">0.659</td><td class="num">0.894</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card bg" style="flex:1;">
+          <h3>Node Features — 21 Dimensions (R16)</h3>
+          <table style="font-size:12px;">
+            <thead><tr><th>Dims</th><th>Feature</th><th>Source</th></tr></thead>
+            <tbody>
+              <tr><td>[0–7]</td><td>Component type one-hot (8 classes)</td><td>SDF-inferred geometry</td></tr>
+              <tr><td>[8]</td><td>Normalised volume</td><td>gmsh</td></tr>
+              <tr><td>[9]</td><td>Exact normalised surface area</td><td>trimesh</td></tr>
+              <tr><td>[10–12]</td><td>Bbox Δx, Δy, Δz</td><td>gmsh</td></tr>
+              <tr><td>[13]</td><td>Elongation</td><td>bbox axes</td></tr>
+              <tr><td>[14]</td><td>Flatness</td><td>bbox axes</td></tr>
+              <tr><td>[15–16]</td><td>Aspect x/y, y/z</td><td>bbox ratios</td></tr>
+              <tr><td>[17]</td><td>Sphericity</td><td>gmsh + trimesh</td></tr>
+              <tr><td>[18–19]</td><td>SDF mean, SDF variance</td><td>trimesh ray-cast</td></tr>
+              <tr><td>[20]</td><td>SA/V ratio</td><td>trimesh + gmsh</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card bp" style="flex:1;">
+          <h3>GAT Architecture Comparison</h3>
+          <table>
+            <thead><tr><th>Parameter</th><th>R6–R14</th><th>R15–R16</th></tr></thead>
+            <tbody>
+              <tr><td>Input dim</td><td class="num">13 → 16</td><td class="num">18 → 21</td></tr>
+              <tr><td>GAT layers</td><td class="num">3</td><td class="num">3</td></tr>
+              <tr><td>Hidden dims</td><td>16→512→256→64</td><td>21→1024→512→64</td></tr>
+              <tr><td>Attention heads</td><td>[4, 4, 1]</td><td><strong>[8, 4, 1]</strong></td></tr>
+              <tr><td>Dropout</td><td class="num">0.2</td><td class="num">0.2</td></tr>
+              <tr><td>Hard negatives</td><td>No</td><td><strong>Yes (0.3×)</strong></td></tr>
+              <tr><td>Neg ratio</td><td class="num">1.0</td><td class="num"><strong>0.5</strong></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card bo" style="flex:1;">
+          <h3>Dataset Scaling Impact</h3>
+          <table>
+            <thead><tr><th>Run</th><th>Graphs</th><th>Source</th><th>Mean AUC</th></tr></thead>
+            <tbody>
+              <tr><td>R8</td><td class="num">25</td><td>Local only</td><td class="num">—</td></tr>
+              <tr><td>R10</td><td class="num">780</td><td>+Fusion360</td><td class="num">—</td></tr>
+              <tr><td>R12</td><td class="num">416</td><td>Size-filtered</td><td class="num">0.697</td></tr>
+              <tr><td>R13</td><td class="num">807</td><td>+New STEP files</td><td class="num">0.574</td></tr>
+              <tr><td>R14</td><td class="num">270</td><td>Category-filtered</td><td class="num">0.624</td></tr>
+              <tr><td>R15</td><td class="num">270</td><td>+P1–P6 improvements</td><td class="num"><strong>0.726</strong></td></tr>
+            </tbody>
+          </table>
+          <p style="font-size:12px;margin-top:4px;">
+            Domain-focused training (270 curated graphs) + feature engineering outperforms larger noisy datasets (807 graphs)
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 7 — REFERENCES                                                 -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="slide" id="s7">
+  <div class="shdr">
+    <div class="snum">6</div>
+    <h2>References</h2>
+    <button class="home-btn" onclick="go(1)" title="Back to Agenda">⌂</button>
+  </div>
+  <div class="sbody">
+    <div class="row">
+      <div class="col">
+        <div class="card bl" style="flex:1;">
+          <h3>Foundational References</h3>
+          <ul style="font-size:13px;line-height:1.8;">
+            <li><strong>Kipf &amp; Welling (2017)</strong> — Semi-Supervised Classification with Graph Convolutional Networks. <em>ICLR 2017.</em></li>
+            <li><strong>Veličković et al. (2018)</strong> — Graph Attention Networks. <em>ICLR 2018.</em></li>
+            <li><strong>Hamilton et al. (2017)</strong> — Inductive Representation Learning on Large Graphs (GraphSAGE). <em>NeurIPS 2017.</em></li>
+            <li><strong>Ying et al. (2019)</strong> — GNNExplainer: Generating Explanations for Graph Neural Networks. <em>NeurIPS 2019.</em></li>
+            <li><strong>Borah S. &amp; Borah B. (2020)</strong> — Prediction Error Expansion (PEE) based Reversible polygon mesh watermarking scheme for regional tamper localization. <em>Multimedia Tools and Applications, Vol. 79, pp. 11437–11458.</em>
+              <span class="badge badge-purple" style="margin-left:4px;">Octree concept adapted</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card bg" style="flex:1;">
+          <h3>Dataset &amp; CAD References</h3>
+          <ul style="font-size:13px;line-height:1.8;">
+            <li><strong>Koch et al. (2019)</strong> — ABC: A Big CAD Model Dataset For Geometric Deep Learning. <em>CVPR 2019.</em></li>
+            <li><strong>Mo et al. (2019)</strong> — PartNet: A Large-Scale Benchmark for Fine-Grained and Hierarchical Part-Level 3D Object Understanding. <em>CVPR 2019.</em></li>
+            <li><strong>Willis et al. (2021)</strong> — Fusion 360 Gallery: A Dataset and Environment for Programmatic CAD Construction. <em>SIGGRAPH 2021.</em></li>
+          </ul>
+        </div>
+        <div class="card bp">
+          <h3>Recent CAD + AI Literature</h3>
+          <ul style="font-size:13px;line-height:1.8;">
+            <li><strong>Du et al. (2024)</strong> — BrepGen: A B-Rep Generative Diffusion Model with Structured Latent Geometry. <em>SIGGRAPH 2024.</em></li>
+            <li><strong>Jayaraman et al. (2024)</strong> — SolidGen: An Autoregressive Model for Direct B-Rep Synthesis. <em>ACM ToG.</em></li>
+            <li><strong>Wang et al. (2025)</strong> — CAD-GPT: Synthesising CAD Construction Sequences with Spatial Reasoning-Enhanced Multimodal LLMs. <em>arXiv.</em></li>
+          </ul>
+        </div>
+        <div class="card bt">
+          <h3>Tools &amp; Frameworks</h3>
+          <ul style="font-size:13px;line-height:1.8;">
+            <li><strong>PyTorch Geometric</strong> — Fey &amp; Lenssen (2019). Fast Graph Representation Learning.</li>
+            <li><strong>gmsh</strong> — Geuzaine &amp; Remacle (2009). Open-source 3D finite element mesh generator.</li>
+            <li><strong>trimesh</strong> — Pure-Python mesh processing library.</li>
+            <li><strong>Google Gemini</strong> — Multimodal AI for engineering explanations (AIDA agent).</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 8 — DEMO                                                       -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="slide" id="s8">
+  <div class="shdr">
+    <div class="snum">7</div>
+    <h2>Live Demo</h2>
+    <button class="home-btn" onclick="go(1)" title="Back to Agenda">⌂</button>
+  </div>
+  <div class="sbody" style="padding:0;">
+    <div class="demo-center" style="background:radial-gradient(ellipse at 50% 40%, #0f2744 0%, #080e18 70%);">
+      <div style="font-size:64px;">🔩</div>
+      <h2 style="font-size:32px;font-weight:800;color:#fff;">AI-Assisted 3D Assembly Design</h2>
+      <p style="font-size:16px;color:#94a3b8;max-width:540px;">
+        Interactive Streamlit application with 3D viewer, GNN-based missing component prediction,
+        Octree open surface detection, and AIDA engineering explanations.
+      </p>
+      <a class="demo-btn" href="http://localhost:8501" target="_blank">
+        🚀 Launch Demo &rarr; localhost:8501
+      </a>
+      <div style="display:flex;gap:24px;margin-top:16px;flex-wrap:wrap;justify-content:center;">
+        <div class="metric">
+          <div class="val" style="font-size:20px;">780</div>
+          <div class="lbl">Assemblies Trained</div>
+        </div>
+        <div class="metric">
+          <div class="val" style="font-size:20px;color:#4caf82;">0.917</div>
+          <div class="lbl">Best Mean AP</div>
+        </div>
+        <div class="metric">
+          <div class="val" style="font-size:20px;color:#a56bff;">21</div>
+          <div class="lbl">Node Features</div>
+        </div>
+        <div class="metric">
+          <div class="val" style="font-size:20px;color:#e08850;">6</div>
+          <div class="lbl">Analysis Sections</div>
+        </div>
+      </div>
+      <p style="font-size:13px;color:#2e5080;margin-top:16px;">
+        Ensure the Streamlit server is running: <code style="color:#4f8ef7;">streamlit run front_end/app.py</code>
+      </p>
+    </div>
+  </div>
+</div>
+
+</div><!-- /deck -->
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- NAV BAR                                                               -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div id="nav">
+  <button class="nbtn" onclick="prev()" title="Previous slide">◀</button>
+  <div id="dots"></div>
+  <span id="sinfo"></span>
+  <button class="nbtn" onclick="next()" title="Next slide">▶</button>
+</div>
+
+<script>
+const TOTAL = 8;
+let cur = 1;
+
+function go(n) {
+  if (n < 1 || n > TOTAL) return;
+  document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+  document.getElementById('s' + n).classList.add('active');
+  cur = n;
+  renderDots();
+}
+
+function next() { go(cur < TOTAL ? cur + 1 : 1); }
+function prev() { go(cur > 1 ? cur - 1 : TOTAL); }
+
+function renderDots() {
+  const c = document.getElementById('dots');
+  c.innerHTML = '';
+  for (let i = 1; i <= TOTAL; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === cur ? ' on' : '');
+    d.onclick = () => go(i);
+    c.appendChild(d);
+  }
+  document.getElementById('sinfo').textContent = cur + ' / ' + TOTAL;
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+  if (e.key === 'Home') { e.preventDefault(); go(1); }
+  if (e.key === 'End') { e.preventDefault(); go(TOTAL); }
+  if (e.key >= '1' && e.key <= '8') { e.preventDefault(); go(+e.key); }
+});
+
+renderDots();
+</script>
+</body>
+</html>
