@@ -12,7 +12,7 @@ data:
     - "Tools"
 
 model:
-  in_dim:     18              # node feature dimension (18-dim: 8 type + vol + exact-SA + 5 affine-invariant shape + SDF-mean + SDF-var + SA/V)
+  in_dim:     21              # node feature dimension (21-dim: 8 type + vol + exact-SA + 3 bbox + 5 affine-invariant shape + SDF-mean + SDF-var + SA/V)
   edge_dim:   2               # edge feature dimension
   hidden_dim: 128
   out_dim:    64

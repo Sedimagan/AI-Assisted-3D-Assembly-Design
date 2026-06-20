@@ -209,18 +209,21 @@ def _parse_step(
     """
     Parse a single STEP file into a PyG Data object.
 
-    Node features  (16-dim):
+    Node features  (21-dim):
         [0:8]  component-type one-hot  (geometry-driven via SDF, 8 classes)
         [8]    normalised volume
-        [9]    exact surface area       (trimesh, replaces bbox approximation)
-        [10]   elongation  (longest/mid bbox — affine-invariant)
-        [11]   flatness    (shortest/longest bbox — affine-invariant)
-        [12]   aspect x/y  (affine-invariant)
-        [13]   aspect y/z  (affine-invariant)
-        [14]   sphericity  (π^1/3 (6V)^2/3 / SA)
-        [13]   SDF mean  / sdf_mean_max
-        [14]   SDF variance / sdf_var_max
-        [15]   SA/V ratio / sav_max
+        [9]    exact surface area       (trimesh)
+        [10]   bbox Δx / bbox_max       (absolute width)
+        [11]   bbox Δy / bbox_max       (absolute height)
+        [12]   bbox Δz / bbox_max       (absolute depth)
+        [13]   elongation               (longest/mid — affine-invariant)
+        [14]   flatness                 (shortest/longest — affine-invariant)
+        [15]   aspect x/y              (affine-invariant)
+        [16]   aspect y/z              (affine-invariant)
+        [17]   sphericity               (π^1/3 (6V)^2/3 / SA)
+        [18]   SDF mean  / sdf_mean_max
+        [19]   SDF variance / sdf_var_max
+        [20]   SA/V ratio / sav_max
 
     Edge features  (2-dim):
         [0]    mate type encoded  (0=coincident … 5=other, normalised to [0,1])
@@ -319,6 +322,7 @@ def _parse_step(
         sdf_v_max = max(sdf_vars)  or 1.0
         sav_vals  = [exact_sas[i] / (raw_vols[i] + 1e-9) for i in range(n)]
         sav_max   = max(sav_vals)  or 1.0
+        bbox_max  = max(max(dx, dy, dz) for dx, dy, dz in bboxes) or 1.0
 
         # Affine-invariant normalisation
         elongations = []
@@ -333,7 +337,7 @@ def _parse_step(
         asp_xy_max = max(aspect_xys)  or 1.0
         asp_yz_max = max(aspect_yzs)  or 1.0
 
-        # ── 18-dim node feature vectors ───────────────────────────────────
+        # ── 21-dim node feature vectors ───────────────────────────────────
         node_feats: List[List[float]] = []
 
         for i in range(n):
@@ -353,14 +357,17 @@ def _parse_step(
                 type_oh                                                     # [0:8]
                 + [raw_vols[i]  / vol_max,                                  # [8]   volume
                    exact_sas[i] / sa_max,                                   # [9]   exact SA
-                   elongations[i] / elong_max,                              # [10]  elongation
-                   ext[0] / (ext[2] + 1e-9),                               # [11]  flatness
-                   aspect_xys[i]  / asp_xy_max,                            # [12]  aspect x/y
-                   aspect_yzs[i]  / asp_yz_max,                            # [13]  aspect y/z
-                   sphericity,                                              # [14]  sphericity
-                   sdf_means[i] / sdf_m_max,                               # [15]  SDF mean
-                   sdf_vars[i]  / sdf_v_max,                               # [16]  SDF variance
-                   sav_vals[i]  / sav_max]                                  # [17]  SA/V ratio
+                   dx / bbox_max,                                           # [10]  bbox Δx
+                   dy / bbox_max,                                           # [11]  bbox Δy
+                   dz / bbox_max,                                           # [12]  bbox Δz
+                   elongations[i] / elong_max,                              # [13]  elongation
+                   ext[0] / (ext[2] + 1e-9),                               # [14]  flatness
+                   aspect_xys[i]  / asp_xy_max,                            # [15]  aspect x/y
+                   aspect_yzs[i]  / asp_yz_max,                            # [16]  aspect y/z
+                   sphericity,                                              # [17]  sphericity
+                   sdf_means[i] / sdf_m_max,                               # [18]  SDF mean
+                   sdf_vars[i]  / sdf_v_max,                               # [19]  SDF variance
+                   sav_vals[i]  / sav_max]                                  # [20]  SA/V ratio
             )
             node_feats.append(feat)
 
@@ -470,10 +477,10 @@ def _parse_step_with_timeout(
 # ── Synthetic data fallback ───────────────────────────────────────────────────
 
 def _synthetic_graph(n_nodes: int = None) -> Data:
-    """Generate one structured 18-dim assembly graph using a random template."""
+    """Generate one structured 21-dim assembly graph using a random template."""
     import random as _rng
     r        = _rng.Random()
-    node_dim = 18
+    node_dim = 21
 
     template = r.choice(["bolt", "shaft", "mixed"])
     nodes: List[tuple] = []   # (type_idx, geom_hint)
@@ -508,44 +515,56 @@ def _synthetic_graph(n_nodes: int = None) -> Data:
     for i, (type_idx, hint) in enumerate(nodes):
         x[i, type_idx] = 1.0
         if hint == "elongated":
-            x[i, 8]  = r.uniform(0.05, 0.2)
-            x[i, 9]  = r.uniform(0.1,  0.3)
-            x[i, 10] = r.uniform(0.6,  1.0)   # elongation (high)
-            x[i, 11] = r.uniform(0.05, 0.15)  # flatness (low)
-            x[i, 12] = r.uniform(0.8,  1.0)
-            x[i, 13] = r.uniform(0.1,  0.3)
-            x[i, 14] = r.uniform(0.3,  0.6)
+            x[i, 8]  = r.uniform(0.05, 0.2)    # volume
+            x[i, 9]  = r.uniform(0.1,  0.3)    # exact SA
+            x[i, 10] = r.uniform(0.1,  0.3)    # bbox Δx (narrow)
+            x[i, 11] = r.uniform(0.1,  0.3)    # bbox Δy (narrow)
+            x[i, 12] = r.uniform(0.6,  1.0)    # bbox Δz (long)
+            x[i, 13] = r.uniform(0.6,  1.0)    # elongation (high)
+            x[i, 14] = r.uniform(0.05, 0.15)   # flatness (low)
+            x[i, 15] = r.uniform(0.8,  1.0)    # aspect x/y
+            x[i, 16] = r.uniform(0.1,  0.3)    # aspect y/z
+            x[i, 17] = r.uniform(0.3,  0.6)    # sphericity
         elif hint == "flat":
             x[i, 8]  = r.uniform(0.1,  0.4)
             x[i, 9]  = r.uniform(0.5,  0.9)
-            x[i, 10] = r.uniform(0.1,  0.3)
-            x[i, 11] = r.uniform(0.05, 0.12)
-            x[i, 12] = r.uniform(0.7,  1.0)
-            x[i, 13] = r.uniform(0.7,  1.0)
-            x[i, 14] = r.uniform(0.2,  0.5)
+            x[i, 10] = r.uniform(0.5,  1.0)    # bbox Δx (wide)
+            x[i, 11] = r.uniform(0.5,  1.0)    # bbox Δy (wide)
+            x[i, 12] = r.uniform(0.02, 0.1)    # bbox Δz (thin)
+            x[i, 13] = r.uniform(0.1,  0.3)    # elongation
+            x[i, 14] = r.uniform(0.05, 0.12)   # flatness (very low)
+            x[i, 15] = r.uniform(0.7,  1.0)    # aspect x/y
+            x[i, 16] = r.uniform(0.7,  1.0)    # aspect y/z
+            x[i, 17] = r.uniform(0.2,  0.5)    # sphericity
         elif hint == "ring":
             x[i, 8]  = r.uniform(0.15, 0.35)
             x[i, 9]  = r.uniform(0.4,  0.7)
-            x[i, 10] = r.uniform(0.2,  0.5)
-            x[i, 11] = r.uniform(0.2,  0.5)
-            x[i, 12] = r.uniform(0.8,  1.0)
-            x[i, 13] = r.uniform(0.8,  1.0)
-            x[i, 14] = r.uniform(0.5,  0.8)
-            x[i, 16] = r.uniform(0.5,  0.9)   # SDF variance (ring cavity)
+            x[i, 10] = r.uniform(0.3,  0.7)    # bbox Δx
+            x[i, 11] = r.uniform(0.3,  0.7)    # bbox Δy
+            x[i, 12] = r.uniform(0.1,  0.3)    # bbox Δz (short)
+            x[i, 13] = r.uniform(0.2,  0.5)    # elongation
+            x[i, 14] = r.uniform(0.2,  0.5)    # flatness
+            x[i, 15] = r.uniform(0.8,  1.0)    # aspect x/y
+            x[i, 16] = r.uniform(0.8,  1.0)    # aspect y/z
+            x[i, 17] = r.uniform(0.5,  0.8)    # sphericity
+            x[i, 19] = r.uniform(0.5,  0.9)    # SDF variance (ring cavity)
         elif hint == "round":
             x[i, 8]  = r.uniform(0.2,  0.5)
             x[i, 9]  = r.uniform(0.5,  0.8)
-            x[i, 10] = r.uniform(0.15, 0.35)
-            x[i, 11] = r.uniform(0.15, 0.4)
-            x[i, 12] = r.uniform(0.85, 1.0)
-            x[i, 13] = r.uniform(0.85, 1.0)
-            x[i, 14] = r.uniform(0.4,  0.7)
-            x[i, 16] = r.uniform(0.4,  0.8)
+            x[i, 10] = r.uniform(0.3,  0.6)    # bbox Δx
+            x[i, 11] = r.uniform(0.3,  0.6)    # bbox Δy
+            x[i, 12] = r.uniform(0.3,  0.6)    # bbox Δz
+            x[i, 13] = r.uniform(0.15, 0.35)   # elongation
+            x[i, 14] = r.uniform(0.15, 0.4)    # flatness
+            x[i, 15] = r.uniform(0.85, 1.0)    # aspect x/y
+            x[i, 16] = r.uniform(0.85, 1.0)    # aspect y/z
+            x[i, 17] = r.uniform(0.4,  0.7)    # sphericity
+            x[i, 19] = r.uniform(0.4,  0.8)    # SDF variance
         else:  # body / housing / small
             x[i, 8:] = torch.rand(node_dim - 8) * 0.6 + 0.2
 
-        x[i, 15] = r.uniform(0.1, 0.8)   # SDF mean
-        x[i, 17] = r.uniform(0.1, 0.9)   # SA/V ratio
+        x[i, 18] = r.uniform(0.1, 0.8)   # SDF mean
+        x[i, 20] = r.uniform(0.1, 0.9)   # SA/V ratio
 
     src, dst, eattr = [], [], []
     for (ei, ej) in edges:
