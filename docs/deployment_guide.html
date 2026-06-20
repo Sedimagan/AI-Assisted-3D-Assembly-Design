@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deployment Guide — AI-Assisted 3D Assembly Design</title>
+<style>
+  :root {
+    --bg: #0d1828;
+    --card: #0f2744;
+    --border: #1e3a5f;
+    --accent-blue: #38bdf8;
+    --accent-purple: #a78bfa;
+    --accent-green: #4ade80;
+    --accent-orange: #fb923c;
+    --text: #e0f2fe;
+    --text-dim: #94a3b8;
+    --code-bg: #1a1a2e;
+    --warning-bg: rgba(251,146,60,0.12);
+    --warning-border: #f97316;
+    --success-bg: rgba(74,222,128,0.10);
+    --success-border: #22c55e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 0;
+  }
+
+  /* ── Header ───────────────────────────────────────────────────── */
+  .header {
+    background: linear-gradient(135deg, #0c3566, #0f2744);
+    border-bottom: 2px solid var(--accent-blue);
+    padding: 2.5rem 2rem 2rem;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+  .header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+  }
+  .header .subtitle {
+    color: var(--accent-blue);
+    font-size: 1rem;
+    font-weight: 500;
+  }
+  .header .meta {
+    color: var(--text-dim);
+    font-size: 0.82rem;
+    margin-top: 0.6rem;
+  }
+
+  /* ── Container ────────────────────────────────────────────────── */
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  /* ── Table of Contents ────────────────────────────────────────── */
+  .toc {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 2.5rem;
+  }
+  .toc h2 {
+    font-size: 1.1rem;
+    color: var(--accent-blue);
+    margin-bottom: 0.8rem;
+  }
+  .toc ul {
+    list-style: none;
+    padding: 0;
+  }
+  .toc li {
+    margin-bottom: 0.4rem;
+  }
+  .toc a {
+    color: var(--accent-blue);
+    text-decoration: none;
+    font-size: 0.92rem;
+    transition: color 0.2s;
+  }
+  .toc a:hover { color: #7dd3fc; text-decoration: underline; }
+  .toc .indent { padding-left: 1.2rem; }
+
+  /* ── Sections ─────────────────────────────────────────────────── */
+  .section {
+    margin-bottom: 2.5rem;
+  }
+  .section h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.2rem;
+  }
+  .section h3 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--accent-blue);
+    margin: 1.5rem 0 0.6rem;
+  }
+  .section p {
+    margin-bottom: 0.8rem;
+    color: var(--text);
+    font-size: 0.94rem;
+  }
+
+  /* ── Badge chips ──────────────────────────────────────────────── */
+  .badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 12px;
+    margin-right: 0.4rem;
+    vertical-align: middle;
+  }
+  .badge-green  { background: #166534; color: #bbf7d0; }
+  .badge-blue   { background: #1e3a8a; color: #bfdbfe; }
+  .badge-orange { background: #7c2d12; color: #fed7aa; }
+
+  /* ── Steps ────────────────────────────────────────────────────── */
+  .steps {
+    counter-reset: step;
+    padding: 0;
+    list-style: none;
+  }
+  .steps > li {
+    counter-increment: step;
+    position: relative;
+    padding-left: 3.2rem;
+    margin-bottom: 1.5rem;
+  }
+  .steps > li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 2.2rem;
+    height: 2.2rem;
+    background: linear-gradient(135deg, #1e3a8a, #2563eb);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.95rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(37,99,235,0.35);
+  }
+  .steps > li h4 {
+    font-size: 1.02rem;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 0.35rem;
+  }
+  .steps > li p, .steps > li ul {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+  }
+  .steps > li ul {
+    padding-left: 1.2rem;
+    margin-top: 0.3rem;
+  }
+  .steps > li ul li {
+    margin-bottom: 0.2rem;
+  }
+
+  /* ── Code blocks ──────────────────────────────────────────────── */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid #2a2a4a;
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    overflow-x: auto;
+    margin: 0.6rem 0 1rem;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    position: relative;
+  }
+  code {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    color: #e2e8f0;
+  }
+  .inline-code {
+    background: rgba(56,189,248,0.12);
+    color: var(--accent-blue);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.88em;
+  }
+  .code-label {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: #2563eb;
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 0 8px 0 6px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .comment { color: #6b7280; }
+  .string  { color: #4ade80; }
+  .keyword { color: #c084fc; }
+  .flag    { color: #fb923c; }
+
+  /* ── Callout boxes ────────────────────────────────────────────── */
+  .callout {
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    margin: 1rem 0;
+    font-size: 0.88rem;
+  }
+  .callout-warning {
+    background: var(--warning-bg);
+    border-left: 4px solid var(--warning-border);
+    color: #fed7aa;
+  }
+  .callout-success {
+    background: var(--success-bg);
+    border-left: 4px solid var(--success-border);
+    color: #bbf7d0;
+  }
+  .callout-info {
+    background: rgba(56,189,248,0.08);
+    border-left: 4px solid var(--accent-blue);
+    color: #bae6fd;
+  }
+  .callout strong {
+    color: #fff;
+  }
+
+  /* ── Comparison table ─────────────────────────────────────────── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.88rem;
+  }
+  th {
+    background: #1e3a5f;
+    color: #fff;
+    font-weight: 600;
+    padding: 0.7rem 1rem;
+    text-align: left;
+    border-bottom: 2px solid var(--accent-blue);
+  }
+  td {
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+  tr:hover td { background: rgba(56,189,248,0.04); }
+
+  /* ── File tree ────────────────────────────────────────────────── */
+  .file-tree {
+    background: var(--code-bg);
+    border: 1px solid #2a2a4a;
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.82rem;
+    line-height: 1.8;
+    color: var(--text-dim);
+    margin: 0.6rem 0 1rem;
+  }
+  .file-tree .folder { color: var(--accent-blue); font-weight: 600; }
+  .file-tree .file   { color: #e2e8f0; }
+  .file-tree .new    { color: var(--accent-green); }
+  .file-tree .desc   { color: #6b7280; font-style: italic; }
+
+  /* ── Divider ──────────────────────────────────────────────────── */
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 2rem 0;
+  }
+
+  /* ── Footer ───────────────────────────────────────────────────── */
+  .footer {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.78rem;
+    padding: 2rem 0 1rem;
+    border-top: 1px solid var(--border);
+    margin-top: 2rem;
+  }
+  .footer a { color: var(--accent-blue); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- HEADER                                                         -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="header">
+  <h1>Deployment Guide</h1>
+  <div class="subtitle">AI-Assisted 3D Assembly Design</div>
+  <div class="meta">
+    <strong>Student:</strong> Parthasarathy Perumal &nbsp;&middot;&nbsp;
+    <strong>Guide:</strong> Prof. Sagarika Borah &nbsp;&middot;&nbsp;
+    M.Tech DS &amp; AI, Sem 4 &nbsp;&middot;&nbsp;
+    PES University, Electronic City, Bengaluru
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- TABLE OF CONTENTS                                              -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="toc">
+  <h2>Table of Contents</h2>
+  <ul>
+    <li><a href="#overview">1. Overview &amp; Comparison</a></li>
+    <li><a href="#prerequisites">2. Prerequisites</a></li>
+    <li><a href="#project-files">3. Deployment Files in the Project</a></li>
+    <li><a href="#streamlit-cloud">4. Option A — Streamlit Community Cloud</a></li>
+    <li class="indent"><a href="#sc-steps">Step-by-step deployment</a></li>
+    <li class="indent"><a href="#sc-secrets">Configuring secrets</a></li>
+    <li class="indent"><a href="#sc-troubleshoot">Troubleshooting</a></li>
+    <li><a href="#cloud-run">5. Option B — Google Cloud Run</a></li>
+    <li class="indent"><a href="#cr-steps">Step-by-step deployment</a></li>
+    <li class="indent"><a href="#cr-secrets">Securing the API key with Secret Manager</a></li>
+    <li class="indent"><a href="#cr-troubleshoot">Troubleshooting</a></li>
+    <li><a href="#security">6. API Key Security Best Practices</a></li>
+    <li><a href="#notes">7. Important Notes</a></li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- 1. OVERVIEW                                                    -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="section" id="overview">
+  <h2>1. Overview &amp; Comparison</h2>
+  <p>This guide covers two methods for hosting the Streamlit app externally,
+     each with secure Gemini API key management.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Feature</th>
+        <th>Streamlit Community Cloud</th>
+        <th>Google Cloud Run</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Best for</strong></td>
+        <td>Project demos, quick sharing</td>
+        <td>Production, private repos</td>
+      </tr>
+      <tr>
+        <td><strong>Setup time</strong></td>
+        <td>~5 minutes</td>
+        <td>~15&ndash;20 minutes</td>
+      </tr>
+      <tr>
+        <td><strong>Cost</strong></td>
+        <td>Free (public repos)</td>
+        <td>Pay-per-use (generous free tier)</td>
+      </tr>
+      <tr>
+        <td><strong>Custom domain</strong></td>
+        <td>No (*.streamlit.app)</td>
+        <td>Yes</td>
+      </tr>
+      <tr>
+        <td><strong>Private repos</strong></td>
+        <td>Paid plan only</td>
+        <td>Yes (free)</td>
+      </tr>
+      <tr>
+        <td><strong>Resources</strong></td>
+        <td>1 GB RAM, shared CPU</td>
+        <td>Configurable (up to 32 GB RAM)</td>
+      </tr>
+      <tr>
+        <td><strong>API key security</strong></td>
+        <td>Streamlit Secrets (TOML)</td>
+        <td>Google Secret Manager or env vars</td>
+      </tr>
+      <tr>
+        <td><strong>Auto-deploy on push</strong></td>
+        <td>Yes</td>
+        <td>Yes (with Cloud Build trigger)</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- 2. PREREQUISITES                                               -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="section" id="prerequisites">
+  <h2>2. Prerequisites</h2>
+  <ul>
+    <li>A <strong>GitHub account</strong> with the project repository pushed</li>
+    <li>A <strong>Gemini API key</strong> from
+      <a href="https://aistudio.google.com/app/apikey" style="color:var(--accent-blue);">Google AI Studio</a></li>
+    <li>The trained model checkpoint
+      (<span class="inline-code">back_end/checkpoints/best_overall.pt</span>)
+      committed or uploaded to the repo for inference to work</li>
+    <li><em>For Cloud Run only:</em> A Google Cloud project with billing enabled and the
+      <span class="inline-code">gcloud</span> CLI installed</li>
+  </ul>
+
+  <div class="callout callout-warning">
+    <strong>Note on model checkpoints:</strong> The <span class="inline-code">.pt</span>
+    checkpoint files are gitignored by default. For cloud deployment, you need to either
+    add <span class="inline-code">best_overall.pt</span> to the repo (remove it from
+    <span class="inline-code">.gitignore</span>) or use Git LFS / a cloud storage bucket
+    to serve it.
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- 3. PROJECT FILES                                               -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="section" id="project-files">
+  <h2>3. Deployment Files in the Project</h2>
+  <p>The following files have been added to the repository for deployment:</p>
+
+  <div class="file-tree">
+    <span class="folder">AI-Assisted-3D-Assembly-Design/</span><br>
+    &nbsp;&nbsp;<span class="new">requirements.txt</span>
+      <span class="desc">&larr; Combined Python dependencies (auto-detected)</span><br>
+    &nbsp;&nbsp;<span class="new">packages.txt</span>
+      <span class="desc">&larr; System apt packages for Streamlit Cloud</span><br>
+    &nbsp;&nbsp;<span class="new">Dockerfile</span>
+      <span class="desc">&larr; Container definition for Cloud Run</span><br>
+    &nbsp;&nbsp;<span class="new">.dockerignore</span>
+      <span class="desc">&larr; Excludes secrets &amp; large files from Docker</span><br>
+    &nbsp;&nbsp;<span class="folder">.streamlit/</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="new">config.toml</span>
+      <span class="desc">&larr; Server &amp; theme config</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="new">secrets.toml.example</span>
+      <span class="desc">&larr; Template for local secrets</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="desc" style="color:#ef4444;">secrets.toml</span>
+      <span class="desc">&larr; YOUR secrets (gitignored, never committed)</span><br>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- 4. STREAMLIT COMMUNITY CLOUD                                   -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="section" id="streamlit-cloud">
+  <h2>4. Option A — Streamlit Community Cloud
+    <span class="badge badge-green">Recommended</span>
+    <span class="badge badge-blue">Free</span>
+  </h2>
+  <p>The fastest path to a live URL. Streamlit auto-detects
+    <span class="inline-code">requirements.txt</span> and
+    <span class="inline-code">packages.txt</span>, installs dependencies,
+    and serves the app.</p>
+
+  <h3 id="sc-steps">Step-by-Step Deployment</h3>
+  <ol class="steps">
+    <li>
+      <h4>Push your code to GitHub</h4>
+      <p>Make sure your repository is pushed and up to date. The repo can be
+         public (free tier) or private (paid plan).</p>
+<pre><code><span class="keyword">git</span> push origin ph1-third-review</code></pre>
+    </li>
+
+    <li>
+      <h4>Go to Streamlit Community Cloud</h4>
+      <p>Visit <a href="https://share.streamlit.io" style="color:var(--accent-blue);">
+         share.streamlit.io</a> and sign in with your GitHub account.</p>
+    </li>
+
+    <li>
+      <h4>Create a new app</h4>
+      <p>Click <strong>"New app"</strong> and fill in:</p>
+      <ul>
+        <li><strong>Repository:</strong>
+          <span class="inline-code">Sedimagan/AI-Assisted-3D-Assembly-Design</span></li>
+        <li><strong>Branch:</strong>
+          <span class="inline-code">ph1-third-review</span> (or <span class="inline-code">main</span>)</li>
+        <li><strong>Main file path:</strong>
+          <span class="inline-code">front_end/app.py</span></li>
+      </ul>
+    </li>
+
+    <li>
+      <h4 id="sc-secrets">Configure secrets (API key)</h4>
+      <p>Before deploying, click <strong>"Advanced settings"</strong> and paste
+         the following into the <strong>Secrets</strong> text area:</p>
+<pre><code><span class="code-label">TOML</span>
+<span class="comment"># Gemini API configuration</span>
+<span class="string">GEMINI_API_KEY</span> = <span class="string">"your_gemini_api_key_here"</span>
+<span class="string">GEMINI_MODEL</span> = <span class="string">"gemini-2.5-flash"</span>
+
+<span class="comment"># Optional overrides</span>
+<span class="string">SKILLS_TEMPERATURE</span> = <span class="string">"0.3"</span>
+<span class="string">SKILLS_MAX_OUTPUT_TOKENS</span> = <span class="string">"2048"</span></code></pre>
+      <p>You can also add or edit secrets after deployment via
+         <strong>Settings &rarr; Secrets</strong> in the app dashboard.</p>
+    </li>
+
+    <li>
+      <h4>Deploy</h4>
+      <p>Click <strong>"Deploy!"</strong>. Streamlit will:</p>
+      <ul>
+        <li>Install system packages from <span class="inline-code">packages.txt</span>
+            (xvfb, mesa)</li>
+        <li>Install Python packages from <span class="inline-code">requirements.txt</span></li>
+        <li>Launch <span class="inline-code">front_end/app.py</span></li>
+      </ul>
+      <p>Your app will be live at
+        <span class="inline-code">https://your-app-name.streamlit.app</span></p>
+    </li>
+  </ol>
+
+  <div class="callout callout-success">
+    <strong>How secrets work in code:</strong> The app reads
+    <span class="inline-code">st.secrets["GEMINI_API_KEY"]</span> as a fallback
+    when the environment variable is not set. This is handled automatically by the
+    <span class="inline-code">_get_secret()</span> helper in
+    <span class="inline-code">back_end/skills_agent.py</span>.
+  </div>
+
+  <h3 id="sc-troubleshoot">Troubleshooting</h3>
+  <table>
+    <thead>
+      <tr><th>Issue</th><th>Solution</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>App crashes on startup</td>
+        <td>Check the logs in the Streamlit dashboard. Common cause: missing
+            <span class="inline-code">best_overall.pt</span> checkpoint file.</td>
+      </tr>
+      <tr>
+        <td>AIDA explanation says "offline"</td>
+        <td>Verify <span class="inline-code">GEMINI_API_KEY</span> is set
+            correctly in Settings &rarr; Secrets.</td>
+      </tr>
+      <tr>
+        <td><span class="inline-code">gmsh</span> import error</td>
+        <td>Ensure <span class="inline-code">packages.txt</span> is at the
+            repo root with <span class="inline-code">libgl1-mesa-glx</span>.</td>
+      </tr>
+      <tr>
+        <td>Memory limit exceeded</td>
+        <td>Streamlit Cloud has 1 GB RAM. Large STEP files may fail.
+            Consider Cloud Run for heavier workloads.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- 5. GOOGLE CLOUD RUN                                            -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="section" id="cloud-run">
+  <h2>5. Option B — Google Cloud Run
+    <span class="badge badge-orange">Production</span>
+  </h2>
+  <p>A serverless container platform. Your app runs in a Docker container,
+     scales to zero when idle (cost-efficient), and can handle larger models
+     and heavier workloads.</p>
+
+  <h3 id="cr-steps">Step-by-Step Deployment</h3>
+  <ol class="steps">
+    <li>
+      <h4>Install &amp; authenticate Google Cloud CLI</h4>
+      <p>If not already installed, follow the
+        <a href="https://cloud.google.com/sdk/docs/install"
+           style="color:var(--accent-blue);">official guide</a>. Then:</p>
+<pre><code><span class="comment"># Authenticate</span>
+<span class="keyword">gcloud</span> auth login
+
+<span class="comment"># Set your project</span>
+<span class="keyword">gcloud</span> config set project <span class="flag">YOUR_PROJECT_ID</span>
+
+<span class="comment"># Enable required APIs</span>
+<span class="keyword">gcloud</span> services enable run.googleapis.com containerregistry.googleapis.com cloudbuild.googleapis.com</code></pre>
+    </li>
+
+    <li>
+      <h4>Build the Docker image</h4>
+      <p>From the project root directory, submit the build to Cloud Build:</p>
+<pre><code><span class="keyword">gcloud</span> builds submit <span class="flag">--tag</span> gcr.io/<span class="flag">YOUR_PROJECT_ID</span>/assembly-ai</code></pre>
+      <p>This uses the <span class="inline-code">Dockerfile</span> and
+         <span class="inline-code">.dockerignore</span> already in the repo.
+         The build runs in the cloud &mdash; no local Docker needed.</p>
+
+      <div class="callout callout-info">
+        <strong>Alternative — local Docker build:</strong> If you prefer building
+        locally, run:<br>
+        <code>docker build -t gcr.io/YOUR_PROJECT_ID/assembly-ai . &amp;&amp;
+              docker push gcr.io/YOUR_PROJECT_ID/assembly-ai</code>
+      </div>
+    </li>
+
+    <li>
+      <h4>Deploy to Cloud Run (quick method — env var)</h4>
+      <p>For a quick deployment, pass the API key as an environment variable:</p>
+<pre><code><span class="keyword">gcloud</span> run deploy assembly-ai \
+  <span class="flag">--image</span> gcr.io/<span class="flag">YOUR_PROJECT_ID</span>/assembly-ai \
+  <span class="flag">--platform</span> managed \
+  <span class="flag">--region</span> asia-south1 \
+  <span class="flag">--port</span> 8501 \
+  <span class="flag">--memory</span> 2Gi \
+  <span class="flag">--cpu</span> 2 \
+  <span class="flag">--allow-unauthenticated</span> \
+  <span class="flag">--set-env-vars</span> <span class="string">GEMINI_API_KEY=your_api_key_here</span>,<span class="string">GEMINI_MODEL=gemini-2.5-flash</span></code></pre>
+      <p>Your app will be live at the URL printed in the output.</p>
+    </li>
+
+    <li>
+      <h4 id="cr-secrets">Deploy with Secret Manager (recommended for production)</h4>
+      <p>For better security, store the API key in Google Secret Manager:</p>
+<pre><code><span class="comment"># Create the secret</span>
+<span class="keyword">echo</span> <span class="flag">-n</span> <span class="string">"your_api_key_here"</span> | \
+  <span class="keyword">gcloud</span> secrets create GEMINI_API_KEY <span class="flag">--data-file=-</span>
+
+<span class="comment"># Grant the Cloud Run service account access</span>
+<span class="keyword">gcloud</span> secrets add-iam-policy-binding GEMINI_API_KEY \
+  <span class="flag">--member=</span>serviceAccount:<span class="flag">YOUR_PROJECT_NUMBER</span>-compute@developer.gserviceaccount.com \
+  <span class="flag">--role=</span>roles/secretmanager.secretAccessor
+
+<span class="comment"># Deploy with the secret mounted as an env var</span>
+<span class="keyword">gcloud</span> run deploy assembly-ai \
+  <span class="flag">--image</span> gcr.io/<span class="flag">YOUR_PROJECT_ID</span>/assembly-ai \
+  <span class="flag">--platform</span> managed \
+  <span class="flag">--region</span> asia-south1 \
+  <span class="flag">--port</span> 8501 \
+  <span class="flag">--memory</span> 2Gi \
+  <span class="flag">--cpu</span> 2 \
+  <span class="flag">--allow-unauthenticated</span> \
+  <span class="flag">--set-secrets</span> <span class="string">GEMINI_API_KEY=GEMINI_API_KEY:latest</span> \
+  <span class="flag">--set-env-vars</span> <span class="string">GEMINI_MODEL=gemini-2.5-flash</span></code></pre>
+    </li>
+
+    <li>
+      <h4>Set up auto-deploy on push (optional)</h4>
+      <p>Create a Cloud Build trigger so every push to GitHub automatically
+         rebuilds and deploys:</p>
+<pre><code><span class="keyword">gcloud</span> builds triggers create github \
+  <span class="flag">--repo-name=</span>AI-Assisted-3D-Assembly-Design \
+  <span class="flag">--repo-owner=</span>Sedimagan \
+  <span class="flag">--branch-pattern=</span><span class="string">"^main$"</span> \
+  <span class="flag">--build-config=</span>cloudbuild.yaml</code></pre>
+      <p>This requires a <span class="inline-code">cloudbuild.yaml</span>
+         in the repo root (see below).</p>
+<pre><code><span class="code-label">cloudbuild.yaml</span>
+<span class="comment"># Build and deploy to Cloud Run</span>
+<span class="keyword">steps</span>:
+  - <span class="keyword">name</span>: <span class="string">'gcr.io/cloud-builders/docker'</span>
+    <span class="keyword">args</span>: [<span class="string">'build'</span>, <span class="string">'-t'</span>, <span class="string">'gcr.io/$PROJECT_ID/assembly-ai'</span>, <span class="string">'.'</span>]
+
+  - <span class="keyword">name</span>: <span class="string">'gcr.io/cloud-builders/docker'</span>
+    <span class="keyword">args</span>: [<span class="string">'push'</span>, <span class="string">'gcr.io/$PROJECT_ID/assembly-ai'</span>]
+
+  - <span class="keyword">name</span>: <span class="string">'gcr.io/google.com/cloudsdktool/cloud-sdk'</span>
+    <span class="keyword">args</span>:
+      - <span class="string">'gcloud'</span>
+      - <span class="string">'run'</span>
+      - <span class="string">'deploy'</span>
+      - <span class="string">'assembly-ai'</span>
+      - <span class="string">'--image=gcr.io/$PROJECT_ID/assembly-ai'</span>
+      - <span class="string">'--region=asia-south1'</span>
+      - <span class="string">'--port=8501'</span>
+      - <span class="string">'--allow-unauthenticated'</span>
+
+<span class="keyword">images</span>:
+  - <span class="string">'gcr.io/$PROJECT_ID/assembly-ai'</span></code></pre>
+    </li>
+  </ol>
+
+  <h3 id="cr-troubleshoot">Troubleshooting</h3>
+  <table>
+    <thead>
+      <tr><th>Issue</th><th>Solution</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Container fails health check</td>
+        <td>Increase <span class="inline-code">--memory</span> (try 4Gi).
+            PyTorch + gmsh can use significant memory at startup.</td>
+      </tr>
+      <tr>
+        <td>Build times out</td>
+        <td>Add <span class="inline-code">--timeout=1200</span> to the
+            <span class="inline-code">gcloud builds submit</span> command.</td>
+      </tr>
+      <tr>
+        <td>Permission denied on Secret Manager</td>
+        <td>Ensure the compute service account has the
+            <span class="inline-code">secretmanager.secretAccessor</span> role.</td>
+      </tr>
+      <tr>
+        <td>Cold start is slow</td>
+        <td>Set <span class="inline-code">--min-instances=1</span> to keep one
+            instance warm (incurs always-on cost).</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- 6. API KEY SECURITY                                            -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="section" id="security">
+  <h2>6. API Key Security Best Practices</h2>
+
+  <div class="callout callout-warning">
+    <strong>Never commit API keys to git.</strong> The
+    <span class="inline-code">.env</span> and
+    <span class="inline-code">.streamlit/secrets.toml</span> files are already
+    in <span class="inline-code">.gitignore</span>. If you accidentally commit a
+    key, rotate it immediately in Google AI Studio.
+  </div>
+
+  <h3>How the app reads secrets (priority order)</h3>
+  <p>The <span class="inline-code">_get_secret()</span> helper in
+    <span class="inline-code">back_end/skills_agent.py</span> checks:</p>
+  <ol>
+    <li><strong>Environment variable</strong> &mdash;
+      <span class="inline-code">os.getenv("GEMINI_API_KEY")</span>
+      (works everywhere: local, Docker, Cloud Run)</li>
+    <li><strong>Streamlit secrets</strong> &mdash;
+      <span class="inline-code">st.secrets["GEMINI_API_KEY"]</span>
+      (Streamlit Cloud dashboard or local
+      <span class="inline-code">.streamlit/secrets.toml</span>)</li>
+  </ol>
+
+  <h3>Per-platform recommendation</h3>
+  <table>
+    <thead>
+      <tr><th>Environment</th><th>Where to store</th><th>How it's loaded</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Local development</td>
+        <td><span class="inline-code">.env</span> file (gitignored)</td>
+        <td><span class="inline-code">python-dotenv</span> loads into
+            <span class="inline-code">os.environ</span></td>
+      </tr>
+      <tr>
+        <td>Streamlit Cloud</td>
+        <td>Settings &rarr; Secrets (TOML format)</td>
+        <td><span class="inline-code">st.secrets</span> dict</td>
+      </tr>
+      <tr>
+        <td>Cloud Run (quick)</td>
+        <td><span class="inline-code">--set-env-vars</span> flag</td>
+        <td><span class="inline-code">os.getenv()</span></td>
+      </tr>
+      <tr>
+        <td>Cloud Run (production)</td>
+        <td>Google Secret Manager</td>
+        <td><span class="inline-code">--set-secrets</span> mounts as env var</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Additional security tips</h3>
+  <ul>
+    <li>Restrict your Gemini API key to only the Generative Language API in the
+        Google Cloud Console &rarr; Credentials &rarr; API key restrictions</li>
+    <li>Set a daily quota limit on the API key to prevent unexpected charges</li>
+    <li>For Cloud Run, use <strong>IAM-based authentication</strong>
+        (remove <span class="inline-code">--allow-unauthenticated</span>)
+        if the app should not be publicly accessible</li>
+    <li>Rotate API keys periodically and after any suspected exposure</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- 7. IMPORTANT NOTES                                             -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="section" id="notes">
+  <h2>7. Important Notes</h2>
+
+  <div class="callout callout-info">
+    <strong>Training vs. Inference:</strong> Training the GNN model requires
+    significant compute and should be done locally (or on a VM with GPU).
+    The cloud-deployed app is designed for <strong>inference only</strong> &mdash;
+    it loads the pre-trained <span class="inline-code">best_overall.pt</span>
+    checkpoint and runs predictions on uploaded STEP files.
+  </div>
+
+  <h3>Platform-specific adaptations</h3>
+  <ul>
+    <li><strong>Folder picker:</strong> The macOS native folder picker
+        (<span class="inline-code">osascript</span>) is automatically disabled
+        on Linux (cloud). Users on the hosted app use the file uploader only.</li>
+    <li><strong>Display server:</strong> The app sets
+        <span class="inline-code">DISPLAY=:99</span> for PyVista off-screen
+        rendering. On Streamlit Cloud, the
+        <span class="inline-code">xvfb</span> package (declared in
+        <span class="inline-code">packages.txt</span>) provides this.</li>
+    <li><strong>File paths:</strong> The app uses relative paths from the project
+        root, so it works regardless of the deployment directory.</li>
+  </ul>
+
+  <h3>Updating the deployed app</h3>
+  <ul>
+    <li><strong>Streamlit Cloud:</strong> Push to the connected branch &mdash;
+        the app auto-redeploys within a minute.</li>
+    <li><strong>Cloud Run:</strong> Re-run the
+        <span class="inline-code">gcloud builds submit</span> and
+        <span class="inline-code">gcloud run deploy</span> commands,
+        or use the Cloud Build trigger for auto-deploy.</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- FOOTER                                                         -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="footer">
+  AI-Assisted 3D Assembly Design &nbsp;&middot;&nbsp;
+  M.Tech DS &amp; AI, PES University &nbsp;&middot;&nbsp;
+  <a href="https://github.com/Sedimagan/AI-Assisted-3D-Assembly-Design">GitHub Repository</a>
+</div>
+
+</div><!-- /container -->
+</body>
+</html>
