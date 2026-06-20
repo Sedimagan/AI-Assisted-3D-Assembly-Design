@@ -12,11 +12,11 @@ data:
     - "Tools"
 
 model:
-  in_dim:     16              # node feature dimension (16-dim: 8 type + vol + exact-SA + 3 bbox + SDF-mean + SDF-var + SA/V)
+  in_dim:     18              # node feature dimension (18-dim: 8 type + vol + exact-SA + 5 affine-invariant shape + SDF-mean + SDF-var + SA/V)
   edge_dim:   2               # edge feature dimension
   hidden_dim: 128
   out_dim:    64
-  heads:      [4, 2, 1]       # attention heads per GAT layer
+  heads:      [8, 4, 1]       # attention heads per GAT layer
   dropout:    0.2
 
 training:
@@ -27,7 +27,7 @@ training:
   patience:     20            # early stopping patience
   lr_patience:  8             # ReduceLROnPlateau patience
   lr_factor:    0.5
-  neg_ratio:    1.0           # negatives per positive edge
+  neg_ratio:    0.5           # negatives per positive edge (hard negatives via P4 cover the rest)
   n_folds:      5             # K in K-fold cross-validation
 
 evaluation:

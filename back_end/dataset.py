@@ -12,21 +12,24 @@ Pipeline per body
                          used to infer geometry-driven component type
                          (approximates CGAL SDF via trimesh inward ray casting)
 
-Node feature vector: 16-dim
+Node feature vector: 18-dim
   [0:8]  component-type one-hot  (geometry-driven, 8 classes)
   [8]    normalised volume
   [9]    exact surface area       (trimesh, normalised)
-  [10]   bbox Δx / bbox_max
-  [11]   bbox Δy / bbox_max
-  [12]   bbox Δz / bbox_max
-  [13]   SDF mean  (normalised)
-  [14]   SDF variance (normalised)
-  [15]   SA/V ratio (normalised)
+  [10]   elongation               (longest / mid bbox dim — affine-invariant)
+  [11]   flatness                 (shortest / longest bbox dim — affine-invariant)
+  [12]   aspect x/y               (normalised — affine-invariant)
+  [13]   aspect y/z               (normalised — affine-invariant)
+  [14]   sphericity               (π^(1/3) (6V)^(2/3) / SA — affine-invariant)
+  [15]   SDF mean  (normalised)
+  [16]   SDF variance (normalised)
+  [17]   SA/V ratio (normalised)
 """
 
 from __future__ import annotations
 
 import json
+import math
 import multiprocessing as _mp
 import random
 import shutil
@@ -210,9 +213,11 @@ def _parse_step(
         [0:8]  component-type one-hot  (geometry-driven via SDF, 8 classes)
         [8]    normalised volume
         [9]    exact surface area       (trimesh, replaces bbox approximation)
-        [10]   bbox Δx / bbox_max
-        [11]   bbox Δy / bbox_max
-        [12]   bbox Δz / bbox_max
+        [10]   elongation  (longest/mid bbox — affine-invariant)
+        [11]   flatness    (shortest/longest bbox — affine-invariant)
+        [12]   aspect x/y  (affine-invariant)
+        [13]   aspect y/z  (affine-invariant)
+        [14]   sphericity  (π^1/3 (6V)^2/3 / SA)
         [13]   SDF mean  / sdf_mean_max
         [14]   SDF variance / sdf_var_max
         [15]   SA/V ratio / sav_max
@@ -310,33 +315,52 @@ def _parse_step(
         n         = len(volumes)
         vol_max   = max(raw_vols)  or 1.0
         sa_max    = max(exact_sas) or 1.0
-        bbox_max  = max(max(b) for b in bboxes) or 1.0
         sdf_m_max = max(sdf_means) or 1.0
         sdf_v_max = max(sdf_vars)  or 1.0
         sav_vals  = [exact_sas[i] / (raw_vols[i] + 1e-9) for i in range(n)]
         sav_max   = max(sav_vals)  or 1.0
 
-        # ── 16-dim node feature vectors ───────────────────────────────────
+        # Affine-invariant normalisation
+        elongations = []
+        aspect_xys  = []
+        aspect_yzs  = []
+        for dx, dy, dz in bboxes:
+            ext = sorted([dx, dy, dz])
+            elongations.append(ext[2] / (ext[1] + 1e-9))
+            aspect_xys.append(dx / (dy + 1e-9))
+            aspect_yzs.append(dy / (dz + 1e-9))
+        elong_max  = max(elongations) or 1.0
+        asp_xy_max = max(aspect_xys)  or 1.0
+        asp_yz_max = max(aspect_yzs)  or 1.0
+
+        # ── 18-dim node feature vectors ───────────────────────────────────
         node_feats: List[List[float]] = []
 
         for i in range(n):
             dx, dy, dz = bboxes[i]
+            ext = sorted([dx, dy, dz])
             type_idx = _infer_type_from_geometry(
                 raw_vols[i], exact_sas[i], bboxes[i], sdf_means[i], sdf_vars[i]
             )
             type_oh      = [0.0] * 8
             type_oh[type_idx] = 1.0
 
+            sphericity = min(1.0, (math.pi ** (1 / 3))
+                            * ((6 * raw_vols[i]) ** (2 / 3))
+                            / (exact_sas[i] + 1e-9))
+
             feat = (
-                type_oh                                     # [0:8]
-                + [raw_vols[i]  / vol_max,                  # [8]   volume
-                   exact_sas[i] / sa_max,                   # [9]   exact SA
-                   dx / bbox_max,                           # [10]  bbox Δx
-                   dy / bbox_max,                           # [11]  bbox Δy
-                   dz / bbox_max,                           # [12]  bbox Δz
-                   sdf_means[i] / sdf_m_max,                # [13]  SDF mean
-                   sdf_vars[i]  / sdf_v_max,                # [14]  SDF variance
-                   sav_vals[i]  / sav_max]                  # [15]  SA/V ratio
+                type_oh                                                     # [0:8]
+                + [raw_vols[i]  / vol_max,                                  # [8]   volume
+                   exact_sas[i] / sa_max,                                   # [9]   exact SA
+                   elongations[i] / elong_max,                              # [10]  elongation
+                   ext[0] / (ext[2] + 1e-9),                               # [11]  flatness
+                   aspect_xys[i]  / asp_xy_max,                            # [12]  aspect x/y
+                   aspect_yzs[i]  / asp_yz_max,                            # [13]  aspect y/z
+                   sphericity,                                              # [14]  sphericity
+                   sdf_means[i] / sdf_m_max,                               # [15]  SDF mean
+                   sdf_vars[i]  / sdf_v_max,                               # [16]  SDF variance
+                   sav_vals[i]  / sav_max]                                  # [17]  SA/V ratio
             )
             node_feats.append(feat)
 
@@ -446,33 +470,107 @@ def _parse_step_with_timeout(
 # ── Synthetic data fallback ───────────────────────────────────────────────────
 
 def _synthetic_graph(n_nodes: int = None) -> Data:
-    """Generate one random 16-dim assembly graph for testing."""
-    rng      = random.Random()
-    n        = n_nodes or rng.randint(4, 20)
-    node_dim = 16
+    """Generate one structured 18-dim assembly graph using a random template."""
+    import random as _rng
+    r        = _rng.Random()
+    node_dim = 18
 
+    template = r.choice(["bolt", "shaft", "mixed"])
+    nodes: List[tuple] = []   # (type_idx, geom_hint)
+    edges: List[tuple] = []   # (i, j) undirected
+
+    if template == "bolt":
+        n_bolts   = r.randint(2, 4)
+        nodes.append((4, "flat"))     # plate
+        nodes.append((0, "body"))     # bracket
+        idx = 2
+        for _ in range(n_bolts):
+            bolt_i   = idx;  nodes.append((1, "elongated")); idx += 1
+            nut_i    = idx;  nodes.append((1, "small"));     idx += 1
+            washer_i = idx;  nodes.append((4, "flat"));      idx += 1
+            edges += [(bolt_i, nut_i), (bolt_i, washer_i),
+                      (bolt_i, 0),    (bolt_i, 1),
+                      (washer_i, 0)]
+
+    elif template == "shaft":
+        nodes += [(3, "elongated"), (2, "ring"), (2, "ring"),
+                  (5, "body"),      (6, "round"), (1, "small")]
+        edges += [(0, 1), (0, 2), (1, 3), (2, 3), (4, 0), (5, 0)]
+
+    else:  # mixed
+        nodes += [(4, "flat"), (1, "elongated"), (1, "small"),
+                  (3, "elongated"), (2, "ring"), (5, "body")]
+        edges += [(1, 2), (1, 0), (3, 4), (4, 5), (5, 0)]
+
+    n = len(nodes)
     x = torch.zeros(n, node_dim)
-    for i in range(n):
-        t = rng.randint(0, 7)
-        x[i, t] = 1.0           # type one-hot
-        x[i, 8:] = torch.rand(8)  # geometry + SDF features
+
+    for i, (type_idx, hint) in enumerate(nodes):
+        x[i, type_idx] = 1.0
+        if hint == "elongated":
+            x[i, 8]  = r.uniform(0.05, 0.2)
+            x[i, 9]  = r.uniform(0.1,  0.3)
+            x[i, 10] = r.uniform(0.6,  1.0)   # elongation (high)
+            x[i, 11] = r.uniform(0.05, 0.15)  # flatness (low)
+            x[i, 12] = r.uniform(0.8,  1.0)
+            x[i, 13] = r.uniform(0.1,  0.3)
+            x[i, 14] = r.uniform(0.3,  0.6)
+        elif hint == "flat":
+            x[i, 8]  = r.uniform(0.1,  0.4)
+            x[i, 9]  = r.uniform(0.5,  0.9)
+            x[i, 10] = r.uniform(0.1,  0.3)
+            x[i, 11] = r.uniform(0.05, 0.12)
+            x[i, 12] = r.uniform(0.7,  1.0)
+            x[i, 13] = r.uniform(0.7,  1.0)
+            x[i, 14] = r.uniform(0.2,  0.5)
+        elif hint == "ring":
+            x[i, 8]  = r.uniform(0.15, 0.35)
+            x[i, 9]  = r.uniform(0.4,  0.7)
+            x[i, 10] = r.uniform(0.2,  0.5)
+            x[i, 11] = r.uniform(0.2,  0.5)
+            x[i, 12] = r.uniform(0.8,  1.0)
+            x[i, 13] = r.uniform(0.8,  1.0)
+            x[i, 14] = r.uniform(0.5,  0.8)
+            x[i, 16] = r.uniform(0.5,  0.9)   # SDF variance (ring cavity)
+        elif hint == "round":
+            x[i, 8]  = r.uniform(0.2,  0.5)
+            x[i, 9]  = r.uniform(0.5,  0.8)
+            x[i, 10] = r.uniform(0.15, 0.35)
+            x[i, 11] = r.uniform(0.15, 0.4)
+            x[i, 12] = r.uniform(0.85, 1.0)
+            x[i, 13] = r.uniform(0.85, 1.0)
+            x[i, 14] = r.uniform(0.4,  0.7)
+            x[i, 16] = r.uniform(0.4,  0.8)
+        else:  # body / housing / small
+            x[i, 8:] = torch.rand(node_dim - 8) * 0.6 + 0.2
+
+        x[i, 15] = r.uniform(0.1, 0.8)   # SDF mean
+        x[i, 17] = r.uniform(0.1, 0.9)   # SA/V ratio
 
     src, dst, eattr = [], [], []
-    perm = list(range(n)); rng.shuffle(perm)
-    for k in range(n - 1):
-        i, j = perm[k], perm[k + 1]
-        mt = rng.randint(0, 5) / 5.0
-        src += [i, j]; dst += [j, i]
+    for (ei, ej) in edges:
+        mt = r.randint(0, 5) / 5.0
+        src += [ei, ej]; dst += [ej, ei]
         eattr += [[mt, 1.0], [mt, 1.0]]
 
-    edge_index = torch.tensor([src, dst], dtype=torch.long)
-    edge_attr  = torch.tensor(eattr,      dtype=torch.float)
-    return Data(x=x, edge_index=edge_index, edge_attr=edge_attr)
+    if not src:
+        return None
+
+    return Data(
+        x          = x,
+        edge_index = torch.tensor([src, dst], dtype=torch.long),
+        edge_attr  = torch.tensor(eattr,      dtype=torch.float),
+    )
 
 
-def _generate_synthetic(n: int = 300) -> List[Data]:
-    print(f"  Generating {n} synthetic 16-dim assembly graphs for testing…")
-    return [_synthetic_graph() for _ in range(n)]
+def _generate_synthetic(n: int = 500) -> List[Data]:
+    print(f"  Generating {n} structured 18-dim assembly graphs…")
+    graphs = []
+    while len(graphs) < n:
+        g = _synthetic_graph()
+        if g is not None and g.num_nodes >= 4:
+            graphs.append(g)
+    return graphs
 
 
 # ── Main dataset class ────────────────────────────────────────────────────────

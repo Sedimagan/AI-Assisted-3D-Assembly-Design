@@ -28,7 +28,7 @@ class AssemblyGNN(nn.Module):
 
     def __init__(
         self,
-        in_dim:  int   = 13,
+        in_dim:  int   = 18,
         out_dim: int   = 64,
         hidden:  int   = 128,
         heads:   list  = None,
@@ -119,7 +119,7 @@ class NodeRanker(nn.Module):
 # ── Convenience builder ───────────────────────────────────────────────────────
 
 def build_model(
-    in_dim:   int    = 13,
+    in_dim:   int    = 18,
     out_dim:  int    = 64,
     hidden:   int    = 128,
     heads:    list   = None,

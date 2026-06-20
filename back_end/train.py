@@ -24,12 +24,48 @@ from evaluate import evaluate
 
 # ── Loss ─────────────────────────────────────────────────────────────────────
 
+def hard_negative_pairs(z, pos_edge_index, n_hard):
+    """For each positive-edge source, find the most similar non-neighbour node."""
+    if pos_edge_index.size(1) == 0:
+        return None
+    src, _ = pos_edge_index
+    connected = set(zip(pos_edge_index[0].tolist(), pos_edge_index[1].tolist()))
+    z_norm = F.normalize(z.detach(), dim=-1)
+    sim    = z_norm @ z_norm.T
+    hard_src, hard_dst = [], []
+    for u in src.tolist()[:n_hard]:
+        scores = sim[u].clone()
+        scores[u] = -1.0
+        for v in range(z.size(0)):
+            if (u, v) in connected or (v, u) in connected:
+                scores[v] = -1.0
+        w = int(scores.argmax().item())
+        if w != u:
+            hard_src.append(u)
+            hard_dst.append(w)
+    if not hard_src:
+        return None
+    return torch.tensor([hard_src, hard_dst], dtype=torch.long, device=z.device)
+
+
 def link_loss(lp, z, batch, device):
-    """Binary cross-entropy on positive + negative edge pairs."""
+    """BCE on pos+neg edges plus a weighted hard-negative term."""
     ei    = batch.edge_label_index.to(device)
     label = batch.edge_label.float().to(device)
     logit = lp(z, ei)
-    return F.binary_cross_entropy_with_logits(logit, label)
+    base_loss = F.binary_cross_entropy_with_logits(logit, label)
+    pos_mask = label > 0.5
+    if pos_mask.sum() > 2:
+        hard_ei = hard_negative_pairs(
+            z, ei[:, pos_mask],
+            n_hard=min(20, int(pos_mask.sum().item()))
+        )
+        if hard_ei is not None:
+            hard_logits = lp(z, hard_ei)
+            hard_labels = torch.zeros(hard_ei.size(1), device=device)
+            hard_loss   = F.binary_cross_entropy_with_logits(hard_logits, hard_labels)
+            return base_loss + 0.3 * hard_loss
+    return base_loss
 
 
 # ── Training loop ─────────────────────────────────────────────────────────────
