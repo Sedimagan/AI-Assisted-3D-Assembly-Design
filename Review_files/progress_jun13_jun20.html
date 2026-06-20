@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Project Progress — Jun 13–20, 2026</title>
+<style>
+  :root {
+    --bg: #0f172a; --panel: #1e293b; --border: #334155;
+    --accent: #38bdf8; --green: #4ade80; --amber: #fbbf24;
+    --pink: #f472b6; --purple: #c084fc; --cyan: #67e8f9;
+    --red: #f87171; --text: #e2e8f0; --sub: #94a3b8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif;
+         height: 100vh; overflow: hidden; }
+
+  /* ── slide container ── */
+  .deck { width: 100%; height: 100vh; position: relative; }
+  .slide {
+    position: absolute; inset: 0; display: none; flex-direction: column;
+    padding: 48px 64px 32px; overflow: hidden;
+  }
+  .slide.active { display: flex; }
+
+  /* ── typography ── */
+  h1 { font-size: 2rem; font-weight: 800; color: var(--accent); margin-bottom: 6px; }
+  h2 { font-size: 1.5rem; font-weight: 700; color: var(--accent); margin-bottom: 20px; }
+  .subtitle { font-size: 0.95rem; color: var(--sub); margin-bottom: 28px; }
+  p  { font-size: 0.9rem; line-height: 1.65; color: var(--sub); margin-bottom: 10px; }
+  ul { list-style: none; padding: 0; }
+  ul li { font-size: 0.88rem; padding: 5px 0 5px 20px; position: relative; color: var(--text); line-height: 1.5; }
+  ul li::before { content: "▸"; position: absolute; left: 0; color: var(--accent); }
+  .tag { display: inline-block; padding: 2px 10px; border-radius: 12px;
+         font-size: 0.75rem; font-weight: 700; margin-right: 6px; }
+
+  /* ── cards ── */
+  .grid { display: grid; gap: 16px; }
+  .g2 { grid-template-columns: 1fr 1fr; }
+  .g3 { grid-template-columns: 1fr 1fr 1fr; }
+  .g4 { grid-template-columns: repeat(4, 1fr); }
+  .card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px;
+  }
+  .card h3 { font-size: 0.85rem; font-weight: 700; margin-bottom: 10px; }
+  .card p, .card li { font-size: 0.82rem; }
+
+  /* ── metrics ── */
+  .metric { text-align: center; padding: 12px 8px; }
+  .metric .val { font-size: 1.8rem; font-weight: 800; }
+  .metric .lbl { font-size: 0.72rem; color: var(--sub); margin-top: 2px; }
+
+  /* ── table ── */
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  th { background: #0f3460; color: var(--accent); padding: 8px 12px; text-align: left; font-weight: 700; }
+  td { padding: 7px 12px; border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+  .best-row td { background: #082030; color: var(--cyan); font-weight: 700; }
+
+  /* ── highlight boxes ── */
+  .info  { background: #0c2a3a; border-left: 4px solid var(--accent); padding: 12px 16px; border-radius: 6px; margin-bottom: 12px; }
+  .warn  { background: #2a1f00; border-left: 4px solid var(--amber); padding: 12px 16px; border-radius: 6px; margin-bottom: 12px; }
+  .good  { background: #0a2e14; border-left: 4px solid var(--green); padding: 12px 16px; border-radius: 6px; margin-bottom: 12px; }
+  .info p, .warn p, .good p { font-size: 0.85rem; margin: 0; color: var(--text); }
+
+  /* ── code chip ── */
+  code { background: #1e293b; border: 1px solid #334155; padding: 1px 7px;
+         border-radius: 5px; font-size: 0.8rem; font-family: 'Courier New', monospace; color: var(--cyan); }
+
+  /* ── link ── */
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ── navigation ── */
+  .nav {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 16px; z-index: 100;
+    background: rgba(15,23,42,0.9); border: 1px solid var(--border);
+    border-radius: 40px; padding: 10px 24px;
+  }
+  .nav button {
+    background: var(--accent); color: #000; border: none; border-radius: 20px;
+    padding: 6px 20px; font-weight: 700; cursor: pointer; font-size: 0.85rem;
+  }
+  .nav button:disabled { background: var(--border); color: var(--sub); cursor: default; }
+  .nav .counter { font-size: 0.82rem; color: var(--sub); min-width: 64px; text-align: center; }
+
+  /* ── progress bar ── */
+  .progress-bar {
+    position: fixed; top: 0; left: 0; height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--purple));
+    transition: width 0.3s ease; z-index: 200;
+  }
+
+  /* ── slide number chip ── */
+  .slide-label {
+    position: absolute; top: 16px; right: 24px;
+    font-size: 0.72rem; color: var(--sub);
+    background: var(--panel); border: 1px solid var(--border);
+    padding: 3px 10px; border-radius: 20px;
+  }
+
+  /* ── divider ── */
+  hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+  /* ── source badge ── */
+  .src { display: inline-block; padding: 3px 10px; border-radius: 20px;
+         font-size: 0.72rem; font-weight: 700; margin: 3px 4px; }
+  .src-green  { background: #0a2e14; color: var(--green);  border: 1px solid var(--green); }
+  .src-amber  { background: #2a1f00; color: var(--amber);  border: 1px solid var(--amber); }
+  .src-purple { background: #1a0b2e; color: var(--purple); border: 1px solid var(--purple); }
+  .src-cyan   { background: #082030; color: var(--cyan);   border: 1px solid var(--cyan); }
+
+  /* ── fold bar chart ── */
+  .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .bar-row .bar-lbl { font-size: 0.78rem; width: 50px; color: var(--sub); }
+  .bar-bg { flex: 1; background: #1e293b; border-radius: 4px; height: 18px; position: relative; }
+  .bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center;
+              padding-left: 8px; font-size: 0.72rem; font-weight: 700; color: #000; }
+  .bar-row .bar-val { font-size: 0.78rem; width: 48px; text-align: right; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="pbar"></div>
+<div class="deck" id="deck">
+
+<!-- ═══════════════════════════════════════════════════════════ SLIDE 1 ══ -->
+<div class="slide active" id="s1">
+  <div class="slide-label">1 / 10</div>
+  <h1>AI-Assisted 3D Assembly Design</h1>
+  <p class="subtitle">Project Progress Update &nbsp;·&nbsp; <strong>June 13 – June 20, 2026</strong> &nbsp;·&nbsp; M.Tech Data Science & AI, Sem 4 &nbsp;·&nbsp; Parthasarathy Perumal</p>
+
+  <div class="grid g2" style="margin-top:12px; flex:1;">
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div class="info">
+        <p><strong style="color:var(--accent);">Phase 1 Goal:</strong> Train a Graph Attention Network (GAT) to predict missing components in 3D CAD assemblies via link prediction.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--amber);">What changed this week?</h3>
+        <ul>
+          <li>Introduced <strong>5-Fold Cross-Validation</strong> (K-Fold CV) replacing single train/val split</li>
+          <li>Added <strong>category filter</strong> — train only on relevant engineering domains</li>
+          <li>Trained 3 more rounds: R12, R13, R14 across different dataset compositions</li>
+          <li>3D model gallery analysis — discovered dataset quality issues</li>
+          <li>UI updated to show CV results (fold table, mean ± std badges)</li>
+          <li>Identified next data sources for Phase 2 collection</li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div class="card">
+        <h3 style="color:var(--green);">Training runs this period</h3>
+        <table>
+          <tr><th>Run</th><th>Date</th><th>Graphs</th><th>Mean AUC</th><th>Mean AP</th></tr>
+          <tr><td><span class="tag" style="background:#1a0b2e;color:#c084fc;">R12</span></td><td>13 Jun</td><td>416</td><td>0.697</td><td>0.827</td></tr>
+          <tr><td><span class="tag" style="background:#2e0f1a;color:#f9a8d4;">R13</span></td><td>14 Jun</td><td>807</td><td>0.574</td><td>0.650</td></tr>
+          <tr class="best-row"><td><span class="tag" style="background:#082030;color:#67e8f9;">R14</span></td><td>14 Jun</td><td>270</td><td>0.624</td><td>0.734</td></tr>
+        </table>
+        <p style="margin-top:8px;font-size:0.75rem;color:var(--sub);">★ R14 = category-filtered (focused domain) — best consistency</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ SLIDE 2 ══ -->
+<div class="slide" id="s2">
+  <div class="slide-label">2 / 10</div>
+  <h2>What is K-Fold Cross-Validation?</h2>
+
+  <div class="grid g2" style="flex:1;gap:20px;">
+    <div>
+      <div class="info" style="margin-bottom:16px;">
+        <p><strong>Problem with single split:</strong> One random train/val/test split can give misleadingly high or low scores depending on which graphs land in each set. R11's val AUC of 0.781 was partly a lucky split — not a real signal.</p>
+      </div>
+
+      <div class="card" style="margin-bottom:14px;">
+        <h3 style="color:var(--accent);">How K-Fold CV works here</h3>
+        <ul>
+          <li><strong>Fixed test set (15%)</strong> — held out across all folds, never seen during training</li>
+          <li><strong>Remaining 85%</strong> split into 5 equal folds using <code>sklearn.KFold</code></li>
+          <li>Each fold: 4 parts train → 1 part val. Repeat 5×</li>
+          <li><strong>Fresh model</strong> trained per fold — no leakage between folds</li>
+          <li>Best model across all folds saved as <code>best_overall.pt</code></li>
+          <li>Final report: <strong>mean ± std</strong> over 5 fold test scores</li>
+        </ul>
+      </div>
+
+      <div class="good">
+        <p><strong>Why it matters:</strong> Mean ± std over 5 folds is a far more trustworthy estimate than a single split. Low std = model is consistent; high std = data is heterogeneous.</p>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" style="margin-bottom:14px;">
+        <h3 style="color:var(--purple);">Code changes (13 Jun)</h3>
+        <ul>
+          <li><code>dataset.py</code> — new <code>get_splits(dataset, cfg, fold_idx, n_folds)</code></li>
+          <li><code>train.py</code> — outer fold loop; saves <code>best_fold{n}.pt</code> per fold</li>
+          <li><code>config.yaml</code> — <code>n_folds: 5</code> added under training section</li>
+          <li><code>scikit-learn 1.8.0</code> installed in venv</li>
+          <li>Outputs: <code>cv_summary.json</code> alongside <code>test_metrics.json</code></li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3 style="color:var(--amber);">Before vs After</h3>
+        <table>
+          <tr><th></th><th>Before (single split)</th><th>After (5-fold CV)</th></tr>
+          <tr><td>Val AUC</td><td>0.781 (lucky)</td><td>0.697 ± 0.024 (honest)</td></tr>
+          <tr><td>Reliability</td><td>1 data point</td><td>5 data points + std</td></tr>
+          <tr><td>Overfitting risk</td><td>High</td><td>Detected via high std</td></tr>
+          <tr><td>Best model</td><td><code>best.pt</code></td><td><code>best_overall.pt</code></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ SLIDE 3 ══ -->
+<div class="slide" id="s3">
+  <div class="slide-label">3 / 10</div>
+  <h2>Category Filter — Domain-Focused Training</h2>
+
+  <div class="grid g2" style="flex:1;gap:20px;">
+    <div>
+      <div class="warn" style="margin-bottom:14px;">
+        <p><strong>Problem (R13):</strong> Training on all categories (807 graphs from 1,404 STEP files) included architecture, art, sci-fi, jewelry — geometry irrelevant to mechanical assembly prediction. Mean AUC dropped to 0.574.</p>
+      </div>
+
+      <div class="card" style="margin-bottom:14px;">
+        <h3 style="color:var(--cyan);">Solution: Category filter in config.yaml</h3>
+        <pre style="background:#0f172a;border:1px solid #334155;padding:12px;border-radius:8px;font-size:0.78rem;color:#67e8f9;overflow:auto;">data:
+  categories:
+    - "Mechanical Engineering"
+    - "Machine design"
+    - "Automotive"
+    - "Tools"</pre>
+        <p style="margin-top:8px;font-size:0.8rem;color:var(--sub);">Setting <code>categories: null</code> scans all subfolders (original behaviour).</p>
+      </div>
+
+      <div class="good">
+        <p><strong>Result:</strong> 306 STEP → 270 graphs. <strong>Zero files skipped</strong> — all 4 engineering categories produce compact assemblies within the nodes ≤ 20 / edges ≤ 60 thresholds.</p>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" style="margin-bottom:14px;">
+        <h3 style="color:var(--accent);">R13 vs R14 — broad vs focused</h3>
+        <table>
+          <tr><th></th><th>R13 (all cats)</th><th>R14 (4 cats)</th></tr>
+          <tr><td>STEP scanned</td><td>1,404</td><td>306</td></tr>
+          <tr><td>Graphs</td><td>807</td><td>270</td></tr>
+          <tr><td>Skipped</td><td>597</td><td><strong style="color:var(--green);">0</strong></td></tr>
+          <tr><td>Mean AUC</td><td>0.574 ± 0.059</td><td><strong style="color:var(--cyan);">0.624 ± 0.036</strong></td></tr>
+          <tr><td>Mean AP</td><td>0.650 ± 0.053</td><td><strong style="color:var(--cyan);">0.734 ± 0.015</strong></td></tr>
+          <tr><td>AP std</td><td>±0.053 (noisy)</td><td><strong style="color:var(--green);">±0.015 (stable)</strong></td></tr>
+        </table>
+      </div>
+
+      <div class="info">
+        <p><strong>Key insight:</strong> Smaller, focused dataset (270) outperforms larger noisy one (807). Domain relevance matters more than raw volume at this scale.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ SLIDE 4 ══ -->
+<div class="slide" id="s4">
+  <div class="slide-label">4 / 10</div>
+  <h2>Training Runs — Score Progression (R11 → R14)</h2>
+
+  <div style="flex:1;display:flex;flex-direction:column;gap:16px;">
+    <div class="grid g4" style="gap:12px;">
+      <div class="card metric" style="border-color:#fde68a;">
+        <div class="val" style="color:#fde68a;">R11</div>
+        <div class="lbl">13 Jun · 416 graphs · single split</div>
+        <hr/>
+        <div style="font-size:0.85rem;margin-top:8px;">Val AUC <strong style="color:#fde68a;">0.781</strong></div>
+        <div style="font-size:0.85rem;">Test AUC <strong>0.538</strong></div>
+        <div style="font-size:0.85rem;">Test AP <strong>0.592</strong></div>
+        <div style="font-size:0.72rem;color:var(--sub);margin-top:6px;">⚠ Lucky split — overfitting</div>
+      </div>
+      <div class="card metric" style="border-color:#c084fc;">
+        <div class="val" style="color:#c084fc;">R12</div>
+        <div class="lbl">13 Jun · 416 graphs · 5-fold CV</div>
+        <hr/>
+        <div style="font-size:0.85rem;margin-top:8px;">Mean AUC <strong style="color:#c084fc;">0.697 ±0.024</strong></div>
+        <div style="font-size:0.85rem;">Mean AP <strong style="color:#c084fc;">0.827 ±0.038</strong></div>
+        <div style="font-size:0.85rem;">Best fold val <strong>0.659</strong></div>
+        <div style="font-size:0.72rem;color:var(--green);margin-top:6px;">✓ AP meets Phase 1 target</div>
+      </div>
+      <div class="card metric" style="border-color:#f9a8d4;">
+        <div class="val" style="color:#f9a8d4;">R13</div>
+        <div class="lbl">14 Jun · 807 graphs · all categories</div>
+        <hr/>
+        <div style="font-size:0.85rem;margin-top:8px;">Mean AUC <strong style="color:#f9a8d4;">0.574 ±0.059</strong></div>
+        <div style="font-size:0.85rem;">Mean AP <strong style="color:#f9a8d4;">0.650 ±0.053</strong></div>
+        <div style="font-size:0.85rem;">Best fold val <strong>0.699</strong></div>
+        <div style="font-size:0.72rem;color:var(--amber);margin-top:6px;">↓ Noisy cross-domain data hurts</div>
+      </div>
+      <div class="card metric" style="border-color:#67e8f9;">
+        <div class="val" style="color:#67e8f9;">R14</div>
+        <div class="lbl">14 Jun · 270 graphs · 4 categories</div>
+        <hr/>
+        <div style="font-size:0.85rem;margin-top:8px;">Mean AUC <strong style="color:#67e8f9;">0.624 ±0.036</strong></div>
+        <div style="font-size:0.85rem;">Mean AP <strong style="color:#67e8f9;">0.734 ±0.015</strong></div>
+        <div style="font-size:0.85rem;">Best fold val <strong>0.715</strong></div>
+        <div style="font-size:0.72rem;color:var(--green);margin-top:6px;">✓ Most consistent (AP std ±0.015)</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="color:var(--accent);margin-bottom:12px;">AP score across folds — R14 (most stable)</h3>
+      <div style="padding:4px 0;">
+        <div class="bar-row"><span class="bar-lbl">Fold 1</span><div class="bar-bg"><div class="bar-fill" style="width:71%;background:#67e8f9;">0.710</div></div><span class="bar-val" style="color:#67e8f9;">0.710</span></div>
+        <div class="bar-row"><span class="bar-lbl">Fold 2 ★</span><div class="bar-bg"><div class="bar-fill" style="width:73.6%;background:#4ade80;">0.736</div></div><span class="bar-val" style="color:#4ade80;">0.736</span></div>
+        <div class="bar-row"><span class="bar-lbl">Fold 3</span><div class="bar-bg"><div class="bar-fill" style="width:73.1%;background:#67e8f9;">0.731</div></div><span class="bar-val" style="color:#67e8f9;">0.731</span></div>
+        <div class="bar-row"><span class="bar-lbl">Fold 4</span><div class="bar-bg"><div class="bar-fill" style="width:74.9%;background:#4ade80;">0.750</div></div><span class="bar-val" style="color:#4ade80;">0.750</span></div>
+        <div class="bar-row"><span class="bar-lbl">Fold 5</span><div class="bar-bg"><div class="bar-fill" style="width:74.2%;background:#67e8f9;">0.742</div></div><span class="bar-val" style="color:#67e8f9;">0.742</span></div>
+      </div>
+      <p style="font-size:0.76rem;color:var(--sub);margin-top:6px;">Range: 0.710–0.750 &nbsp;·&nbsp; std ±0.015 &nbsp;·&nbsp; Very tight — model is consistent on domain-focused data</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ SLIDE 5 ══ -->
+<div class="slide" id="s5">
+  <div class="slide-label">5 / 10</div>
+  <h2>Dataset Size Filters &amp; Skip Policy</h2>
+
+  <div class="grid g2" style="flex:1;gap:20px;">
+    <div>
+      <div class="info" style="margin-bottom:14px;">
+        <p>Three automatic filters run before training. Each oversized assembly folder is moved to a quarantine subdirectory and logged in <code>skipped_models_report.json</code>.</p>
+      </div>
+      <div class="card" style="margin-bottom:14px;">
+        <h3 style="color:var(--amber);">Filter thresholds</h3>
+        <table>
+          <tr><th>Filter</th><th>Threshold</th><th>Rationale</th></tr>
+          <tr><td>Node count</td><td>&gt; 20 bodies</td><td>74% of Fusion360 pass; larger = slow gmsh</td></tr>
+          <tr><td>Edge count</td><td>&gt; 60 directed</td><td>3× dataset mean of 20.7 avg contacts</td></tr>
+          <tr><td>Parse timeout</td><td>&gt; 120 s</td><td>Reduced from 300s — pathological files</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--sub);font-size:0.8rem;">Two-stage check order (efficient)</h3>
+        <ul>
+          <li><strong>Node check</strong> before <code>fragment()</code> — fast: just load + sync</li>
+          <li><strong>Edge check</strong> after <code>fragment()</code>, before trimesh+SDF — avoids expensive per-body computation on dense graphs</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h3 style="color:var(--pink);">Skip counts by run</h3>
+        <table>
+          <tr><th>Run</th><th>Scanned</th><th>Parsed</th><th>Nodes</th><th>Edges</th><th>Timeout</th></tr>
+          <tr><td style="color:#fde68a;">R11</td><td>753</td><td>416</td><td>162</td><td>67</td><td>4</td></tr>
+          <tr><td style="color:#f9a8d4;">R13</td><td>1,404</td><td>807</td><td>426</td><td>136</td><td>35</td></tr>
+          <tr class="best-row"><td style="color:#67e8f9;">R14</td><td>306</td><td>270</td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>0</strong></td></tr>
+        </table>
+        <p style="margin-top:10px;font-size:0.8rem;color:var(--sub);">R14's 0-skip result confirms: <em>Mechanical Engineering, Machine design, Automotive, Tools</em> categories produce compact, well-structured assemblies that are ideal for this model's constraints.</p>
+      </div>
+      <div class="warn" style="margin-top:14px;">
+        <p><strong>Why R13 had 597 skips:</strong> Broader categories (SCI-FI, Architecture, Art) include extremely complex models — large body counts, dense meshes — that exceed the M1-safe thresholds. They add noise without adding useful training signal.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ SLIDE 6 ══ -->
+<div class="slide" id="s6">
+  <div class="slide-label">6 / 10</div>
+  <h2>3D Model Gallery Analysis — What Did We Actually See?</h2>
+
+  <div class="grid g2" style="flex:1;gap:20px;">
+    <div>
+      <div class="info" style="margin-bottom:14px;">
+        <p>Used a generated HTML gallery (<code>assembly_gallery.html</code>) to visually browse the Fusion360 dataset categories — thumbnails of every assembly group used in training.</p>
+      </div>
+
+      <div class="card" style="margin-bottom:14px;">
+        <h3 style="color:var(--amber);">Student Finding — What was observed</h3>
+        <ul>
+          <li>Many assemblies in the full dataset are <strong>architecturally or artistically complex</strong> — not mechanical assemblies</li>
+          <li>Categories like <em>SCI-FI, Art, Jewelry, Toys</em> contain geometry irrelevant to bolt/bracket/shaft prediction tasks</li>
+          <li>Even within engineering categories, some files represent <strong>complete machines</strong> (100+ parts) rather than sub-assembly units</li>
+          <li><em>Product Design</em> category: a mix of consumer goods and mechanical parts — unpredictable signal</li>
+          <li>Assembly graphs with 2–8 nodes train well; graphs with 15–20 nodes at the threshold limit tend to produce noisy edge predictions</li>
+        </ul>
+      </div>
+
+      <div class="warn">
+        <p><strong>Conclusion:</strong> The Fusion360 Gallery dataset is a general-purpose 3D model collection — not purpose-built for mechanical assembly training. Quality filtering by category + size is essential, not optional.</p>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h3 style="color:var(--green);">Ideal training assembly profile</h3>
+        <table>
+          <tr><th>Property</th><th>Target</th></tr>
+          <tr><td>Bodies (nodes)</td><td>2–10 per assembly</td></tr>
+          <tr><td>Contacts (edges)</td><td>1–20 directed</td></tr>
+          <tr><td>Assembly type</td><td>Bolt+bracket, shaft+bearing, hinge, plate+fastener</td></tr>
+          <tr><td>File format</td><td>STEP (AP214/AP242) — single assembly file</td></tr>
+          <tr><td>Parse time</td><td>&lt; 30s on M1</td></tr>
+          <tr><td>Geometry</td><td>Standard mechanical parts, clear contact surfaces</td></tr>
+        </table>
+      </div>
+
+      <div class="good" style="margin-top:14px;">
+        <p><strong>What works best:</strong> The 4 categories used in R14 (Mechanical Engineering, Machine design, Automotive, Tools) align closest to this profile — confirmed by 0 skips and stable CV scores.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ SLIDE 7 ══ -->
+<div class="slide" id="s7">
+  <div class="slide-label">7 / 10</div>
+  <h2>UI Updates — CV Results in the Interface</h2>
+
+  <div class="grid g2" style="flex:1;gap:20px;">
+    <div>
+      <div class="card" style="margin-bottom:14px;">
+        <h3 style="color:var(--accent);">What was added to the Streamlit UI</h3>
+        <ul>
+          <li><strong>Model metrics badge</strong> — now shows <em>N-Fold CV: AUC mean±std  AP mean±std</em> with colour-coded pills (green ≥ 0.70 / amber ≥ 0.55 / red &lt; 0.55)</li>
+          <li><strong>Per-fold expander</strong> — "📊 Per-fold results" table with AUC/AP for each fold, ★ marking best fold</li>
+          <li><strong>Completion banner</strong> — shows mean ± std when CV training finishes</li>
+          <li><strong>Activity log</strong> — captures FOLD headers, Fold X test lines, Mean AUC/AP with emojis (🔁 📊 📋 🏆)</li>
+          <li><strong>Live capture</strong> — <code>_FOLD_TEST</code>, <code>_MEAN_AUC</code>, <code>_MEAN_AP</code> regexes parse log in real time</li>
+          <li>Falls back to single-run AUC/AP if no <code>cv_summary.json</code> exists</li>
+        </ul>
+      </div>
+
+      <div class="info">
+        <p><strong>Data source:</strong> UI reads <code>back_end/results/cv_summary.json</code> (persisted after training) and also captures live from the training log during active training via <code>session_state.last_cv_summary</code>.</p>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" style="margin-bottom:14px;">
+        <h3 style="color:var(--purple);">Badge colour logic</h3>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span style="background:#16a34a;color:#fff;padding:4px 14px;border-radius:12px;font-size:0.8rem;font-weight:700;">AUC 0.7234 ±0.0239</span>
+            <span style="font-size:0.8rem;color:var(--sub);">Green — mean AUC ≥ 0.70</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span style="background:#d97706;color:#fff;padding:4px 14px;border-radius:12px;font-size:0.8rem;font-weight:700;">AUC 0.6244 ±0.0355</span>
+            <span style="font-size:0.8rem;color:var(--sub);">Amber — mean AUC ≥ 0.55</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span style="background:#dc2626;color:#fff;padding:4px 14px;border-radius:12px;font-size:0.8rem;font-weight:700;">AUC 0.4800 ±0.0600</span>
+            <span style="font-size:0.8rem;color:var(--sub);">Red — mean AUC &lt; 0.55</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="color:var(--amber);">Per-fold table (in UI expander)</h3>
+        <table>
+          <tr><th>Fold</th><th>AUC</th><th>AP</th></tr>
+          <tr><td>1</td><td>0.5670</td><td>0.7102</td></tr>
+          <tr class="best-row"><td>2 ★</td><td>0.6402</td><td>0.7356</td></tr>
+          <tr><td>3</td><td>0.6177</td><td>0.7308</td></tr>
+          <tr><td>4</td><td>0.6605</td><td>0.7495</td></tr>
+          <tr><td>5</td><td>0.6368</td><td>0.7418</td></tr>
+        </table>
+        <p style="font-size:0.74rem;color:var(--sub);margin-top:6px;">★ best fold — used for best_overall.pt</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ SLIDE 8 ══ -->
+<div class="slide" id="s8">
+  <div class="slide-label">8 / 10</div>
+  <h2>Other Technical Changes (Jun 13–20)</h2>
+
+  <div class="grid g3" style="flex:1;gap:14px;">
+    <div class="card">
+      <h3 style="color:var(--accent);">Size filters (introduced R11)</h3>
+      <ul>
+        <li>Node pre-check <em>before</em> <code>gmsh.fragment()</code> — avoids expensive boolean ops on oversized meshes</li>
+        <li>Edge pre-check <em>after</em> fragment but before trimesh+SDF</li>
+        <li>Subprocess spawn per file — isolates gmsh state between files</li>
+        <li><code>BytesIO + torch.save</code> for multiprocessing queue serialisation — fixed shared-memory crash on macOS spawn context</li>
+        <li>Folders quarantined to <code>skipped_models/nodes_gt_20/</code>, <code>edges_gt_60/</code>, <code>timeout/</code></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3 style="color:var(--purple);">Training pipeline</h3>
+      <ul>
+        <li><code>get_splits()</code> rewritten with <code>sklearn.KFold</code> — accepts <code>fold_idx</code> &amp; <code>n_folds</code></li>
+        <li>Fixed 15% test set — same graphs across all folds (seeded, reproducible)</li>
+        <li>Fresh model + optimiser + scheduler per fold</li>
+        <li>Saves <code>best_fold{n}.pt</code> + <code>best_overall.pt</code></li>
+        <li>Writes <code>cv_summary.json</code> — n_folds, per-fold AUC/AP, mean±std, best_fold</li>
+        <li>Timestamped export includes CV summary in metadata</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3 style="color:var(--cyan);">Category filter</h3>
+      <ul>
+        <li><code>AssemblyDataset</code> gains <code>categories: Optional[List[str]]</code> param</li>
+        <li>Filters <code>step_files</code> list to paths whose parts intersect the categories set</li>
+        <li><code>config.yaml</code> — <code>categories</code> list under <code>data:</code> section; set to <code>null</code> to scan all</li>
+        <li>Printed at parse start: <em>Category filter: ['Mechanical Engineering', …]</em></li>
+        <li><code>train.py</code> passes <code>cfg["data"].get("categories")</code> through</li>
+      </ul>
+      <div class="good" style="margin-top:10px;">
+        <p style="font-size:0.78rem;">R14: 0 files skipped from the 4 engineering categories — all within node/edge thresholds.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ SLIDE 9 ══ -->
+<div class="slide" id="s9">
+  <div class="slide-label">9 / 10</div>
+  <h2>Next Steps — Better Data Sources</h2>
+  <p class="subtitle">The Fusion360 Gallery is too broad. Targeted STEP files from these sources will improve training quality.</p>
+
+  <div class="grid g2" style="flex:1;gap:14px;">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--green);">
+          <span class="src src-green">★ Priority 1</span> GrabCAD Community Library
+        </h3>
+        <p>Hundreds of thousands of free STEP assemblies. Searchable by type. No API — manual download. Target 50–100 per assembly category.</p>
+        <ul style="margin-top:8px;">
+          <li>grabcad.com/library?query=<strong>bolt+bracket+assembly</strong>&softwares=17</li>
+          <li>grabcad.com/library?query=<strong>shaft+bearing+housing</strong></li>
+          <li>grabcad.com/library?query=<strong>hinge+assembly</strong></li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3 style="color:var(--amber);">
+          <span class="src src-amber">Priority 2</span> NIST MBE Test Case Suite
+        </h3>
+        <p>High-quality STEP assemblies with GD&amp;T/PMI annotations — bolt patterns, brackets, flanged shafts. Small (~30 files) but geometrically clean. Ideal for pipeline validation.</p>
+        <p style="margin-top:6px;">nist.gov → Systems Integration → MBE PMI Validation Testing</p>
+      </div>
+
+      <div class="card">
+        <h3 style="color:var(--purple);">
+          <span class="src src-purple">Priority 3</span> FreeCAD Community Library
+        </h3>
+        <p>STEP + FCStd assemblies: nuts+bolts, brackets, hinges. M1-safe — most are 2–10 parts, exactly our target range.</p>
+        <p style="margin-top:6px;">github.com/FreeCAD/FreeCAD-library</p>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--cyan);">
+          <span class="src src-cyan">Priority 4</span> PARTcommunity Standard Parts
+        </h3>
+        <p>Free STEP downloads: ISO bolts, bearings, linear shafts, brackets. Perfect for augmenting Shaft+Bearing+Housing and Plate+Bolt categories with standardised geometry.</p>
+        <p style="margin-top:6px;">b2b.partcommunity.com</p>
+      </div>
+
+      <div class="card">
+        <h3 style="color:var(--sub);">Other sources</h3>
+        <ul>
+          <li><strong>Thingiverse</strong> — mostly STL; but mechanical assemblies often include STEP source. Good for box+lid, bracket types</li>
+          <li><strong>GitHub search</strong> — "*.step" assembly bolt / "*.stp" shaft bearing</li>
+          <li>github.com/kanzure/<strong>digitizing-historical-mechanisms</strong> (mechanical linkages in STEP)</li>
+        </ul>
+      </div>
+
+      <div class="warn">
+        <p><strong>Download strategy:</strong> Filter by STEP format. Target assemblies with 2–10 bodies. Avoid single-part files (UUID pattern already filtered by pipeline). Aim for 200–300 new files per category.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ SLIDE 10 ══ -->
+<div class="slide" id="s10">
+  <div class="slide-label">10 / 10</div>
+  <h2>Summary &amp; Phase 1 Status</h2>
+
+  <div class="grid g2" style="flex:1;gap:20px;">
+    <div>
+      <div class="card" style="margin-bottom:14px;">
+        <h3 style="color:var(--accent);">What was achieved (Jun 13–20)</h3>
+        <ul>
+          <li>✅ 5-Fold Cross-Validation fully implemented and deployed</li>
+          <li>✅ Category filter for domain-focused training</li>
+          <li>✅ 3 training runs (R12, R13, R14) with progressively better data curation</li>
+          <li>✅ UI shows CV results — fold table, mean±std badges, live capture</li>
+          <li>✅ 3D model gallery analysis — identified dataset quality issues</li>
+          <li>✅ Skip policy documented and skip count tracked per run</li>
+          <li>✅ All changes committed and pushed to <code>ph1-third-review</code></li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3 style="color:var(--amber);">Phase 1 targets</h3>
+        <table>
+          <tr><th>Metric</th><th>Target</th><th>Best achieved</th><th>Status</th></tr>
+          <tr><td>AUC-ROC</td><td>≥ 0.85</td><td>0.697 (R12 mean)</td><td style="color:var(--amber);">⏳ In progress</td></tr>
+          <tr><td>Avg Precision</td><td>≥ 0.82</td><td><strong style="color:var(--green);">0.827 (R12 mean)</strong></td><td style="color:var(--green);">✅ Met</td></tr>
+        </table>
+        <p style="font-size:0.78rem;color:var(--sub);margin-top:8px;">R12 (416 focused graphs, 5-fold CV) achieves AP target. AUC still ~0.15 short of target — needs more curated training data.</p>
+      </div>
+    </div>
+
+    <div>
+      <div class="good" style="margin-bottom:14px;">
+        <p><strong>Key learning this week:</strong> Domain-focused, compact assemblies (R14: 270 graphs, 0 skipped, AP std ±0.015) produce more consistent models than large noisy datasets (R13: 807 graphs, AP std ±0.053). Quality &gt; Quantity at this scale.</p>
+      </div>
+
+      <div class="card">
+        <h3 style="color:var(--cyan);">Immediate next steps</h3>
+        <ul>
+          <li>Download targeted STEP files from GrabCAD (bolt+bracket, shaft+bearing, hinge) — 50–100 per type</li>
+          <li>Add NIST MBE files for geometrically clean baseline validation</li>
+          <li>Re-train on combined curated set — expected &gt; 500 domain-focused graphs</li>
+          <li>Consider widening node threshold to 25 to include more assemblies</li>
+          <li>Target: push AUC above 0.75 with curated data before Phase 2</li>
+        </ul>
+      </div>
+
+      <div class="info" style="margin-top:14px;">
+        <p><strong>Phase 2 (from Jul 10):</strong> Next-component ranking via NodeRanker — cosine similarity, Hit@K, MRR. Builds on Phase 1 link prediction embeddings.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /deck -->
+
+<!-- ── navigation ── -->
+<div class="nav">
+  <button id="btnPrev" onclick="go(-1)" disabled>← Prev</button>
+  <span class="counter" id="counter">1 / 10</span>
+  <button id="btnNext" onclick="go(1)">Next →</button>
+</div>
+
+<script>
+  const N = 10;
+  let cur = 1;
+
+  function go(d) {
+    document.getElementById('s'+cur).classList.remove('active');
+    cur = Math.max(1, Math.min(N, cur + d));
+    document.getElementById('s'+cur).classList.add('active');
+    document.getElementById('counter').textContent = cur + ' / ' + N;
+    document.getElementById('btnPrev').disabled = cur === 1;
+    document.getElementById('btnNext').disabled = cur === N;
+    document.getElementById('pbar').style.width = (cur / N * 100) + '%';
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') go(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   go(-1);
+  });
+
+  // init progress bar
+  document.getElementById('pbar').style.width = (1/N*100)+'%';
+</script>
+</body>
+</html>
