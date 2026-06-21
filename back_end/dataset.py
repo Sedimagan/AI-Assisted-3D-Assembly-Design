@@ -660,10 +660,12 @@ class AssemblyDataset(InMemoryDataset):
         _TIMEOUT   = 120   # seconds per file (was 300)
         _MAX_NODES = 20    # bodies — M1-friendly limit (74% of Fusion360 pass)
         _MAX_EDGES = 60    # directed edges (≈ 30 contacts) — 3× dataset mean
+        _MIN_EDGES = 10    # directed edges — too few edges breaks RandomLinkSplit
 
         _skipped_dir       = self.source_dir / "skipped_models"
         _skip_nodes_dir    = _skipped_dir / f"nodes_gt_{_MAX_NODES}"
         _skip_edges_dir    = _skipped_dir / f"edges_gt_{_MAX_EDGES}"
+        _skip_few_edges_dir = _skipped_dir / f"edges_lt_{_MIN_EDGES}"
         _skip_timeout_dir  = _skipped_dir / "timeout"
 
         def _move_folder(sf: Path, dest_dir: Path) -> Optional[str]:
@@ -681,7 +683,7 @@ class AssemblyDataset(InMemoryDataset):
             print(f"  Found {len(step_files)} STEP file(s) in {self.source_dir}",
                   flush=True)
             print(f"  Thresholds — nodes ≤ {_MAX_NODES}  edges ≤ {_MAX_EDGES}"
-                  f"  timeout {_TIMEOUT}s", flush=True)
+                  f"  edges ≥ {_MIN_EDGES}  timeout {_TIMEOUT}s", flush=True)
 
             for idx, sf in enumerate(sorted(step_files), 1):
                 print(f"  [{idx}/{len(step_files)}] Parsing: {sf.name}", flush=True)
@@ -732,19 +734,32 @@ class AssemblyDataset(InMemoryDataset):
                     continue
 
                 if g is not None and g.num_nodes >= 2:
+                    n_dir = g.edge_index.size(1)
+                    if n_dir < _MIN_EDGES:
+                        print(f"  [SKIP-FEW]   {sf.name} — {n_dir} directed edges "
+                              f"< {_MIN_EDGES} ({elapsed}s)", flush=True)
+                        entry = {"file": str(sf), "folder": str(sf.parent),
+                                 "reason": f"edges < {_MIN_EDGES}", "elapsed": elapsed}
+                        dest = _move_folder(sf, _skip_few_edges_dir)
+                        if dest:
+                            entry["moved_to"] = dest
+                        skipped.append(entry)
+                        continue
                     graphs.append(g)
                     source_paths.append(str(sf))
                     print(f"  [OK]  {sf.name} — {g.num_nodes} nodes  "
-                          f"{g.edge_index.size(1)//2} edges  ({elapsed}s)", flush=True)
+                          f"{n_dir//2} edges  ({elapsed}s)", flush=True)
 
-            n_nodes_skip = sum(1 for e in skipped if f"nodes >"  in e["reason"])
-            n_edges_skip = sum(1 for e in skipped if f"edges >"  in e["reason"])
-            n_time_skip  = sum(1 for e in skipped if "timeout"   in e["reason"])
+            n_nodes_skip    = sum(1 for e in skipped if "nodes >"  in e["reason"])
+            n_edges_skip    = sum(1 for e in skipped if "edges >"  in e["reason"])
+            n_few_edges_skip = sum(1 for e in skipped if "edges <"  in e["reason"])
+            n_time_skip     = sum(1 for e in skipped if "timeout"  in e["reason"])
             print(
                 f"  Parsed {len(graphs)} valid  |  "
                 f"Skipped {len(skipped)} total "
                 f"(nodes>{_MAX_NODES}: {n_nodes_skip}  "
                 f"edges>{_MAX_EDGES}: {n_edges_skip}  "
+                f"edges<{_MIN_EDGES}: {n_few_edges_skip}  "
                 f"timeout: {n_time_skip})",
                 flush=True,
             )
@@ -756,6 +771,7 @@ class AssemblyDataset(InMemoryDataset):
                     "thresholds": {
                         "max_nodes":    _MAX_NODES,
                         "max_edges":    _MAX_EDGES,
+                        "min_edges":    _MIN_EDGES,
                         "timeout_secs": _TIMEOUT,
                     },
                     "total_found":       len(step_files),
@@ -764,11 +780,13 @@ class AssemblyDataset(InMemoryDataset):
                     "skipped_breakdown": {
                         f"nodes_gt_{_MAX_NODES}": n_nodes_skip,
                         f"edges_gt_{_MAX_EDGES}": n_edges_skip,
+                        f"edges_lt_{_MIN_EDGES}": n_few_edges_skip,
                         "timeout":                n_time_skip,
                     },
                     "skipped_folders": {
                         f"nodes_gt_{_MAX_NODES}": str(_skip_nodes_dir),
                         f"edges_gt_{_MAX_EDGES}": str(_skip_edges_dir),
+                        f"edges_lt_{_MIN_EDGES}": str(_skip_few_edges_dir),
                         "timeout":                str(_skip_timeout_dir),
                     },
                     "entries": skipped,
@@ -803,7 +821,7 @@ def get_splits(dataset: AssemblyDataset, cfg: dict, fold_idx: int = 0, n_folds: 
 
     fold_idx selects which of the n_folds splits is used as validation;
     the rest form the training set.  RandomLinkSplit is applied per-graph.
-    Graphs with fewer than 8 directed edges are skipped.
+    Graphs with fewer than 10 directed edges are skipped.
     """
     n      = len(dataset)
     n_test = max(1, int(n * cfg["data"]["test_ratio"]))
@@ -831,8 +849,16 @@ def get_splits(dataset: AssemblyDataset, cfg: dict, fold_idx: int = 0, n_folds: 
         result = []
         for i in indices:
             data = dataset[i]
-            if data.edge_index.size(1) < 8:
+            n_edges = data.edge_index.size(1)
+            if n_edges < 10:
                 continue
+            n_pos = n_edges // 2
+            max_neg = n_pos * (data.num_nodes - 1) - n_pos
+            req_neg = int(n_pos * cfg["training"]["neg_ratio"])
+            if req_neg > max_neg:
+                print(f"    [DIAG] graph {i}: {data.num_nodes} nodes, "
+                      f"{n_edges} dir-edges, {n_pos} pos, "
+                      f"requested {req_neg} neg but only {max_neg} possible")
             try:
                 train_d, val_d, test_d = splitter(data)
                 result.append([train_d, val_d, test_d][split_idx])
