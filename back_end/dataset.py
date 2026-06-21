@@ -47,6 +47,34 @@ from torch_geometric.transforms import RandomLinkSplit
 COMP_TYPES = ["body", "fastener", "bearing", "shaft", "plate", "housing", "gear", "other"]
 MATE_TYPES = ["coincident", "concentric", "parallel", "tangent", "fixed", "other"]
 
+# ── Skip infrastructure ──────────────────────────────────────────────────────
+
+SKIPPED_ROOT = Path("/Users/mbp/Documents/MTECH/Sem4/Individual_project/"
+                    "AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/"
+                    "Source_3d_models/skipped_models")
+SKIP_DIRS = {
+    "timeout": SKIPPED_ROOT / "timeout",
+    "complex": SKIPPED_ROOT / "complex_error",
+    "bop":     SKIPPED_ROOT / "bop_failed",
+    "other":   SKIPPED_ROOT / "other_errors",
+}
+for _d in SKIP_DIRS.values():
+    _d.mkdir(parents=True, exist_ok=True)
+
+
+def _move_to_skipped(step_path, reason):
+    """Move the assembly folder containing step_path to SKIP_DIRS[reason]."""
+    sp = Path(step_path)
+    folder = sp.parent
+    dest_dir = SKIP_DIRS.get(reason, SKIP_DIRS["other"])
+    dest = dest_dir / folder.name
+    try:
+        if not dest.exists():
+            shutil.move(str(folder), str(dest))
+            print(f"  [MOVED] {folder.name} → skipped_models/{reason}/", flush=True)
+    except Exception as e:
+        print(f"  [WARN] Could not move {folder.name}: {e}", flush=True)
+
 
 # ── Trimesh / SDF helpers ─────────────────────────────────────────────────────
 
@@ -395,8 +423,21 @@ def _parse_step(
 
     except (_SkipTooManyNodes, _SkipTooManyEdges):
         raise   # propagate up to worker — these are handled, not errors
-    except Exception as exc:
-        print(f"    [skip] {Path(step_path).name}: {exc}")
+    except TypeError as e:
+        if "complex" in str(e).lower():
+            print(f"    [skip] {Path(step_path).name}: {e}")
+            _move_to_skipped(step_path, "complex")
+            return None
+        print(f"    [skip] {Path(step_path).name}: {e}")
+        _move_to_skipped(step_path, "other")
+        return None
+    except Exception as e:
+        if "BOPAlgo" in str(e) or "AlertBuilderFailed" in str(e):
+            print(f"    [skip] {Path(step_path).name}: Fragments failed - {e}")
+            _move_to_skipped(step_path, "bop")
+            return None
+        print(f"    [skip] {Path(step_path).name}: {e}")
+        _move_to_skipped(step_path, "other")
         return None
 
     finally:
@@ -431,7 +472,7 @@ def _parse_step_worker(
 
 def _parse_step_with_timeout(
     step_path: str,
-    timeout_secs: int = 120,
+    timeout_secs: int = 60,
     max_nodes:    int = 20,
     max_edges:    int = 60,
 ) -> tuple:
@@ -459,6 +500,8 @@ def _parse_step_with_timeout(
         if p.is_alive():
             p.kill()
             p.join()
+        print(f"    [skip] {Path(step_path).name}: timeout after {timeout_secs}s")
+        _move_to_skipped(step_path, "timeout")
         return None, "timeout"
 
     if not q.empty():
@@ -657,7 +700,7 @@ class AssemblyDataset(InMemoryDataset):
         skipped:      List[dict] = []
 
         # ── Thresholds ────────────────────────────────────────────────────
-        _TIMEOUT   = 120   # seconds per file (was 300)
+        _TIMEOUT   = 60    # seconds per file
         _MAX_NODES = 20    # bodies — M1-friendly limit (74% of Fusion360 pass)
         _MAX_EDGES = 60    # directed edges (≈ 30 contacts) — 3× dataset mean
         _MIN_EDGES = 10    # directed edges — too few edges breaks RandomLinkSplit
@@ -811,6 +854,11 @@ class AssemblyDataset(InMemoryDataset):
         sources_file.write_text(json.dumps(source_paths, indent=2))
         print(f"  Saved {len(graphs)} graphs → {self.processed_paths[0]}")
         print(f"  Saved source paths    → {sources_file}")
+
+        for reason, path in SKIP_DIRS.items():
+            count = len(list(path.iterdir())) if path.exists() else 0
+            if count > 0:
+                print(f"  skipped/{reason}: {count} assemblies")
 
 
 # ── Split helper ──────────────────────────────────────────────────────────────
