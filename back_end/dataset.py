@@ -53,10 +53,12 @@ SKIPPED_ROOT = Path("/Users/mbp/Documents/MTECH/Sem4/Individual_project/"
                     "AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/"
                     "Source_3d_models/skipped_models")
 SKIP_DIRS = {
-    "timeout": SKIPPED_ROOT / "timeout",
-    "complex": SKIPPED_ROOT / "complex_error",
-    "bop":     SKIPPED_ROOT / "bop_failed",
-    "other":   SKIPPED_ROOT / "other_errors",
+    "timeout":       SKIPPED_ROOT / "timeout",
+    "complex":       SKIPPED_ROOT / "complex_error",
+    "bop_builder":   SKIPPED_ROOT / "bop_builder_failed",
+    "bop_intersect": SKIPPED_ROOT / "bop_intersection_failed",
+    "wire_error":    SKIPPED_ROOT / "wire_error",
+    "other":         SKIPPED_ROOT / "other_errors",
 }
 for _d in SKIP_DIRS.values():
     _d.mkdir(parents=True, exist_ok=True)
@@ -432,11 +434,25 @@ def _parse_step(
         _move_to_skipped(step_path, "other")
         return None
     except Exception as e:
-        if "BOPAlgo" in str(e) or "AlertBuilderFailed" in str(e):
-            print(f"    [skip] {Path(step_path).name}: Fragments failed - {e}")
-            _move_to_skipped(step_path, "bop")
+        msg = str(e)
+        name = Path(step_path).name
+        if "BOPAlgo_AlertIntersectionFailed" in msg:
+            print(f"    [skip] {name}: Intersection failed - {e}")
+            _move_to_skipped(step_path, "bop_intersect")
             return None
-        print(f"    [skip] {Path(step_path).name}: {e}")
+        if "BOPAlgo_AlertBuilderFailed" in msg:
+            print(f"    [skip] {name}: Builder failed - {e}")
+            _move_to_skipped(step_path, "bop_builder")
+            return None
+        if "Could not fix wire" in msg:
+            print(f"    [skip] {name}: Wire repair failed - {e}")
+            _move_to_skipped(step_path, "wire_error")
+            return None
+        if not msg.strip():
+            print(f"    [skip] {name}: unknown error (empty exception)")
+            _move_to_skipped(step_path, "other")
+            return None
+        print(f"    [skip] {name}: {e}")
         _move_to_skipped(step_path, "other")
         return None
 
