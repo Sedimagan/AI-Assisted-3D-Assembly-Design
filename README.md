@@ -1037,6 +1037,8 @@ All previous output — red ⚠ body highlights, orange ❓ cross markers, AIDA 
 
 Fourteen training runs are shown, split into two eras. Each bar group shows Val AUC (light), Test AUC (solid), and Test AP (translucent) for that run. Dashed red/orange lines are the Phase 1 targets (AUC 0.85, AP 0.82). R12–R17 report best-fold metrics from 5-fold CV.
 
+![Change Log — R1 to R17](docs/training_changelog.png)
+
 | Run | Date | Change | Graphs | Val AUC | Test AUC | Test AP |
 |---|---|---|---|---|---|---|
 | R1 | 23 May 14:12 | 13-dim · synthetic+real · early stop ep 1 | synth+real | 0.440 | 0.415 | 0.513 |

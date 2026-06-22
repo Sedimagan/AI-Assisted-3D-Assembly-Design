@@ -1,5 +1,5 @@
 """
-Generate docs/training_history.png — Training Progression chart.
+Generate docs/training_history.png + docs/training_changelog.png
 Run: python docs/generate_training_history.py
 """
 
@@ -72,21 +72,26 @@ PANEL   = "#16213e"
 TEXT    = "#e0e0e0"
 SUBTEXT = "#9e9e9e"
 
-fig = plt.figure(figsize=(18, 9), facecolor=BG)
+log_colors = {
+    "R1": "#90caf9", "R3": "#ffa726", "R6": "#4caf50",
+    "R7": "#ef9a9a", "R8": "#80cbc4", "R9": "#ce93d8",
+    "R10": "#86efac", "R11": "#fde68a", "R12": "#c084fc", "R13": "#f9a8d4", "R14": "#67e8f9",
+    "R15": "#4ade80", "R16": "#a78bfa", "R17": "#f59e0b",
+}
 
-# Left: bar chart (70% width)
-ax = fig.add_axes([0.04, 0.18, 0.63, 0.72], facecolor=PANEL)
-# Right: change log panel
-ax_log = fig.add_axes([0.69, 0.04, 0.30, 0.92], facecolor=PANEL)
-ax_log.axis("off")
+# ═════════════════════════════════════════════════════════════════════════════
+# IMAGE 1: Bar chart — full width, no side panel
+# ═════════════════════════════════════════════════════════════════════════════
+fig = plt.figure(figsize=(18, 8), facecolor=BG)
+ax = fig.add_axes([0.04, 0.18, 0.92, 0.74], facecolor=PANEL)
 
-# Era separator: R1–R3 = synthetic era, R6+ = real era
+# Era separator
 ax.axvspan(-0.5, 1.5, alpha=0.07, color="#ffa726", label="_nolegend_")
 ax.axvspan(1.5, n - 0.5, alpha=0.04, color="#42a5f5", label="_nolegend_")
-ax.text(0.5,  1.02, "← Synthetic era", transform=ax.transAxes,
+ax.text(0.08, 1.02, "← Synthetic era", transform=ax.transAxes,
         ha="center", color="#ffa726", fontsize=8, style="italic",
         bbox=dict(facecolor=PANEL, edgecolor="none", alpha=0.5))
-ax.text(0.75, 1.02, "→ Real data only", transform=ax.transAxes,
+ax.text(0.30, 1.02, "Real data only →", transform=ax.transAxes,
         ha="center", color="#42a5f5", fontsize=8, style="italic",
         bbox=dict(facecolor=PANEL, edgecolor="none", alpha=0.5))
 
@@ -102,7 +107,7 @@ for i, r in enumerate(runs):
 
     for b, v in [(b1, r["val_auc"]), (b2, r["test_auc"]), (b3, r["test_ap"])]:
         ax.text(b[0].get_x() + b[0].get_width()/2, v + 0.012,
-                f"{v:.3f}", ha="center", va="bottom", fontsize=7.5,
+                f"{v:.3f}", ha="center", va="bottom", fontsize=7,
                 color=TEXT, fontweight="bold", zorder=4)
 
 # Phase 1 targets
@@ -115,10 +120,10 @@ ax.set_ylim(0, 1.12)
 ax.set_xlim(-0.55, n - 0.45)
 ax.set_xticks(x)
 ax.set_xticklabels([f"{r['id']}\n{r['date']}" for r in runs],
-                   color=TEXT, fontsize=9)
+                   color=TEXT, fontsize=8.5)
 ax.set_ylabel("Score", color=TEXT, fontsize=10)
 ax.set_title("Training Progression — AUC-ROC & Average Precision",
-             color=TEXT, fontsize=13, fontweight="bold", pad=14)
+             color=TEXT, fontsize=14, fontweight="bold", pad=14)
 ax.tick_params(colors=TEXT)
 for spine in ax.spines.values():
     spine.set_edgecolor("#444")
@@ -134,7 +139,7 @@ legend_patches = [
 ax.legend(handles=legend_patches, loc="upper left", facecolor=PANEL,
           edgecolor="#555", labelcolor=TEXT, fontsize=9)
 
-# ── Summary table below chart ─────────────────────────────────────────────────
+# Summary table below chart
 col_labels = ["Run", "Date", "Node Dims", "Graphs", "Val AUC", "Test AUC", "Test AP"]
 table_data = [
     [r["id"], r["date"].replace("\n", " "),
@@ -182,30 +187,57 @@ for (row, col), cell in tbl.get_celld().items():
 ax.text(0.5, -0.42, "* Inflated: synthetic test graphs trivially match synthetic training patterns.",
         transform=ax.transAxes, ha="center", color=SUBTEXT, fontsize=7.5, style="italic")
 
-# ── Change log panel ──────────────────────────────────────────────────────────
-ax_log.text(0.5, 0.97, "Change Log", transform=ax_log.transAxes,
-            ha="center", va="top", color=TEXT, fontsize=11, fontweight="bold")
+out1 = "docs/training_history.png"
+plt.savefig(out1, dpi=150, bbox_inches="tight", facecolor=BG)
+plt.close(fig)
+print(f"Saved: {out1}")
 
-log_colors = {
-    "R1": "#90caf9", "R3": "#ffa726", "R6": "#4caf50",
-    "R7": "#ef9a9a", "R8": "#80cbc4", "R9": "#ce93d8",
-    "R10": "#86efac", "R11": "#fde68a", "R12": "#c084fc", "R13": "#f9a8d4", "R14": "#67e8f9",
-    "R15": "#4ade80", "R16": "#a78bfa", "R17": "#f59e0b",
-}
-y_pos = 0.93
-step = 0.93 / len(runs)
-for r in runs:
-    ax_log.text(0.04, y_pos, r["id"], transform=ax_log.transAxes,
-                color=log_colors[r["id"]], fontsize=8, fontweight="bold", va="top")
-    ax_log.text(0.18, y_pos, r["date"].replace("\n"," "), transform=ax_log.transAxes,
-                color=SUBTEXT, fontsize=7, va="top")
-    for j, line in enumerate(r["note"].split("\n")):
-        ax_log.text(0.04, y_pos - 0.022 - j*0.019, line, transform=ax_log.transAxes,
-                    color=TEXT if j == 0 else SUBTEXT, fontsize=7, va="top")
-    y_pos -= step
-    ax_log.plot([0.02, 0.98], [y_pos + 0.004, y_pos + 0.004],
-                transform=ax_log.transAxes, color="#333", linewidth=0.5)
 
-out = "docs/training_history.png"
-plt.savefig(out, dpi=150, bbox_inches="tight", facecolor=BG)
-print(f"Saved: {out}")
+# ═════════════════════════════════════════════════════════════════════════════
+# IMAGE 2: Change Log — separate full-width image
+# ═════════════════════════════════════════════════════════════════════════════
+n_runs = len(runs)
+row_h = 0.58       # inches per run
+fig_h = 1.2 + n_runs * row_h
+fig2 = plt.figure(figsize=(18, fig_h), facecolor=BG)
+ax2 = fig2.add_axes([0.02, 0.02, 0.96, 0.96], facecolor=PANEL)
+ax2.axis("off")
+
+ax2.text(0.5, 0.99, "Change Log — R1 to R17", transform=ax2.transAxes,
+         ha="center", va="top", color=TEXT, fontsize=14, fontweight="bold")
+
+# Two-column layout: runs split left/right
+mid = (n_runs + 1) // 2  # 7 left, 7 right
+cols = [runs[:mid], runs[mid:]]
+col_x_offsets = [0.02, 0.52]
+
+for ci, (col_runs, x_off) in enumerate(zip(cols, col_x_offsets)):
+    y = 0.93
+    step = 0.88 / mid
+    for r in col_runs:
+        c = log_colors[r["id"]]
+        # Run ID + date
+        ax2.text(x_off, y, r["id"], transform=ax2.transAxes,
+                 color=c, fontsize=11, fontweight="bold", va="top")
+        ax2.text(x_off + 0.06, y, r["date"].replace("\n", " "), transform=ax2.transAxes,
+                 color=SUBTEXT, fontsize=9, va="top")
+        ax2.text(x_off + 0.18, y, f"Graphs: {r['graphs']}", transform=ax2.transAxes,
+                 color=SUBTEXT, fontsize=9, va="top")
+        # Note lines
+        for j, line in enumerate(r["note"].split("\n")):
+            ax2.text(x_off + 0.005, y - 0.030 - j * 0.028, line,
+                     transform=ax2.transAxes,
+                     color=TEXT if j == 0 else SUBTEXT, fontsize=9.5, va="top")
+        y -= step
+        # Separator
+        ax2.plot([x_off, x_off + 0.46], [y + 0.008, y + 0.008],
+                 transform=ax2.transAxes, color="#333", linewidth=0.5)
+
+# Vertical divider
+ax2.plot([0.50, 0.50], [0.02, 0.94], transform=ax2.transAxes,
+         color="#333", linewidth=1)
+
+out2 = "docs/training_changelog.png"
+plt.savefig(out2, dpi=150, bbox_inches="tight", facecolor=BG)
+plt.close(fig2)
+print(f"Saved: {out2}")
