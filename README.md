@@ -630,6 +630,156 @@ The long tail of extra-large assemblies (up to 448 bodies) comes predominantly f
 | Plate + Bolt Assembly | ~21 | body 14, fastener 4, plate 3 |
 | Shaft + Bearing + Housing Assembly | ~10 | body 7, fastener 4, plate 1, housing 1 |
 
+### Visual EDA — Source_3d_models (2,271 assemblies · 16,829 body parts)
+
+> Interactive dashboards: [`docs/source_3d_models_eda.html`](./docs/source_3d_models_eda.html) · [`docs/eda_insights_deep.html`](./docs/eda_insights_deep.html)
+
+#### Dataset Scale & Graph Annotations
+
+| Metric | Value |
+|---|---|
+| **Total assemblies** | 2,271 |
+| **Total body parts (nodes)** | 16,829 |
+| **Mean nodes/graph** | 7.4 |
+| **Mean contacts/graph** | 11.9 |
+| **Have contacts (edges possible)** | 1,630 (71.8%) |
+| **Have hole annotations** | 1,467 (64.6%) |
+| **Have joint annotations** | 430 (18.9%) |
+| **Zero contacts (no edges)** | 641 (28.2%) |
+| **Over-dense (>30 contacts)** | 379 (16.7%) |
+
+#### Node Count Distribution
+
+All assemblies fall within 2–20 bodies. `max_nodes=20` captures 100% of the dataset with zero truncation loss (P99=19).
+
+| Bucket | Count | % |
+|---|---|---|
+| 2–3 nodes | 451 | 19.9% |
+| 4–5 nodes | 523 | 23.0% |
+| **6–10 nodes (modal)** | **767** | **33.8%** |
+| 11–20 nodes | 530 | 23.3% |
+
+| P10 | P25 | P50 | P75 | P95 |
+|---|---|---|---|---|
+| 3 | 4 | 6 | 10 | 17 |
+
+#### Contact (Edge) Distribution
+
+| Bucket | Count | Notes |
+|---|---|---|
+| 0 contacts | 641 | Pre-filter — can never form graph edges |
+| 1–5 | ~340 | Sparse |
+| 6–15 | ~636 | Modal |
+| 16–29 | ~295 | Moderate |
+| 30–468 | 379 | Over-dense — contacts are face-level, need part-pair dedup |
+
+| P25 | P50 | P75 | P90 | Max |
+|---|---|---|---|---|
+| 0 | 6 | 15 | 29 | 468 |
+
+#### Per-Category Summary
+
+| Category | N | Bodies μ | Contacts μ | Joints μ | Holes μ | % of Dataset |
+|---|---|---|---|---|---|---|
+| Mech. Eng. | 1,821 | 7.3 | 11.0 | 0.84 | 8.2 | **80.2%** |
+| Tools | 180 | **8.6** | **20.0** | **1.97** | **13.9** | 7.9% |
+| Mach. Design | 165 | 7.2 | 15.5 | 1.48 | 13.5 | 7.3% |
+| Automotive | 105 | 7.4 | 9.1 | 1.02 | 8.8 | 4.6% |
+
+**Tools** assemblies are the richest — highest body count, 2× more contacts & joints than average, best training signal per assembly. **Mech. Eng. = 80.2%** creates severe class imbalance.
+
+#### Assembly Richness Ranking
+
+"Rich" assemblies defined as nb ≥ 8 AND nc ≥ 10 — 522 total (23.0%):
+
+| Category | % Rich | Count | Avg contacts |
+|---|---|---|---|
+| Tools | **38%** | 61/162 | 22 |
+| Mach. Design | 33% | 43/130 | 20 |
+| Mech. Eng. | 31% | 403/1,318 | 15 |
+| Automotive | 22% | 15/67 | 14 |
+
+#### Usable Graph Funnel
+
+```
+2,271 total assemblies                     100%
+  ▼ remove zero-contact (641)
+1,630 have contacts                        71.8%
+  ▼ STEP parse errors
+~1,548 parse OK                            ~68%
+  ▼ edge filter (<8 edges skipped)
+~1,316 pass edge filter                    ~58%
+  ▼ 5-fold CV (80/20 per fold)
+~1,053 train · ~263 val                    per fold
+```
+
+R16 used only 255 graphs — most STEP files still in ZIP archives. Full unzip gives ~5× more training data.
+
+#### Joint Type Mix (430 annotated assemblies · 2,230 joints)
+
+| Type | Count | % |
+|---|---|---|
+| Rigid | 1,055 | 47% |
+| Revolute | 848 | 38% |
+| Slider | 155 | 7% |
+| Cylindrical | 138 | 6% |
+| Other | 34 | 2% |
+
+#### Physical Properties (body-level)
+
+| Property | Min | Median | Max |
+|---|---|---|---|
+| Volume (cm³) | ~0 | 6.13 | 5.7×10¹⁰ |
+| Area (cm²) | ~0 | 48.9 | 9.6×10⁷ |
+| Mass (kg) | ~0 | 0.036 | 5.3×10⁷ |
+
+Extreme volume/mass outliers (10 orders of magnitude) likely from mm vs cm unit mismatches in some STEP files. Median body = 6 cm³, 49 cm² SA, 36 g mass — consistent with small-to-medium steel machine components.
+
+#### Materials Distribution
+
+| Material | Count | % |
+|---|---|---|
+| Steel | 13,450 | 79.9% |
+| Generic | 280 | 1.7% |
+| ABS Plastic | 246 | 1.5% |
+| Aluminum | 211 | 1.3% |
+| Stainless Steel | 162 | 1.0% |
+| Brass | 118 | 0.7% |
+
+#### Cross-Category Duplicates (now resolved)
+
+144 folder names appeared across multiple categories (6.3% of all assemblies). These have been deduplicated — one original kept per folder ID, duplicates moved to `skipped_models/duplicates/`.
+
+| Overlap | Count |
+|---|---|
+| Machine Design + Mech. Eng. | 46 |
+| Mech. Eng. + Tools | 40 |
+| Automotive + Mech. Eng. | 17 |
+| 3-category overlap | 24 |
+| All 4 categories | 11 |
+
+#### Data Quality Issues & Recommendations
+
+| # | Action | Impact | Effort | Status |
+|---|---|---|---|---|
+| 1 | Deduplicate 144 cross-category folders | Removes data leakage → honest Test AUC | Low | ✅ Done |
+| 2 | Pre-filter 641 zero-contact assemblies before STEP parse | 28% faster dataset scan | Low | Planned |
+| 3 | Deduplicate contacts to part-pair level (fix 379 over-dense) | Fixes phantom multi-edges, correct neg_ratio | Medium | Planned |
+| 4 | Add `log1p(n_holes)` as node feature dim-22 | +1 fastener-signal dim, free from JSON | Low | Planned |
+| 5 | `log1p` + 3σ clip on volume and area before normalisation | Stabilises GAT gradient for outlier bodies | Low | Planned |
+| 6 | 2–3× sample weight for Tools + Machine Design assemblies | Reduces Mech. Eng. 80% dominance bias | Medium | Planned |
+| 7 | Add `joint_type` 4-dim one-hot as edge feature | Motion-aware edge signals for 430 assemblies | High | Planned |
+
+#### Unused Features Available in Dataset (free signal)
+
+| Feature | Coverage | Recommendation |
+|---|---|---|
+| **Hole count** | 64.6% of assemblies | `log1p(n_holes)` per body as dim-22 — bodies with many holes are attachment points for fasteners |
+| **Joint type** | 430 assemblies, 2,230 joints | 4-dim one-hot `[rigid, revolute, slider, cylindrical]` on edges — motion-aware signals |
+| **Material** | 79.9% steel, rest diverse | 3-dim material group `[steel, aluminium, plastic/other]` — helps distinguish structural vs corrosion-resistant parts |
+
+---
+
 #### Dataset Processing — Size Filters & Skip Policy (R11 onwards)
 
 Three automatic filters prevent large assemblies from blocking training on M1. Each filter moves the offending folder to a dedicated subdirectory and writes an entry to `skipped_models_report.json`:
