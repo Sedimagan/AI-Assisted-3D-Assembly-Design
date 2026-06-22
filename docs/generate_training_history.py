@@ -50,6 +50,9 @@ runs = [
     dict(id="R16", date="20 Jun\n12:16", graphs="270 real",
          note="21-dim: kept bbox [10–12] + affine [13–17]\nSDF/SA shifted to [18–20]\n5-Fold CV · Mean AUC=0.659±0.083\nMean AP=0.894±0.031 · Fold1 outlier (0.524)",
          val_auc=0.902, test_auc=0.688, test_ap=0.897, synthetic=False),
+    dict(id="R17", date="22 Jun\n08:16", graphs="1760 real",
+         note="6.5× more data: 1,760 graphs (was 270)\nDeduped 144 cross-cat folders · no-contact pre-filter\nhidden_dim 128 · edges≥10 filter\n5-Fold CV · Mean AUC=0.625±0.017 · Mean AP=0.878±0.005",
+         val_auc=0.712, test_auc=0.622, test_ap=0.868, synthetic=False),
 ]
 
 n   = len(runs)
@@ -135,7 +138,7 @@ ax.legend(handles=legend_patches, loc="upper left", facecolor=PANEL,
 col_labels = ["Run", "Date", "Node Dims", "Graphs", "Val AUC", "Test AUC", "Test AP"]
 table_data = [
     [r["id"], r["date"].replace("\n", " "),
-     "13-dim" if r["id"] in ("R1","R3","R6") else "21-dim · bbox+affine" if r["id"] == "R16" else "18-dim · P1-P6" if r["id"] == "R15" else "16-dim (5-fold CV)" if r["id"] in ("R12","R13","R14") else "16-dim",
+     "13-dim" if r["id"] in ("R1","R3","R6") else "21-dim · 1760g" if r["id"] == "R17" else "21-dim · bbox+affine" if r["id"] == "R16" else "18-dim · P1-P6" if r["id"] == "R15" else "16-dim (5-fold CV)" if r["id"] in ("R12","R13","R14") else "16-dim",
      r["graphs"],
      f"{r['val_auc']:.3f}", f"{r['test_auc']:.3f}", f"{r['test_ap']:.3f}"]
     for r in runs
@@ -172,6 +175,9 @@ for (row, col), cell in tbl.get_celld().items():
     if row > 0 and runs[row-1]["id"] == "R16":
         cell.set_facecolor("#1a0b2e")
         cell.set_text_props(color="#a78bfa", fontweight="bold")
+    if row > 0 and runs[row-1]["id"] == "R17":
+        cell.set_facecolor("#2e1a00")
+        cell.set_text_props(color="#f59e0b", fontweight="bold")
 
 ax.text(0.5, -0.42, "* Inflated: synthetic test graphs trivially match synthetic training patterns.",
         transform=ax.transAxes, ha="center", color=SUBTEXT, fontsize=7.5, style="italic")
@@ -184,19 +190,20 @@ log_colors = {
     "R1": "#90caf9", "R3": "#ffa726", "R6": "#4caf50",
     "R7": "#ef9a9a", "R8": "#80cbc4", "R9": "#ce93d8",
     "R10": "#86efac", "R11": "#fde68a", "R12": "#c084fc", "R13": "#f9a8d4", "R14": "#67e8f9",
-    "R15": "#4ade80", "R16": "#a78bfa",
+    "R15": "#4ade80", "R16": "#a78bfa", "R17": "#f59e0b",
 }
-y_pos = 0.91
+y_pos = 0.93
+step = 0.93 / len(runs)
 for r in runs:
     ax_log.text(0.04, y_pos, r["id"], transform=ax_log.transAxes,
-                color=log_colors[r["id"]], fontsize=9, fontweight="bold", va="top")
+                color=log_colors[r["id"]], fontsize=8, fontweight="bold", va="top")
     ax_log.text(0.18, y_pos, r["date"].replace("\n"," "), transform=ax_log.transAxes,
-                color=SUBTEXT, fontsize=7.5, va="top")
+                color=SUBTEXT, fontsize=7, va="top")
     for j, line in enumerate(r["note"].split("\n")):
-        ax_log.text(0.04, y_pos - 0.025 - j*0.022, line, transform=ax_log.transAxes,
-                    color=TEXT if j == 0 else SUBTEXT, fontsize=7.5, va="top")
-    y_pos -= 0.115
-    ax_log.plot([0.02, 0.98], [y_pos + 0.005, y_pos + 0.005],
+        ax_log.text(0.04, y_pos - 0.022 - j*0.019, line, transform=ax_log.transAxes,
+                    color=TEXT if j == 0 else SUBTEXT, fontsize=7, va="top")
+    y_pos -= step
+    ax_log.plot([0.02, 0.98], [y_pos + 0.004, y_pos + 0.004],
                 transform=ax_log.transAxes, color="#333", linewidth=0.5)
 
 out = "docs/training_history.png"
