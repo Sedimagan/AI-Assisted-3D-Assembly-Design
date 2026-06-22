@@ -58,6 +58,7 @@ SKIP_DIRS = {
     "bop_builder":   SKIPPED_ROOT / "bop_builder_failed",
     "bop_intersect": SKIPPED_ROOT / "bop_intersection_failed",
     "wire_error":    SKIPPED_ROOT / "wire_error",
+    "no_contacts":   SKIPPED_ROOT / "no_contacts",
     "other":         SKIPPED_ROOT / "other_errors",
 }
 for _d in SKIP_DIRS.values():
@@ -744,8 +745,27 @@ class AssemblyDataset(InMemoryDataset):
             print(f"  Thresholds — nodes ≤ {_MAX_NODES}  edges ≤ {_MAX_EDGES}"
                   f"  edges ≥ {_MIN_EDGES}  timeout {_TIMEOUT}s", flush=True)
 
+            n_no_contacts = 0
             for idx, sf in enumerate(sorted(step_files), 1):
                 print(f"  [{idx}/{len(step_files)}] Parsing: {sf.name}", flush=True)
+
+                # ── Fast pre-check: skip assemblies with no contacts ─────
+                json_file = sf.parent / "assembly.json"
+                if json_file.exists():
+                    with open(json_file) as f:
+                        meta = json.load(f)
+                    contacts = meta.get("contacts", {}) or {}
+                    if len(contacts) == 0:
+                        print(f"    [skip] {sf.name}: no contacts in JSON",
+                              flush=True)
+                        _move_to_skipped(sf, "no_contacts")
+                        skipped.append({"file": str(sf),
+                                        "folder": str(sf.parent),
+                                        "reason": "no_contacts",
+                                        "elapsed": 0.0})
+                        n_no_contacts += 1
+                        continue
+
                 t0 = time.time()
                 g, status = _parse_step_with_timeout(
                     str(sf),
@@ -819,7 +839,8 @@ class AssemblyDataset(InMemoryDataset):
                 f"(nodes>{_MAX_NODES}: {n_nodes_skip}  "
                 f"edges>{_MAX_EDGES}: {n_edges_skip}  "
                 f"edges<{_MIN_EDGES}: {n_few_edges_skip}  "
-                f"timeout: {n_time_skip})",
+                f"timeout: {n_time_skip}  "
+                f"no_contacts: {n_no_contacts})",
                 flush=True,
             )
 
@@ -841,12 +862,14 @@ class AssemblyDataset(InMemoryDataset):
                         f"edges_gt_{_MAX_EDGES}": n_edges_skip,
                         f"edges_lt_{_MIN_EDGES}": n_few_edges_skip,
                         "timeout":                n_time_skip,
+                        "no_contacts":            n_no_contacts,
                     },
                     "skipped_folders": {
                         f"nodes_gt_{_MAX_NODES}": str(_skip_nodes_dir),
                         f"edges_gt_{_MAX_EDGES}": str(_skip_edges_dir),
                         f"edges_lt_{_MIN_EDGES}": str(_skip_few_edges_dir),
                         "timeout":                str(_skip_timeout_dir),
+                        "no_contacts":            str(SKIP_DIRS["no_contacts"]),
                     },
                     "entries": skipped,
                 }

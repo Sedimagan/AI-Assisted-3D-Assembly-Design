@@ -92,6 +92,8 @@ def main():
     parser.add_argument("--config",       default="config.yaml")
     parser.add_argument("--force-reload", action="store_true",
                         help="Re-process STEP files even if cache exists")
+    parser.add_argument("--start-fold",  type=int, default=0,
+                        help="Resume from this fold (0-indexed, loads prior checkpoints)")
     args = parser.parse_args()
 
     with open(args.config) as f:
@@ -128,9 +130,36 @@ def main():
     print(f"\n[2/4] Building model …  ({N_FOLDS}-fold CV)")
 
     # ── Fold loop ─────────────────────────────────────────────────────────
+    start_fold = args.start_fold
+    if start_fold > 0:
+        print(f"\n  Resuming from fold {start_fold} — loading prior checkpoints …")
+        for prev in range(start_fold):
+            prev_ckpt = ckpt_dir / f"best_fold{prev}.pt"
+            if not prev_ckpt.exists():
+                raise FileNotFoundError(f"Cannot resume: {prev_ckpt} not found")
+            ck = torch.load(prev_ckpt, map_location="cpu", weights_only=False)
+            gnn_tmp, lp_tmp, dev_tmp = build_model(
+                in_dim=mc["in_dim"], out_dim=mc["out_dim"],
+                hidden=mc["hidden_dim"], heads=mc["heads"],
+                dropout=mc["dropout"], edge_dim=mc["edge_dim"],
+            )
+            gnn_tmp.load_state_dict(ck["gnn"])
+            lp_tmp.load_state_dict(ck["lp"])
+            _, _, test_data_prev = get_splits(dataset, cfg,
+                                              fold_idx=prev, n_folds=N_FOLDS)
+            test_loader_prev = DataLoader(test_data_prev, batch_size=bs)
+            prev_metrics = evaluate(gnn_tmp, lp_tmp, test_loader_prev, dev_tmp)
+            fold_aucs.append(prev_metrics["auc"])
+            fold_aps.append(prev_metrics["ap"])
+            if ck["auc"] > best_overall_auc:
+                best_overall_auc = ck["auc"]
+                best_overall_fold = prev
+            print(f"  Fold {prev+1}: AUC={prev_metrics['auc']:.4f}  "
+                  f"AP={prev_metrics['ap']:.4f}  (from checkpoint)")
+
     print(f"\n[3/4] Training ({N_FOLDS} folds) …")
 
-    for fold in range(N_FOLDS):
+    for fold in range(start_fold, N_FOLDS):
         print(f"\n{'='*55}")
         print(f"  FOLD {fold + 1} / {N_FOLDS}")
         print(f"{'='*55}")
