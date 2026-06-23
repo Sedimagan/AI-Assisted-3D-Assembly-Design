@@ -5,7 +5,7 @@
     "component_counts": {
       "body": 6,
       "fastener": 4,
-      "plate": 3
+      "plate": 2
     },
     "total_bodies": 11,
     "examples": [
@@ -15,17 +15,17 @@
       "assembly.step",
       "assembly.step"
     ],
-    "n_assemblies": 78
+    "n_assemblies": 46
   },
   {
     "category": "machine_design",
     "label": "Machine Design",
     "component_counts": {
-      "body": 7,
+      "body": 9,
       "fastener": 3,
       "plate": 2
     },
-    "total_bodies": 10,
+    "total_bodies": 12,
     "examples": [
       "assembly.step",
       "assembly.step",
@@ -33,19 +33,19 @@
       "assembly.step",
       "assembly.step"
     ],
-    "n_assemblies": 114
+    "n_assemblies": 56
   },
   {
     "category": "mechanical_engineering",
     "label": "Mechanical Engineering",
     "component_counts": {
-      "body": 6,
-      "fastener": 3,
-      "bearing": 1,
+      "body": 7,
+      "fastener": 4,
+      "bearing": 2,
       "plate": 2,
       "housing": 1
     },
-    "total_bodies": 10,
+    "total_bodies": 11,
     "examples": [
       "assembly.step",
       "assembly.step",
@@ -53,18 +53,17 @@
       "assembly.step",
       "assembly.step"
     ],
-    "n_assemblies": 1455
+    "n_assemblies": 844
   },
   {
     "category": "tools",
     "label": "Tools",
     "component_counts": {
-      "body": 6,
+      "body": 9,
       "fastener": 3,
-      "plate": 2,
-      "housing": 1
+      "plate": 2
     },
-    "total_bodies": 10,
+    "total_bodies": 14,
     "examples": [
       "assembly.step",
       "assembly.step",
@@ -72,6 +71,6 @@
       "assembly.step",
       "assembly.step"
     ],
-    "n_assemblies": 113
+    "n_assemblies": 49
   }
 ]
