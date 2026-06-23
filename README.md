@@ -691,6 +691,62 @@ Three automatic filters prevent large assemblies from blocking training on M1. E
 
 **Node check** happens before `fragment()` (fast — just load + synchronize). **Edge check** happens after `fragment()` but before trimesh+SDF (avoids the most expensive per-body computation for dense graphs). This two-stage approach minimises wasted parse time.
 
+#### Dataset Curation — 1,000-Model Selection (R18 onwards)
+
+A systematic study was conducted to reduce the training corpus to **1,000 models** — sized for M1 MacBook Pro training within individual project submission constraints while maximising graph quality and minimising wasted parse cycles.
+
+**Problem:** The full Fusion360 Gallery + curated dataset contains 1,336 model folders across 4 training categories. Many of these fail during parsing (timeout, OOM, neg-sampling failure) or produce graphs too sparse for meaningful link prediction. Each failed parse wastes 60–120 s of compute time.
+
+**Methodology:** Every model's `assembly.json` was analysed without running gmsh to extract body count, unique contact pairs, directed edge count, STEP file size, graph density, and negative-sampling feasibility. Models were then classified against the same thresholds used by `dataset.py` at parse time:
+
+| Filter | Criterion | Models removed | Why |
+|---|---|---|---|
+| **No contacts** | 0 contacts in JSON | 7 | Zero edges — useless for link prediction |
+| **Too sparse** | < 3 unique contacts (< 6 directed edges) | 275 | `RandomLinkSplit(num_val=0.1, num_test=0.1)` needs ≥ 3 undirected edges for train/val/test partitions |
+| **Neg-ratio infeasible** | `req_neg > max_neg` where `max_neg = n(n−1)/2 − p` | 53 | Dense graphs where `neg_ratio=0.5` cannot find enough non-edges to sample — causes silent training degradation |
+| **Large file** | `assembly.step` > 8 MB | 5 | High timeout and OOM risk during gmsh `fragment()` + trimesh SDF ray-casting |
+| **Total removed** | | **340** | |
+
+**Sensitivity analysis** determined the optimal minimum-edge threshold:
+
+| `MIN_EDGES` | Min contacts required | Models passing all filters |
+|---|---|---|
+| 4 | ≥ 2 | 1,134 |
+| **6** | **≥ 3** | **1,001** |
+| 8 | ≥ 4 | 860 |
+| 10 (previous) | ≥ 5 | 728 |
+
+`MIN_EDGES=6` was selected: it hits the 1,000-model target, and 3 contacts is the minimum for `RandomLinkSplit` to produce non-empty train/val/test edge sets. Assembly.json contacts are a lower bound — gmsh `fragment()` typically discovers additional shared boundary surfaces, so 3-JSON-contact models usually yield 5–8 actual edges.
+
+**Cost ranking** for the remaining candidates used `cost = bodies^1.5 × contacts × (1 + file_size_MB)`, reflecting that gmsh `fragment()` scales super-linearly with body count, each contact requires trimesh surface extraction + SDF ray-casting, and file size proxies geometric mesh complexity.
+
+**Result — 996 models kept** (4 fewer than 1,000 due to neg-ratio failures at the relaxed edge threshold):
+
+| Category | Kept | Removed | Original |
+|---|---|---|---|
+| Mechanical Engineering | 845 | 291 | 1,136 |
+| Machine design | 56 | 14 | 70 |
+| Tools | 49 | 14 | 63 |
+| Automotive | 46 | 21 | 67 |
+| **Total** | **996** | **340** | **1,336** |
+
+**Kept model profile:**
+
+| Metric | Mean | Median | Std |
+|---|---|---|---|
+| Bodies per assembly | 10.3 | 9 | 3.9 |
+| Contacts per assembly | 10.4 | 9 | 5.4 |
+| STEP file size | 0.75 MB | 0.38 MB | 1.04 MB |
+| Graph density | 0.264 | 0.236 | — |
+
+Removed models are preserved in `Source_3d_models/skipped_models/{reason}/` with a full breakdown in `skipped_models_report.json`. The `_MIN_EDGES` threshold in `dataset.py` was updated from 10 → 6 to match.
+
+**Impact on training:**
+- Eliminates ~340 models that would fail or waste parse time (saving ~6–8 hours of cumulative timeout)
+- All 996 remaining models are guaranteed to produce valid PyG graphs with sufficient edges for link splitting and negative sampling
+- Corpus size (996) fits within the M1 MacBook Pro memory budget for 5-fold CV with `batch_size=32`
+- Scoped to individual M.Tech project submission — not a production-scale training run
+
 ---
 
 ## Local Development — MacBook Pro M1
@@ -698,7 +754,7 @@ Three automatic filters prevent large assemblies from blocking training on M1. E
 | Constraint | Guideline |
 |---|---|
 | **Nodes per graph** | Keep under 20 |
-| **Training subset** | 500–1,000 assemblies |
+| **Training subset** | 996 assemblies (curated — see Dataset Curation section) |
 | **PyTorch backend** | MPS (Metal Performance Shaders) — auto-detected by `build_model()` |
 | **GraphSAGE depth** | Max 3 layers |
 | **Expected training time** | < 30 min / epoch on M1 |

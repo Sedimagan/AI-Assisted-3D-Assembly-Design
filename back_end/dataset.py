@@ -12,18 +12,27 @@ Pipeline per body
                          used to infer geometry-driven component type
                          (approximates CGAL SDF via trimesh inward ray casting)
 
-Node feature vector: 18-dim
+Node feature vector: 22-dim
   [0:8]  component-type one-hot  (geometry-driven, 8 classes)
-  [8]    normalised volume
-  [9]    exact surface area       (trimesh, normalised)
-  [10]   elongation               (longest / mid bbox dim — affine-invariant)
-  [11]   flatness                 (shortest / longest bbox dim — affine-invariant)
-  [12]   aspect x/y               (normalised — affine-invariant)
-  [13]   aspect y/z               (normalised — affine-invariant)
-  [14]   sphericity               (π^(1/3) (6V)^(2/3) / SA — affine-invariant)
-  [15]   SDF mean  (normalised)
-  [16]   SDF variance (normalised)
-  [17]   SA/V ratio (normalised)
+  [8]    log1p(volume), clipped at 13.8
+  [9]    log1p(surface_area), clipped at 11.5
+  [10]   bbox Δx / bbox_max       (normalised width)
+  [11]   bbox Δy / bbox_max       (normalised height)
+  [12]   bbox Δz / bbox_max       (normalised depth)
+  [13]   elongation               (longest / mid bbox dim — affine-invariant)
+  [14]   flatness                 (shortest / longest bbox dim — affine-invariant)
+  [15]   aspect x/y               (normalised — affine-invariant)
+  [16]   aspect y/z               (normalised — affine-invariant)
+  [17]   sphericity               (π^(1/3) (6V)^(2/3) / SA — affine-invariant)
+  [18]   SDF mean  (normalised)
+  [19]   SDF variance (normalised)
+  [20]   SA/V ratio (normalised)
+  [21]   log1p(n_holes)
+
+Edge feature vector: 6-dim
+  [0]    mate type encoded  (0=coincident … 5=other, normalised to [0,1])
+  [1]    weight             (1.0 for detected contacts)
+  [2:6]  joint type one-hot (rigid, revolute, slider, cylindrical)
 """
 
 from __future__ import annotations
@@ -230,6 +239,13 @@ class _SkipTooManyEdges(Exception):
     """Raised when a STEP file has more contacts than the configured threshold."""
 
 
+# ── Log-normalisation helper ──────────────────────────────────────────────────
+
+def _safe_log(x):
+    """log1p transform for volume / surface-area features."""
+    return math.log1p(max(0.0, x))
+
+
 # ── STEP file parser ──────────────────────────────────────────────────────────
 
 def _parse_step(
@@ -240,10 +256,10 @@ def _parse_step(
     """
     Parse a single STEP file into a PyG Data object.
 
-    Node features  (21-dim):
+    Node features  (22-dim):
         [0:8]  component-type one-hot  (geometry-driven via SDF, 8 classes)
-        [8]    normalised volume
-        [9]    exact surface area       (trimesh)
+        [8]    log1p(volume), clipped at 13.8
+        [9]    log1p(surface_area), clipped at 11.5
         [10]   bbox Δx / bbox_max       (absolute width)
         [11]   bbox Δy / bbox_max       (absolute height)
         [12]   bbox Δz / bbox_max       (absolute depth)
@@ -255,11 +271,57 @@ def _parse_step(
         [18]   SDF mean  / sdf_mean_max
         [19]   SDF variance / sdf_var_max
         [20]   SA/V ratio / sav_max
+        [21]   log1p(n_holes)
 
-    Edge features  (2-dim):
+    Edge features  (6-dim):
         [0]    mate type encoded  (0=coincident … 5=other, normalised to [0,1])
         [1]    weight             (1.0 for detected contacts)
+        [2:6]  joint type one-hot (rigid, revolute, slider, cylindrical)
     """
+    # ── P1: Pre-filter zero-contact assemblies (before any STEP parsing) ─────
+    sp = Path(step_path)
+    meta = {}
+    json_path = sp.parent / "assembly.json"
+    if json_path.exists():
+        with open(json_path) as f:
+            meta = json.load(f)
+        if len(meta.get("contacts", {}) or {}) == 0:
+            print(f"    [skip] {sp.name}: no contacts in JSON")
+            _move_to_skipped(step_path, "no_contacts")
+            return None
+
+    # ── P4: Extract per-body hole counts from assembly.json ──────────────────
+    holes = meta.get("holes", {}) or {}
+    if not isinstance(holes, dict):
+        holes = {}
+    body_hole_counts = {}
+    for hole_id, hole_data in holes.items():
+        if isinstance(hole_data, dict):
+            bid = hole_data.get("body") or hole_data.get("body_id", "")
+            if bid:
+                body_hole_counts[bid] = body_hole_counts.get(bid, 0) + 1
+
+    # ── P6: Extract joint type per body-pair from assembly.json ──────────────
+    joints_raw = meta.get("joints", {}) or {}
+    if not isinstance(joints_raw, dict):
+        joints_raw = {}
+    JOINT_TYPE_MAP = {
+        "RigidJointType":       [1, 0, 0, 0],
+        "RevoluteJointType":    [0, 1, 0, 0],
+        "SliderJointType":      [0, 0, 1, 0],
+        "CylindricalJointType": [0, 0, 0, 1],
+    }
+    DEFAULT_JOINT = [0, 0, 0, 0]
+    pair_joint = {}
+    for jid, jdata in joints_raw.items():
+        if isinstance(jdata, dict):
+            jtype = jdata.get("jointType", jdata.get("type", ""))
+            b1 = jdata.get("body1", jdata.get("occurrenceOne", ""))
+            b2 = jdata.get("body2", jdata.get("occurrenceTwo", ""))
+            if b1 and b2:
+                pkey = tuple(sorted([str(b1), str(b2)]))
+                pair_joint[pkey] = JOINT_TYPE_MAP.get(jtype, DEFAULT_JOINT)
+
     import gmsh
 
     gmsh.initialize()
@@ -368,7 +430,7 @@ def _parse_step(
         asp_xy_max = max(aspect_xys)  or 1.0
         asp_yz_max = max(aspect_yzs)  or 1.0
 
-        # ── 21-dim node feature vectors ───────────────────────────────────
+        # ── 22-dim node feature vectors ───────────────────────────────────
         node_feats: List[List[float]] = []
 
         for i in range(n):
@@ -384,10 +446,14 @@ def _parse_step(
                             * ((6 * raw_vols[i]) ** (2 / 3))
                             / (exact_sas[i] + 1e-9))
 
+            # P4: hole count for this body
+            vtag_str = str(volumes[i][1])
+            n_holes = body_hole_counts.get(vtag_str, 0)
+
             feat = (
                 type_oh                                                     # [0:8]
-                + [raw_vols[i]  / vol_max,                                  # [8]   volume
-                   exact_sas[i] / sa_max,                                   # [9]   exact SA
+                + [min(13.8, _safe_log(raw_vols[i])),                       # [8]   log1p(volume)
+                   min(11.5, _safe_log(exact_sas[i])),                      # [9]   log1p(SA)
                    dx / bbox_max,                                           # [10]  bbox Δx
                    dy / bbox_max,                                           # [11]  bbox Δy
                    dz / bbox_max,                                           # [12]  bbox Δz
@@ -398,26 +464,50 @@ def _parse_step(
                    sphericity,                                              # [17]  sphericity
                    sdf_means[i] / sdf_m_max,                               # [18]  SDF mean
                    sdf_vars[i]  / sdf_v_max,                               # [19]  SDF variance
-                   sav_vals[i]  / sav_max]                                  # [20]  SA/V ratio
+                   sav_vals[i]  / sav_max,                                  # [20]  SA/V ratio
+                   math.log1p(n_holes)]                                     # [21]  log1p(n_holes)
             )
             node_feats.append(feat)
 
         # ── Edge detection (shared bounding surface = mate contact) ────────
-        src, dst, eattr = [], [], []
-
+        raw_edges = []
         for i in range(n):
             for j in range(i + 1, n):
                 if body_surfs[i] & body_surfs[j]:
-                    src   += [i, j];  dst   += [j, i]
-                    eattr += [[0.0, 1.0], [0.0, 1.0]]   # coincident contact
+                    raw_edges.append((i, j))
+
+        # P2: Deduplicate contacts to part-pair level
+        seen = set()
+        deduped_edges = []
+        for u, v in raw_edges:
+            key = (min(u, v), max(u, v))
+            if key not in seen:
+                seen.add(key)
+                deduped_edges.append((u, v))
+        if len(deduped_edges) < len(raw_edges):
+            print(f"    [dedup] {Path(step_path).name}: {len(raw_edges)} contacts → {len(deduped_edges)} part-pairs")
+
+        # P6: Build bidirectional edges with joint type features
+        src, dst, eattr = [], [], []
+        for u, v in deduped_edges:
+            vtag_u = str(volumes[u][1])
+            vtag_v = str(volumes[v][1])
+            pkey = tuple(sorted([vtag_u, vtag_v]))
+            joint_oh = pair_joint.get(pkey, DEFAULT_JOINT)
+            ea = [0.0, 1.0] + joint_oh   # 6-dim: mate + weight + joint type
+            src += [u, v]; dst += [v, u]
+            eattr += [ea, ea]
 
         if not src:
-            # No shared surfaces → fully connect as fallback
             for i in range(n):
                 for j in range(n):
                     if i != j:
-                        src.append(i);  dst.append(j)
-                        eattr.append([1.0, 1.0])        # "other" contact
+                        vtag_i = str(volumes[i][1])
+                        vtag_j = str(volumes[j][1])
+                        pkey = tuple(sorted([vtag_i, vtag_j]))
+                        joint_oh = pair_joint.get(pkey, DEFAULT_JOINT)
+                        src.append(i); dst.append(j)
+                        eattr.append([1.0, 1.0] + joint_oh)
 
         x          = torch.tensor(node_feats, dtype=torch.float)
         edge_index = torch.tensor([src, dst],  dtype=torch.long)
@@ -529,18 +619,22 @@ def _parse_step_with_timeout(
             import io
             data = torch.load(io.BytesIO(payload), weights_only=False)
             return data, "ok"
+        if status == "error":
+            print(f"    [detail] {Path(step_path).name}: {payload}", flush=True)
         return None, status   # "too_many_nodes" | "too_many_edges" | "error"
 
+    print(f"    [detail] {Path(step_path).name}: worker process crashed (no output)",
+          flush=True)
     return None, "error"
 
 
 # ── Synthetic data fallback ───────────────────────────────────────────────────
 
 def _synthetic_graph(n_nodes: int = None) -> Data:
-    """Generate one structured 21-dim assembly graph using a random template."""
+    """Generate one structured 22-dim assembly graph using a random template."""
     import random as _rng
     r        = _rng.Random()
-    node_dim = 21
+    node_dim = 22
 
     template = r.choice(["bolt", "shaft", "mixed"])
     nodes: List[tuple] = []   # (type_idx, geom_hint)
@@ -625,12 +719,15 @@ def _synthetic_graph(n_nodes: int = None) -> Data:
 
         x[i, 18] = r.uniform(0.1, 0.8)   # SDF mean
         x[i, 20] = r.uniform(0.1, 0.9)   # SA/V ratio
+        x[i, 21] = math.log1p(r.randint(0, 5))   # log1p(n_holes)
 
+    joint_types = [[1,0,0,0], [0,1,0,0], [0,0,1,0], [0,0,0,1], [0,0,0,0]]
     src, dst, eattr = [], [], []
     for (ei, ej) in edges:
         mt = r.randint(0, 5) / 5.0
+        jt = r.choice(joint_types)
         src += [ei, ej]; dst += [ej, ei]
-        eattr += [[mt, 1.0], [mt, 1.0]]
+        eattr += [[mt, 1.0] + jt, [mt, 1.0] + jt]
 
     if not src:
         return None
@@ -643,7 +740,7 @@ def _synthetic_graph(n_nodes: int = None) -> Data:
 
 
 def _generate_synthetic(n: int = 500) -> List[Data]:
-    print(f"  Generating {n} structured 18-dim assembly graphs…")
+    print(f"  Generating {n} structured 22-dim assembly graphs…")
     graphs = []
     while len(graphs) < n:
         g = _synthetic_graph()
@@ -682,6 +779,12 @@ class AssemblyDataset(InMemoryDataset):
         super().__init__(str(processed_dir), transform, pre_transform)
         self.data, self.slices = torch.load(self.processed_paths[0],
                                             weights_only=False)
+        cats_file = Path(self.processed_paths[0]).parent / "categories.json"
+        if cats_file.exists():
+            with open(cats_file) as f:
+                self.graph_categories = json.load(f)
+        else:
+            self.graph_categories = [''] * len(self)
 
     @property
     def raw_file_names(self): return []
@@ -712,15 +815,16 @@ class AssemblyDataset(InMemoryDataset):
             print(f"  Category filter: {self.categories}")
             print(f"  {len(step_files)} STEP files after category filter")
 
-        graphs:       List[Data] = []
-        source_paths: List[str]  = []
-        skipped:      List[dict] = []
+        graphs:            List[Data] = []
+        source_paths:      List[str]  = []
+        graph_categories:  List[str]  = []
+        skipped:           List[dict] = []
 
         # ── Thresholds ────────────────────────────────────────────────────
         _TIMEOUT   = 60    # seconds per file
         _MAX_NODES = 20    # bodies — M1-friendly limit (74% of Fusion360 pass)
         _MAX_EDGES = 60    # directed edges (≈ 30 contacts) — 3× dataset mean
-        _MIN_EDGES = 10    # directed edges — too few edges breaks RandomLinkSplit
+        _MIN_EDGES = 6     # directed edges (≥3 contacts) — fewer breaks RandomLinkSplit
 
         _skipped_dir       = self.source_dir / "skipped_models"
         _skip_nodes_dir    = _skipped_dir / f"nodes_gt_{_MAX_NODES}"
@@ -824,7 +928,15 @@ class AssemblyDataset(InMemoryDataset):
                             entry["moved_to"] = dest
                         skipped.append(entry)
                         continue
+                    cat = ''
+                    for part in sf.parts:
+                        if part in {"Mechanical Engineering", "Machine design",
+                                    "Tools", "Automotive"}:
+                            cat = part
+                            break
+                    g.category = cat
                     graphs.append(g)
+                    graph_categories.append(cat)
                     source_paths.append(str(sf))
                     print(f"  [OK]  {sf.name} — {g.num_nodes} nodes  "
                           f"{n_dir//2} edges  ({elapsed}s)", flush=True)
@@ -891,8 +1003,11 @@ class AssemblyDataset(InMemoryDataset):
 
         sources_file = Path(self.processed_paths[0]).parent / "sources.json"
         sources_file.write_text(json.dumps(source_paths, indent=2))
+        cats_file = Path(self.processed_paths[0]).parent / "categories.json"
+        cats_file.write_text(json.dumps(graph_categories, indent=2))
         print(f"  Saved {len(graphs)} graphs → {self.processed_paths[0]}")
         print(f"  Saved source paths    → {sources_file}")
+        print(f"  Saved categories      → {cats_file}")
 
         for reason, path in SKIP_DIRS.items():
             count = len(list(path.iterdir())) if path.exists() else 0
@@ -936,6 +1051,7 @@ def get_splits(dataset: AssemblyDataset, cfg: dict, fold_idx: int = 0, n_folds: 
         result = []
         for i in indices:
             data = dataset[i]
+            cat = dataset.graph_categories[i] if i < len(dataset.graph_categories) else ''
             n_edges = data.edge_index.size(1)
             if n_edges < 10:
                 continue
@@ -948,7 +1064,9 @@ def get_splits(dataset: AssemblyDataset, cfg: dict, fold_idx: int = 0, n_folds: 
                       f"requested {req_neg} neg but only {max_neg} possible")
             try:
                 train_d, val_d, test_d = splitter(data)
-                result.append([train_d, val_d, test_d][split_idx])
+                split_d = [train_d, val_d, test_d][split_idx]
+                split_d.category = cat
+                result.append(split_d)
             except Exception:
                 continue
         return result

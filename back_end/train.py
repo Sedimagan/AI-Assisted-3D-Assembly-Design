@@ -22,6 +22,16 @@ from model    import build_model
 from evaluate import evaluate
 
 
+# ── Category sample weights ──────────────────────────────────────────────────
+
+CATEGORY_WEIGHTS = {
+    "Mechanical Engineering": 1.0,
+    "Machine design":         2.5,
+    "Tools":                  3.0,
+    "Automotive":             2.0,
+}
+
+
 # ── Loss ─────────────────────────────────────────────────────────────────────
 
 def hard_negative_pairs(z, pos_edge_index, n_hard):
@@ -48,7 +58,7 @@ def hard_negative_pairs(z, pos_edge_index, n_hard):
     return torch.tensor([hard_src, hard_dst], dtype=torch.long, device=z.device)
 
 
-def link_loss(lp, z, batch, device):
+def link_loss(lp, z, batch, device, sample_weight=1.0):
     """BCE on pos+neg edges plus a weighted hard-negative term."""
     ei    = batch.edge_label_index.to(device)
     label = batch.edge_label.float().to(device)
@@ -64,8 +74,8 @@ def link_loss(lp, z, batch, device):
             hard_logits = lp(z, hard_ei)
             hard_labels = torch.zeros(hard_ei.size(1), device=device)
             hard_loss   = F.binary_cross_entropy_with_logits(hard_logits, hard_labels)
-            return base_loss + 0.3 * hard_loss
-    return base_loss
+            return (base_loss + 0.3 * hard_loss) * sample_weight
+    return base_loss * sample_weight
 
 
 # ── Training loop ─────────────────────────────────────────────────────────────
@@ -78,7 +88,16 @@ def train_epoch(gnn, lp, loader, opt, device):
         opt.zero_grad()
         z    = gnn(batch.x, batch.edge_index,
                    getattr(batch, "edge_attr", None))
-        loss = link_loss(lp, z, batch, device)
+        # P5: category-based sample weighting
+        weight = 1.0
+        cat = getattr(batch, 'category', None)
+        if cat is not None:
+            if isinstance(cat, str):
+                weight = CATEGORY_WEIGHTS.get(cat, 1.0)
+            elif isinstance(cat, (list, tuple)):
+                weights = [CATEGORY_WEIGHTS.get(c, 1.0) for c in cat]
+                weight = sum(weights) / len(weights)
+        loss = link_loss(lp, z, batch, device, sample_weight=weight)
         loss.backward()
         opt.step()
         total_loss += loss.item()
@@ -108,6 +127,22 @@ def main():
         categories    = cfg["data"].get("categories") or None,
     )
     print(f"      {len(dataset)} graphs loaded.")
+
+    # ── Dataset summary ──────────────────────────────────────────────────
+    n_graphs = len(dataset)
+    total_nodes = sum(dataset[i].num_nodes for i in range(n_graphs))
+    total_edges = sum(dataset[i].edge_index.size(1) for i in range(n_graphs))
+    cat_counts = {}
+    for i in range(n_graphs):
+        c = dataset.graph_categories[i] if i < len(dataset.graph_categories) else ''
+        cat_counts[c] = cat_counts.get(c, 0) + 1
+    print(f"      Dataset: {n_graphs} graphs | "
+          f"mean nodes={total_nodes / n_graphs:.1f} | "
+          f"mean edges={total_edges / n_graphs:.1f} | "
+          f"categories: Mech.Eng={cat_counts.get('Mechanical Engineering', 0)} "
+          f"Tools={cat_counts.get('Tools', 0)} "
+          f"MachDes={cat_counts.get('Machine design', 0)} "
+          f"Auto={cat_counts.get('Automotive', 0)}")
 
     # ── Cross-validation setup ────────────────────────────────────────────
     tc       = cfg["training"]
