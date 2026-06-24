@@ -1093,7 +1093,7 @@ All previous output — red ⚠ body highlights, orange ❓ cross markers, AIDA 
 
 ![Training Progression — AUC-ROC & Average Precision](docs/training_history.png)
 
-Fourteen training runs are shown, split into two eras. Each bar group shows Val AUC (light), Test AUC (solid), and Test AP (translucent) for that run. Dashed red/orange lines are the Phase 1 targets (AUC 0.85, AP 0.82). R12–R17 report best-fold metrics from 5-fold CV.
+Nineteen training runs are shown, split into two eras. Each bar group shows Val AUC (light), Test AUC (solid), and Test AP (translucent) for that run. Dashed red/orange lines are the Phase 1 targets (AUC 0.85, AP 0.82). R12–R19 report best-fold metrics from 5-fold CV.
 
 ![Change Log — R1 to R17](docs/training_changelog.png)
 
@@ -1113,7 +1113,8 @@ Fourteen training runs are shown, split into two eras. Each bar group shows Val 
 | R15 | 20 Jun 10:30 | 18-dim · P1–P6 · heads [8,4,1] · affine-invariant features (replaced bbox) · hard negatives · structured synthetics · neg_ratio=0.5 · 5-fold CV · Mean AUC=0.726±0.041 · Mean AP=0.917±0.012 | 270 | 0.902 | 0.614 | 0.879 |
 | R16 | 20 Jun 12:16 | 21-dim · kept bbox Δx/Δy/Δz [10–12] + added affine-invariant [13–17] · SDF/SA shift to [18–20] · 5-fold CV · Mean AUC=0.659±0.083 · Mean AP=0.894±0.031 | 270 | 0.902 | 0.688 | 0.897 |
 | R17 | 22 Jun 08:16 | 6.5× more data · 1,760 graphs (deduped, no-contact pre-filter, edges≥10) · hidden_dim 128 · 5-fold CV · Mean AUC=0.625±0.017 · Mean AP=0.878±0.005 | 1,760 | 0.712 | 0.622 | 0.868 |
-| **R18** | **24 Jun 05:08** | **22-dim nodes + 6-dim edges · curated 996→995 graphs (0 skipped) · log1p vol/SA · holes · joint types · MIN_EDGES 10→6 · 5-fold CV · Mean AUC=0.483±0.056 · Mean AP=0.833±0.025** | **995** | **0.628** | **0.444** | **0.807** |
+| R18 | 24 Jun 05:08 | 22-dim nodes + 6-dim edges · curated 996→995 graphs (0 skipped) · log1p vol/SA · holes · joint types · MIN_EDGES 10→6 · 5-fold CV · Mean AUC=0.483±0.056 · Mean AP=0.833±0.025 | 995 | 0.628 | 0.444 | 0.807 |
+| **R19** | **24 Jun 10:11** | **22+6-dim · best_serving gate · device bug fix · 5-fold CV · Mean AUC=0.504±0.069 · Mean AP=0.835±0.028** | **995** | **0.641** | **0.472** | **0.795** |
 
 > \* R3 metrics artificially inflated: 300 synthetic test graphs trivially match the 300 synthetic training graphs — not a valid measure of real-geometry performance.
 
@@ -1218,6 +1219,21 @@ Fourteen training runs are shown, split into two eras. Each bar group shows Val 
 
 > ★ best fold (val AUC 0.628) — used for `best_overall.pt`; final test eval AUC 0.444, AP 0.807. Mean AP 0.833 exceeds Phase 1 target (0.82). AUC dropped from R17 (0.625→0.483), likely due to the expanded feature space (22-dim + 6-dim edges) needing more epochs or architectural tuning to fully exploit the richer signal — the model is fitting to more features with similar capacity on fewer graphs (995 vs 1,760). The dataset curation achieved its goal: **zero parse failures** (vs hundreds in prior runs), saving ~6–8 hours of wasted timeout. Template DB rebuilt with 4 categories from 995 assemblies. AP remains above Phase 1 target across all 5 folds, confirming the model reliably ranks positive edges above negatives even with the expanded feature space.
 
+#### R19 — 5-Fold Cross-Validation Detail (22+6-dim · best_serving gate · 995 graphs)
+
+**Changes vs R18:** Fixed `device` UnboundLocalError when `--start-fold` equals `n_folds` (resume past all folds crashed at final eval). Added `best_serving.pt` promotion gate — only overwrites the serving checkpoint if the new run's mean AUC+AP beats the incumbent, preventing metric regression. Unified frontend (`app.py`) and backend (`api.py`) to load from `best_serving.pt` with fallback to `best_overall.pt`. Same dataset (995 graphs), same architecture.
+
+| Fold | Val AUC (best ep) | Test AUC | Test AP |
+|---|---|---|---|
+| 1 | 0.586 | 0.530 | 0.821 |
+| 2 ★ | 0.641 (best overall) | 0.467 | 0.815 |
+| 3 | 0.627 | 0.602 | 0.881 |
+| 4 | 0.575 | 0.500 | 0.842 |
+| 5 | 0.560 | 0.418 | 0.817 |
+| **Mean** | | **0.504 ± 0.069** | **0.835 ± 0.028** |
+
+> ★ best fold (val AUC 0.641) — used for `best_overall.pt`; final test eval AUC 0.472, AP 0.795. Mean AUC improved from R18 (0.483→0.504, +2.1 points) and mean AP improved (0.833→0.835). Both metrics remain below the Phase 1 AUC target (0.85) but AP continues to exceed the AP target (0.82). The `best_serving.pt` gate confirmed the improvement and promoted this run's model. Run-to-run variance on the same dataset/architecture (R18 vs R19) is expected and reflects stochastic training — the serving gate ensures only improvements are deployed.
+
 #### R13 — Skip Summary (1,404 STEP files scanned)
 
 | Outcome | Count | Reason |
@@ -1242,6 +1258,7 @@ Fourteen training runs are shown, split into two eras. Each bar group shows Val 
 - **R16 (21-dim — bbox + affine-invariant — 270 graphs):** Reverted the R15 decision to replace bbox features; instead bbox Δx/Δy/Δz are kept at [10–12] and the 5 affine-invariant shape features (elongation, flatness, aspect x/y, aspect y/z, sphericity) are appended at [13–17], with SDF/SA features shifting to [18–20]. Mean AUC 0.659 ± 0.083 and mean AP 0.894 ± 0.031. AUC is lower than R15 (0.726) and std is significantly higher (±0.083 vs ±0.041), driven largely by fold 1 scoring only 0.524 — an outlier fold that dragged the mean down. AP remains above the Phase 1 target. The 21-dim vector with the current 270-graph dataset may need more training data to fully utilise the wider feature space
 - **R17 (6.5× data scale-up — 1,760 graphs):** After EDA-driven cleanup (144 cross-category duplicates removed, 641 zero-contact assemblies pre-filtered, edges ≥10 minimum), the usable graph count jumped from 270 to 1,760 — a 6.5× increase. hidden_dim reduced to 128 for training speed. Mean AUC 0.625 ± 0.017 and mean AP 0.878 ± 0.005. The headline result is **fold stability**: AUC std collapses from ±0.083 (R16) to ±0.017 — the most consistent model to date. AP std of ±0.005 is the lowest ever. Mean AUC is comparable to R14 (0.624) despite 6.5× more diverse assemblies, confirming the model generalises but the AUC ceiling requires architectural changes (Phase 2). AP comfortably exceeds Phase 1 target
 - **R18 (22-dim + 6-dim edges · curated 995 graphs):** Feature expansion (21→22-dim nodes with log1p vol/SA, hole counts; 2→6-dim edges with joint type one-hot) combined with systematic dataset curation (1,336→996 models via JSON pre-analysis, 340 removed for sparsity/density/size issues). The headline result is **zero parse failures** — every single model parsed successfully, validating the curation study. Mean AP 0.833 ± 0.025 exceeds Phase 1 target. Mean AUC 0.483 ± 0.056 dropped from R17's 0.625, reflecting the challenge of fitting a wider feature space (22+6=28 dims vs 21+2=23) with similar model capacity on fewer graphs (995 vs 1,760). The AUC regression suggests the expanded features need either more training data, higher model capacity, or feature selection — a clear direction for Phase 2 tuning
+- **R19 (best_serving gate · device fix · 995 graphs):** Fixed `device` bug in `--start-fold` resume path; added `best_serving.pt` promotion gate so only models that beat the incumbent on mean AUC+AP are deployed for inference. Mean AUC 0.504 ± 0.069 (+2.1 points over R18), mean AP 0.835 ± 0.028 (slightly improved). AP continues to exceed Phase 1 target. The serving gate confirmed R19 as an improvement and promoted it, demonstrating the safety mechanism works as intended
 
 ---
 
