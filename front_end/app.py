@@ -676,7 +676,7 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
                 'margin:0 0 5px;">🔮 Assembly Type Identified</p>'
                 f'<div style="background:rgba(79,62,160,0.12);border:1px solid #4f3ea0;'
                 f'border-radius:5px;padding:5px 8px;margin-bottom:8px;">'
-                f'<span style="color:#e2d9ff;font-size:0.78rem;font-weight:600;">'
+                f'<span style="color:#000000;font-size:0.78rem;font-weight:600;">'
                 f'{assembly_match["label"]}</span>'
                 f'<span style="background:{_am_col};color:#fff;font-size:0.65rem;'
                 f'font-weight:700;padding:1px 6px;border-radius:3px;margin-left:8px;">'
