@@ -163,6 +163,8 @@ def main():
 
     # ── Model ─────────────────────────────────────────────────────────────
     print(f"\n[2/4] Building model …  ({N_FOLDS}-fold CV)")
+    device = torch.device("mps" if torch.backends.mps.is_available()
+                          else "cuda" if torch.cuda.is_available() else "cpu")
 
     # ── Fold loop ─────────────────────────────────────────────────────────
     start_fold = args.start_fold
@@ -370,6 +372,31 @@ def main():
     print(f"\n  Results saved        → {res_dir}")
     print(f"  Best overall ckpt    → {ckpt_dir / 'best_overall.pt'}")
     print(f"  Trained model export → {tm_path}")
+
+    # ── Promote to best_serving.pt only if this run beats the incumbent ──
+    serving_path = ckpt_dir / "best_serving.pt"
+    promote = True
+    if serving_path.exists():
+        prev = torch.load(serving_path, map_location="cpu", weights_only=False)
+        prev_auc = prev.get("cv_summary", {}).get("mean_auc", 0.0)
+        prev_ap  = prev.get("cv_summary", {}).get("mean_ap", 0.0)
+        if (mean_auc, mean_ap) <= (prev_auc, prev_ap):
+            promote = False
+            print(f"\n  ⊘ Serving model NOT updated — incumbent "
+                  f"(AUC={prev_auc:.4f}, AP={prev_ap:.4f}) is better than "
+                  f"this run (AUC={mean_auc:.4f}, AP={mean_ap:.4f})")
+    if promote:
+        torch.save({
+            "epoch":        ckpt["epoch"],
+            "auc":          best_overall_auc,
+            "test_metrics": {k: round(v, 4) for k, v in test_metrics.items()},
+            "cv_summary":   cv_summary,
+            "trained_at":   datetime.now().isoformat(),
+            "gnn":          gnn.state_dict(),
+            "lp":           lp.state_dict(),
+            "cfg":          cfg,
+        }, serving_path)
+        print(f"\n  ✓ best_serving.pt updated — AUC={mean_auc:.4f}, AP={mean_ap:.4f}")
 
     # ── Assembly template DB ──────────────────────────────────────────────
     print("\n  Building assembly template cache …")

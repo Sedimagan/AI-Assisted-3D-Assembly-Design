@@ -554,7 +554,8 @@ python skills_agent.py
 After training completes a timestamped file is saved to `trained_models/`:
 
 ```
-trained_models/assembly_gnn_20260624_050811_auc06284.pt   ← current best (R18 — 22-dim+6-dim edges, 995 curated graphs, best fold val AUC 0.628, mean AUC 0.483, mean AP 0.833)
+trained_models/assembly_gnn_20260624_101135_auc06409.pt   ← current best (R19 — 22-dim+6-dim edges, 995 curated graphs, best fold val AUC 0.641, mean AUC 0.504, mean AP 0.835, 2026-06-24)
+trained_models/assembly_gnn_20260624_050811_auc06284.pt   ← R18 (22-dim+6-dim edges, 995 curated graphs, best fold val AUC 0.628, mean AUC 0.483, mean AP 0.833)
 trained_models/assembly_gnn_20260622_081627_auc07117.pt   ← R17 (21-dim, 1760 graphs, hidden_dim 128, best fold val AUC 0.712, mean AUC 0.625)
 trained_models/assembly_gnn_20260620_121621_auc09018.pt   ← R16 (21-dim, bbox+affine features, 270 graphs, best fold val AUC 0.902, mean AUC 0.659)
 trained_models/assembly_gnn_20260620_103030_auc09018.pt   ← R15 (18-dim, P1–P6, heads [8,4,1], hard negatives, 270 graphs, best fold val AUC 0.902, mean AUC 0.726)

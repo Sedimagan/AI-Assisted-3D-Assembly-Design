@@ -8,14 +8,16 @@ Run:  uvicorn back_end.api:app --reload --port 8000
 
 from __future__ import annotations
 
+import math
 import os
+import tempfile
 from pathlib import Path
 from typing import List, Optional, Tuple
 
 import torch
 import uvicorn
 import yaml
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -26,9 +28,10 @@ except ImportError:
     pass
 
 from model import build_model
-from dataset import _synthetic_graph, COMP_TYPES
+from dataset import _parse_step, _synthetic_graph, COMP_TYPES
 from infer import predict_missing
 from skills_agent import AssemblySkillsAgent
+from surface_analyzer import analyze_open_surfaces
 
 # ── App setup ─────────────────────────────────────────────────────────────────
 
@@ -49,7 +52,9 @@ app.add_middleware(
 
 _gnn = _lp = _device = None
 _agent: Optional[AssemblySkillsAgent] = None
-_ckpt_path = Path(__file__).parent / "checkpoints" / "best.pt"
+_ckpt_serving  = Path(__file__).parent / "checkpoints" / "best_serving.pt"
+_ckpt_fallback = Path(__file__).parent / "checkpoints" / "best_overall.pt"
+_ckpt_path = _ckpt_serving if _ckpt_serving.exists() else _ckpt_fallback
 
 @app.on_event("startup")
 def startup():
@@ -109,22 +114,52 @@ class IdentifyRequest(BaseModel):
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _to_pyg(req: AssemblyGraph):
+    """Build a 22-dim node / 6-dim edge PyG graph matching dataset.py's schema."""
     from torch_geometric.data import Data
-    n = len(req.nodes)
     x_rows = []
     for nd in req.nodes:
-        oh = [0.0] * 8; oh[nd.type_index] = 1.0
-        x_rows.append(oh + [nd.volume, nd.surface_area,
-                             nd.bbox_x, nd.bbox_y, nd.bbox_z])
+        oh = [0.0] * 8
+        oh[nd.type_index] = 1.0
+        dx, dy, dz = nd.bbox_x, nd.bbox_y, nd.bbox_z
+        bbox_max = max(dx, dy, dz, 1e-9)
+        ext = sorted([dx, dy, dz])
+        elongation = ext[2] / (ext[1] + 1e-9)
+        flatness = ext[0] / (ext[2] + 1e-9)
+        aspect_xy = dx / (dy + 1e-9)
+        aspect_yz = dy / (dz + 1e-9)
+        vol = nd.volume
+        sa = nd.surface_area
+        sphericity = min(1.0, (math.pi ** (1/3))
+                         * ((6 * vol) ** (2/3))
+                         / (sa + 1e-9))
+        sav = sa / (vol + 1e-9)
+        feat = oh + [
+            min(13.8, math.log1p(max(0.0, vol))),   # [8]
+            min(11.5, math.log1p(max(0.0, sa))),     # [9]
+            dx / bbox_max,                            # [10]
+            dy / bbox_max,                            # [11]
+            dz / bbox_max,                            # [12]
+            elongation,                               # [13]
+            flatness,                                 # [14]
+            aspect_xy,                                # [15]
+            aspect_yz,                                # [16]
+            sphericity,                               # [17]
+            0.0,                                      # [18] SDF mean
+            0.0,                                      # [19] SDF variance
+            sav,                                      # [20] SA/V
+            0.0,                                      # [21] log1p(n_holes)
+        ]
+        x_rows.append(feat)
     x = torch.tensor(x_rows, dtype=torch.float)
     if req.edges:
         src = [e[0] for e in req.edges]
         dst = [e[1] for e in req.edges]
         edge_index = torch.tensor([src, dst], dtype=torch.long)
-        edge_attr  = torch.ones(len(src), 2)
+        edge_attr = torch.tensor([[0.0, 1.0, 0.0, 0.0, 0.0, 0.0]] * len(src),
+                                 dtype=torch.float)
     else:
         edge_index = torch.zeros(2, 0, dtype=torch.long)
-        edge_attr  = torch.zeros(0, 2)
+        edge_attr = torch.zeros(0, 6, dtype=torch.float)
     return Data(x=x, edge_index=edge_index, edge_attr=edge_attr)
 
 
@@ -180,12 +215,90 @@ def api_identify(req: IdentifyRequest):
     return {"identification": result}
 
 
+@app.post("/analyze/step")
+async def api_analyze_step(file: UploadFile = File(...)):
+    """
+    Full Phase 1 analysis of a STEP file upload.
+
+    Runs both the GNN link predictor and the Octree open-surface detector,
+    returning combined results in a single response.
+    """
+    if not file.filename:
+        raise HTTPException(400, "No file uploaded")
+    suffix = Path(file.filename).suffix.lower()
+    if suffix not in {".step", ".stp"}:
+        raise HTTPException(400, f"Expected .step/.stp file, got {suffix}")
+
+    tmp_dir = tempfile.mkdtemp(prefix="assembly_")
+    tmp_path = Path(tmp_dir) / file.filename
+    try:
+        content = await file.read()
+        tmp_path.write_bytes(content)
+
+        open_surfaces = []
+        try:
+            raw_surfaces = analyze_open_surfaces(str(tmp_path))
+            for s in raw_surfaces:
+                open_surfaces.append({
+                    "centroid":    s.get("centroid", [0, 0, 0]),
+                    "area":       s.get("area", 0),
+                    "area_ratio":  s.get("area_ratio", 0),
+                    "body_idx":    s.get("body_idx", -1),
+                    "vertices":    s.get("vertices", []),
+                    "triangles":   s.get("triangles", []),
+                    "normal_hint": s.get("normal_hint", [0, 0, 1]),
+                })
+        except Exception as e:
+            open_surfaces = []
+            surf_error = str(e)
+        else:
+            surf_error = None
+
+        missing_links = []
+        graph_info = None
+        try:
+            graph = _parse_step(str(tmp_path))
+            if graph is not None and graph.num_nodes >= 2:
+                graph_info = {
+                    "num_nodes": graph.num_nodes,
+                    "num_edges": graph.edge_index.size(1),
+                }
+                if _gnn is not None and _lp is not None:
+                    results = predict_missing(
+                        _gnn, _lp, graph, _device, top_k=10,
+                    )
+                    missing_links = [
+                        {"src": u, "dst": v, "confidence": s}
+                        for (u, v), s in results
+                    ]
+                else:
+                    graph_info["warning"] = "Model not loaded — no predictions"
+        except Exception as e:
+            graph_info = {"error": str(e)}
+
+        return {
+            "filename":      file.filename,
+            "open_surfaces": open_surfaces,
+            "surf_error":    surf_error,
+            "missing_links": missing_links,
+            "graph":         graph_info,
+        }
+    finally:
+        if tmp_path.exists():
+            tmp_path.unlink()
+        try:
+            Path(tmp_dir).rmdir()
+        except OSError:
+            pass
+
+
 @app.get("/docs-summary")
 def docs_summary():
     return {
         "endpoints": {
             "GET  /health":          "Service + model status",
-            "POST /predict/missing": "Missing component link prediction (Phase 1)",
+            "POST /predict/missing": "Missing component link prediction (JSON graph)",
+            "POST /analyze/step":    "Full STEP file analysis (GNN + open surfaces)",
             "POST /explain":         "Gemini AI explanation of predictions",
             "POST /identify":        "Component type identification from geometry",
         }

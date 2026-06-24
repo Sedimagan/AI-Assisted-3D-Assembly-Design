@@ -10,7 +10,9 @@ from pathlib import Path
 
 # Project root — resolved once here so all helpers can reference it
 _PROJ_ROOT  = Path(__file__).resolve().parent.parent
-_CKPT_PATH  = _PROJ_ROOT / "back_end" / "checkpoints" / "best_overall.pt"
+_CKPT_SERVING = _PROJ_ROOT / "back_end" / "checkpoints" / "best_serving.pt"
+_CKPT_FALLBACK = _PROJ_ROOT / "back_end" / "checkpoints" / "best_overall.pt"
+_CKPT_PATH  = _CKPT_SERVING if _CKPT_SERVING.exists() else _CKPT_FALLBACK
 _STEP_CACHE   = _PROJ_ROOT / ".logs" / "inference_input.step"
 _TMPL_DB_PATH = _PROJ_ROOT / "back_end" / "data" / "assembly_templates.json"
 

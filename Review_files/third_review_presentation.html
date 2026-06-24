@@ -470,7 +470,7 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
     <div class="row">
       <div class="col coll">
         <div class="card bl" style="flex:1;">
-          <h3>Training History — 18 Runs</h3>
+          <h3>Training History — 19 Runs</h3>
           <div style="overflow-x:auto;">
             <table style="font-size:12px;">
               <thead>
@@ -489,8 +489,10 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
                   <td>R16</td><td>21-dim · bbox+affine features</td><td class="num">270</td><td class="num">0.902</td><td class="num">0.659*</td><td class="num">0.894*</td></tr>
                 <tr style="background:rgba(245,158,11,0.08);">
                   <td>R17</td><td>6.5× data · dedup · hidden 128</td><td class="num">1,760</td><td class="num">0.712</td><td class="num">0.625*</td><td class="num">0.878*</td></tr>
+                <tr style="background:rgba(167,139,250,0.08);">
+                  <td>R18</td><td>22+6-dim · curated 995 · holes · joints</td><td class="num">995</td><td class="num">0.628</td><td class="num">0.483*</td><td class="num">0.833*</td></tr>
                 <tr style="background:rgba(79,142,247,0.12);">
-                  <td><strong>R18</strong></td><td>22+6-dim · curated 995 · holes · joints</td><td class="num"><strong>995</strong></td><td class="num">0.628</td><td class="num"><strong>0.483*</strong></td><td class="num"><strong>0.833*</strong></td></tr>
+                  <td><strong>R19</strong></td><td>best_serving gate · device fix · 995</td><td class="num"><strong>995</strong></td><td class="num"><strong>0.641</strong></td><td class="num"><strong>0.504*</strong></td><td class="num"><strong>0.835*</strong></td></tr>
               </tbody>
             </table>
             <p style="font-size:11px;color:#506878;margin-top:4px;">* Mean values from 5-fold cross-validation</p>
@@ -517,14 +519,14 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
           <p style="margin-top:6px;"><span class="badge badge-green">AP 0.917 exceeds Phase 1 target of 0.82</span></p>
         </div>
         <div class="card bo">
-          <h3>Current Model (R18)</h3>
+          <h3>Current Model (R19 — 2026-06-24)</h3>
           <div class="metric-row">
             <div class="metric">
-              <div class="val">0.483</div>
+              <div class="val">0.504</div>
               <div class="lbl">Mean AUC-ROC</div>
             </div>
             <div class="metric">
-              <div class="val" style="color:#4caf82;">0.833</div>
+              <div class="val" style="color:#4caf82;">0.835</div>
               <div class="lbl">Mean Avg Precision</div>
             </div>
             <div class="metric">
@@ -532,8 +534,8 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
               <div class="lbl">Parse Failures</div>
             </div>
           </div>
-          <p style="margin-top:6px;">22-dim nodes + 6-dim edges · 995 curated graphs · log1p vol/SA · holes · joint types</p>
-          <p>5-fold CV · Best fold val AUC 0.628 · <span class="badge badge-green">AP 0.833 &gt; Phase 1 target</span> · <span class="badge badge-teal">Zero parse failures</span></p>
+          <p style="margin-top:6px;">22-dim nodes + 6-dim edges · 995 curated graphs · best_serving gate · device bug fix</p>
+          <p>5-fold CV · Best fold val AUC 0.641 · <span class="badge badge-green">AP 0.835 &gt; Phase 1 target</span> · <span class="badge badge-teal">Zero parse failures</span></p>
         </div>
         <div class="card bp">
           <h3>Phase 1 Targets</h3>
@@ -591,30 +593,30 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
       </div>
       <div class="col">
         <div class="card bp">
-          <h3>R18 — 5-Fold Cross-Validation (Current · 995 curated graphs)</h3>
+          <h3>R19 — 5-Fold Cross-Validation (Current · 995 graphs · 2026-06-24)</h3>
           <table>
-            <thead><tr><th>Fold</th><th>Val AUC</th><th>Test AUC</th><th>Test AP</th><th>EP</th></tr></thead>
+            <thead><tr><th>Fold</th><th>Val AUC</th><th>Test AUC</th><th>Test AP</th></tr></thead>
             <tbody>
-              <tr><td>Fold 1</td><td class="num">0.599</td><td class="num">0.506</td><td class="num">0.852</td><td class="num">25</td></tr>
-              <tr><td>Fold 2 ★</td><td class="num"><strong>0.628</strong></td><td class="num">0.425</td><td class="num">0.794</td><td class="num">22</td></tr>
-              <tr><td>Fold 3</td><td class="num">0.618</td><td class="num">0.553</td><td class="num">0.847</td><td class="num">30</td></tr>
-              <tr><td>Fold 4</td><td class="num">0.536</td><td class="num">0.425</td><td class="num">0.822</td><td class="num">28</td></tr>
-              <tr><td>Fold 5</td><td class="num">0.554</td><td class="num">0.504</td><td class="num">0.851</td><td class="num">29</td></tr>
+              <tr><td>Fold 1</td><td class="num">0.586</td><td class="num">0.530</td><td class="num">0.821</td></tr>
+              <tr><td>Fold 2 ★</td><td class="num"><strong>0.641</strong></td><td class="num">0.467</td><td class="num">0.815</td></tr>
+              <tr><td>Fold 3</td><td class="num">0.627</td><td class="num">0.602</td><td class="num">0.881</td></tr>
+              <tr><td>Fold 4</td><td class="num">0.575</td><td class="num">0.500</td><td class="num">0.842</td></tr>
+              <tr><td>Fold 5</td><td class="num">0.560</td><td class="num">0.418</td><td class="num">0.817</td></tr>
               <tr style="font-weight:700;">
                 <td>Mean ± Std</td><td></td>
-                <td class="num">0.483 ± 0.056</td>
-                <td class="num">0.833 ± 0.025</td><td></td></tr>
+                <td class="num">0.504 ± 0.069</td>
+                <td class="num">0.835 ± 0.028</td><td></td></tr>
             </tbody>
           </table>
-          <p>★ Best fold (val AUC 0.628) · Final test AUC 0.444, AP 0.807 · <span class="badge badge-teal">Zero parse failures</span></p>
+          <p>★ Best fold (val AUC 0.641) · Final test AUC 0.472, AP 0.795 · <span class="badge badge-teal">Zero parse failures</span></p>
         </div>
         <div class="card bo">
-          <h3>Analysis — R18 Dataset Curation Study</h3>
+          <h3>Analysis — R19 vs R18</h3>
           <table>
             <tr><td style="color:#4caf82;">✓</td><td><strong>Zero parse failures:</strong> All 996 models parsed successfully — curation eliminated all timeout/OOM/error models</td></tr>
-            <tr><td style="color:#4caf82;">✓</td><td><strong>AP = 0.833 ± 0.025</strong> — exceeds Phase 1 target (0.82); model reliably ranks positive edges above negatives</td></tr>
-            <tr><td style="color:#4caf82;">✓</td><td><strong>340 problematic models removed</strong> pre-training via JSON analysis (sparse, dense, oversized)</td></tr>
-            <tr><td style="color:#e08850;">△</td><td><strong>AUC 0.483</strong> — dropped from R17 (0.625); expanded feature space (22+6 dims) needs more capacity or data</td></tr>
+            <tr><td style="color:#4caf82;">✓</td><td><strong>AP = 0.835 ± 0.028</strong> — exceeds Phase 1 target (0.82); improved over R18 (0.833)</td></tr>
+            <tr><td style="color:#4caf82;">✓</td><td><strong>AUC 0.504</strong> — improved over R18 (0.483); best_serving gate ensures only better models are deployed</td></tr>
+            <tr><td style="color:#4caf82;">✓</td><td><strong>device bug fixed</strong> — --start-fold resume no longer crashes at final eval step</td></tr>
             <tr><td style="color:#4a7fcb;">→</td><td><strong>Phase 2:</strong> Increase model capacity, feature selection/ablation, NodeRanker for next-component ranking</td></tr>
           </table>
         </div>
@@ -645,7 +647,8 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
               <tr><td>18-dim (R15)</td><td class="num">18</td><td>Affine-invariant (replaced bbox)</td><td class="num"><strong>0.726</strong></td><td class="num"><strong>0.917</strong></td></tr>
               <tr><td>21-dim (R16)</td><td class="num">21</td><td>bbox + affine combined</td><td class="num">0.659</td><td class="num">0.894</td></tr>
               <tr><td>21-dim (R17)</td><td class="num">21</td><td>+1760 graphs · hidden 128</td><td class="num">0.625</td><td class="num">0.878</td></tr>
-              <tr style="background:rgba(79,142,247,0.1);"><td><strong>22+6-dim (R18)</strong></td><td class="num">22+6</td><td>log1p · holes · joints · curated 995</td><td class="num">0.483</td><td class="num"><strong>0.833</strong></td></tr>
+              <tr style="background:rgba(167,139,250,0.08);"><td>22+6-dim (R18)</td><td class="num">22+6</td><td>log1p · holes · joints · curated 995</td><td class="num">0.483</td><td class="num">0.833</td></tr>
+              <tr style="background:rgba(79,142,247,0.1);"><td><strong>22+6-dim (R19)</strong></td><td class="num">22+6</td><td>best_serving gate · device fix</td><td class="num"><strong>0.504</strong></td><td class="num"><strong>0.835</strong></td></tr>
             </tbody>
           </table>
         </div>
