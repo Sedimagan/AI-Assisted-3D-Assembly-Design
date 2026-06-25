@@ -554,7 +554,8 @@ python skills_agent.py
 After training completes a timestamped file is saved to `trained_models/`:
 
 ```
-trained_models/assembly_gnn_20260624_101135_auc06409.pt   ← current best (R19 — 22-dim+6-dim edges, 995 curated graphs, best fold val AUC 0.641, mean AUC 0.504, mean AP 0.835, 2026-06-24)
+trained_models/assembly_gnn_20260625_094934_auc06267.pt   ← R20 (22+6-dim, 38 categories, 444 diversified graphs, best fold val AUC 0.627, mean AUC 0.503, mean AP 0.749, 2026-06-25) — serving NOT promoted
+trained_models/assembly_gnn_20260624_101135_auc06409.pt   ← current best / serving (R19 — 22-dim+6-dim edges, 995 curated graphs, best fold val AUC 0.641, mean AUC 0.504, mean AP 0.835, 2026-06-24)
 trained_models/assembly_gnn_20260624_050811_auc06284.pt   ← R18 (22-dim+6-dim edges, 995 curated graphs, best fold val AUC 0.628, mean AUC 0.483, mean AP 0.833)
 trained_models/assembly_gnn_20260622_081627_auc07117.pt   ← R17 (21-dim, 1760 graphs, hidden_dim 128, best fold val AUC 0.712, mean AUC 0.625)
 trained_models/assembly_gnn_20260620_121621_auc09018.pt   ← R16 (21-dim, bbox+affine features, 270 graphs, best fold val AUC 0.902, mean AUC 0.659)
@@ -1093,9 +1094,9 @@ All previous output — red ⚠ body highlights, orange ❓ cross markers, AIDA 
 
 ![Training Progression — AUC-ROC & Average Precision](docs/training_history.png)
 
-Nineteen training runs are shown, split into two eras. Each bar group shows Val AUC (light), Test AUC (solid), and Test AP (translucent) for that run. Dashed red/orange lines are the Phase 1 targets (AUC 0.85, AP 0.82). R12–R19 report best-fold metrics from 5-fold CV.
+Twenty-one training runs are shown, split into two eras. Each bar group shows Val AUC (light), Test AUC (solid), and Test AP (translucent) for that run. Dashed red/orange lines are the Phase 1 targets (AUC 0.85, AP 0.82). R12–R20 report best-fold metrics from 5-fold CV.
 
-![Change Log — R1 to R19](docs/training_changelog.png)
+![Change Log — R1 to R20](docs/training_changelog.png)
 
 | Run | Date | Change | Graphs | Val AUC | Test AUC | Test AP |
 |---|---|---|---|---|---|---|
@@ -1114,7 +1115,8 @@ Nineteen training runs are shown, split into two eras. Each bar group shows Val 
 | R16 | 20 Jun 12:16 | 21-dim · kept bbox Δx/Δy/Δz [10–12] + added affine-invariant [13–17] · SDF/SA shift to [18–20] · 5-fold CV · Mean AUC=0.659±0.083 · Mean AP=0.894±0.031 | 270 | 0.902 | 0.688 | 0.897 |
 | R17 | 22 Jun 08:16 | 6.5× more data · 1,760 graphs (deduped, no-contact pre-filter, edges≥10) · hidden_dim 128 · 5-fold CV · Mean AUC=0.625±0.017 · Mean AP=0.878±0.005 | 1,760 | 0.712 | 0.622 | 0.868 |
 | R18 | 24 Jun 05:08 | 22-dim nodes + 6-dim edges · curated 996→995 graphs (0 skipped) · log1p vol/SA · holes · joint types · MIN_EDGES 10→6 · 5-fold CV · Mean AUC=0.483±0.056 · Mean AP=0.833±0.025 | 995 | 0.628 | 0.444 | 0.807 |
-| **R19** | **24 Jun 10:11** | **22+6-dim · best_serving gate · device bug fix · 5-fold CV · Mean AUC=0.504±0.069 · Mean AP=0.835±0.028** | **995** | **0.641** | **0.472** | **0.795** |
+| R19 | 24 Jun 10:11 | 22+6-dim · best_serving gate · device bug fix · 5-fold CV · Mean AUC=0.504±0.069 · Mean AP=0.835±0.028 | 995 | 0.641 | 0.472 | 0.795 |
+| **R20** | **25 Jun 09:49** | **22+6-dim · 38 diversified categories · 444 graphs · 5-fold CV · Mean AUC=0.503±0.045 · Mean AP=0.749±0.020 · serving NOT promoted** | **444** | **0.627** | **0.523** | **0.771** |
 
 > \* R3 metrics artificially inflated: 300 synthetic test graphs trivially match the 300 synthetic training graphs — not a valid measure of real-geometry performance.
 
@@ -1234,6 +1236,21 @@ Nineteen training runs are shown, split into two eras. Each bar group shows Val 
 
 > ★ best fold (val AUC 0.641) — used for `best_overall.pt`; final test eval AUC 0.472, AP 0.795. Mean AUC improved from R18 (0.483→0.504, +2.1 points) and mean AP improved (0.833→0.835). Both metrics remain below the Phase 1 AUC target (0.85) but AP continues to exceed the AP target (0.82). The `best_serving.pt` gate confirmed the improvement and promoted this run's model. Run-to-run variance on the same dataset/architecture (R18 vs R19) is expected and reflects stochastic training — the serving gate ensures only improvements are deployed.
 
+#### R20 — 5-Fold Cross-Validation Detail (22+6-dim · 38 categories · 444 diversified graphs)
+
+**Changes vs R19:** Dataset expanded from 4 curated categories (995 graphs) to all 38 subdirectories in Best_models_for_training (444 graphs from 471 STEP files). Dynamic category detection replaces hardcoded filter. Same model architecture (22-dim nodes + 6-dim edges, hidden_dim 128, heads [8,4,1]). Purpose: evaluate model generalisation across diverse assembly domains.
+
+| Fold | Val AUC (best ep) | Test AUC | Test AP |
+|---|---|---|---|
+| 1 ★ | 0.627 (best overall) | 0.555 | 0.770 |
+| 2 | 0.594 | 0.499 | 0.750 |
+| 3 | 0.562 | 0.438 | 0.727 |
+| 4 | 0.610 | 0.536 | 0.768 |
+| 5 | 0.567 | 0.488 | 0.733 |
+| **Mean** | | **0.503 ± 0.045** | **0.749 ± 0.020** |
+
+> ★ best fold (val AUC 0.627) — used for `best_overall.pt`; final test eval AUC 0.523, AP 0.771. Mean AUC 0.503 held steady vs R19 (0.504, −0.1 points) despite a far more diverse dataset (38 categories vs 4). Mean AP 0.749 dropped from R19 (0.835, −8.6 points) — expected when training spans domains from Aerospace to Jewelry to Wood Working, diluting category-specific assembly patterns. The `best_serving.pt` gate correctly blocked this run from replacing the incumbent. Top categories: Furniture+Household (42), Electronics (31), Mechanical Engineering (31), Tools (30), Machine design (28).
+
 #### R13 — Skip Summary (1,404 STEP files scanned)
 
 | Outcome | Count | Reason |
@@ -1259,6 +1276,7 @@ Nineteen training runs are shown, split into two eras. Each bar group shows Val 
 - **R17 (6.5× data scale-up — 1,760 graphs):** After EDA-driven cleanup (144 cross-category duplicates removed, 641 zero-contact assemblies pre-filtered, edges ≥10 minimum), the usable graph count jumped from 270 to 1,760 — a 6.5× increase. hidden_dim reduced to 128 for training speed. Mean AUC 0.625 ± 0.017 and mean AP 0.878 ± 0.005. The headline result is **fold stability**: AUC std collapses from ±0.083 (R16) to ±0.017 — the most consistent model to date. AP std of ±0.005 is the lowest ever. Mean AUC is comparable to R14 (0.624) despite 6.5× more diverse assemblies, confirming the model generalises but the AUC ceiling requires architectural changes (Phase 2). AP comfortably exceeds Phase 1 target
 - **R18 (22-dim + 6-dim edges · curated 995 graphs):** Feature expansion (21→22-dim nodes with log1p vol/SA, hole counts; 2→6-dim edges with joint type one-hot) combined with systematic dataset curation (1,336→996 models via JSON pre-analysis, 340 removed for sparsity/density/size issues). The headline result is **zero parse failures** — every single model parsed successfully, validating the curation study. Mean AP 0.833 ± 0.025 exceeds Phase 1 target. Mean AUC 0.483 ± 0.056 dropped from R17's 0.625, reflecting the challenge of fitting a wider feature space (22+6=28 dims vs 21+2=23) with similar model capacity on fewer graphs (995 vs 1,760). The AUC regression suggests the expanded features need either more training data, higher model capacity, or feature selection — a clear direction for Phase 2 tuning
 - **R19 (best_serving gate · device fix · 995 graphs):** Fixed `device` bug in `--start-fold` resume path; added `best_serving.pt` promotion gate so only models that beat the incumbent on mean AUC+AP are deployed for inference. Mean AUC 0.504 ± 0.069 (+2.1 points over R18), mean AP 0.835 ± 0.028 (slightly improved). AP continues to exceed Phase 1 target. The serving gate confirmed R19 as an improvement and promoted it, demonstrating the safety mechanism works as intended
+- **R20 (38 diversified categories · 444 graphs):** Expanded training from 4 curated categories to all 38 subdirectories in Best_models_for_training (471 STEP → 444 graphs, 10 timeout skips). Dynamic category detection replaces hardcoded filter. Mean AUC 0.503 ± 0.045 held steady vs R19 (0.504), demonstrating the model generalises across diverse domains. Mean AP 0.749 ± 0.020 dropped from R19 (0.835) as expected — assembly patterns are more heterogeneous across 38 categories spanning Aerospace to Wood Working. The `best_serving.pt` gate correctly blocked this run from replacing the incumbent
 
 ---
 

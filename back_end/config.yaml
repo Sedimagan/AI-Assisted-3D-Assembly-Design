@@ -1,15 +1,11 @@
 data:
-  source_dir: "/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Source_3d_models"
+  source_dir: "/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Source_3d_models/Best_models_for_training"
   processed_dir: "data/processed"
   train_ratio: 0.70
   val_ratio:   0.15
   test_ratio:  0.15
   mask_ratio:  [0.20, 0.40]   # fraction of edges masked per graph for partial-graph training
-  categories:                  # only scan these subdirectories (null = all)
-    - "Mechanical Engineering"
-    - "Machine design"
-    - "Automotive"
-    - "Tools"
+  categories:                  # null = scan all subdirectories
 
 model:
   in_dim:     22              # node feature dimension (22-dim: 8 type + log-vol + log-SA + 3 bbox + 5 affine-invariant shape + SDF-mean + SDF-var + SA/V + log-holes)

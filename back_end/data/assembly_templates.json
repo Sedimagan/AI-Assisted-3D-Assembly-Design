@@ -1,67 +1,12 @@
 [
   {
-    "category": "automotive",
-    "label": "Automotive",
+    "category": "best_models_for_training",
+    "label": "Best Models For Training",
     "component_counts": {
-      "body": 6,
+      "body": 8,
       "fastener": 4,
-      "plate": 2
-    },
-    "total_bodies": 11,
-    "examples": [
-      "assembly.step",
-      "assembly.step",
-      "assembly.step",
-      "assembly.step",
-      "assembly.step"
-    ],
-    "n_assemblies": 46
-  },
-  {
-    "category": "machine_design",
-    "label": "Machine Design",
-    "component_counts": {
-      "body": 9,
-      "fastener": 3,
-      "plate": 2
-    },
-    "total_bodies": 12,
-    "examples": [
-      "assembly.step",
-      "assembly.step",
-      "assembly.step",
-      "assembly.step",
-      "assembly.step"
-    ],
-    "n_assemblies": 56
-  },
-  {
-    "category": "mechanical_engineering",
-    "label": "Mechanical Engineering",
-    "component_counts": {
-      "body": 7,
-      "fastener": 4,
-      "bearing": 2,
-      "plate": 2,
-      "housing": 1
-    },
-    "total_bodies": 11,
-    "examples": [
-      "assembly.step",
-      "assembly.step",
-      "assembly.step",
-      "assembly.step",
-      "assembly.step"
-    ],
-    "n_assemblies": 844
-  },
-  {
-    "category": "tools",
-    "label": "Tools",
-    "component_counts": {
-      "body": 9,
-      "fastener": 3,
-      "plate": 2
+      "bearing": 1,
+      "plate": 3
     },
     "total_bodies": 14,
     "examples": [
@@ -71,6 +16,6 @@
       "assembly.step",
       "assembly.step"
     ],
-    "n_assemblies": 49
+    "n_assemblies": 444
   }
 ]

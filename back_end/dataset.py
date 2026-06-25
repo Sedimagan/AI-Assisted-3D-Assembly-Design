@@ -832,10 +832,19 @@ class AssemblyDataset(InMemoryDataset):
         _skip_few_edges_dir = _skipped_dir / f"edges_lt_{_MIN_EDGES}"
         _skip_timeout_dir  = _skipped_dir / "timeout"
 
+        _category_dirs = {
+            d.name for d in self.source_dir.iterdir()
+            if d.is_dir() and d.name != "skipped_models"
+        }
+
         def _move_folder(sf: Path, dest_dir: Path) -> Optional[str]:
             """Move sf's parent folder into dest_dir; return dest path or None."""
             if sf.parent == self.source_dir:
-                return None   # file sits directly in source_dir — don't move
+                return None
+            if sf.parent.name in _category_dirs:
+                return None
+            if not sf.parent.exists():
+                return None
             dest_dir.mkdir(parents=True, exist_ok=True)
             dest = dest_dir / sf.parent.name
             if not dest.exists():
@@ -930,8 +939,7 @@ class AssemblyDataset(InMemoryDataset):
                         continue
                     cat = ''
                     for part in sf.parts:
-                        if part in {"Mechanical Engineering", "Machine design",
-                                    "Tools", "Automotive"}:
+                        if part in _category_dirs:
                             cat = part
                             break
                     g.category = cat

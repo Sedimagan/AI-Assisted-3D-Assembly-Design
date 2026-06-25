@@ -59,6 +59,9 @@ runs = [
     dict(id="R19", date="24 Jun\n10:11", graphs="995 real",
          note="best_serving.pt promotion gate added\ndevice bug fix for --start-fold resume\nOnly better models deployed for inference\n5-Fold CV · Mean AUC=0.504±0.069 · Mean AP=0.835±0.028",
          val_auc=0.641, test_auc=0.472, test_ap=0.795, synthetic=False),
+    dict(id="R20", date="25 Jun\n09:49", graphs="444 real",
+         note="38 diversified categories (was 4)\n471 STEP → 444 graphs · 10 timeout skips\nDynamic category detection · all subdirs\n5-Fold CV · Mean AUC=0.503±0.045 · Mean AP=0.749±0.020",
+         val_auc=0.627, test_auc=0.523, test_ap=0.771, synthetic=False),
 ]
 
 n   = len(runs)
@@ -83,7 +86,7 @@ log_colors = {
     "R7": "#ef9a9a", "R8": "#80cbc4", "R9": "#ce93d8",
     "R10": "#86efac", "R11": "#fde68a", "R12": "#c084fc", "R13": "#f9a8d4", "R14": "#67e8f9",
     "R15": "#4ade80", "R16": "#a78bfa", "R17": "#f59e0b",
-    "R18": "#38bdf8", "R19": "#4f8ef7",
+    "R18": "#38bdf8", "R19": "#4f8ef7", "R20": "#e879f9",
 }
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -150,7 +153,7 @@ ax.legend(handles=legend_patches, loc="upper left", facecolor=PANEL,
 col_labels = ["Run", "Date", "Node Dims", "Graphs", "Val AUC", "Test AUC", "Test AP"]
 table_data = [
     [r["id"], r["date"].replace("\n", " "),
-     "22+6-dim · 995g" if r["id"] in ("R18","R19") else "13-dim" if r["id"] in ("R1","R3","R6") else "21-dim · 1760g" if r["id"] == "R17" else "21-dim · bbox+affine" if r["id"] == "R16" else "18-dim · P1-P6" if r["id"] == "R15" else "16-dim (5-fold CV)" if r["id"] in ("R12","R13","R14") else "16-dim",
+     "22+6-dim · 444g · 38cat" if r["id"] == "R20" else "22+6-dim · 995g" if r["id"] in ("R18","R19") else "13-dim" if r["id"] in ("R1","R3","R6") else "21-dim · 1760g" if r["id"] == "R17" else "21-dim · bbox+affine" if r["id"] == "R16" else "18-dim · P1-P6" if r["id"] == "R15" else "16-dim (5-fold CV)" if r["id"] in ("R12","R13","R14") else "16-dim",
      r["graphs"],
      f"{r['val_auc']:.3f}", f"{r['test_auc']:.3f}", f"{r['test_ap']:.3f}"]
     for r in runs
@@ -196,6 +199,9 @@ for (row, col), cell in tbl.get_celld().items():
     if row > 0 and runs[row-1]["id"] == "R19":
         cell.set_facecolor("#0d1a3a")
         cell.set_text_props(color="#4f8ef7", fontweight="bold")
+    if row > 0 and runs[row-1]["id"] == "R20":
+        cell.set_facecolor("#2a0e30")
+        cell.set_text_props(color="#e879f9", fontweight="bold")
 
 ax.text(0.5, -0.42, "* Inflated: synthetic test graphs trivially match synthetic training patterns.",
         transform=ax.transAxes, ha="center", color=SUBTEXT, fontsize=7.5, style="italic")
@@ -216,7 +222,7 @@ fig2 = plt.figure(figsize=(18, fig_h), facecolor=BG)
 ax2 = fig2.add_axes([0.02, 0.02, 0.96, 0.96], facecolor=PANEL)
 ax2.axis("off")
 
-ax2.text(0.5, 0.99, "Change Log — R1 to R19", transform=ax2.transAxes,
+ax2.text(0.5, 0.99, "Change Log — R1 to R20", transform=ax2.transAxes,
          ha="center", va="top", color=TEXT, fontsize=14, fontweight="bold")
 
 # Two-column layout: runs split left/right

@@ -136,13 +136,11 @@ def main():
     for i in range(n_graphs):
         c = dataset.graph_categories[i] if i < len(dataset.graph_categories) else ''
         cat_counts[c] = cat_counts.get(c, 0) + 1
+    cat_summary = " ".join(f"{k}={v}" for k, v in sorted(cat_counts.items()) if k)
     print(f"      Dataset: {n_graphs} graphs | "
           f"mean nodes={total_nodes / n_graphs:.1f} | "
           f"mean edges={total_edges / n_graphs:.1f} | "
-          f"categories: Mech.Eng={cat_counts.get('Mechanical Engineering', 0)} "
-          f"Tools={cat_counts.get('Tools', 0)} "
-          f"MachDes={cat_counts.get('Machine design', 0)} "
-          f"Auto={cat_counts.get('Automotive', 0)}")
+          f"categories: {cat_summary}")
 
     # ── Cross-validation setup ────────────────────────────────────────────
     tc       = cfg["training"]
