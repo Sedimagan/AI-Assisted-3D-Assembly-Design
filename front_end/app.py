@@ -1816,29 +1816,45 @@ with col_left:
             elif st.session_state.last_cv_summary:
                 _cv = st.session_state.last_cv_summary
 
-            # If CV summary exists, show mean metrics as primary badges
+            # Read val AUC from serving checkpoint (lightweight metadata only)
+            _srv_val_auc = None
+            try:
+                import torch as _torch
+                _srv_meta = _torch.load(str(_CKPT_SERVING), map_location="cpu", weights_only=False)
+                _srv_val_auc = _srv_meta.get("auc")
+            except Exception:
+                pass
+
+            # Primary badges: best-fold metrics (val AUC + test AUC/AP)
+            _auc_col = "#16a34a" if _m_auc >= 0.70 else ("#d97706" if _m_auc >= 0.55 else "#dc2626")
+            _ap_col  = "#16a34a" if _m_ap  >= 0.70 else ("#d97706" if _m_ap  >= 0.55 else "#dc2626")
+            _val_col = "#16a34a" if (_srv_val_auc or 0) >= 0.70 else ("#d97706" if (_srv_val_auc or 0) >= 0.55 else "#dc2626")
+            _val_badge = (
+                f'<span style="background:{_val_col};color:#fff;font-size:0.72rem;'
+                f'font-weight:700;padding:2px 8px;border-radius:12px;">'
+                f'Val AUC {_srv_val_auc:.4f}</span>'
+            ) if _srv_val_auc is not None else ""
+            st.markdown(
+                '<div style="display:flex;gap:8px;align-items:center;'
+                'margin:0 0 4px;flex-wrap:wrap;">'
+                '<span style="font-size:0.72rem;color:#6b7280;">Best model:</span>'
+                + _val_badge +
+                f'<span style="background:{_auc_col};color:#fff;font-size:0.72rem;'
+                f'font-weight:700;padding:2px 8px;border-radius:12px;">'
+                f'Test AUC {_m_auc:.4f}</span>'
+                f'<span style="background:{_ap_col};color:#fff;font-size:0.72rem;'
+                f'font-weight:700;padding:2px 8px;border-radius:12px;">'
+                f'Test AP {_m_ap:.4f}</span>'
+                '</div>',
+                unsafe_allow_html=True,
+            )
+
+            # CV breakdown in expander
             if _cv and _cv.get("mean_auc"):
                 _b_auc = _cv["mean_auc"];  _b_std_auc = _cv.get("std_auc", 0)
                 _b_ap  = _cv["mean_ap"];   _b_std_ap  = _cv.get("std_ap",  0)
-                _auc_col = "#16a34a" if _b_auc >= 0.70 else ("#d97706" if _b_auc >= 0.55 else "#dc2626")
-                _ap_col  = "#16a34a" if _b_ap  >= 0.70 else ("#d97706" if _b_ap  >= 0.55 else "#dc2626")
                 _n_folds = _cv.get("n_folds", len(_cv.get("fold_aucs", [])))
-                st.markdown(
-                    '<div style="display:flex;gap:8px;align-items:center;'
-                    'margin:0 0 4px;flex-wrap:wrap;">'
-                    f'<span style="font-size:0.72rem;color:#6b7280;">'
-                    f'{_n_folds}-Fold CV:</span>'
-                    f'<span style="background:{_auc_col};color:#fff;font-size:0.72rem;'
-                    f'font-weight:700;padding:2px 8px;border-radius:12px;">'
-                    f'AUC {_b_auc:.4f} ±{_b_std_auc:.4f}</span>'
-                    f'<span style="background:{_ap_col};color:#fff;font-size:0.72rem;'
-                    f'font-weight:700;padding:2px 8px;border-radius:12px;">'
-                    f'AP {_b_ap:.4f} ±{_b_std_ap:.4f}</span>'
-                    '</div>',
-                    unsafe_allow_html=True,
-                )
-                # Per-fold breakdown in expander
-                with st.expander("📊 Per-fold results", expanded=False):
+                with st.expander(f"📊 {_n_folds}-Fold CV breakdown", expanded=False):
                     _fold_aucs = _cv.get("fold_aucs", [])
                     _fold_aps  = _cv.get("fold_aps",  [])
                     _best_fold = _cv.get("best_fold", -1)
@@ -1849,8 +1865,11 @@ with col_left:
                     import pandas as _pd
                     _df = _pd.DataFrame(_rows)
                     st.dataframe(_df, hide_index=True, use_container_width=True)
-                    st.caption(f"★ best fold (used for best_overall.pt)  ·  "
-                               f"Best fold test AUC {_m_auc:.4f}  AP {_m_ap:.4f}")
+                    st.caption(
+                        f"★ best fold  ·  "
+                        f"CV mean AUC {_b_auc:.4f} ±{_b_std_auc:.4f}  "
+                        f"mean AP {_b_ap:.4f} ±{_b_std_ap:.4f}"
+                    )
             else:
                 # No CV — show single-run badges
                 _auc_col = "#16a34a" if _m_auc >= 0.70 else ("#d97706" if _m_auc >= 0.55 else "#dc2626")
