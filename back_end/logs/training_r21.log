@@ -1,0 +1,435 @@
+Processing...
+
+[1/4] Loading dataset …
+  Found 89 STEP file(s) in /Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Source_3d_models/New_Training_models
+  [1/89] Parsing: assembly.step
+  [OK]  assembly.step — 9 nodes  14 edges  (9.2s)
+  [2/89] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  13 edges  (3.8s)
+  [3/89] Parsing: assembly.step
+  [OK]  assembly.step — 11 nodes  11 edges  (7.0s)
+  [4/89] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  7 edges  (3.5s)
+  [5/89] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  6 edges  (3.4s)
+  [6/89] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  6 edges  (3.8s)
+  [7/89] Parsing: assembly.step
+  [OK]  assembly.step — 13 nodes  6 edges  (31.3s)
+  [8/89] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  5 edges  (3.6s)
+  [9/89] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  11 edges  (3.7s)
+  [10/89] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  19 edges  (5.1s)
+  [11/89] Parsing: assembly.step
+  [OK]  assembly.step — 22 nodes  30 edges  (10.0s)
+  [12/89] Parsing: assembly.step
+  [OK]  assembly.step — 14 nodes  16 edges  (3.5s)
+  [13/89] Parsing: assembly.step
+  [OK]  assembly.step — 14 nodes  10 edges  (4.1s)
+  [14/89] Parsing: assembly.step
+  [OK]  assembly.step — 23 nodes  22 edges  (9.8s)
+  [15/89] Parsing: assembly.step
+  [OK]  assembly.step — 21 nodes  21 edges  (5.7s)
+  [16/89] Parsing: assembly.step
+  [OK]  assembly.step — 9 nodes  14 edges  (5.1s)
+  [17/89] Parsing: assembly.step
+  [OK]  assembly.step — 8 nodes  10 edges  (3.2s)
+  [18/89] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  15 edges  (3.2s)
+  [19/89] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  7 edges  (9.1s)
+  [20/89] Parsing: assembly.step
+  [OK]  assembly.step — 20 nodes  22 edges  (5.6s)
+  [21/89] Parsing: assembly.step
+  [OK]  assembly.step — 24 nodes  30 edges  (8.0s)
+  [22/89] Parsing: assembly.step
+  [OK]  assembly.step — 9 nodes  8 edges  (4.0s)
+  [23/89] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  12 edges  (6.5s)
+  [24/89] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  14 edges  (5.5s)
+  [25/89] Parsing: assembly.step
+  [OK]  assembly.step — 20 nodes  14 edges  (3.8s)
+  [26/89] Parsing: assembly.step
+  [OK]  assembly.step — 9 nodes  9 edges  (3.6s)
+  [27/89] Parsing: assembly.step
+  [OK]  assembly.step — 27 nodes  22 edges  (22.0s)
+  [28/89] Parsing: assembly.step
+  [OK]  assembly.step — 18 nodes  19 edges  (4.4s)
+  [29/89] Parsing: assembly.step
+  [OK]  assembly.step — 31 nodes  28 edges  (12.0s)
+  [30/89] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  16 edges  (4.2s)
+  [31/89] Parsing: assembly.step
+  [OK]  assembly.step — 9 nodes  8 edges  (17.1s)
+  [32/89] Parsing: assembly.step
+  [OK]  assembly.step — 12 nodes  12 edges  (4.0s)
+  [33/89] Parsing: assembly.step
+  [OK]  assembly.step — 16 nodes  13 edges  (5.3s)
+  [34/89] Parsing: assembly.step
+  [OK]  assembly.step — 16 nodes  28 edges  (4.1s)
+  [35/89] Parsing: assembly.step
+  [OK]  assembly.step — 18 nodes  21 edges  (4.9s)
+  [36/89] Parsing: assembly.step
+  [OK]  assembly.step — 21 nodes  24 edges  (4.8s)
+  [37/89] Parsing: assembly.step
+  [OK]  assembly.step — 9 nodes  15 edges  (3.2s)
+  [38/89] Parsing: assembly.step
+  [OK]  assembly.step — 12 nodes  27 edges  (3.2s)
+  [39/89] Parsing: assembly.step
+  [OK]  assembly.step — 9 nodes  17 edges  (3.3s)
+  [40/89] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  11 edges  (11.4s)
+  [41/89] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  7 edges  (4.1s)
+  [42/89] Parsing: assembly.step
+  [OK]  assembly.step — 25 nodes  24 edges  (7.2s)
+  [43/89] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  10 edges  (3.4s)
+  [44/89] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  5 edges  (4.3s)
+  [45/89] Parsing: assembly.step
+  [OK]  assembly.step — 21 nodes  19 edges  (11.4s)
+  [46/89] Parsing: assembly.step
+  [OK]  assembly.step — 20 nodes  26 edges  (3.6s)
+  [47/89] Parsing: assembly.step
+  [OK]  assembly.step — 9 nodes  11 edges  (3.2s)
+  [48/89] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  5 edges  (4.7s)
+  [49/89] Parsing: assembly.step
+  [OK]  assembly.step — 9 nodes  5 edges  (5.9s)
+  [50/89] Parsing: assembly.step
+  [OK]  assembly.step — 17 nodes  18 edges  (8.4s)
+  [51/89] Parsing: assembly.step
+  [OK]  assembly.step — 11 nodes  12 edges  (11.5s)
+  [52/89] Parsing: assembly.step
+  [OK]  assembly.step — 8 nodes  7 edges  (3.3s)
+  [53/89] Parsing: assembly.step
+  [OK]  assembly.step — 18 nodes  21 edges  (4.1s)
+  [54/89] Parsing: assembly.step
+  [OK]  assembly.step — 12 nodes  14 edges  (4.8s)
+  [55/89] Parsing: assembly.step
+  [OK]  assembly.step — 21 nodes  20 edges  (3.3s)
+  [56/89] Parsing: assembly.step
+  [OK]  assembly.step — 19 nodes  18 edges  (3.4s)
+  [57/89] Parsing: assembly.step
+  [OK]  assembly.step — 14 nodes  22 edges  (3.2s)
+  [58/89] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  8 edges  (4.0s)
+  [59/89] Parsing: assembly.step
+  [OK]  assembly.step — 12 nodes  5 edges  (3.2s)
+  [60/89] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  5 edges  (11.0s)
+  [61/89] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  6 edges  (30.8s)
+  [62/89] Parsing: assembly.step
+  [OK]  assembly.step — 12 nodes  13 edges  (27.5s)
+  [63/89] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  10 edges  (3.3s)
+  [64/89] Parsing: assembly.step
+  [OK]  assembly.step — 9 nodes  9 edges  (3.2s)
+  [65/89] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  5 edges  (3.2s)
+  [66/89] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  5 edges  (7.0s)
+  [67/89] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  7 edges  (3.5s)
+  [68/89] Parsing: assembly.step
+  [OK]  assembly.step — 9 nodes  5 edges  (3.1s)
+  [69/89] Parsing: assembly.step
+  [OK]  assembly.step — 13 nodes  18 edges  (10.8s)
+  [70/89] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  6 edges  (6.0s)
+  [71/89] Parsing: assembly.step
+  [OK]  assembly.step — 8 nodes  6 edges  (3.5s)
+  [72/89] Parsing: assembly.step
+  [OK]  assembly.step — 18 nodes  19 edges  (3.9s)
+  [73/89] Parsing: assembly.step
+  [OK]  assembly.step — 24 nodes  28 edges  (11.8s)
+  [74/89] Parsing: assembly.step
+  [OK]  assembly.step — 14 nodes  7 edges  (37.4s)
+  [75/89] Parsing: assembly.step
+  [OK]  assembly.step — 14 nodes  14 edges  (3.8s)
+  [76/89] Parsing: assembly.step
+  [OK]  assembly.step — 14 nodes  13 edges  (3.4s)
+  [77/89] Parsing: assembly.step
+  [OK]  assembly.step — 20 nodes  26 edges  (9.4s)
+  [78/89] Parsing: assembly.step
+  [OK]  assembly.step — 18 nodes  18 edges  (12.8s)
+  [79/89] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  9 edges  (5.4s)
+  [80/89] Parsing: assembly.step
+  [OK]  assembly.step — 19 nodes  20 edges  (3.8s)
+  [81/89] Parsing: assembly.step
+  [OK]  assembly.step — 24 nodes  26 edges  (15.5s)
+  [82/89] Parsing: assembly.step
+  [OK]  assembly.step — 20 nodes  27 edges  (3.7s)
+  [83/89] Parsing: assembly.step
+  [OK]  assembly.step — 24 nodes  18 edges  (4.6s)
+  [84/89] Parsing: assembly.step
+  [OK]  assembly.step — 19 nodes  25 edges  (3.8s)
+  [85/89] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  24 edges  (8.1s)
+  [86/89] Parsing: assembly.step
+  [OK]  assembly.step — 5 nodes  6 edges  (3.3s)
+  [87/89] Parsing: assembly.step
+  [OK]  assembly.step — 20 nodes  25 edges  (5.1s)
+  [88/89] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  6 edges  (7.3s)
+  [89/89] Parsing: assembly.step
+  [OK]  assembly.step — 13 nodes  14 edges  (8.8s)
+  Parsed 89 valid  |  errors: 0  timeouts: 0
+Done!
+  Using 89 real assembly graph(s) — no synthetic data.
+  Saved 89 graphs → data/processed/processed/data.pt
+  Saved source paths    → data/processed/processed/sources.json
+  Saved categories      → data/processed/processed/categories.json
+      89 graphs loaded.
+      Dataset: 89 graphs | mean nodes=13.6 | mean edges=29.0 | categories: Machine design=28 Mechanical Engineering=31 Tools=30
+
+[2/4] Building model …  (5-fold CV)
+
+[3/4] Training (5 folds) …
+
+=======================================================
+  FOLD 1 / 5
+=======================================================
+  Fold 1/5 — train: 60  val: 16  test: 13
+Model built on mps  |  total params: 602,945
+  Ep   1/200  loss=1.9008  AUC=0.6111  AP=0.8683  (0.9s)
+  ✓ Fold 1 new best AUC=0.6111  saved.
+  Ep   2/200  loss=1.9649  AUC=0.6556  AP=0.8815  (0.5s)
+  ✓ Fold 1 new best AUC=0.6556  saved.
+  Ep   3/200  loss=2.1764  AUC=0.5556  AP=0.8553  (0.5s)
+  Ep   4/200  loss=2.1395  AUC=0.5444  AP=0.8493  (0.5s)
+  Ep   5/200  loss=2.0522  AUC=0.5889  AP=0.8707  (0.5s)
+  Ep   6/200  loss=2.0064  AUC=0.6556  AP=0.8878  (0.5s)
+  Ep   7/200  loss=1.8970  AUC=0.6000  AP=0.8690  (0.5s)
+  Ep   8/200  loss=1.9054  AUC=0.5333  AP=0.8527  (0.6s)
+  Ep   9/200  loss=2.1109  AUC=0.5111  AP=0.8519  (0.1s)
+  Ep  10/200  loss=2.0154  AUC=0.4889  AP=0.7670  (0.4s)
+  Ep  11/200  loss=1.9061  AUC=0.4667  AP=0.7378  (0.5s)
+  Ep  12/200  loss=1.9900  AUC=0.4556  AP=0.7354  (0.4s)
+  Ep  13/200  loss=1.9180  AUC=0.4333  AP=0.7310  (0.6s)
+  Ep  14/200  loss=2.0399  AUC=0.4222  AP=0.7218  (0.5s)
+  Ep  15/200  loss=1.9495  AUC=0.4222  AP=0.7172  (0.6s)
+  Ep  16/200  loss=1.9462  AUC=0.4111  AP=0.7093  (0.6s)
+  Ep  17/200  loss=1.9215  AUC=0.4000  AP=0.7038  (0.6s)
+  Ep  18/200  loss=1.9594  AUC=0.4000  AP=0.7205  (0.7s)
+  Ep  19/200  loss=1.9171  AUC=0.4444  AP=0.7938  (0.6s)
+  Ep  20/200  loss=1.8964  AUC=0.5556  AP=0.8665  (0.6s)
+  Ep  21/200  loss=1.9809  AUC=0.5444  AP=0.8579  (0.5s)
+  Ep  22/200  loss=1.8971  AUC=0.5333  AP=0.8454  (0.6s)
+
+  Early stopping at epoch 22.
+
+  Fold 1 test — AUC=0.5556  AP=0.8535
+
+=======================================================
+  FOLD 2 / 5
+=======================================================
+  Fold 2/5 — train: 61  val: 15  test: 13
+Model built on mps  |  total params: 602,945
+  Ep   1/200  loss=2.2496  AUC=0.6346  AP=0.8410  (0.7s)
+  ✓ Fold 2 new best AUC=0.6346  saved.
+  Ep   2/200  loss=2.0104  AUC=0.4231  AP=0.7386  (0.6s)
+  Ep   3/200  loss=1.9619  AUC=0.4808  AP=0.7521  (0.5s)
+  Ep   4/200  loss=1.9703  AUC=0.5769  AP=0.8020  (0.5s)
+  Ep   5/200  loss=1.9800  AUC=0.5962  AP=0.8197  (0.7s)
+  Ep   6/200  loss=1.9916  AUC=0.5962  AP=0.8425  (0.8s)
+  Ep   7/200  loss=1.9939  AUC=0.5962  AP=0.8324  (0.6s)
+  Ep   8/200  loss=1.9504  AUC=0.6154  AP=0.8435  (0.8s)
+  Ep   9/200  loss=1.9919  AUC=0.5577  AP=0.8130  (0.6s)
+  Ep  10/200  loss=1.8800  AUC=0.5769  AP=0.8174  (0.5s)
+  Ep  11/200  loss=1.9749  AUC=0.5385  AP=0.8022  (0.8s)
+  Ep  12/200  loss=1.9615  AUC=0.5000  AP=0.7381  (0.5s)
+  Ep  13/200  loss=1.8947  AUC=0.5000  AP=0.7452  (0.6s)
+  Ep  14/200  loss=1.9512  AUC=0.5000  AP=0.7452  (0.8s)
+  Ep  15/200  loss=1.9864  AUC=0.5000  AP=0.7452  (0.7s)
+  Ep  16/200  loss=1.9951  AUC=0.4615  AP=0.7209  (0.7s)
+  Ep  17/200  loss=1.9219  AUC=0.4423  AP=0.7162  (0.8s)
+  Ep  18/200  loss=1.8835  AUC=0.4038  AP=0.6995  (0.9s)
+  Ep  19/200  loss=1.9125  AUC=0.4808  AP=0.7470  (0.9s)
+  Ep  20/200  loss=2.0195  AUC=0.4423  AP=0.7380  (0.6s)
+  Ep  21/200  loss=1.9578  AUC=0.4615  AP=0.7429  (0.7s)
+
+  Early stopping at epoch 21.
+
+  Fold 2 test — AUC=0.1944  AP=0.7233
+
+=======================================================
+  FOLD 3 / 5
+=======================================================
+  Fold 3/5 — train: 61  val: 15  test: 13
+Model built on mps  |  total params: 602,945
+  Ep   1/200  loss=2.1394  AUC=0.6410  AP=0.8927  (0.9s)
+  ✓ Fold 3 new best AUC=0.6410  saved.
+  Ep   2/200  loss=2.0108  AUC=0.6667  AP=0.9081  (0.8s)
+  ✓ Fold 3 new best AUC=0.6667  saved.
+  Ep   3/200  loss=2.0597  AUC=0.5897  AP=0.8657  (0.7s)
+  Ep   4/200  loss=2.0310  AUC=0.4872  AP=0.8454  (0.7s)
+  Ep   5/200  loss=1.9985  AUC=0.5128  AP=0.8410  (0.7s)
+  Ep   6/200  loss=1.9303  AUC=0.5128  AP=0.8410  (0.9s)
+  Ep   7/200  loss=2.1385  AUC=0.5641  AP=0.8567  (0.8s)
+  Ep   8/200  loss=1.9323  AUC=0.5128  AP=0.8542  (0.7s)
+  Ep   9/200  loss=1.9317  AUC=0.5385  AP=0.8873  (0.7s)
+  Ep  10/200  loss=1.9488  AUC=0.4359  AP=0.8510  (0.8s)
+  Ep  11/200  loss=2.0128  AUC=0.4359  AP=0.8311  (0.5s)
+  Ep  12/200  loss=2.0817  AUC=0.4103  AP=0.8228  (1.0s)
+  Ep  13/200  loss=1.9631  AUC=0.5385  AP=0.8781  (1.0s)
+  Ep  14/200  loss=1.9757  AUC=0.6923  AP=0.9316  (1.0s)
+  ✓ Fold 3 new best AUC=0.6923  saved.
+  Ep  15/200  loss=1.9724  AUC=0.7179  AP=0.9409  (0.9s)
+  ✓ Fold 3 new best AUC=0.7179  saved.
+  Ep  16/200  loss=2.1049  AUC=0.6154  AP=0.9101  (0.7s)
+  Ep  17/200  loss=1.9650  AUC=0.6667  AP=0.9283  (1.0s)
+  Ep  18/200  loss=1.9922  AUC=0.6410  AP=0.9220  (1.1s)
+  Ep  19/200  loss=2.0374  AUC=0.4872  AP=0.8679  (1.0s)
+  Ep  20/200  loss=1.9975  AUC=0.5385  AP=0.8957  (0.7s)
+  Ep  21/200  loss=1.9789  AUC=0.4103  AP=0.8368  (0.8s)
+  Ep  22/200  loss=1.9870  AUC=0.4359  AP=0.8465  (1.0s)
+  Ep  23/200  loss=1.9555  AUC=0.4872  AP=0.8670  (1.3s)
+  Ep  24/200  loss=1.9811  AUC=0.4615  AP=0.8516  (1.2s)
+  Ep  25/200  loss=1.9986  AUC=0.4615  AP=0.8617  (0.7s)
+  Ep  26/200  loss=1.9455  AUC=0.4103  AP=0.8412  (0.9s)
+  Ep  27/200  loss=1.9653  AUC=0.4615  AP=0.8517  (0.8s)
+  Ep  28/200  loss=1.9413  AUC=0.4359  AP=0.8468  (0.9s)
+  Ep  29/200  loss=1.9913  AUC=0.4359  AP=0.8451  (1.2s)
+  Ep  30/200  loss=1.9155  AUC=0.4103  AP=0.8385  (1.0s)
+  Ep  31/200  loss=1.9297  AUC=0.4359  AP=0.8483  (0.7s)
+  Ep  32/200  loss=1.9608  AUC=0.5128  AP=0.8861  (0.9s)
+  Ep  33/200  loss=1.9340  AUC=0.4615  AP=0.8677  (1.0s)
+  Ep  34/200  loss=1.9380  AUC=0.4872  AP=0.8751  (1.0s)
+  Ep  35/200  loss=1.9635  AUC=0.4872  AP=0.8751  (0.8s)
+
+  Early stopping at epoch 35.
+
+  Fold 3 test — AUC=0.3889  AP=0.7575
+
+=======================================================
+  FOLD 4 / 5
+=======================================================
+  Fold 4/5 — train: 61  val: 15  test: 13
+Model built on mps  |  total params: 602,945
+  Ep   1/200  loss=2.0997  AUC=0.7115  AP=0.8863  (1.4s)
+  ✓ Fold 4 new best AUC=0.7115  saved.
+  Ep   2/200  loss=1.9641  AUC=0.6346  AP=0.7972  (0.9s)
+  Ep   3/200  loss=1.9659  AUC=0.5577  AP=0.8241  (1.0s)
+  Ep   4/200  loss=1.9058  AUC=0.7308  AP=0.8891  (0.8s)
+  ✓ Fold 4 new best AUC=0.7308  saved.
+  Ep   5/200  loss=2.0044  AUC=0.6731  AP=0.8742  (0.7s)
+  Ep   6/200  loss=1.9145  AUC=0.6538  AP=0.8356  (0.8s)
+  Ep   7/200  loss=1.9077  AUC=0.6154  AP=0.8281  (0.9s)
+  Ep   8/200  loss=1.9323  AUC=0.6538  AP=0.8393  (0.7s)
+  Ep   9/200  loss=1.9269  AUC=0.5192  AP=0.7669  (0.9s)
+  Ep  10/200  loss=1.8882  AUC=0.4423  AP=0.7851  (0.9s)
+  Ep  11/200  loss=1.8791  AUC=0.4231  AP=0.7688  (0.9s)
+  Ep  12/200  loss=1.8309  AUC=0.3846  AP=0.7570  (1.4s)
+  Ep  13/200  loss=1.8686  AUC=0.3462  AP=0.7388  (1.2s)
+  Ep  14/200  loss=1.9193  AUC=0.3654  AP=0.7430  (0.9s)
+  Ep  15/200  loss=2.0005  AUC=0.3462  AP=0.7506  (0.8s)
+  Ep  16/200  loss=1.9224  AUC=0.4808  AP=0.8100  (0.9s)
+  Ep  17/200  loss=1.9609  AUC=0.5769  AP=0.8727  (0.9s)
+  Ep  18/200  loss=1.8540  AUC=0.5577  AP=0.8108  (1.1s)
+  Ep  19/200  loss=1.8670  AUC=0.5577  AP=0.8108  (0.4s)
+  Ep  20/200  loss=1.9466  AUC=0.6154  AP=0.8854  (1.1s)
+  Ep  21/200  loss=1.8794  AUC=0.4808  AP=0.8374  (1.0s)
+  Ep  22/200  loss=1.9226  AUC=0.4038  AP=0.8037  (0.8s)
+  Ep  23/200  loss=1.8366  AUC=0.4231  AP=0.8086  (1.4s)
+  Ep  24/200  loss=1.9283  AUC=0.3846  AP=0.7845  (1.0s)
+
+  Early stopping at epoch 24.
+
+  Fold 4 test — AUC=0.3611  AP=0.7866
+
+=======================================================
+  FOLD 5 / 5
+=======================================================
+  Fold 5/5 — train: 61  val: 15  test: 13
+Model built on mps  |  total params: 602,945
+  Ep   1/200  loss=1.8709  AUC=0.4941  AP=0.7904  (1.2s)
+  ✓ Fold 5 new best AUC=0.4941  saved.
+  Ep   2/200  loss=1.8409  AUC=0.4706  AP=0.7794  (1.1s)
+  Ep   3/200  loss=1.7933  AUC=0.5059  AP=0.7940  (1.0s)
+  ✓ Fold 5 new best AUC=0.5059  saved.
+  Ep   4/200  loss=1.8139  AUC=0.5059  AP=0.7616  (1.2s)
+  Ep   5/200  loss=1.8392  AUC=0.5412  AP=0.8261  (1.1s)
+  ✓ Fold 5 new best AUC=0.5412  saved.
+  Ep   6/200  loss=1.8243  AUC=0.5529  AP=0.8128  (0.9s)
+  ✓ Fold 5 new best AUC=0.5529  saved.
+  Ep   7/200  loss=1.8297  AUC=0.5529  AP=0.7863  (0.8s)
+  Ep   8/200  loss=1.7666  AUC=0.5647  AP=0.8065  (1.3s)
+  ✓ Fold 5 new best AUC=0.5647  saved.
+  Ep   9/200  loss=1.7722  AUC=0.5294  AP=0.8100  (0.9s)
+  Ep  10/200  loss=1.8496  AUC=0.5059  AP=0.8023  (0.2s)
+  Ep  11/200  loss=1.7749  AUC=0.4471  AP=0.7905  (1.0s)
+  Ep  12/200  loss=1.8187  AUC=0.4941  AP=0.7716  (0.9s)
+  Ep  13/200  loss=1.8008  AUC=0.6000  AP=0.7793  (1.0s)
+  ✓ Fold 5 new best AUC=0.6000  saved.
+  Ep  14/200  loss=1.7499  AUC=0.6235  AP=0.7849  (0.9s)
+  ✓ Fold 5 new best AUC=0.6235  saved.
+  Ep  15/200  loss=1.9840  AUC=0.6235  AP=0.8115  (1.3s)
+  Ep  16/200  loss=1.8403  AUC=0.6588  AP=0.8636  (1.2s)
+  ✓ Fold 5 new best AUC=0.6588  saved.
+  Ep  17/200  loss=1.7840  AUC=0.6824  AP=0.8652  (0.9s)
+  ✓ Fold 5 new best AUC=0.6824  saved.
+  Ep  18/200  loss=1.8277  AUC=0.7176  AP=0.8729  (0.7s)
+  ✓ Fold 5 new best AUC=0.7176  saved.
+  Ep  19/200  loss=1.7670  AUC=0.6235  AP=0.8257  (0.8s)
+  Ep  20/200  loss=1.7929  AUC=0.6118  AP=0.8194  (0.9s)
+  Ep  21/200  loss=1.8153  AUC=0.5765  AP=0.8273  (1.2s)
+  Ep  22/200  loss=1.8503  AUC=0.5176  AP=0.8236  (1.2s)
+  Ep  23/200  loss=1.7702  AUC=0.5294  AP=0.8183  (0.8s)
+  Ep  24/200  loss=1.7597  AUC=0.5059  AP=0.8035  (1.1s)
+  Ep  25/200  loss=1.8130  AUC=0.4706  AP=0.7999  (1.4s)
+  Ep  26/200  loss=1.7195  AUC=0.4588  AP=0.7676  (1.7s)
+  Ep  27/200  loss=1.7939  AUC=0.4353  AP=0.7581  (1.2s)
+  Ep  28/200  loss=1.8014  AUC=0.4235  AP=0.7287  (1.0s)
+  Ep  29/200  loss=1.8256  AUC=0.4588  AP=0.7423  (1.4s)
+  Ep  30/200  loss=1.7689  AUC=0.5059  AP=0.7487  (1.4s)
+  Ep  31/200  loss=1.7563  AUC=0.5529  AP=0.7618  (1.2s)
+  Ep  32/200  loss=1.7438  AUC=0.5765  AP=0.7674  (1.3s)
+  Ep  33/200  loss=1.7267  AUC=0.5882  AP=0.7968  (1.4s)
+  Ep  34/200  loss=1.8516  AUC=0.5765  AP=0.7674  (1.1s)
+  Ep  35/200  loss=1.7962  AUC=0.5647  AP=0.7576  (1.2s)
+  Ep  36/200  loss=1.7781  AUC=0.5412  AP=0.7511  (1.5s)
+  Ep  37/200  loss=1.8224  AUC=0.5294  AP=0.7412  (1.3s)
+  Ep  38/200  loss=1.7418  AUC=0.5059  AP=0.7339  (1.2s)
+
+  Early stopping at epoch 38.
+
+  Fold 5 test — AUC=0.6389  AP=0.8716
+
+=======================================================
+  5-Fold CV Summary
+=======================================================
+  Fold 1: AUC=0.5556  AP=0.8535
+  Fold 2: AUC=0.1944  AP=0.7233
+  Fold 3: AUC=0.3889  AP=0.7575
+  Fold 4: AUC=0.3611  AP=0.7866
+  Fold 5: AUC=0.6389  AP=0.8716
+  ─────────────────────────────────────────
+  Mean AUC = 0.4278 ± 0.1741
+  Mean AP  = 0.7985 ± 0.0629
+  Best overall fold: 4  (val AUC=0.7308)
+
+[4/4] Final test evaluation (best_overall.pt) …
+Model built on mps  |  total params: 602,945
+  Fold 4/5 — train: 61  val: 15  test: 13
+
+  ── Test results (best overall model) ─────
+     auc         : 0.5000
+     ap          : 0.8341
+
+  Results saved        → results
+  Best overall ckpt    → checkpoints/best_overall.pt
+  Trained model export → ../trained_models/assembly_gnn_20260626_003859_auc07308.pt
+
+  ✓ best_serving.pt updated — AUC=0.4278, AP=0.7985
+
+  Building assembly template cache …
+  [TemplateDB] Built 1 category templates from 89 training assemblies.
+    New Training Models                       bodies≈13  dist={'body': 9, 'fastener': 4, 'plate': 2, 'housing': 1}
+  [TemplateDB] Saved 1 templates → data/assembly_templates.json

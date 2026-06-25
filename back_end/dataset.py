@@ -41,7 +41,6 @@ import json
 import math
 import multiprocessing as _mp
 import random
-import shutil
 import time
 from pathlib import Path
 from typing import List, Optional, Tuple
@@ -55,38 +54,6 @@ from torch_geometric.transforms import RandomLinkSplit
 # 8-class component type vocabulary (index used for one-hot encoding)
 COMP_TYPES = ["body", "fastener", "bearing", "shaft", "plate", "housing", "gear", "other"]
 MATE_TYPES = ["coincident", "concentric", "parallel", "tangent", "fixed", "other"]
-
-# ── Skip infrastructure ──────────────────────────────────────────────────────
-
-SKIPPED_ROOT = Path("/Users/mbp/Documents/MTECH/Sem4/Individual_project/"
-                    "AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/"
-                    "Source_3d_models/skipped_models")
-SKIP_DIRS = {
-    "timeout":       SKIPPED_ROOT / "timeout",
-    "complex":       SKIPPED_ROOT / "complex_error",
-    "bop_builder":   SKIPPED_ROOT / "bop_builder_failed",
-    "bop_intersect": SKIPPED_ROOT / "bop_intersection_failed",
-    "wire_error":    SKIPPED_ROOT / "wire_error",
-    "no_contacts":   SKIPPED_ROOT / "no_contacts",
-    "other":         SKIPPED_ROOT / "other_errors",
-}
-for _d in SKIP_DIRS.values():
-    _d.mkdir(parents=True, exist_ok=True)
-
-
-def _move_to_skipped(step_path, reason):
-    """Move the assembly folder containing step_path to SKIP_DIRS[reason]."""
-    sp = Path(step_path)
-    folder = sp.parent
-    dest_dir = SKIP_DIRS.get(reason, SKIP_DIRS["other"])
-    dest = dest_dir / folder.name
-    try:
-        if not dest.exists():
-            shutil.move(str(folder), str(dest))
-            print(f"  [MOVED] {folder.name} → skipped_models/{reason}/", flush=True)
-    except Exception as e:
-        print(f"  [WARN] Could not move {folder.name}: {e}", flush=True)
-
 
 # ── Trimesh / SDF helpers ─────────────────────────────────────────────────────
 
@@ -230,15 +197,6 @@ def _infer_type_from_geometry(
     return 0  # body (generic fallback)
 
 
-# ── Size-filter sentinels ─────────────────────────────────────────────────────
-
-class _SkipTooManyNodes(Exception):
-    """Raised when a STEP file has more bodies than the configured threshold."""
-
-class _SkipTooManyEdges(Exception):
-    """Raised when a STEP file has more contacts than the configured threshold."""
-
-
 # ── Log-normalisation helper ──────────────────────────────────────────────────
 
 def _safe_log(x):
@@ -248,11 +206,7 @@ def _safe_log(x):
 
 # ── STEP file parser ──────────────────────────────────────────────────────────
 
-def _parse_step(
-    step_path: str,
-    max_nodes: int = 9999,
-    max_edges: int = 9999,
-) -> Optional[Data]:
+def _parse_step(step_path: str) -> Optional[Data]:
     """
     Parse a single STEP file into a PyG Data object.
 
@@ -278,17 +232,12 @@ def _parse_step(
         [1]    weight             (1.0 for detected contacts)
         [2:6]  joint type one-hot (rigid, revolute, slider, cylindrical)
     """
-    # ── P1: Pre-filter zero-contact assemblies (before any STEP parsing) ─────
     sp = Path(step_path)
     meta = {}
     json_path = sp.parent / "assembly.json"
     if json_path.exists():
         with open(json_path) as f:
             meta = json.load(f)
-        if len(meta.get("contacts", {}) or {}) == 0:
-            print(f"    [skip] {sp.name}: no contacts in JSON")
-            _move_to_skipped(step_path, "no_contacts")
-            return None
 
     # ── P4: Extract per-body hole counts from assembly.json ──────────────────
     holes = meta.get("holes", {}) or {}
@@ -336,12 +285,6 @@ def _parse_step(
         if len(volumes) < 2:
             return None
 
-        # ── Pre-check: node count (fast — before expensive fragment()) ────
-        if len(volumes) > max_nodes:
-            raise _SkipTooManyNodes(
-                f"{len(volumes)} bodies (threshold {max_nodes})"
-            )
-
         # Fragment volumes to share boundary surface tags → contact detection
         gmsh.model.occ.fragment(volumes, [])
         gmsh.model.occ.synchronize()
@@ -371,18 +314,6 @@ def _parse_step(
             bboxes.append((dx, dy, dz))
             bnd = gmsh.model.getBoundary([(dim, tag)], oriented=False, combined=True)
             body_surfs.append(frozenset(abs(s[1]) for s in bnd if s[0] == 2))
-
-        # ── Pre-check: edge count (before expensive trimesh+SDF) ─────────
-        _n_dir_edges = sum(
-            2 for i in range(len(volumes))
-            for j in range(i + 1, len(volumes))
-            if body_surfs[i] & body_surfs[j]
-        )
-        if _n_dir_edges > max_edges:
-            raise _SkipTooManyEdges(
-                f"{_n_dir_edges} directed edges / {_n_dir_edges // 2} contacts "
-                f"(threshold {max_edges})"
-            )
 
         # ── Trimesh enrichment: exact SA + SDF per body ───────────────────
         exact_sas: list = []
@@ -514,37 +445,8 @@ def _parse_step(
         edge_attr  = torch.tensor(eattr,        dtype=torch.float)
         return Data(x=x, edge_index=edge_index, edge_attr=edge_attr)
 
-    except (_SkipTooManyNodes, _SkipTooManyEdges):
-        raise   # propagate up to worker — these are handled, not errors
-    except TypeError as e:
-        if "complex" in str(e).lower():
-            print(f"    [skip] {Path(step_path).name}: {e}")
-            _move_to_skipped(step_path, "complex")
-            return None
-        print(f"    [skip] {Path(step_path).name}: {e}")
-        _move_to_skipped(step_path, "other")
-        return None
     except Exception as e:
-        msg = str(e)
-        name = Path(step_path).name
-        if "BOPAlgo_AlertIntersectionFailed" in msg:
-            print(f"    [skip] {name}: Intersection failed - {e}")
-            _move_to_skipped(step_path, "bop_intersect")
-            return None
-        if "BOPAlgo_AlertBuilderFailed" in msg:
-            print(f"    [skip] {name}: Builder failed - {e}")
-            _move_to_skipped(step_path, "bop_builder")
-            return None
-        if "Could not fix wire" in msg:
-            print(f"    [skip] {name}: Wire repair failed - {e}")
-            _move_to_skipped(step_path, "wire_error")
-            return None
-        if not msg.strip():
-            print(f"    [skip] {name}: unknown error (empty exception)")
-            _move_to_skipped(step_path, "other")
-            return None
-        print(f"    [skip] {name}: {e}")
-        _move_to_skipped(step_path, "other")
+        print(f"    [skip] {Path(step_path).name}: {e}")
         return None
 
     finally:
@@ -553,51 +455,30 @@ def _parse_step(
 
 # ── Timeout wrapper for _parse_step ──────────────────────────────────────────
 
-def _parse_step_worker(
-    step_path: str,
-    result_queue: "_mp.Queue",
-    max_nodes: int,
-    max_edges: int,
-) -> None:
+def _parse_step_worker(step_path: str, result_queue: "_mp.Queue") -> None:
     """Worker target: parse one STEP file and push result onto the queue."""
     try:
         import io
-        result = _parse_step(step_path, max_nodes=max_nodes, max_edges=max_edges)
+        result = _parse_step(step_path)
         if result is not None:
             buf = io.BytesIO()
             torch.save(result, buf)
             result_queue.put(("ok", buf.getvalue()))
         else:
             result_queue.put(("ok", None))
-    except _SkipTooManyNodes as exc:
-        result_queue.put(("too_many_nodes", str(exc)))
-    except _SkipTooManyEdges as exc:
-        result_queue.put(("too_many_edges", str(exc)))
     except Exception as exc:
         result_queue.put(("error", str(exc)))
 
 
-def _parse_step_with_timeout(
-    step_path: str,
-    timeout_secs: int = 60,
-    max_nodes:    int = 20,
-    max_edges:    int = 60,
-) -> tuple:
+def _parse_step_with_timeout(step_path: str, timeout_secs: int = 120) -> tuple:
     """
-    Run _parse_step in a child process with size and time limits.
+    Run _parse_step in a child process with a time limit.
 
-    Returns
-    -------
-    (Data | None, status)
-      status: "ok" | "timeout" | "too_many_nodes" | "too_many_edges" | "error"
+    Returns (Data | None, status) where status is "ok" | "timeout" | "error".
     """
-    ctx = _mp.get_context("spawn")   # fresh interpreter — avoids gmsh state leaks
+    ctx = _mp.get_context("spawn")
     q   = ctx.Queue()
-    p   = ctx.Process(
-        target=_parse_step_worker,
-        args=(step_path, q, max_nodes, max_edges),
-        daemon=True,
-    )
+    p   = ctx.Process(target=_parse_step_worker, args=(step_path, q), daemon=True)
     p.start()
     p.join(timeout=timeout_secs)
 
@@ -608,7 +489,6 @@ def _parse_step_with_timeout(
             p.kill()
             p.join()
         print(f"    [skip] {Path(step_path).name}: timeout after {timeout_secs}s")
-        _move_to_skipped(step_path, "timeout")
         return None, "timeout"
 
     if not q.empty():
@@ -621,7 +501,7 @@ def _parse_step_with_timeout(
             return data, "ok"
         if status == "error":
             print(f"    [detail] {Path(step_path).name}: {payload}", flush=True)
-        return None, status   # "too_many_nodes" | "too_many_edges" | "error"
+        return None, status
 
     print(f"    [detail] {Path(step_path).name}: worker process crashed (no output)",
           flush=True)
@@ -805,7 +685,6 @@ class AssemblyDataset(InMemoryDataset):
             p for p in self.source_dir.rglob("*")
             if p.suffix in step_exts and not _UUID_RE.match(p.stem)
         ]
-        # Filter to specific category subdirectories when requested
         if self.categories:
             _cats_set = set(self.categories)
             step_files = [
@@ -815,128 +694,36 @@ class AssemblyDataset(InMemoryDataset):
             print(f"  Category filter: {self.categories}")
             print(f"  {len(step_files)} STEP files after category filter")
 
-        graphs:            List[Data] = []
-        source_paths:      List[str]  = []
-        graph_categories:  List[str]  = []
-        skipped:           List[dict] = []
+        graphs:           List[Data] = []
+        source_paths:     List[str]  = []
+        graph_categories: List[str]  = []
+        n_errors = 0
+        n_timeouts = 0
 
-        # ── Thresholds ────────────────────────────────────────────────────
-        _TIMEOUT   = 60    # seconds per file
-        _MAX_NODES = 20    # bodies — M1-friendly limit (74% of Fusion360 pass)
-        _MAX_EDGES = 60    # directed edges (≈ 30 contacts) — 3× dataset mean
-        _MIN_EDGES = 6     # directed edges (≥3 contacts) — fewer breaks RandomLinkSplit
-
-        _skipped_dir       = self.source_dir / "skipped_models"
-        _skip_nodes_dir    = _skipped_dir / f"nodes_gt_{_MAX_NODES}"
-        _skip_edges_dir    = _skipped_dir / f"edges_gt_{_MAX_EDGES}"
-        _skip_few_edges_dir = _skipped_dir / f"edges_lt_{_MIN_EDGES}"
-        _skip_timeout_dir  = _skipped_dir / "timeout"
-
+        _TIMEOUT = 120
         _category_dirs = {
-            d.name for d in self.source_dir.iterdir()
-            if d.is_dir() and d.name != "skipped_models"
+            d.name for d in self.source_dir.iterdir() if d.is_dir()
         }
-
-        def _move_folder(sf: Path, dest_dir: Path) -> Optional[str]:
-            """Move sf's parent folder into dest_dir; return dest path or None."""
-            if sf.parent == self.source_dir:
-                return None
-            if sf.parent.name in _category_dirs:
-                return None
-            if not sf.parent.exists():
-                return None
-            dest_dir.mkdir(parents=True, exist_ok=True)
-            dest = dest_dir / sf.parent.name
-            if not dest.exists():
-                shutil.move(str(sf.parent), str(dest))
-                return str(dest)
-            return str(dest)
 
         if step_files:
             print(f"  Found {len(step_files)} STEP file(s) in {self.source_dir}",
                   flush=True)
-            print(f"  Thresholds — nodes ≤ {_MAX_NODES}  edges ≤ {_MAX_EDGES}"
-                  f"  edges ≥ {_MIN_EDGES}  timeout {_TIMEOUT}s", flush=True)
-
-            n_no_contacts = 0
             for idx, sf in enumerate(sorted(step_files), 1):
                 print(f"  [{idx}/{len(step_files)}] Parsing: {sf.name}", flush=True)
-
-                # ── Fast pre-check: skip assemblies with no contacts ─────
-                json_file = sf.parent / "assembly.json"
-                if json_file.exists():
-                    with open(json_file) as f:
-                        meta = json.load(f)
-                    contacts = meta.get("contacts", {}) or {}
-                    if len(contacts) == 0:
-                        print(f"    [skip] {sf.name}: no contacts in JSON",
-                              flush=True)
-                        _move_to_skipped(sf, "no_contacts")
-                        skipped.append({"file": str(sf),
-                                        "folder": str(sf.parent),
-                                        "reason": "no_contacts",
-                                        "elapsed": 0.0})
-                        n_no_contacts += 1
-                        continue
-
                 t0 = time.time()
-                g, status = _parse_step_with_timeout(
-                    str(sf),
-                    timeout_secs=_TIMEOUT,
-                    max_nodes=_MAX_NODES,
-                    max_edges=_MAX_EDGES,
-                )
+                g, status = _parse_step_with_timeout(str(sf), timeout_secs=_TIMEOUT)
                 elapsed = round(time.time() - t0, 1)
 
-                if status == "too_many_nodes":
-                    print(f"  [SKIP-NODES] {sf.name} — nodes > {_MAX_NODES} "
-                          f"({elapsed}s)", flush=True)
-                    entry = {"file": str(sf), "folder": str(sf.parent),
-                             "reason": f"nodes > {_MAX_NODES}", "elapsed": elapsed}
-                    dest = _move_folder(sf, _skip_nodes_dir)
-                    if dest:
-                        entry["moved_to"] = dest
-                    skipped.append(entry)
-                    continue
-
-                if status == "too_many_edges":
-                    print(f"  [SKIP-EDGES] {sf.name} — edges > {_MAX_EDGES} "
-                          f"({elapsed}s)", flush=True)
-                    entry = {"file": str(sf), "folder": str(sf.parent),
-                             "reason": f"edges > {_MAX_EDGES}", "elapsed": elapsed}
-                    dest = _move_folder(sf, _skip_edges_dir)
-                    if dest:
-                        entry["moved_to"] = dest
-                    skipped.append(entry)
-                    continue
-
                 if status == "timeout":
-                    print(f"  [TIMEOUT]    {sf.name} — exceeded {_TIMEOUT}s "
-                          f"({elapsed}s)", flush=True)
-                    entry = {"file": str(sf), "folder": str(sf.parent),
-                             "reason": f"timeout > {_TIMEOUT}s", "elapsed": elapsed}
-                    dest = _move_folder(sf, _skip_timeout_dir)
-                    if dest:
-                        entry["moved_to"] = dest
-                    skipped.append(entry)
+                    print(f"  [TIMEOUT] {sf.name} ({elapsed}s)", flush=True)
+                    n_timeouts += 1
                     continue
-
                 if status == "error":
-                    print(f"  [ERROR]      {sf.name} — parse failed", flush=True)
+                    print(f"  [ERROR]   {sf.name} — parse failed", flush=True)
+                    n_errors += 1
                     continue
-
                 if g is not None and g.num_nodes >= 2:
                     n_dir = g.edge_index.size(1)
-                    if n_dir < _MIN_EDGES:
-                        print(f"  [SKIP-FEW]   {sf.name} — {n_dir} directed edges "
-                              f"< {_MIN_EDGES} ({elapsed}s)", flush=True)
-                        entry = {"file": str(sf), "folder": str(sf.parent),
-                                 "reason": f"edges < {_MIN_EDGES}", "elapsed": elapsed}
-                        dest = _move_folder(sf, _skip_few_edges_dir)
-                        if dest:
-                            entry["moved_to"] = dest
-                        skipped.append(entry)
-                        continue
                     cat = ''
                     for part in sf.parts:
                         if part in _category_dirs:
@@ -949,60 +736,17 @@ class AssemblyDataset(InMemoryDataset):
                     print(f"  [OK]  {sf.name} — {g.num_nodes} nodes  "
                           f"{n_dir//2} edges  ({elapsed}s)", flush=True)
 
-            n_nodes_skip    = sum(1 for e in skipped if "nodes >"  in e["reason"])
-            n_edges_skip    = sum(1 for e in skipped if "edges >"  in e["reason"])
-            n_few_edges_skip = sum(1 for e in skipped if "edges <"  in e["reason"])
-            n_time_skip     = sum(1 for e in skipped if "timeout"  in e["reason"])
             print(
                 f"  Parsed {len(graphs)} valid  |  "
-                f"Skipped {len(skipped)} total "
-                f"(nodes>{_MAX_NODES}: {n_nodes_skip}  "
-                f"edges>{_MAX_EDGES}: {n_edges_skip}  "
-                f"edges<{_MIN_EDGES}: {n_few_edges_skip}  "
-                f"timeout: {n_time_skip}  "
-                f"no_contacts: {n_no_contacts})",
+                f"errors: {n_errors}  timeouts: {n_timeouts}",
                 flush=True,
             )
-
-            # ── Write skipped report ──────────────────────────────────────
-            if skipped:
-                report = {
-                    "source_dir":        str(self.source_dir),
-                    "thresholds": {
-                        "max_nodes":    _MAX_NODES,
-                        "max_edges":    _MAX_EDGES,
-                        "min_edges":    _MIN_EDGES,
-                        "timeout_secs": _TIMEOUT,
-                    },
-                    "total_found":       len(step_files),
-                    "total_parsed":      len(graphs),
-                    "total_skipped":     len(skipped),
-                    "skipped_breakdown": {
-                        f"nodes_gt_{_MAX_NODES}": n_nodes_skip,
-                        f"edges_gt_{_MAX_EDGES}": n_edges_skip,
-                        f"edges_lt_{_MIN_EDGES}": n_few_edges_skip,
-                        "timeout":                n_time_skip,
-                        "no_contacts":            n_no_contacts,
-                    },
-                    "skipped_folders": {
-                        f"nodes_gt_{_MAX_NODES}": str(_skip_nodes_dir),
-                        f"edges_gt_{_MAX_EDGES}": str(_skip_edges_dir),
-                        f"edges_lt_{_MIN_EDGES}": str(_skip_few_edges_dir),
-                        "timeout":                str(_skip_timeout_dir),
-                        "no_contacts":            str(SKIP_DIRS["no_contacts"]),
-                    },
-                    "entries": skipped,
-                }
-                report_path = self.source_dir / "skipped_models_report.json"
-                report_path.write_text(json.dumps(report, indent=2))
-                print(f"  Skipped report → {report_path}", flush=True)
         else:
             print(f"  No STEP files found in {self.source_dir}.", flush=True)
 
         if len(graphs) == 0:
             raise RuntimeError(
-                "No valid multi-body assembly graphs found in source directory. "
-                "Check that Source_3d_models/ contains STEP files with ≥2 solid bodies."
+                "No valid multi-body assembly graphs found in source directory."
             )
         print(f"  Using {len(graphs)} real assembly graph(s) — no synthetic data.")
 
@@ -1017,11 +761,6 @@ class AssemblyDataset(InMemoryDataset):
         print(f"  Saved source paths    → {sources_file}")
         print(f"  Saved categories      → {cats_file}")
 
-        for reason, path in SKIP_DIRS.items():
-            count = len(list(path.iterdir())) if path.exists() else 0
-            if count > 0:
-                print(f"  skipped/{reason}: {count} assemblies")
-
 
 # ── Split helper ──────────────────────────────────────────────────────────────
 
@@ -1031,7 +770,6 @@ def get_splits(dataset: AssemblyDataset, cfg: dict, fold_idx: int = 0, n_folds: 
 
     fold_idx selects which of the n_folds splits is used as validation;
     the rest form the training set.  RandomLinkSplit is applied per-graph.
-    Graphs with fewer than 10 directed edges are skipped.
     """
     n      = len(dataset)
     n_test = max(1, int(n * cfg["data"]["test_ratio"]))
@@ -1061,8 +799,6 @@ def get_splits(dataset: AssemblyDataset, cfg: dict, fold_idx: int = 0, n_folds: 
             data = dataset[i]
             cat = dataset.graph_categories[i] if i < len(dataset.graph_categories) else ''
             n_edges = data.edge_index.size(1)
-            if n_edges < 10:
-                continue
             n_pos = n_edges // 2
             max_neg = n_pos * (data.num_nodes - 1) - n_pos
             req_neg = int(n_pos * cfg["training"]["neg_ratio"])
