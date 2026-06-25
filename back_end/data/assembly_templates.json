@@ -1,21 +1,20 @@
 [
   {
-    "category": "best_models_for_training",
-    "label": "Best Models For Training",
+    "category": "new_training_models",
+    "label": "New Training Models",
     "component_counts": {
-      "body": 8,
-      "fastener": 4,
-      "bearing": 1,
-      "plate": 3
+      "body": 2,
+      "fastener": 1,
+      "plate": 2
     },
-    "total_bodies": 14,
+    "total_bodies": 3,
     "examples": [
-      "assembly.step",
-      "assembly.step",
-      "assembly.step",
-      "assembly.step",
-      "assembly.step"
+      "Wall Bearing.STEP",
+      "Spindle Bracket.step",
+      "Spindle Mounting Bracket 80mm.step",
+      "SLOT SENSOR ASSEMBLY.STEP",
+      "STOPPER ASSEMBLY.STEP"
     ],
-    "n_assemblies": 444
+    "n_assemblies": 119
   }
 ]

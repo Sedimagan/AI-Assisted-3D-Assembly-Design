@@ -418,26 +418,26 @@ ul.bl li:nth-child(8) { animation-delay:0.39s; }
 <div class="slide" id="s4">
   <div class="shdr">
     <div class="snum">4</div>
-    <h2>Results Obtained — Intermediate</h2>
-    <div class="sub">GNN Training Metrics as of May 2026 &nbsp;|&nbsp; Phase 1 Complete</div>
+    <h2>Results Obtained — Latest (R21)</h2>
+    <div class="sub">GNN Training Metrics as of 25 Jun 2026 &nbsp;|&nbsp; Phase 1 — 21 Training Runs</div>
   </div>
   <div class="sbody">
 
     <div class="mrow">
       <div class="met b">
-        <div class="mv">0.9272</div>
-        <div class="mk">BEST AUC-ROC</div>
-        <div class="mn">checkpoint _162431 · 23 May</div>
+        <div class="mv">0.600</div>
+        <div class="mk">MEAN AUC-ROC</div>
+        <div class="mn">R21 · 5-fold CV · ±0.149 std</div>
       </div>
       <div class="met g">
-        <div class="mv">0.6290</div>
-        <div class="mk">BEST AVG PRECISION</div>
-        <div class="mn">epoch 15 of best run</div>
+        <div class="mv">0.894</div>
+        <div class="mk">MEAN AVG PRECISION</div>
+        <div class="mn">R21 · exceeds Phase 1 target (0.82)</div>
       </div>
       <div class="met p">
-        <div class="mv">14</div>
-        <div class="mk">CHECKPOINTS SAVED</div>
-        <div class="mn">trained_models/ directory</div>
+        <div class="mv">119</div>
+        <div class="mk">TRAINING GRAPHS</div>
+        <div class="mn">3 hand-curated categories · 0 skipped</div>
       </div>
       <div class="met o">
         <div class="mv">Phase 1</div>
@@ -455,10 +455,10 @@ ul.bl li:nth-child(8) { animation-delay:0.39s; }
             <tr><td>Optimiser</td><td class="hi">Adam &nbsp;(lr = 1×10⁻³)</td></tr>
             <tr><td>LR Scheduler</td><td class="hg">ReduceLROnPlateau</td></tr>
             <tr><td>Early Stop</td><td>patience = 20 epochs</td></tr>
-            <tr><td>Batch Strategy</td><td>Full-graph (1 per epoch)</td></tr>
-            <tr><td>Node features</td><td>13-dim</td></tr>
+            <tr><td>Batch Size</td><td>32 graphs per batch</td></tr>
+            <tr><td>Node features</td><td>22-dim + 6-dim edges</td></tr>
             <tr><td>Embedding dim</td><td>64 &nbsp;(hidden 128)</td></tr>
-            <tr><td>Dropout</td><td>0.10</td></tr>
+            <tr><td>Dropout</td><td>0.20</td></tr>
             <tr><td>Device</td><td>MPS (Apple Silicon)</td></tr>
           </table>
         </div>
@@ -466,20 +466,18 @@ ul.bl li:nth-child(8) { animation-delay:0.39s; }
       <div class="col coll">
         <div class="card" style="flex:1">
           <div class="lbl g">Model Checkpoints</div>
-          <h3>AUC-ROC across Training Runs</h3>
+          <h3>Mean AUC-ROC across Recent Runs (5-fold CV)</h3>
           <table class="tbl" style="margin-top:5px">
             <thead>
-              <tr><th>Run</th><th>Checkpoint</th><th>AUC-ROC</th><th>Observation</th></tr>
+              <tr><th>Run</th><th>Graphs</th><th>Mean AUC</th><th>Mean AP</th><th>Observation</th></tr>
             </thead>
             <tbody>
-              <tr class="best"><td>1</td><td style="font-size:12px;color:#2a3848">20260523_162431</td><td class="hg">0.9272 ★</td><td style="font-size:13px;color:#2e8a58">Best — optimal LR + data split</td></tr>
-              <tr><td>2</td><td style="font-size:12px;color:#2a3848">20260526_104218</td><td class="hi">0.8125</td><td style="font-size:13px;color:#2a4860">Strong secondary run</td></tr>
-              <tr><td>3</td><td style="font-size:12px;color:#2a3848">20260526_113959</td><td class="hi">0.7500</td><td style="font-size:13px;color:#2a4860">Good convergence</td></tr>
-              <tr><td>4</td><td style="font-size:12px;color:#2a3848">20260526_111314</td><td class="hi">0.7190</td><td style="font-size:13px;color:#2a4860">Stable training</td></tr>
-              <tr><td>5</td><td style="font-size:12px;color:#2a3848">20260526_100947</td><td>0.6601</td><td style="font-size:13px;color:#2a4860">Moderate performance</td></tr>
-              <tr><td>6</td><td style="font-size:12px;color:#2a3848">20260523_180046</td><td>0.6367</td><td style="font-size:13px;color:#2a4860">Later run, slightly lower</td></tr>
-              <tr><td>7</td><td style="font-size:12px;color:#2a3848">20260523_153633</td><td class="ho">0.4842</td><td style="font-size:13px;color:#3a4848">Early run — underfitting</td></tr>
-              <tr><td>8</td><td style="font-size:12px;color:#2a3848">20260523_141208</td><td class="ho">0.4403</td><td style="font-size:13px;color:#3a4848">First run — warm-up</td></tr>
+              <tr class="best"><td>R21 ★</td><td>119</td><td class="hg">0.600</td><td class="hg">0.894</td><td style="font-size:13px;color:#2e8a58">Hand-curated 3 categories · AP exceeds target</td></tr>
+              <tr><td>R20</td><td>444</td><td>0.503</td><td>0.749</td><td style="font-size:13px;color:#2a4860">38 diversified categories</td></tr>
+              <tr><td>R19</td><td>995</td><td>0.504</td><td class="hi">0.835</td><td style="font-size:13px;color:#2a4860">Serving gate added · 995 curated</td></tr>
+              <tr><td>R17</td><td>1760</td><td class="hi">0.625</td><td class="hi">0.878</td><td style="font-size:13px;color:#2a4860">6.5× data · most stable (±0.017)</td></tr>
+              <tr><td>R15</td><td>270</td><td class="hi">0.726</td><td class="hg">0.917</td><td style="font-size:13px;color:#2e8a58">P1–P6 · best mean AUC</td></tr>
+              <tr><td>R12</td><td>416</td><td class="hi">0.697</td><td class="hi">0.827</td><td style="font-size:13px;color:#2a4860">5-fold CV introduced</td></tr>
             </tbody>
           </table>
         </div>

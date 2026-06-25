@@ -1,5 +1,5 @@
 data:
-  source_dir: "/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Source_3d_models/Best_models_for_training"
+  source_dir: "/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Source_3d_models/New_Training_models"
   processed_dir: "data/processed"
   train_ratio: 0.70
   val_ratio:   0.15
