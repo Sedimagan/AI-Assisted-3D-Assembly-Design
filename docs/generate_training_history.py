@@ -63,8 +63,8 @@ runs = [
          note="38 diversified categories (was 4)\n471 STEP → 444 graphs · 10 timeout skips\nDynamic category detection · all subdirs\n5-Fold CV · Mean AUC=0.503±0.045 · Mean AP=0.749±0.020",
          val_auc=0.627, test_auc=0.523, test_ap=0.771, synthetic=False),
     dict(id="R21", date="25 Jun\n10:38", graphs="119 real",
-         note="3 hand-curated categories · no skip logic\n154 STEP → 119 graphs · 0 errors · 0 timeouts\nHinge=102 Bracket=9 Shaft/Bearing=8\n5-Fold CV · Mean AUC=0.600±0.149 · Mean AP=0.894±0.050",
-         val_auc=0.889, test_auc=0.000, test_ap=0.639, synthetic=False),
+         note="3 hand-curated categories · no skip/edge filters\n154 STEP → 119 graphs · 0 errors · 0 timeouts\nHinge=102 Bracket=9 Shaft/Bearing=8\n5-Fold CV · Mean AUC=0.333±0.333 · Mean AP=0.783±0.139",
+         val_auc=1.000, test_auc=1.000, test_ap=1.000, synthetic=False),
 ]
 
 n   = len(runs)

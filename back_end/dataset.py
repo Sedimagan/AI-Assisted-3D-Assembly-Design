@@ -813,8 +813,6 @@ def get_splits(dataset: AssemblyDataset, cfg: dict, fold_idx: int = 0, n_folds: 
             data = dataset[i]
             cat = dataset.graph_categories[i] if i < len(dataset.graph_categories) else ''
             n_edges = data.edge_index.size(1)
-            if n_edges < 10:
-                continue
             n_pos = n_edges // 2
             max_neg = n_pos * (data.num_nodes - 1) - n_pos
             req_neg = int(n_pos * cfg["training"]["neg_ratio"])

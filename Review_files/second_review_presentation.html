@@ -425,14 +425,14 @@ ul.bl li:nth-child(8) { animation-delay:0.39s; }
 
     <div class="mrow">
       <div class="met b">
-        <div class="mv">0.600</div>
+        <div class="mv">0.333</div>
         <div class="mk">MEAN AUC-ROC</div>
-        <div class="mn">R21 · 5-fold CV · ±0.149 std</div>
+        <div class="mn">R21 · 5-fold CV · ±0.333 std</div>
       </div>
       <div class="met g">
-        <div class="mv">0.894</div>
+        <div class="mv">0.783</div>
         <div class="mk">MEAN AVG PRECISION</div>
-        <div class="mn">R21 · exceeds Phase 1 target (0.82)</div>
+        <div class="mn">R21 · ±0.139 std · near Phase 1 target (0.82)</div>
       </div>
       <div class="met p">
         <div class="mv">119</div>
@@ -472,7 +472,7 @@ ul.bl li:nth-child(8) { animation-delay:0.39s; }
               <tr><th>Run</th><th>Graphs</th><th>Mean AUC</th><th>Mean AP</th><th>Observation</th></tr>
             </thead>
             <tbody>
-              <tr class="best"><td>R21 ★</td><td>119</td><td class="hg">0.600</td><td class="hg">0.894</td><td style="font-size:13px;color:#2e8a58">Hand-curated 3 categories · AP exceeds target</td></tr>
+              <tr class="best"><td>R21 ★</td><td>119</td><td>0.333</td><td>0.783</td><td style="font-size:13px;color:#2a4860">Hand-curated 3 categories · small-graph noise</td></tr>
               <tr><td>R20</td><td>444</td><td>0.503</td><td>0.749</td><td style="font-size:13px;color:#2a4860">38 diversified categories</td></tr>
               <tr><td>R19</td><td>995</td><td>0.504</td><td class="hi">0.835</td><td style="font-size:13px;color:#2a4860">Serving gate added · 995 curated</td></tr>
               <tr><td>R17</td><td>1760</td><td class="hi">0.625</td><td class="hi">0.878</td><td style="font-size:13px;color:#2a4860">6.5× data · most stable (±0.017)</td></tr>
