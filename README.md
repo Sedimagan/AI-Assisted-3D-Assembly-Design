@@ -554,6 +554,7 @@ python skills_agent.py
 After training completes a timestamped file is saved to `trained_models/`:
 
 ```
+trained_models/assembly_gnn_20260626_073453_auc06246.pt   ← R22 (22+6-dim, 3 categories, Best_models_for_training, 239 graphs, best fold val AUC 0.625, mean AUC 0.588, mean AP 0.767, 2026-06-26) — serving promoted
 trained_models/assembly_gnn_20260626_003859_auc07308.pt   ← R21 (22+6-dim, 3 new categories, 89 graphs, best fold val AUC 0.731, mean AUC 0.428, mean AP 0.799, 2026-06-26) — serving promoted
 trained_models/assembly_gnn_20260625_094934_auc06267.pt   ← R20 (22+6-dim, 38 categories, 444 diversified graphs, best fold val AUC 0.627, mean AUC 0.503, mean AP 0.749, 2026-06-25) — serving NOT promoted
 trained_models/assembly_gnn_20260624_101135_auc06409.pt   ← R19 (22-dim+6-dim edges, 995 curated graphs, best fold val AUC 0.641, mean AUC 0.504, mean AP 0.835, 2026-06-24)
@@ -1095,9 +1096,9 @@ All previous output — red ⚠ body highlights, orange ❓ cross markers, AIDA 
 
 ![Training Progression — AUC-ROC & Average Precision](docs/training_history.png)
 
-Twenty-two training runs are shown, split into two eras. Each bar group shows Val AUC (light), Test AUC (solid), and Test AP (translucent) for that run. Dashed red/orange lines are the Phase 1 targets (AUC 0.85, AP 0.82). R12–R21 report best-fold metrics from 5-fold CV.
+Twenty-three training runs are shown, split into two eras. Each bar group shows Val AUC (light), Test AUC (solid), and Test AP (translucent) for that run. Dashed red/orange lines are the Phase 1 targets (AUC 0.85, AP 0.82). R12–R22 report best-fold metrics from 5-fold CV.
 
-![Change Log — R1 to R21](docs/training_changelog.png)
+![Change Log — R1 to R22](docs/training_changelog.png)
 
 | Run | Date | Change | Graphs | Val AUC | Test AUC | Test AP |
 |---|---|---|---|---|---|---|
@@ -1118,7 +1119,8 @@ Twenty-two training runs are shown, split into two eras. Each bar group shows Va
 | R18 | 24 Jun 05:08 | 22-dim nodes + 6-dim edges · curated 996→995 graphs (0 skipped) · log1p vol/SA · holes · joint types · MIN_EDGES 10→6 · 5-fold CV · Mean AUC=0.483±0.056 · Mean AP=0.833±0.025 | 995 | 0.628 | 0.444 | 0.807 |
 | R19 | 24 Jun 10:11 | 22+6-dim · best_serving gate · device bug fix · 5-fold CV · Mean AUC=0.504±0.069 · Mean AP=0.835±0.028 | 995 | 0.641 | 0.472 | 0.795 |
 | R20 | 25 Jun 09:49 | 22+6-dim · 38 diversified categories · 444 graphs · 5-fold CV · Mean AUC=0.503±0.045 · Mean AP=0.749±0.020 · serving NOT promoted | 444 | 0.627 | 0.523 | 0.771 |
-| **R21** | **26 Jun 00:26** | **22+6-dim · 3 new categories · no skip/edge filters · 89 graphs · 5-fold CV · Mean AUC=0.428±0.174 · Mean AP=0.799±0.063 · serving promoted** | **89** | **0.731** | **0.500** | **0.834** |
+| R21 | 26 Jun 00:26 | 22+6-dim · 3 new categories · no skip/edge filters · 89 graphs · 5-fold CV · Mean AUC=0.428±0.174 · Mean AP=0.799±0.063 · serving promoted | 89 | 0.731 | 0.500 | 0.834 |
+| **R22** | **26 Jun 07:34** | **22+6-dim · 3 categories · Best_models_for_training · 239 graphs · 5-fold CV · Mean AUC=0.588±0.050 · Mean AP=0.767±0.031 · serving promoted** | **239** | **0.625** | **0.626** | **0.772** |
 
 > \* R3 metrics artificially inflated: 300 synthetic test graphs trivially match the 300 synthetic training graphs — not a valid measure of real-geometry performance.
 
@@ -1253,6 +1255,21 @@ Twenty-two training runs are shown, split into two eras. Each bar group shows Va
 
 > ★ best fold (val AUC 0.627) — used for `best_overall.pt`; final test eval AUC 0.523, AP 0.771. Mean AUC 0.503 held steady vs R19 (0.504, −0.1 points) despite a far more diverse dataset (38 categories vs 4). Mean AP 0.749 dropped from R19 (0.835, −8.6 points) — expected when training spans domains from Aerospace to Jewelry to Wood Working, diluting category-specific assembly patterns. The `best_serving.pt` gate correctly blocked this run from replacing the incumbent. Top categories: Furniture+Household (42), Electronics (31), Mechanical Engineering (31), Tools (30), Machine design (28).
 
+#### R22 — 5-Fold Cross-Validation Detail (22+6-dim · 3 categories · Best_models_for_training · 239 graphs)
+
+**Changes vs R21:** Dataset replaced with Best_models_for_training — 300 STEP files across 3 categories (Tools=100, Machine design=100, Mechanical Engineering=100). 239 valid graphs parsed (19 timeouts, ~8 geometry/parse errors). 3× more training data than R21 (239 vs 89 graphs), yielding a major improvement in mean AUC (0.588 vs 0.428) and a large drop in fold variance (std 0.050 vs 0.174).
+
+| Fold | Val AUC (best ep) | Test AUC | Test AP |
+|---|---|---|---|
+| 1 | 0.531 | 0.541 | 0.717 |
+| 2 | 0.518 | 0.609 | 0.789 |
+| 3 ★ | 0.625 | 0.569 | 0.762 |
+| 4 | 0.566 | 0.555 | 0.771 |
+| 5 | 0.587 | 0.666 | 0.796 |
+| **Mean** | | **0.588 ± 0.050** | **0.767 ± 0.031** |
+
+> ★ best fold (val AUC 0.625) — used for `best_overall.pt`; final test eval AUC 0.626, AP 0.772. Mean AUC 0.588 ± 0.050 is the best result on this 3-category subset, up +16 points from R21 (0.428). Fold variance collapses from ±0.174 to ±0.050, confirming that the small-dataset instability seen in R21 was a data-size effect. The `best_serving.pt` gate promoted R22 (mean AUC 0.588 vs R21's 0.428). Mean AP 0.767 is slightly below Phase 1 target (0.82) — the larger dataset improved AUC stability but AP needs further tuning or more data.
+
 #### R21 — 5-Fold Cross-Validation Detail (22+6-dim · 3 new categories · 89 graphs · no skip/edge filters)
 
 **Changes vs R20:** Dataset replaced with New_Training_models — 3 new categories (Machine design=28, Mechanical Engineering=31, Tools=30). All skip logic and edge-count filters removed from `dataset.py`; every assembly that parses successfully is included. 89 STEP files → 89 valid graphs, 0 errors, 0 timeouts. Mean nodes=13.6, mean directed edges=29.0 per graph.
@@ -1295,6 +1312,7 @@ Twenty-two training runs are shown, split into two eras. Each bar group shows Va
 - **R19 (best_serving gate · device fix · 995 graphs):** Fixed `device` bug in `--start-fold` resume path; added `best_serving.pt` promotion gate so only models that beat the incumbent on mean AUC+AP are deployed for inference. Mean AUC 0.504 ± 0.069 (+2.1 points over R18), mean AP 0.835 ± 0.028 (slightly improved). AP continues to exceed Phase 1 target. The serving gate confirmed R19 as an improvement and promoted it, demonstrating the safety mechanism works as intended
 - **R20 (38 diversified categories · 444 graphs):** Expanded training from 4 curated categories to all 38 subdirectories in Best_models_for_training (471 STEP → 444 graphs, 10 timeout skips). Dynamic category detection replaces hardcoded filter. Mean AUC 0.503 ± 0.045 held steady vs R19 (0.504), demonstrating the model generalises across diverse domains. Mean AP 0.749 ± 0.020 dropped from R19 (0.835) as expected — assembly patterns are more heterogeneous across 38 categories spanning Aerospace to Wood Working. The `best_serving.pt` gate correctly blocked this run from replacing the incumbent
 - **R21 (3 new categories · 89 graphs · no skip/edge filters):** New dataset (New_Training_models) with 3 categories — Machine design (28), Mechanical Engineering (31), Tools (30). All skip infrastructure and edge-count filters removed; 89/89 STEP files parsed successfully, 0 errors, 0 timeouts. Mean AUC 0.428 ± 0.174, mean AP 0.799 ± 0.063. High fold variance (±0.174) is driven by the very small dataset — with ~13 test graphs per fold, AUC is quantised in large steps. AP 0.799 slightly below Phase 1 target (0.82), indicating the model needs more training examples in these categories to achieve stable AP. The `best_serving.pt` gate promoted this run as the first model on the branch
+- **R22 (3 categories · 239 graphs · Best_models_for_training):** Dataset replaced with Best_models_for_training (300 STEP files: Tools=100, Machine design=100, Mechanical Engineering=100). 239 valid graphs parsed (19 timeouts, ~8 geometry/parse errors skipped). Mean AUC 0.588 ± 0.050 — best result on this 3-category dataset, up +16 points from R21 (0.428). Fold variance collapses from ±0.174 (R21) to ±0.050, confirming the R21 instability was a data-size effect. Mean AP 0.767 ± 0.031, slightly below Phase 1 target (0.82). The `best_serving.pt` gate promoted R22 (0.588 > R21's 0.428).
 
 ---
 

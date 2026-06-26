@@ -1,14 +1,15 @@
 [
   {
-    "category": "new_training_models",
-    "label": "New Training Models",
+    "category": "best_models_for_training",
+    "label": "Best Models For Training",
     "component_counts": {
-      "body": 9,
-      "fastener": 4,
-      "plate": 2,
+      "body": 13,
+      "fastener": 6,
+      "bearing": 2,
+      "plate": 4,
       "housing": 1
     },
-    "total_bodies": 13,
+    "total_bodies": 22,
     "examples": [
       "assembly.step",
       "assembly.step",
@@ -16,6 +17,6 @@
       "assembly.step",
       "assembly.step"
     ],
-    "n_assemblies": 89
+    "n_assemblies": 239
   }
 ]

@@ -1,0 +1,1223 @@
+=== R20 Training run started at 2026-06-25 02:03:39 UTC ===
+Processing...
+
+[1/4] Loading dataset …
+  Found 471 STEP file(s) in /Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Source_3d_models/Best_models_for_training
+  Thresholds — nodes ≤ 20  edges ≤ 60  edges ≥ 6  timeout 60s
+  [1/471] Parsing: assembly.step
+  [OK]  assembly.step — 17 nodes  17 edges  (4.6s)
+  [2/471] Parsing: assembly.step
+  [OK]  assembly.step — 16 nodes  19 edges  (3.5s)
+  [3/471] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  8 edges  (3.9s)
+  [4/471] Parsing: assembly.step
+  [OK]  assembly.step — 16 nodes  17 edges  (3.5s)
+  [5/471] Parsing: assembly.step
+  [OK]  assembly.step — 17 nodes  11 edges  (5.1s)
+  [6/471] Parsing: assembly.step
+  [OK]  assembly.step — 17 nodes  21 edges  (20.7s)
+  [7/471] Parsing: assembly.step
+  [OK]  assembly.step — 19 nodes  23 edges  (20.6s)
+  [8/471] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  7 edges  (4.2s)
+  [9/471] Parsing: assembly.step
+  [OK]  assembly.step — 8 nodes  9 edges  (3.3s)
+  [10/471] Parsing: assembly.step
+  [OK]  assembly.step — 23 nodes  27 edges  (3.9s)
+  [11/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  6 edges  (4.2s)
+  [12/471] Parsing: assembly.step
+  [OK]  assembly.step — 21 nodes  22 edges  (5.2s)
+  [13/471] Parsing: assembly.step
+  [OK]  assembly.step — 13 nodes  19 edges  (20.6s)
+  [14/471] Parsing: assembly.step
+  [OK]  assembly.step — 22 nodes  17 edges  (22.4s)
+  [15/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  7 edges  (3.4s)
+  [16/471] Parsing: assembly.step
+  [OK]  assembly.step — 13 nodes  11 edges  (2.9s)
+  [17/471] Parsing: assembly.step
+  [OK]  assembly.step — 21 nodes  21 edges  (3.5s)
+  [18/471] Parsing: assembly.step
+  [OK]  assembly.step — 5 nodes  5 edges  (15.0s)
+  [19/471] Parsing: assembly.step
+  [OK]  assembly.step — 8 nodes  9 edges  (3.2s)
+  [20/471] Parsing: assembly.step
+  [OK]  assembly.step — 14 nodes  21 edges  (4.6s)
+  [21/471] Parsing: assembly.step
+  [OK]  assembly.step — 18 nodes  20 edges  (12.7s)
+  [22/471] Parsing: assembly.step
+  [OK]  assembly.step — 19 nodes  23 edges  (4.7s)
+  [23/471] Parsing: assembly.step
+  [OK]  assembly.step — 13 nodes  18 edges  (4.4s)
+  [24/471] Parsing: assembly.step
+  [OK]  assembly.step — 14 nodes  14 edges  (5.3s)
+  [25/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  7 edges  (4.3s)
+  [26/471] Parsing: assembly.step
+  [OK]  assembly.step — 18 nodes  16 edges  (24.9s)
+  [27/471] Parsing: assembly.step
+  [OK]  assembly.step — 16 nodes  26 edges  (6.9s)
+  [28/471] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  14 edges  (3.1s)
+  [29/471] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  8 edges  (3.2s)
+  [30/471] Parsing: assembly.step
+  [OK]  assembly.step — 13 nodes  20 edges  (4.2s)
+  [31/471] Parsing: assembly.step
+  [OK]  assembly.step — 23 nodes  29 edges  (3.7s)
+  [32/471] Parsing: assembly.step
+  [OK]  assembly.step — 12 nodes  14 edges  (6.4s)
+  [33/471] Parsing: assembly.step
+  [OK]  assembly.step — 22 nodes  25 edges  (9.5s)
+  [34/471] Parsing: assembly.step
+  [OK]  assembly.step — 9 nodes  8 edges  (2.9s)
+  [35/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  7 edges  (3.0s)
+  [36/471] Parsing: assembly.step
+  [OK]  assembly.step — 8 nodes  7 edges  (2.9s)
+  [37/471] Parsing: assembly.step
+  [OK]  assembly.step — 17 nodes  16 edges  (3.6s)
+  [38/471] Parsing: assembly.step
+  [OK]  assembly.step — 22 nodes  26 edges  (3.0s)
+  [39/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  9 edges  (2.9s)
+  [40/471] Parsing: assembly.step
+  [OK]  assembly.step — 23 nodes  26 edges  (3.8s)
+  [41/471] Parsing: assembly.step
+    [skip] assembly.step: '<' not supported between instances of 'complex' and 'float'
+  [MOVED] 65569_bd890a32 → skipped_models/complex/
+  [42/471] Parsing: assembly.step
+  [OK]  assembly.step — 11 nodes  13 edges  (3.0s)
+  [43/471] Parsing: assembly.step
+  [OK]  assembly.step — 5 nodes  6 edges  (2.9s)
+  [44/471] Parsing: assembly.step
+  [OK]  assembly.step — 17 nodes  16 edges  (3.6s)
+  [45/471] Parsing: assembly.step
+  [OK]  assembly.step — 9 nodes  8 edges  (3.4s)
+  [46/471] Parsing: assembly.step
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/trimesh/triangles.py:550: RuntimeWarning: divide by zero encountered in divide
+  inverse_denominator = 1.0 / (dot00 * dot11 - dot01 * dot01)
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/trimesh/triangles.py:555: RuntimeWarning: invalid value encountered in subtract
+  barycentric[:, 0] = 1 - barycentric[:, 1] - barycentric[:, 2]
+  [OK]  assembly.step — 15 nodes  18 edges  (3.0s)
+  [47/471] Parsing: assembly.step
+  [OK]  assembly.step — 8 nodes  15 edges  (2.9s)
+  [48/471] Parsing: assembly.step
+  [OK]  assembly.step — 12 nodes  18 edges  (2.9s)
+  [49/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  8 edges  (2.9s)
+  [50/471] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  9 edges  (9.7s)
+  [51/471] Parsing: assembly.step
+  [OK]  assembly.step — 13 nodes  16 edges  (2.9s)
+  [52/471] Parsing: assembly.step
+  [OK]  assembly.step — 8 nodes  7 edges  (14.8s)
+  [53/471] Parsing: assembly.step
+  [OK]  assembly.step — 12 nodes  14 edges  (3.3s)
+  [54/471] Parsing: assembly.step
+  [OK]  assembly.step — 11 nodes  11 edges  (5.6s)
+  [55/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  8 edges  (16.1s)
+  [56/471] Parsing: assembly.step
+  [OK]  assembly.step — 11 nodes  10 edges  (4.8s)
+  [57/471] Parsing: assembly.step
+  [OK]  assembly.step — 28 nodes  25 edges  (4.6s)
+  [58/471] Parsing: assembly.step
+  [OK]  assembly.step — 19 nodes  22 edges  (4.2s)
+  [59/471] Parsing: assembly.step
+  [OK]  assembly.step — 19 nodes  22 edges  (4.6s)
+  [60/471] Parsing: assembly.step
+  [OK]  assembly.step — 11 nodes  8 edges  (14.1s)
+  [61/471] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  9 edges  (8.4s)
+  [62/471] Parsing: assembly.step
+  [OK]  assembly.step — 27 nodes  28 edges  (4.2s)
+  [63/471] Parsing: assembly.step
+  [OK]  assembly.step — 8 nodes  11 edges  (4.3s)
+  [64/471] Parsing: assembly.step
+  [OK]  assembly.step — 23 nodes  11 edges  (146.7s)
+  [65/471] Parsing: assembly.step
+  [OK]  assembly.step — 16 nodes  16 edges  (13.5s)
+  [66/471] Parsing: assembly.step
+  [OK]  assembly.step — 19 nodes  23 edges  (787.0s)
+  [67/471] Parsing: assembly.step
+  [OK]  assembly.step — 18 nodes  19 edges  (3.6s)
+  [68/471] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  11 edges  (4.4s)
+  [69/471] Parsing: assembly.step
+  [OK]  assembly.step — 13 nodes  18 edges  (4.5s)
+  [70/471] Parsing: assembly.step
+  [OK]  assembly.step — 20 nodes  23 edges  (11.4s)
+  [71/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  10 edges  (461.4s)
+  [72/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  6 edges  (4.6s)
+  [73/471] Parsing: assembly.step
+  [OK]  assembly.step — 18 nodes  24 edges  (4.0s)
+  [74/471] Parsing: assembly.step
+  [OK]  assembly.step — 12 nodes  15 edges  (4.4s)
+  [75/471] Parsing: assembly.step
+  [OK]  assembly.step — 22 nodes  22 edges  (277.2s)
+  [76/471] Parsing: assembly.step
+  [OK]  assembly.step — 13 nodes  13 edges  (3.4s)
+  [77/471] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  10 edges  (3.1s)
+  [78/471] Parsing: assembly.step
+  [OK]  assembly.step — 17 nodes  22 edges  (3.4s)
+  [79/471] Parsing: assembly.step
+  [OK]  assembly.step — 9 nodes  8 edges  (3.5s)
+  [80/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  7 edges  (2.9s)
+  [81/471] Parsing: assembly.step
+  [OK]  assembly.step — 20 nodes  23 edges  (905.1s)
+  [82/471] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  5 edges  (7.4s)
+  [83/471] Parsing: assembly.step
+  [OK]  assembly.step — 8 nodes  8 edges  (3.0s)
+  [84/471] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  11 edges  (3.0s)
+  [85/471] Parsing: assembly.step
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/trimesh/triangles.py:550: RuntimeWarning: divide by zero encountered in divide
+  inverse_denominator = 1.0 / (dot00 * dot11 - dot01 * dot01)
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/trimesh/triangles.py:555: RuntimeWarning: invalid value encountered in subtract
+  barycentric[:, 0] = 1 - barycentric[:, 1] - barycentric[:, 2]
+  [OK]  assembly.step — 9 nodes  11 edges  (150.5s)
+  [86/471] Parsing: assembly.step
+  [OK]  assembly.step — 5 nodes  6 edges  (2.9s)
+  [87/471] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  5 edges  (230.9s)
+  [88/471] Parsing: assembly.step
+  [OK]  assembly.step — 13 nodes  12 edges  (8.4s)
+  [89/471] Parsing: assembly.step
+  [OK]  assembly.step — 4 nodes  5 edges  (3.1s)
+  [90/471] Parsing: assembly.step
+  [OK]  assembly.step — 8 nodes  21 edges  (3.3s)
+  [91/471] Parsing: assembly.step
+  [OK]  assembly.step — 12 nodes  6 edges  (3.4s)
+  [92/471] Parsing: assembly.step
+  [OK]  assembly.step — 24 nodes  26 edges  (3.1s)
+  [93/471] Parsing: assembly.step
+  [OK]  assembly.step — 18 nodes  17 edges  (6.6s)
+  [94/471] Parsing: assembly.step
+  [OK]  assembly.step — 18 nodes  17 edges  (3.7s)
+  [95/471] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  6 edges  (4.1s)
+  [96/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  6 edges  (4.2s)
+  [97/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  6 edges  (5.2s)
+  [98/471] Parsing: assembly.step
+    [skip] assembly.step: timeout after 60s
+  [MOVED] 82203_77fd72b1 → skipped_models/timeout/
+  [TIMEOUT]    assembly.step — exceeded 60s (60.0s)
+  [99/471] Parsing: assembly.step
+  [OK]  assembly.step — 18 nodes  19 edges  (35.5s)
+  [100/471] Parsing: assembly.step
+  [OK]  assembly.step — 17 nodes  16 edges  (6.9s)
+  [101/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  6 edges  (3.4s)
+  [102/471] Parsing: assembly.step
+  [OK]  assembly.step — 22 nodes  24 edges  (3.8s)
+  [103/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  7 edges  (15.1s)
+  [104/471] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  11 edges  (3.2s)
+  [105/471] Parsing: assembly.step
+    [skip] assembly.step: timeout after 60s
+  [MOVED] 20165_2b088be5 → skipped_models/timeout/
+  [TIMEOUT]    assembly.step — exceeded 60s (60.0s)
+  [106/471] Parsing: assembly.step
+  [OK]  assembly.step — 8 nodes  12 edges  (3.6s)
+  [107/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  6 edges  (3.7s)
+  [108/471] Parsing: assembly.step
+  [OK]  assembly.step — 16 nodes  15 edges  (36.6s)
+  [109/471] Parsing: assembly.step
+  [OK]  assembly.step — 16 nodes  22 edges  (9.5s)
+  [110/471] Parsing: assembly.step
+  [OK]  assembly.step — 13 nodes  15 edges  (6.9s)
+  [111/471] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  14 edges  (4.5s)
+  [112/471] Parsing: assembly.step
+  [OK]  assembly.step — 17 nodes  19 edges  (24.0s)
+  [113/471] Parsing: assembly.step
+  [OK]  assembly.step — 12 nodes  11 edges  (5.2s)
+  [114/471] Parsing: assembly.step
+  [OK]  assembly.step — 16 nodes  15 edges  (4.7s)
+  [115/471] Parsing: assembly.step
+    [skip] assembly.step: '<' not supported between instances of 'complex' and 'float'
+  [MOVED] 21843_effbd24d → skipped_models/complex/
+  [116/471] Parsing: assembly.step
+  [OK]  assembly.step — 14 nodes  12 edges  (13.8s)
+  [117/471] Parsing: assembly.step
+  [OK]  assembly.step — 24 nodes  28 edges  (3.9s)
+  [118/471] Parsing: assembly.step
+  [OK]  assembly.step — 19 nodes  24 edges  (5.6s)
+  [119/471] Parsing: assembly.step
+  [OK]  assembly.step — 5 nodes  5 edges  (3.7s)
+  [120/471] Parsing: assembly.step
+  [OK]  assembly.step — 5 nodes  5 edges  (3.9s)
+  [121/471] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  8 edges  (7.1s)
+  [122/471] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  10 edges  (5.8s)
+  [123/471] Parsing: assembly.step
+  [OK]  assembly.step — 19 nodes  13 edges  (4.3s)
+  [124/471] Parsing: assembly.step
+  [OK]  assembly.step — 16 nodes  25 edges  (3.4s)
+  [125/471] Parsing: assembly.step
+  [OK]  assembly.step — 21 nodes  26 edges  (4.0s)
+  [126/471] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  25 edges  (5.2s)
+  [127/471] Parsing: assembly.step
+  [OK]  assembly.step — 28 nodes  24 edges  (5.2s)
+  [128/471] Parsing: assembly.step
+  [OK]  assembly.step — 11 nodes  10 edges  (2.9s)
+  [129/471] Parsing: assembly.step
+  [OK]  assembly.step — 11 nodes  10 edges  (3.6s)
+  [130/471] Parsing: assembly.step
+  [OK]  assembly.step — 18 nodes  26 edges  (3.7s)
+  [131/471] Parsing: assembly.step
+  [OK]  assembly.step — 13 nodes  16 edges  (6.8s)
+  [132/471] Parsing: assembly.step
+    [skip] assembly.step: timeout after 60s
+  [MOVED] 23323_075a079e → skipped_models/timeout/
+  [TIMEOUT]    assembly.step — exceeded 60s (60.0s)
+  [133/471] Parsing: assembly.step
+  [OK]  assembly.step — 12 nodes  8 edges  (3.0s)
+  [134/471] Parsing: assembly.step
+  [OK]  assembly.step — 12 nodes  20 edges  (16.5s)
+  [135/471] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  6 edges  (5.7s)
+  [136/471] Parsing: assembly.step
+    [skip] assembly.step: timeout after 60s
+  [MOVED] 24446_b13b250f → skipped_models/timeout/
+  [TIMEOUT]    assembly.step — exceeded 60s (60.0s)
+  [137/471] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  18 edges  (4.6s)
+  [138/471] Parsing: assembly.step
+  [OK]  assembly.step — 22 nodes  29 edges  (3.7s)
+  [139/471] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  17 edges  (2.9s)
+  [140/471] Parsing: assembly.step
+  [OK]  assembly.step — 13 nodes  17 edges  (3.7s)
+  [141/471] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  21 edges  (22.4s)
+  [142/471] Parsing: assembly.step
+  [OK]  assembly.step — 20 nodes  30 edges  (5.1s)
+  [143/471] Parsing: assembly.step
+    [skip] assembly.step: '<' not supported between instances of 'complex' and 'float'
+  [MOVED] 24574_89354d91 → skipped_models/complex/
+  [144/471] Parsing: assembly.step
+  [OK]  assembly.step — 11 nodes  12 edges  (42.5s)
+  [145/471] Parsing: assembly.step
+  [OK]  assembly.step — 22 nodes  20 edges  (23.6s)
+  [146/471] Parsing: assembly.step
+  [OK]  assembly.step — 13 nodes  14 edges  (5.3s)
+  [147/471] Parsing: assembly.step
+  [OK]  assembly.step — 19 nodes  25 edges  (3.2s)
+  [148/471] Parsing: assembly.step
+  [OK]  assembly.step — 14 nodes  13 edges  (3.4s)
+  [149/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  8 edges  (3.2s)
+  [150/471] Parsing: assembly.step
+  [OK]  assembly.step — 17 nodes  28 edges  (4.1s)
+  [151/471] Parsing: assembly.step
+  [OK]  assembly.step — 13 nodes  18 edges  (8.6s)
+  [152/471] Parsing: assembly.step
+  [OK]  assembly.step — 23 nodes  7 edges  (5.6s)
+  [153/471] Parsing: assembly.step
+    [skip] assembly.step: '<' not supported between instances of 'complex' and 'float'
+  [MOVED] 138899_f4f629bb → skipped_models/complex/
+  [154/471] Parsing: assembly.step
+  [OK]  assembly.step — 8 nodes  7 edges  (16.4s)
+  [155/471] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  9 edges  (3.1s)
+  [156/471] Parsing: assembly.step
+  [OK]  assembly.step — 8 nodes  12 edges  (3.3s)
+  [157/471] Parsing: assembly.step
+  [OK]  assembly.step — 8 nodes  7 edges  (2.9s)
+  [158/471] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  10 edges  (2.9s)
+  [159/471] Parsing: assembly.step
+  [OK]  assembly.step — 16 nodes  14 edges  (3.3s)
+  [160/471] Parsing: assembly.step
+  [OK]  assembly.step — 12 nodes  13 edges  (4.1s)
+  [161/471] Parsing: assembly.step
+  [OK]  assembly.step — 21 nodes  23 edges  (5.7s)
+  [162/471] Parsing: assembly.step
+  [OK]  assembly.step — 16 nodes  18 edges  (3.1s)
+  [163/471] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  12 edges  (3.5s)
+  [164/471] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  5 edges  (16.6s)
+  [165/471] Parsing: assembly.step
+  [OK]  assembly.step — 13 nodes  8 edges  (16.3s)
+  [166/471] Parsing: assembly.step
+    [skip] assembly.step: '<' not supported between instances of 'complex' and 'float'
+  [MOVED] 20414_a33bd0d7 → skipped_models/complex/
+  [167/471] Parsing: assembly.step
+  [OK]  assembly.step — 20 nodes  23 edges  (9.4s)
+  [168/471] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  8 edges  (55.7s)
+  [169/471] Parsing: assembly.step
+  [OK]  assembly.step — 18 nodes  10 edges  (23.3s)
+  [170/471] Parsing: assembly.step
+  [OK]  assembly.step — 12 nodes  11 edges  (17.6s)
+  [171/471] Parsing: assembly.step
+  [OK]  assembly.step — 13 nodes  21 edges  (5.2s)
+  [172/471] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  14 edges  (8.4s)
+  [173/471] Parsing: assembly.step
+  [OK]  assembly.step — 13 nodes  30 edges  (3.0s)
+  [174/471] Parsing: assembly.step
+  [OK]  assembly.step — 8 nodes  14 edges  (3.0s)
+  [175/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  8 edges  (5.2s)
+  [176/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  15 edges  (3.0s)
+  [177/471] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  5 edges  (3.2s)
+  [178/471] Parsing: assembly.step
+    [skip] assembly.step: '<' not supported between instances of 'complex' and 'float'
+  [MOVED] 21513_50fb4d62 → skipped_models/complex/
+  [179/471] Parsing: assembly.step
+  [OK]  assembly.step — 8 nodes  7 edges  (6.2s)
+  [180/471] Parsing: assembly.step
+  [OK]  assembly.step — 8 nodes  8 edges  (5.6s)
+  [181/471] Parsing: assembly.step
+  [OK]  assembly.step — 16 nodes  17 edges  (5.5s)
+  [182/471] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  5 edges  (56.5s)
+  [183/471] Parsing: assembly.step
+  [OK]  assembly.step — 13 nodes  12 edges  (26.7s)
+  [184/471] Parsing: assembly.step
+  [OK]  assembly.step — 17 nodes  20 edges  (5.4s)
+  [185/471] Parsing: assembly.step
+    [skip] assembly.step: '<' not supported between instances of 'complex' and 'float'
+  [MOVED] 22045_ead71aca → skipped_models/complex/
+  [186/471] Parsing: assembly.step
+  [OK]  assembly.step — 16 nodes  28 edges  (3.2s)
+  [187/471] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  16 edges  (3.0s)
+  [188/471] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  14 edges  (6.0s)
+  [189/471] Parsing: assembly.step
+  [OK]  assembly.step — 14 nodes  19 edges  (3.8s)
+  [190/471] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  14 edges  (3.3s)
+  [191/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  8 edges  (3.1s)
+  [192/471] Parsing: assembly.step
+  [OK]  assembly.step — 14 nodes  21 edges  (2.9s)
+  [193/471] Parsing: assembly.step
+  [OK]  assembly.step — 11 nodes  8 edges  (4.8s)
+  [194/471] Parsing: assembly.step
+  [OK]  assembly.step — 11 nodes  6 edges  (3.2s)
+  [195/471] Parsing: assembly.step
+  [OK]  assembly.step — 8 nodes  10 edges  (3.2s)
+  [196/471] Parsing: assembly.step
+  [OK]  assembly.step — 12 nodes  26 edges  (3.3s)
+  [197/471] Parsing: assembly.step
+  [OK]  assembly.step — 11 nodes  7 edges  (4.1s)
+  [198/471] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  23 edges  (3.2s)
+  [199/471] Parsing: assembly.step
+  [OK]  assembly.step — 16 nodes  26 edges  (3.3s)
+  [200/471] Parsing: assembly.step
+  [OK]  assembly.step — 22 nodes  20 edges  (6.2s)
+  [201/471] Parsing: assembly.step
+  [OK]  assembly.step — 18 nodes  19 edges  (3.9s)
+  [202/471] Parsing: assembly.step
+  [OK]  assembly.step — 18 nodes  16 edges  (18.2s)
+  [203/471] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  5 edges  (9.3s)
+  [204/471] Parsing: assembly.step
+  [OK]  assembly.step — 17 nodes  26 edges  (8.3s)
+  [205/471] Parsing: assembly.step
+  [OK]  assembly.step — 22 nodes  21 edges  (3.9s)
+  [206/471] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  11 edges  (14.1s)
+  [207/471] Parsing: assembly.step
+  [OK]  assembly.step — 9 nodes  9 edges  (2.9s)
+  [208/471] Parsing: assembly.step
+  [OK]  assembly.step — 13 nodes  12 edges  (3.7s)
+  [209/471] Parsing: assembly.step
+  [OK]  assembly.step — 8 nodes  7 edges  (3.0s)
+  [210/471] Parsing: assembly.step
+  [OK]  assembly.step — 20 nodes  27 edges  (5.5s)
+  [211/471] Parsing: assembly.step
+  [OK]  assembly.step — 16 nodes  19 edges  (4.8s)
+  [212/471] Parsing: assembly.step
+  [OK]  assembly.step — 17 nodes  26 edges  (6.2s)
+  [213/471] Parsing: assembly.step
+  [OK]  assembly.step — 18 nodes  20 edges  (3.6s)
+  [214/471] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  7 edges  (3.1s)
+  [215/471] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  9 edges  (12.9s)
+  [216/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  10 edges  (3.8s)
+  [217/471] Parsing: assembly.step
+  [OK]  assembly.step — 17 nodes  19 edges  (4.0s)
+  [218/471] Parsing: assembly.step
+  [OK]  assembly.step — 17 nodes  19 edges  (4.3s)
+  [219/471] Parsing: assembly.step
+  [OK]  assembly.step — 26 nodes  28 edges  (16.1s)
+  [220/471] Parsing: assembly.step
+    [skip] assembly.step: '<' not supported between instances of 'complex' and 'float'
+  [MOVED] 35419_aa5ab53d → skipped_models/complex/
+  [221/471] Parsing: assembly.step
+  [OK]  assembly.step — 14 nodes  7 edges  (4.4s)
+  [222/471] Parsing: assembly.step
+  [OK]  assembly.step — 12 nodes  23 edges  (3.0s)
+  [223/471] Parsing: assembly.step
+    [skip] assembly.step: timeout after 60s
+  [MOVED] 90207_d2db9054 → skipped_models/timeout/
+  [TIMEOUT]    assembly.step — exceeded 60s (60.0s)
+  [224/471] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  6 edges  (3.1s)
+  [225/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  6 edges  (6.1s)
+  [226/471] Parsing: assembly.step
+  [OK]  assembly.step — 16 nodes  22 edges  (3.4s)
+  [227/471] Parsing: assembly.step
+  [OK]  assembly.step — 17 nodes  30 edges  (3.7s)
+  [228/471] Parsing: assembly.step
+  [OK]  assembly.step — 13 nodes  16 edges  (6.9s)
+  [229/471] Parsing: assembly.step
+    [skip] assembly.step: '<' not supported between instances of 'complex' and 'float'
+  [MOVED] 20668_b2f2633e → skipped_models/complex/
+  [230/471] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  5 edges  (6.0s)
+  [231/471] Parsing: assembly.step
+  [OK]  assembly.step — 20 nodes  25 edges  (3.2s)
+  [232/471] Parsing: assembly.step
+  [OK]  assembly.step — 9 nodes  12 edges  (3.2s)
+  [233/471] Parsing: assembly.step
+  [OK]  assembly.step — 29 nodes  25 edges  (5.0s)
+  [234/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  10 edges  (11.2s)
+  [235/471] Parsing: assembly.step
+  [OK]  assembly.step — 9 nodes  14 edges  (8.1s)
+  [236/471] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  13 edges  (3.5s)
+  [237/471] Parsing: assembly.step
+  [OK]  assembly.step — 11 nodes  11 edges  (6.5s)
+  [238/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  7 edges  (3.2s)
+  [239/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  6 edges  (3.2s)
+  [240/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  6 edges  (3.5s)
+  [241/471] Parsing: assembly.step
+  [OK]  assembly.step — 13 nodes  6 edges  (29.9s)
+  [242/471] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  5 edges  (3.4s)
+  [243/471] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  11 edges  (3.4s)
+  [244/471] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  19 edges  (4.7s)
+  [245/471] Parsing: assembly.step
+  [OK]  assembly.step — 22 nodes  30 edges  (9.2s)
+  [246/471] Parsing: assembly.step
+  [OK]  assembly.step — 14 nodes  16 edges  (3.2s)
+  [247/471] Parsing: assembly.step
+  [OK]  assembly.step — 14 nodes  10 edges  (3.7s)
+  [248/471] Parsing: assembly.step
+  [OK]  assembly.step — 23 nodes  22 edges  (9.1s)
+  [249/471] Parsing: assembly.step
+  [OK]  assembly.step — 21 nodes  21 edges  (5.2s)
+  [250/471] Parsing: assembly.step
+  [OK]  assembly.step — 9 nodes  14 edges  (4.7s)
+  [251/471] Parsing: assembly.step
+  [OK]  assembly.step — 8 nodes  10 edges  (2.9s)
+  [252/471] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  15 edges  (2.9s)
+  [253/471] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  7 edges  (8.5s)
+  [254/471] Parsing: assembly.step
+  [OK]  assembly.step — 20 nodes  22 edges  (5.2s)
+  [255/471] Parsing: assembly.step
+  [OK]  assembly.step — 24 nodes  30 edges  (7.4s)
+  [256/471] Parsing: assembly.step
+  [OK]  assembly.step — 9 nodes  8 edges  (3.7s)
+  [257/471] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  12 edges  (6.0s)
+  [258/471] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  14 edges  (5.1s)
+  [259/471] Parsing: assembly.step
+  [OK]  assembly.step — 20 nodes  14 edges  (3.5s)
+  [260/471] Parsing: assembly.step
+  [OK]  assembly.step — 9 nodes  9 edges  (3.3s)
+  [261/471] Parsing: assembly.step
+  [OK]  assembly.step — 27 nodes  22 edges  (20.0s)
+  [262/471] Parsing: assembly.step
+  [OK]  assembly.step — 18 nodes  19 edges  (4.0s)
+  [263/471] Parsing: assembly.step
+  [OK]  assembly.step — 11 nodes  8 edges  (4.0s)
+  [264/471] Parsing: assembly.step
+  [OK]  assembly.step — 31 nodes  28 edges  (11.2s)
+  [265/471] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  16 edges  (3.8s)
+  [266/471] Parsing: assembly.step
+  [OK]  assembly.step — 9 nodes  8 edges  (16.2s)
+  [267/471] Parsing: assembly.step
+  [OK]  assembly.step — 12 nodes  12 edges  (3.6s)
+  [268/471] Parsing: assembly.step
+  [OK]  assembly.step — 16 nodes  13 edges  (4.9s)
+  [269/471] Parsing: assembly.step
+  [OK]  assembly.step — 16 nodes  28 edges  (3.8s)
+  [270/471] Parsing: assembly.step
+  [OK]  assembly.step — 18 nodes  21 edges  (4.5s)
+  [271/471] Parsing: assembly.step
+  [OK]  assembly.step — 21 nodes  24 edges  (4.4s)
+  [272/471] Parsing: assembly.step
+  [OK]  assembly.step — 9 nodes  15 edges  (2.9s)
+  [273/471] Parsing: assembly.step
+  [OK]  assembly.step — 12 nodes  27 edges  (2.9s)
+  [274/471] Parsing: assembly.step
+  [OK]  assembly.step — 9 nodes  17 edges  (3.0s)
+  [275/471] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  11 edges  (10.7s)
+  [276/471] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  7 edges  (3.9s)
+  [277/471] Parsing: assembly.step
+  [OK]  assembly.step — 25 nodes  24 edges  (6.9s)
+  [278/471] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  10 edges  (3.2s)
+  [279/471] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  5 edges  (3.9s)
+  [280/471] Parsing: assembly.step
+  [OK]  assembly.step — 21 nodes  19 edges  (10.6s)
+  [281/471] Parsing: assembly.step
+  [OK]  assembly.step — 20 nodes  26 edges  (3.4s)
+  [282/471] Parsing: assembly.step
+  [OK]  assembly.step — 9 nodes  11 edges  (2.9s)
+  [283/471] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  5 edges  (4.4s)
+  [284/471] Parsing: assembly.step
+  [OK]  assembly.step — 9 nodes  5 edges  (5.4s)
+  [285/471] Parsing: assembly.step
+  [OK]  assembly.step — 17 nodes  18 edges  (7.8s)
+  [286/471] Parsing: assembly.step
+  [OK]  assembly.step — 11 nodes  12 edges  (10.8s)
+  [287/471] Parsing: assembly.step
+  [OK]  assembly.step — 8 nodes  7 edges  (3.0s)
+  [288/471] Parsing: assembly.step
+  [OK]  assembly.step — 18 nodes  21 edges  (3.7s)
+  [289/471] Parsing: assembly.step
+  [OK]  assembly.step — 12 nodes  14 edges  (4.4s)
+  [290/471] Parsing: assembly.step
+  [OK]  assembly.step — 21 nodes  20 edges  (3.0s)
+  [291/471] Parsing: assembly.step
+  [OK]  assembly.step — 19 nodes  18 edges  (3.0s)
+  [292/471] Parsing: assembly.step
+  [OK]  assembly.step — 14 nodes  22 edges  (3.0s)
+  [293/471] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  8 edges  (3.7s)
+  [294/471] Parsing: assembly.step
+  [OK]  assembly.step — 12 nodes  5 edges  (2.9s)
+  [295/471] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  16 edges  (4.7s)
+  [296/471] Parsing: assembly.step
+  [OK]  assembly.step — 8 nodes  8 edges  (3.1s)
+  [297/471] Parsing: assembly.step
+    [skip] assembly.step: timeout after 60s
+  [MOVED] 102179_ff25ecef → skipped_models/timeout/
+  [TIMEOUT]    assembly.step — exceeded 60s (60.0s)
+  [298/471] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  10 edges  (9.3s)
+  [299/471] Parsing: assembly.step
+  [OK]  assembly.step — 27 nodes  19 edges  (5.7s)
+  [300/471] Parsing: assembly.step
+  [OK]  assembly.step — 14 nodes  16 edges  (6.0s)
+  [301/471] Parsing: assembly.step
+  [OK]  assembly.step — 30 nodes  24 edges  (3.3s)
+  [302/471] Parsing: assembly.step
+  [OK]  assembly.step — 11 nodes  6 edges  (3.2s)
+  [303/471] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  8 edges  (4.4s)
+  [304/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  8 edges  (4.0s)
+  [305/471] Parsing: assembly.step
+  [OK]  assembly.step — 11 nodes  19 edges  (3.5s)
+  [306/471] Parsing: assembly.step
+  [OK]  assembly.step — 9 nodes  15 edges  (4.6s)
+  [307/471] Parsing: assembly.step
+  [OK]  assembly.step — 9 nodes  14 edges  (2.9s)
+  [308/471] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  13 edges  (15.6s)
+  [309/471] Parsing: assembly.step
+  [OK]  assembly.step — 20 nodes  26 edges  (3.4s)
+  [310/471] Parsing: assembly.step
+    [skip] assembly.step: '<' not supported between instances of 'complex' and 'float'
+  [MOVED] 31227_237756c2 → skipped_models/complex/
+  [311/471] Parsing: assembly.step
+  [OK]  assembly.step — 8 nodes  7 edges  (6.0s)
+  [312/471] Parsing: assembly.step
+  [OK]  assembly.step — 20 nodes  27 edges  (2.9s)
+  [313/471] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  16 edges  (7.8s)
+  [314/471] Parsing: assembly.step
+  [OK]  assembly.step — 27 nodes  30 edges  (3.0s)
+  [315/471] Parsing: assembly.step
+  [OK]  assembly.step — 19 nodes  30 edges  (31.1s)
+  [316/471] Parsing: assembly.step
+  [OK]  assembly.step — 23 nodes  28 edges  (10.3s)
+  [317/471] Parsing: assembly.step
+    [skip] assembly.step: '<' not supported between instances of 'complex' and 'float'
+  [MOVED] 36427_4f42d4e8 → skipped_models/complex/
+  [318/471] Parsing: assembly.step
+  [OK]  assembly.step — 19 nodes  18 edges  (3.2s)
+  [319/471] Parsing: assembly.step
+  [OK]  assembly.step — 26 nodes  30 edges  (4.1s)
+  [320/471] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  14 edges  (14.4s)
+  [321/471] Parsing: assembly.step
+    [skip] assembly.step: '<' not supported between instances of 'complex' and 'float'
+  [MOVED] 38488_696c3da1 → skipped_models/complex/
+  [322/471] Parsing: assembly.step
+    [skip] assembly.step: '<' not supported between instances of 'complex' and 'float'
+  [MOVED] 38854_674d45b6 → skipped_models/complex/
+  [323/471] Parsing: assembly.step
+  [OK]  assembly.step — 22 nodes  23 edges  (3.7s)
+  [324/471] Parsing: assembly.step
+  [OK]  assembly.step — 17 nodes  17 edges  (3.0s)
+  [325/471] Parsing: assembly.step
+  [OK]  assembly.step — 13 nodes  12 edges  (2.9s)
+  [326/471] Parsing: assembly.step
+  [OK]  assembly.step — 13 nodes  12 edges  (2.8s)
+  [327/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  9 edges  (7.0s)
+  [328/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  7 edges  (3.2s)
+  [329/471] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  14 edges  (15.7s)
+  [330/471] Parsing: assembly.step
+  [OK]  assembly.step — 16 nodes  6 edges  (3.4s)
+  [331/471] Parsing: assembly.step
+  [OK]  assembly.step — 21 nodes  25 edges  (4.1s)
+  [332/471] Parsing: assembly.step
+  [OK]  assembly.step — 17 nodes  13 edges  (3.8s)
+  [333/471] Parsing: assembly.step
+  [OK]  assembly.step — 26 nodes  27 edges  (3.8s)
+  [334/471] Parsing: assembly.step
+  [OK]  assembly.step — 4 nodes  5 edges  (4.1s)
+  [335/471] Parsing: assembly.step
+  [OK]  assembly.step — 20 nodes  20 edges  (3.4s)
+  [336/471] Parsing: assembly.step
+  [OK]  assembly.step — 25 nodes  25 edges  (4.6s)
+  [337/471] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  12 edges  (7.4s)
+  [338/471] Parsing: assembly.step
+  [OK]  assembly.step — 18 nodes  19 edges  (3.3s)
+  [339/471] Parsing: assembly.step
+  [OK]  assembly.step — 4 nodes  5 edges  (3.0s)
+  [340/471] Parsing: assembly.step
+  [OK]  assembly.step — 21 nodes  19 edges  (5.1s)
+  [341/471] Parsing: assembly.step
+  [OK]  assembly.step — 25 nodes  25 edges  (58.3s)
+  [342/471] Parsing: assembly.step
+    [skip] assembly.step: timeout after 60s
+  [MOVED] 31853_2be86dd9 → skipped_models/timeout/
+  [TIMEOUT]    assembly.step — exceeded 60s (60.0s)
+  [343/471] Parsing: assembly.step
+    [skip] assembly.step: timeout after 60s
+  [MOVED] 32152_c697480e → skipped_models/timeout/
+  [TIMEOUT]    assembly.step — exceeded 60s (60.0s)
+  [344/471] Parsing: assembly.step
+  [OK]  assembly.step — 14 nodes  16 edges  (15.3s)
+  [345/471] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  22 edges  (2.9s)
+  [346/471] Parsing: assembly.step
+  [OK]  assembly.step — 11 nodes  9 edges  (3.8s)
+  [347/471] Parsing: assembly.step
+  [OK]  assembly.step — 31 nodes  27 edges  (3.8s)
+  [348/471] Parsing: assembly.step
+  [OK]  assembly.step — 19 nodes  15 edges  (3.5s)
+  [349/471] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  17 edges  (8.3s)
+  [350/471] Parsing: assembly.step
+  [OK]  assembly.step — 31 nodes  21 edges  (10.0s)
+  [351/471] Parsing: assembly.step
+  [OK]  assembly.step — 16 nodes  21 edges  (4.2s)
+  [352/471] Parsing: assembly.step
+    [skip] assembly.step: timeout after 60s
+  [MOVED] 35420_228908ef → skipped_models/timeout/
+  [TIMEOUT]    assembly.step — exceeded 60s (60.0s)
+  [353/471] Parsing: assembly.step
+    [skip] assembly.step: '<' not supported between instances of 'complex' and 'float'
+  [MOVED] 35879_1594db27 → skipped_models/complex/
+  [354/471] Parsing: assembly.step
+  [OK]  assembly.step — 19 nodes  18 edges  (6.2s)
+  [355/471] Parsing: assembly.step
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/trimesh/triangles.py:550: RuntimeWarning: divide by zero encountered in divide
+  inverse_denominator = 1.0 / (dot00 * dot11 - dot01 * dot01)
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/trimesh/triangles.py:555: RuntimeWarning: invalid value encountered in subtract
+  barycentric[:, 0] = 1 - barycentric[:, 1] - barycentric[:, 2]
+  [OK]  assembly.step — 6 nodes  8 edges  (3.8s)
+  [356/471] Parsing: assembly.step
+  [OK]  assembly.step — 5 nodes  6 edges  (3.0s)
+  [357/471] Parsing: assembly.step
+    [skip] assembly.step: '<' not supported between instances of 'complex' and 'float'
+  [MOVED] 37811_e3584cc6 → skipped_models/complex/
+  [358/471] Parsing: assembly.step
+  [OK]  assembly.step — 14 nodes  14 edges  (3.4s)
+  [359/471] Parsing: assembly.step
+  [OK]  assembly.step — 25 nodes  24 edges  (6.6s)
+  [360/471] Parsing: assembly.step
+  [OK]  assembly.step — 22 nodes  29 edges  (5.8s)
+  [361/471] Parsing: assembly.step
+  [OK]  assembly.step — 22 nodes  7 edges  (3.6s)
+  [362/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  5 edges  (3.2s)
+  [363/471] Parsing: assembly.step
+  [OK]  assembly.step — 18 nodes  27 edges  (4.0s)
+  [364/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  6 edges  (4.4s)
+  [365/471] Parsing: assembly.step
+  [OK]  assembly.step — 9 nodes  8 edges  (3.1s)
+  [366/471] Parsing: assembly.step
+  [OK]  assembly.step — 31 nodes  21 edges  (3.6s)
+  [367/471] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  6 edges  (2.9s)
+  [368/471] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  10 edges  (4.0s)
+  [369/471] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  5 edges  (4.9s)
+  [370/471] Parsing: assembly.step
+  [OK]  assembly.step — 18 nodes  15 edges  (3.6s)
+  [371/471] Parsing: assembly.step
+  [OK]  assembly.step — 26 nodes  27 edges  (6.4s)
+  [372/471] Parsing: assembly.step
+  [OK]  assembly.step — 12 nodes  7 edges  (4.4s)
+  [373/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  6 edges  (42.8s)
+  [374/471] Parsing: assembly.step
+  [OK]  assembly.step — 20 nodes  21 edges  (9.8s)
+  [375/471] Parsing: assembly.step
+  [OK]  assembly.step — 4 nodes  5 edges  (8.3s)
+  [376/471] Parsing: assembly.step
+  [OK]  assembly.step — 13 nodes  11 edges  (3.2s)
+  [377/471] Parsing: assembly.step
+  [OK]  assembly.step — 18 nodes  19 edges  (6.5s)
+  [378/471] Parsing: assembly.step
+  [OK]  assembly.step — 19 nodes  22 edges  (4.5s)
+  [379/471] Parsing: assembly.step
+  [OK]  assembly.step — 17 nodes  16 edges  (4.6s)
+  [380/471] Parsing: assembly.step
+  [OK]  assembly.step — 12 nodes  8 edges  (8.9s)
+  [381/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  5 edges  (9.0s)
+  [382/471] Parsing: assembly.step
+  [OK]  assembly.step — 40 nodes  6 edges  (31.6s)
+  [383/471] Parsing: assembly.step
+  [OK]  assembly.step — 26 nodes  16 edges  (8.9s)
+  [384/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  11 edges  (4.1s)
+  [385/471] Parsing: assembly.step
+  [OK]  assembly.step — 26 nodes  25 edges  (12.1s)
+  [386/471] Parsing: assembly.step
+  [OK]  assembly.step — 20 nodes  21 edges  (7.5s)
+  [387/471] Parsing: assembly.step
+  [OK]  assembly.step — 5 nodes  5 edges  (3.9s)
+  [388/471] Parsing: assembly.step
+  [OK]  assembly.step — 16 nodes  22 edges  (9.5s)
+  [389/471] Parsing: assembly.step
+  [OK]  assembly.step — 25 nodes  25 edges  (3.5s)
+  [390/471] Parsing: assembly.step
+  [OK]  assembly.step — 14 nodes  16 edges  (3.7s)
+  [391/471] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  5 edges  (3.2s)
+  [392/471] Parsing: assembly.step
+    [skip] assembly.step: '<' not supported between instances of 'complex' and 'float'
+  [MOVED] 23807_ec9a48b3 → skipped_models/complex/
+  [393/471] Parsing: assembly.step
+  [OK]  assembly.step — 17 nodes  15 edges  (3.6s)
+  [394/471] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  5 edges  (4.4s)
+  [395/471] Parsing: assembly.step
+    [skip] assembly.step: timeout after 60s
+  [MOVED] 25554_66b2a498 → skipped_models/timeout/
+  [TIMEOUT]    assembly.step — exceeded 60s (60.0s)
+  [396/471] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  22 edges  (3.6s)
+  [397/471] Parsing: assembly.step
+  [OK]  assembly.step — 9 nodes  14 edges  (16.4s)
+  [398/471] Parsing: assembly.step
+  [OK]  assembly.step — 26 nodes  25 edges  (4.1s)
+  [399/471] Parsing: assembly.step
+  [OK]  assembly.step — 8 nodes  10 edges  (52.3s)
+  [400/471] Parsing: assembly.step
+  [OK]  assembly.step — 9 nodes  8 edges  (3.3s)
+  [401/471] Parsing: assembly.step
+  [OK]  assembly.step — 19 nodes  24 edges  (4.9s)
+  [402/471] Parsing: assembly.step
+    [skip] assembly.step: '<' not supported between instances of 'complex' and 'float'
+  [MOVED] 99817_3384bde4 → skipped_models/complex/
+  [403/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  5 edges  (10.4s)
+  [404/471] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  6 edges  (29.7s)
+  [405/471] Parsing: assembly.step
+  [OK]  assembly.step — 12 nodes  13 edges  (26.7s)
+  [406/471] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  10 edges  (3.1s)
+  [407/471] Parsing: assembly.step
+  [OK]  assembly.step — 9 nodes  9 edges  (3.0s)
+  [408/471] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  5 edges  (2.9s)
+  [409/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  5 edges  (6.6s)
+  [410/471] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  7 edges  (3.2s)
+  [411/471] Parsing: assembly.step
+  [OK]  assembly.step — 9 nodes  5 edges  (2.8s)
+  [412/471] Parsing: assembly.step
+  [OK]  assembly.step — 13 nodes  18 edges  (10.1s)
+  [413/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  6 edges  (5.6s)
+  [414/471] Parsing: assembly.step
+  [OK]  assembly.step — 8 nodes  6 edges  (3.2s)
+  [415/471] Parsing: assembly.step
+  [OK]  assembly.step — 18 nodes  19 edges  (3.6s)
+  [416/471] Parsing: assembly.step
+  [OK]  assembly.step — 24 nodes  28 edges  (11.2s)
+  [417/471] Parsing: assembly.step
+  [OK]  assembly.step — 14 nodes  7 edges  (36.9s)
+  [418/471] Parsing: assembly.step
+  [OK]  assembly.step — 14 nodes  14 edges  (3.7s)
+  [419/471] Parsing: assembly.step
+  [OK]  assembly.step — 14 nodes  13 edges  (3.3s)
+  [420/471] Parsing: assembly.step
+  [OK]  assembly.step — 20 nodes  26 edges  (9.4s)
+  [421/471] Parsing: assembly.step
+  [OK]  assembly.step — 18 nodes  18 edges  (12.6s)
+  [422/471] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  9 edges  (5.4s)
+  [423/471] Parsing: assembly.step
+  [OK]  assembly.step — 19 nodes  20 edges  (3.8s)
+  [424/471] Parsing: assembly.step
+  [OK]  assembly.step — 24 nodes  26 edges  (15.4s)
+  [425/471] Parsing: assembly.step
+  [OK]  assembly.step — 20 nodes  27 edges  (3.6s)
+  [426/471] Parsing: assembly.step
+  [OK]  assembly.step — 24 nodes  18 edges  (4.4s)
+  [427/471] Parsing: assembly.step
+  [OK]  assembly.step — 19 nodes  25 edges  (3.4s)
+  [428/471] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  24 edges  (7.7s)
+  [429/471] Parsing: assembly.step
+  [OK]  assembly.step — 5 nodes  6 edges  (3.0s)
+  [430/471] Parsing: assembly.step
+  [OK]  assembly.step — 20 nodes  25 edges  (4.8s)
+  [431/471] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  6 edges  (7.2s)
+  [432/471] Parsing: assembly.step
+  [OK]  assembly.step — 13 nodes  14 edges  (8.8s)
+  [433/471] Parsing: assembly.step
+  [OK]  assembly.step — 30 nodes  28 edges  (17.6s)
+  [434/471] Parsing: assembly.step
+  [OK]  assembly.step — 11 nodes  14 edges  (9.4s)
+  [435/471] Parsing: assembly.step
+  [OK]  assembly.step — 20 nodes  26 edges  (16.6s)
+  [436/471] Parsing: assembly.step
+  [OK]  assembly.step — 23 nodes  10 edges  (8.4s)
+  [437/471] Parsing: assembly.step
+  [OK]  assembly.step — 11 nodes  6 edges  (3.3s)
+  [438/471] Parsing: assembly.step
+  [OK]  assembly.step — 21 nodes  21 edges  (3.6s)
+  [439/471] Parsing: assembly.step
+  [OK]  assembly.step — 21 nodes  29 edges  (6.5s)
+  [440/471] Parsing: assembly.step
+  [OK]  assembly.step — 24 nodes  23 edges  (4.6s)
+  [441/471] Parsing: assembly.step
+  [OK]  assembly.step — 12 nodes  13 edges  (13.2s)
+  [442/471] Parsing: assembly.step
+  [OK]  assembly.step — 20 nodes  28 edges  (4.2s)
+  [443/471] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  20 edges  (4.0s)
+  [444/471] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  19 edges  (4.0s)
+  [445/471] Parsing: assembly.step
+  [OK]  assembly.step — 11 nodes  12 edges  (3.4s)
+  [446/471] Parsing: assembly.step
+  [OK]  assembly.step — 13 nodes  11 edges  (3.7s)
+  [447/471] Parsing: assembly.step
+  [OK]  assembly.step — 14 nodes  17 edges  (6.2s)
+  [448/471] Parsing: assembly.step
+  [OK]  assembly.step — 12 nodes  11 edges  (9.0s)
+  [449/471] Parsing: assembly.step
+  [OK]  assembly.step — 23 nodes  18 edges  (47.2s)
+  [450/471] Parsing: assembly.step
+  [OK]  assembly.step — 16 nodes  19 edges  (16.1s)
+  [451/471] Parsing: assembly.step
+  [OK]  assembly.step — 10 nodes  9 edges  (10.3s)
+  [452/471] Parsing: assembly.step
+  [OK]  assembly.step — 25 nodes  25 edges  (4.4s)
+  [453/471] Parsing: assembly.step
+  [OK]  assembly.step — 24 nodes  28 edges  (18.1s)
+  [454/471] Parsing: assembly.step
+  [OK]  assembly.step — 17 nodes  28 edges  (13.8s)
+  [455/471] Parsing: assembly.step
+  [OK]  assembly.step — 6 nodes  9 edges  (4.6s)
+  [456/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  14 edges  (3.1s)
+  [457/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  8 edges  (3.5s)
+  [458/471] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  6 edges  (3.2s)
+  [459/471] Parsing: assembly.step
+  [OK]  assembly.step — 16 nodes  15 edges  (3.3s)
+  [460/471] Parsing: assembly.step
+  [OK]  assembly.step — 8 nodes  7 edges  (2.9s)
+  [461/471] Parsing: assembly.step
+  [OK]  assembly.step — 17 nodes  20 edges  (3.0s)
+  [462/471] Parsing: assembly.step
+  [OK]  assembly.step — 19 nodes  18 edges  (3.0s)
+  [463/471] Parsing: assembly.step
+  [OK]  assembly.step — 16 nodes  24 edges  (5.9s)
+  [464/471] Parsing: assembly.step
+  [OK]  assembly.step — 16 nodes  14 edges  (3.2s)
+  [465/471] Parsing: assembly.step
+  [OK]  assembly.step — 22 nodes  25 edges  (3.3s)
+  [466/471] Parsing: assembly.step
+  [OK]  assembly.step — 17 nodes  7 edges  (9.6s)
+  [467/471] Parsing: assembly.step
+  [OK]  assembly.step — 14 nodes  23 edges  (10.6s)
+  [468/471] Parsing: assembly.step
+  [OK]  assembly.step — 19 nodes  17 edges  (3.4s)
+  [469/471] Parsing: assembly.step
+  [OK]  assembly.step — 8 nodes  11 edges  (6.7s)
+  [470/471] Parsing: assembly.step
+  [OK]  assembly.step — 7 nodes  8 edges  (3.2s)
+  [471/471] Parsing: assembly.step
+  [OK]  assembly.step — 15 nodes  15 edges  (3.0s)
+  Parsed 444 valid  |  Skipped 10 total (nodes>20: 0  edges>60: 0  edges<6: 0  timeout: 10  no_contacts: 0)
+  Skipped report → /Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Source_3d_models/Best_models_for_training/skipped_models_report.json
+Done!
+  Using 444 real assembly graph(s) — no synthetic data.
+  Saved 444 graphs → data/processed/processed/data.pt
+  Saved source paths    → data/processed/processed/sources.json
+  Saved categories      → data/processed/processed/categories.json
+  skipped/timeout: 13 assemblies
+  skipped/complex: 33 assemblies
+  skipped/bop_builder: 1 assemblies
+  skipped/bop_intersect: 1 assemblies
+  skipped/wire_error: 1 assemblies
+  skipped/no_contacts: 1 assemblies
+      444 graphs loaded.
+      Dataset: 444 graphs | mean nodes=14.1 | mean edges=30.2 | categories: 3D Art + Illustration=15 Abstract=2 Aerospace=12 Architecture=19 Art=5 Automotive=21 Bridges=1 Building Renovation=2 Character=2 Concept Art=2 Conceptual Modeling=4 Design=17 Electronics=31 Energy + Power=8 Engineering=11 Fantasy=2 Fashion=1 Furniture + Household=42 Game=3 Games=2 HVAC=2 Interior Design=6 Jewelry=10 Machine design=28 Marine=1 Mechanical Engineering=31 Medical=8 Miscellaneous=19 Packaging=4 Product Design=22 Props=3 Roads & Highways=3 Robotics=19 SCI-FI=1 Sport=16 Tools=30 Toys=22 Wood Working=17
+
+[2/4] Building model …  (5-fold CV)
+
+[3/4] Training (5 folds) …
+
+=======================================================
+  FOLD 1 / 5
+=======================================================
+  Fold 1/5 — train: 302  val: 76  test: 66
+Model built on mps  |  total params: 602,945
+  Ep   1/200  loss=1.2047  AUC=0.6267  AP=0.8515  (2.7s)
+  ✓ Fold 1 new best AUC=0.6267  saved.
+  Ep   2/200  loss=1.1742  AUC=0.4653  AP=0.7915  (2.4s)
+  Ep   3/200  loss=1.1553  AUC=0.4727  AP=0.7889  (2.6s)
+  Ep   4/200  loss=1.1647  AUC=0.4773  AP=0.8015  (3.1s)
+  Ep   5/200  loss=1.1557  AUC=0.5159  AP=0.8283  (3.1s)
+  Ep   6/200  loss=1.1408  AUC=0.4358  AP=0.7858  (3.5s)
+  Ep   7/200  loss=1.1410  AUC=0.5267  AP=0.8260  (4.1s)
+  Ep   8/200  loss=1.1299  AUC=0.4415  AP=0.7578  (4.6s)
+  Ep   9/200  loss=1.1588  AUC=0.4801  AP=0.7858  (4.2s)
+  Ep  10/200  loss=1.1383  AUC=0.4807  AP=0.7860  (4.1s)
+  Ep  11/200  loss=1.1188  AUC=0.5256  AP=0.7937  (3.9s)
+  Ep  12/200  loss=1.1402  AUC=0.5557  AP=0.8344  (4.8s)
+  Ep  13/200  loss=1.1319  AUC=0.5477  AP=0.8201  (5.8s)
+  Ep  14/200  loss=1.1141  AUC=0.5483  AP=0.8384  (4.7s)
+  Ep  15/200  loss=1.1140  AUC=0.5727  AP=0.8365  (5.7s)
+  Ep  16/200  loss=1.1132  AUC=0.5233  AP=0.8099  (6.2s)
+  Ep  17/200  loss=1.1068  AUC=0.5375  AP=0.8157  (6.3s)
+  Ep  18/200  loss=1.1133  AUC=0.5614  AP=0.8432  (4.2s)
+  Ep  19/200  loss=1.1215  AUC=0.5722  AP=0.8363  (5.8s)
+  Ep  20/200  loss=1.1171  AUC=0.5335  AP=0.8257  (6.1s)
+  Ep  21/200  loss=1.0895  AUC=0.5415  AP=0.8259  (4.9s)
+
+  Early stopping at epoch 21.
+
+  Fold 1 test — AUC=0.5545  AP=0.7698
+
+=======================================================
+  FOLD 2 / 5
+=======================================================
+  Fold 2/5 — train: 302  val: 76  test: 66
+Model built on mps  |  total params: 602,945
+  Ep   1/200  loss=1.1781  AUC=0.4760  AP=0.7484  (6.7s)
+  ✓ Fold 2 new best AUC=0.4760  saved.
+  Ep   2/200  loss=1.1135  AUC=0.5192  AP=0.8030  (5.4s)
+  ✓ Fold 2 new best AUC=0.5192  saved.
+  Ep   3/200  loss=1.1404  AUC=0.4888  AP=0.7559  (7.1s)
+  Ep   4/200  loss=1.1128  AUC=0.5005  AP=0.7781  (7.9s)
+  Ep   5/200  loss=1.1049  AUC=0.4824  AP=0.7768  (6.6s)
+  Ep   6/200  loss=1.1013  AUC=0.4594  AP=0.7643  (6.7s)
+  Ep   7/200  loss=1.1053  AUC=0.4322  AP=0.7329  (7.6s)
+  Ep   8/200  loss=1.0907  AUC=0.4215  AP=0.7209  (7.0s)
+  Ep   9/200  loss=1.1014  AUC=0.4022  AP=0.7234  (6.6s)
+  Ep  10/200  loss=1.0924  AUC=0.4599  AP=0.7559  (7.6s)
+  Ep  11/200  loss=1.0847  AUC=0.4888  AP=0.7537  (5.8s)
+  Ep  12/200  loss=1.0877  AUC=0.4306  AP=0.7449  (7.4s)
+  Ep  13/200  loss=1.0607  AUC=0.4338  AP=0.7430  (7.1s)
+  Ep  14/200  loss=1.0948  AUC=0.4428  AP=0.7266  (8.1s)
+  Ep  15/200  loss=1.0859  AUC=0.4370  AP=0.7256  (9.0s)
+  Ep  16/200  loss=1.0758  AUC=0.4017  AP=0.7114  (7.7s)
+  Ep  17/200  loss=1.0923  AUC=0.4097  AP=0.7265  (8.0s)
+  Ep  18/200  loss=1.0920  AUC=0.4172  AP=0.7176  (9.3s)
+  Ep  19/200  loss=1.0721  AUC=0.4113  AP=0.7108  (9.7s)
+  Ep  20/200  loss=1.0642  AUC=0.4215  AP=0.7262  (8.1s)
+  Ep  21/200  loss=1.0624  AUC=0.4236  AP=0.7191  (6.8s)
+  Ep  22/200  loss=1.0614  AUC=0.4156  AP=0.7080  (10.5s)
+
+  Early stopping at epoch 22.
+
+  Fold 2 test — AUC=0.4991  AP=0.7497
+
+=======================================================
+  FOLD 3 / 5
+=======================================================
+  Fold 3/5 — train: 302  val: 76  test: 66
+Model built on mps  |  total params: 602,945
+  Ep   1/200  loss=1.2008  AUC=0.4063  AP=0.7696  (10.8s)
+  ✓ Fold 3 new best AUC=0.4063  saved.
+  Ep   2/200  loss=1.1498  AUC=0.4177  AP=0.7670  (10.3s)
+  ✓ Fold 3 new best AUC=0.4177  saved.
+  Ep   3/200  loss=1.1952  AUC=0.4653  AP=0.7801  (9.0s)
+  ✓ Fold 3 new best AUC=0.4653  saved.
+  Ep   4/200  loss=1.1621  AUC=0.3785  AP=0.7369  (9.1s)
+  Ep   5/200  loss=1.2042  AUC=0.3870  AP=0.7338  (9.2s)
+  Ep   6/200  loss=1.1716  AUC=0.3436  AP=0.7101  (11.3s)
+  Ep   7/200  loss=1.1331  AUC=0.3508  AP=0.7078  (10.4s)
+  Ep   8/200  loss=1.1360  AUC=0.3701  AP=0.7218  (9.3s)
+  Ep   9/200  loss=1.1538  AUC=0.3828  AP=0.7322  (9.4s)
+  Ep  10/200  loss=1.1355  AUC=0.4033  AP=0.7510  (14.8s)
+  Ep  11/200  loss=1.1258  AUC=0.4467  AP=0.7603  (10.5s)
+  Ep  12/200  loss=1.1457  AUC=0.3797  AP=0.7407  (11.7s)
+  Ep  13/200  loss=1.1077  AUC=0.3816  AP=0.7502  (14.7s)
+  Ep  14/200  loss=1.1610  AUC=0.3810  AP=0.7509  (12.3s)
+  Ep  15/200  loss=1.1256  AUC=0.3816  AP=0.7441  (10.4s)
+  Ep  16/200  loss=1.1010  AUC=0.3574  AP=0.7391  (12.6s)
+  Ep  17/200  loss=1.1336  AUC=0.3701  AP=0.7364  (13.5s)
+  Ep  18/200  loss=1.0989  AUC=0.3719  AP=0.7391  (11.5s)
+  Ep  19/200  loss=1.1105  AUC=0.3568  AP=0.7345  (10.6s)
+  Ep  20/200  loss=1.1063  AUC=0.3394  AP=0.7282  (13.5s)
+  Ep  21/200  loss=1.0859  AUC=0.3647  AP=0.7415  (11.1s)
+  Ep  22/200  loss=1.0997  AUC=0.3755  AP=0.7380  (12.6s)
+  Ep  23/200  loss=1.1294  AUC=0.3665  AP=0.7364  (12.2s)
+
+  Early stopping at epoch 23.
+
+  Fold 3 test — AUC=0.4379  AP=0.7270
+
+=======================================================
+  FOLD 4 / 5
+=======================================================
+  Fold 4/5 — train: 303  val: 75  test: 66
+Model built on mps  |  total params: 602,945
+  Ep   1/200  loss=1.1774  AUC=0.5445  AP=0.7917  (16.6s)
+  ✓ Fold 4 new best AUC=0.5445  saved.
+  Ep   2/200  loss=1.1711  AUC=0.5430  AP=0.7916  (10.2s)
+  Ep   3/200  loss=1.1306  AUC=0.5540  AP=0.7937  (11.8s)
+  ✓ Fold 4 new best AUC=0.5540  saved.
+  Ep   4/200  loss=1.1321  AUC=0.5235  AP=0.7883  (12.1s)
+  Ep   5/200  loss=1.1467  AUC=0.4725  AP=0.7731  (12.8s)
+  Ep   6/200  loss=1.1437  AUC=0.4720  AP=0.7758  (13.4s)
+  Ep   7/200  loss=1.1365  AUC=0.5260  AP=0.8004  (14.1s)
+  Ep   8/200  loss=1.1092  AUC=0.4610  AP=0.7685  (14.7s)
+  Ep   9/200  loss=1.1052  AUC=0.3515  AP=0.6961  (13.7s)
+  Ep  10/200  loss=1.1063  AUC=0.4660  AP=0.7615  (14.0s)
+  Ep  11/200  loss=1.1058  AUC=0.5000  AP=0.7793  (14.4s)
+  Ep  12/200  loss=1.1207  AUC=0.4815  AP=0.7653  (12.4s)
+  Ep  13/200  loss=1.0932  AUC=0.4700  AP=0.7646  (14.3s)
+  Ep  14/200  loss=1.1141  AUC=0.4400  AP=0.7487  (15.5s)
+  Ep  15/200  loss=1.1034  AUC=0.4480  AP=0.7315  (15.8s)
+  Ep  16/200  loss=1.0896  AUC=0.4940  AP=0.7812  (19.4s)
+  Ep  17/200  loss=1.0968  AUC=0.4395  AP=0.7174  (13.9s)
+  Ep  18/200  loss=1.1045  AUC=0.4545  AP=0.7409  (12.3s)
+  Ep  19/200  loss=1.0913  AUC=0.4475  AP=0.7380  (12.9s)
+  Ep  20/200  loss=1.0739  AUC=0.4665  AP=0.7679  (15.4s)
+  Ep  21/200  loss=1.0725  AUC=0.4490  AP=0.7576  (15.5s)
+  Ep  22/200  loss=1.0732  AUC=0.4180  AP=0.7166  (15.2s)
+  Ep  23/200  loss=1.0462  AUC=0.4010  AP=0.7054  (15.2s)
+
+  Early stopping at epoch 23.
+
+  Fold 4 test — AUC=0.5362  AP=0.7676
+
+=======================================================
+  FOLD 5 / 5
+=======================================================
+  Fold 5/5 — train: 303  val: 75  test: 66
+Model built on mps  |  total params: 602,945
+  Ep   1/200  loss=1.2087  AUC=0.4068  AP=0.7427  (21.5s)
+  ✓ Fold 5 new best AUC=0.4068  saved.
+  Ep   2/200  loss=1.2030  AUC=0.4291  AP=0.7574  (14.0s)
+  ✓ Fold 5 new best AUC=0.4291  saved.
+  Ep   3/200  loss=1.1627  AUC=0.3838  AP=0.7686  (16.6s)
+  Ep   4/200  loss=1.1722  AUC=0.3675  AP=0.7594  (15.7s)
+  Ep   5/200  loss=1.1716  AUC=0.4299  AP=0.7511  (17.4s)
+  ✓ Fold 5 new best AUC=0.4299  saved.
+  Ep   6/200  loss=1.1619  AUC=0.4000  AP=0.7305  (17.5s)
+  Ep   7/200  loss=1.1467  AUC=0.3726  AP=0.7364  (16.9s)
+  Ep   8/200  loss=1.1432  AUC=0.3479  AP=0.7242  (16.8s)
+  Ep   9/200  loss=1.1381  AUC=0.3504  AP=0.7211  (19.7s)
+  Ep  10/200  loss=1.1354  AUC=0.4282  AP=0.7483  (16.1s)
+  Ep  11/200  loss=1.1376  AUC=0.3709  AP=0.7295  (17.3s)
+  Ep  12/200  loss=1.1478  AUC=0.3538  AP=0.7367  (15.6s)
+  Ep  13/200  loss=1.1174  AUC=0.3983  AP=0.7550  (19.6s)
+  Ep  14/200  loss=1.1584  AUC=0.3325  AP=0.7151  (16.2s)
+  Ep  15/200  loss=1.1281  AUC=0.3299  AP=0.7235  (19.6s)
+  Ep  16/200  loss=1.1097  AUC=0.3470  AP=0.7403  (19.2s)
+  Ep  17/200  loss=1.1200  AUC=0.3744  AP=0.7371  (17.6s)
+  Ep  18/200  loss=1.1170  AUC=0.3752  AP=0.7315  (16.5s)
+  Ep  19/200  loss=1.1017  AUC=0.3462  AP=0.7435  (16.7s)
+  Ep  20/200  loss=1.1272  AUC=0.3402  AP=0.7417  (18.0s)
+  Ep  21/200  loss=1.0911  AUC=0.3709  AP=0.7486  (20.7s)
+  Ep  22/200  loss=1.1116  AUC=0.3556  AP=0.7304  (19.7s)
+  Ep  23/200  loss=1.0887  AUC=0.3581  AP=0.7248  (17.3s)
+  Ep  24/200  loss=1.0990  AUC=0.3564  AP=0.7412  (15.1s)
+  Ep  25/200  loss=1.0873  AUC=0.3675  AP=0.7281  (16.7s)
+
+  Early stopping at epoch 25.
+
+  Fold 5 test — AUC=0.4883  AP=0.7329
+
+=======================================================
+  5-Fold CV Summary
+=======================================================
+  Fold 1: AUC=0.5545  AP=0.7698
+  Fold 2: AUC=0.4991  AP=0.7497
+  Fold 3: AUC=0.4379  AP=0.7270
+  Fold 4: AUC=0.5362  AP=0.7676
+  Fold 5: AUC=0.4883  AP=0.7329
+  ─────────────────────────────────────────
+  Mean AUC = 0.5032 ± 0.0453
+  Mean AP  = 0.7494 ± 0.0195
+  Best overall fold: 1  (val AUC=0.6267)
+
+[4/4] Final test evaluation (best_overall.pt) …
+Model built on mps  |  total params: 602,945
+  Fold 1/5 — train: 302  val: 76  test: 66
+
+  ── Test results (best overall model) ─────
+     auc         : 0.5230
+     ap          : 0.7713
+
+  Results saved        → results
+  Best overall ckpt    → checkpoints/best_overall.pt
+  Trained model export → ../trained_models/assembly_gnn_20260625_094934_auc06267.pt
+
+  ⊘ Serving model NOT updated — incumbent (AUC=0.5036, AP=0.8351) is better than this run (AUC=0.5032, AP=0.7494)
+
+  Building assembly template cache …
+  [TemplateDB] Built 1 category templates from 444 training assemblies.
+    Best Models For Training                  bodies≈14  dist={'body': 8, 'fastener': 4, 'bearing': 1, 'plate': 3}
+  [TemplateDB] Saved 1 templates → data/assembly_templates.json

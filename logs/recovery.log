@@ -1,0 +1,14 @@
+[2026-06-24 08:37:04] ═══ Recovery Log ═══
+[2026-06-24 08:37:04] Training PID=30669 started (start_fold=0, attempt=1)
+[2026-06-24 08:47:04] STALL detected: no output for 300s. Killing PID 30669.
+[2026-06-24 08:48:06] Training process exited with code 143
+[2026-06-24 08:48:06] Found checkpoint up to fold 4. Resuming from fold 5.
+[2026-06-24 08:48:06] Training PID=31598 started (start_fold=5, attempt=2)
+[2026-06-24 08:49:06] Training completed successfully in 12m 2s
+[2026-06-25 00:22:37] Auto-recovery monitor started
+[2026-06-25 00:25:48] Auto-recovery monitor started
+[2026-06-25 00:25:48] Auto-recovery monitor started
+[2026-06-25 00:46:18] Auto-recovery monitor started
+[2026-06-25 00:46:18] Auto-recovery monitor started
+[2026-06-25 02:41:52] Training completed successfully! Elapsed: 6934s
+[2026-06-25 02:41:52] Training completed successfully! Elapsed: 6934s

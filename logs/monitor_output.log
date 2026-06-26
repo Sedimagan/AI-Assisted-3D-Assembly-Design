@@ -1,0 +1,44 @@
+
+==================================================================
+[2026-06-24 08:37:04] Starting training (attempt 1/3, start_fold=0)
+==================================================================
+[2026-06-24 08:37:04] Training PID=30669 started (start_fold=0, attempt=1)
+[2026-06-24 08:47:04] STALL detected: no output for 300s. Killing PID 30669.
+train_monitor.sh: line 206: 30669 Terminated: 15          cd "$BACK_END" && "$PYTHON" train.py --config "$CONFIG" 2>&1 | while IFS= read -r line; do
+    echo "[$(date '+%H:%M:%S')] $line";
+done >> "$LOG_FILE"
+[2026-06-24 08:48:06] Training process exited with code 143
+[2026-06-24 08:48:06] Found checkpoint up to fold 4. Resuming from fold 5.
+
+==================================================================
+[2026-06-24 08:48:06] Starting training (attempt 2/3, start_fold=5)
+==================================================================
+[2026-06-24 08:48:06] Training PID=31598 started (start_fold=5, attempt=2)
+
+==================================================================
+[2026-06-24 08:49:06] Training completed successfully!
+==================================================================
+[08:48:13]   5-Fold CV Summary
+[08:48:13] =======================================================
+[08:48:13]   Fold 1: AUC=0.4933  AP=0.8156
+[08:48:13]   Fold 2: AUC=0.5051  AP=0.8295
+[08:48:13]   Fold 3: AUC=0.5010  AP=0.8257
+[08:48:13]   Fold 4: AUC=0.5616  AP=0.8645
+[08:48:13]   Fold 5: AUC=0.4759  AP=0.8317
+[08:48:13]   ─────────────────────────────────────────
+[08:48:13]   Mean AUC = 0.5074 ± 0.0323
+[08:48:13]   Mean AP  = 0.8334 ± 0.0184
+[08:48:13]   Best overall fold: 2  (val AUC=0.6409)
+[08:48:13] 
+[08:48:13] [4/4] Final test evaluation (best_overall.pt) …
+[08:48:13] Traceback (most recent call last):
+[08:48:13]   File "/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/back_end/train.py", line 386, in <module>
+[08:48:13]     main()
+[08:48:13]   File "/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/back_end/train.py", line 310, in main
+[08:48:13]     ckpt   = torch.load(ckpt_dir / "best_overall.pt", map_location=device,
+[08:48:13]                                                                    ^^^^^^
+[08:48:13] UnboundLocalError: cannot access local variable 'device' where it is not associated with a value
+
+Total training time: 12m 2s
+Attempts used: 2/3
+[2026-06-24 08:49:06] Training completed successfully in 12m 2s

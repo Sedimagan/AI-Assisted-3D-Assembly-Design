@@ -418,26 +418,26 @@ ul.bl li:nth-child(8) { animation-delay:0.39s; }
 <div class="slide" id="s4">
   <div class="shdr">
     <div class="snum">4</div>
-    <h2>Results Obtained — Latest (R21)</h2>
-    <div class="sub">GNN Training Metrics · 26 Jun 2026 &nbsp;|&nbsp; 22+6-dim · 5-Fold CV · New Dataset</div>
+    <h2>Results Obtained — Latest (R22)</h2>
+    <div class="sub">GNN Training Metrics · 26 Jun 2026 &nbsp;|&nbsp; 22+6-dim · 5-Fold CV · Best_models_for_training</div>
   </div>
   <div class="sbody">
 
     <div class="mrow">
       <div class="met b">
-        <div class="mv">0.428</div>
+        <div class="mv">0.588</div>
         <div class="mk">MEAN AUC-ROC</div>
-        <div class="mn">± 0.174 · 5-fold CV · R21</div>
+        <div class="mn">± 0.050 · 5-fold CV · R22</div>
       </div>
       <div class="met g">
-        <div class="mv">0.799</div>
+        <div class="mv">0.767</div>
         <div class="mk">MEAN AVG PRECISION</div>
-        <div class="mn">± 0.063 · 5-fold CV · R21</div>
+        <div class="mn">± 0.031 · 5-fold CV · R22</div>
       </div>
       <div class="met p">
-        <div class="mv">89</div>
+        <div class="mv">239</div>
         <div class="mk">TRAINING GRAPHS</div>
-        <div class="mn">New_Training_models · 0 errors</div>
+        <div class="mn">Best_models_for_training · 19 timeouts</div>
       </div>
       <div class="met o">
         <div class="mv">Phase 1</div>
@@ -466,29 +466,29 @@ ul.bl li:nth-child(8) { animation-delay:0.39s; }
       <div class="col coll">
         <div class="card" style="flex:1">
           <div class="lbl g">5-Fold CV Results</div>
-          <h3>R21 — 89 graphs · 3 categories (no skip/edge filters)</h3>
+          <h3>R22 — 239 graphs · 3 categories · Best_models_for_training</h3>
           <table class="tbl" style="margin-top:5px">
             <thead>
               <tr><th>Fold</th><th>Val AUC (best)</th><th>Test AUC</th><th>Test AP</th></tr>
             </thead>
             <tbody>
-              <tr><td>1</td><td>0.656</td><td>0.556</td><td>0.854</td></tr>
-              <tr><td>2</td><td>0.635</td><td>0.194</td><td>0.723</td></tr>
-              <tr><td>3</td><td>0.718</td><td>0.389</td><td>0.758</td></tr>
-              <tr class="best"><td>4 ★</td><td class="hg">0.731</td><td>0.361</td><td>0.787</td></tr>
-              <tr><td>5</td><td>0.718</td><td>0.639</td><td>0.872</td></tr>
-              <tr><td><strong>Mean</strong></td><td>—</td><td class="hi"><strong>0.428 ± 0.174</strong></td><td class="hg"><strong>0.799 ± 0.063</strong></td></tr>
+              <tr><td>1</td><td>0.531</td><td>0.541</td><td>0.717</td></tr>
+              <tr><td>2</td><td>0.518</td><td>0.609</td><td>0.789</td></tr>
+              <tr class="best"><td>3 ★</td><td class="hg">0.625</td><td>0.569</td><td>0.762</td></tr>
+              <tr><td>4</td><td>0.566</td><td>0.555</td><td>0.771</td></tr>
+              <tr><td>5</td><td>0.587</td><td>0.666</td><td>0.796</td></tr>
+              <tr><td><strong>Mean</strong></td><td>—</td><td class="hi"><strong>0.588 ± 0.050</strong></td><td class="hg"><strong>0.767 ± 0.031</strong></td></tr>
             </tbody>
           </table>
-          <div style="margin-top:6px;font-size:12px;color:#8ab">★ best_overall.pt · final test AUC=0.500, AP=0.834 · serving promoted</div>
+          <div style="margin-top:6px;font-size:12px;color:#8ab">★ best_overall.pt · final test AUC=0.626, AP=0.772 · serving promoted</div>
         </div>
       </div>
     </div>
 
     <div class="hbar">
-      <strong>R21 Dataset:</strong> &nbsp;Machine design (28) · Mechanical Engineering (31) · Tools (30)
-      &nbsp;·&nbsp; 89/89 parsed · 0 errors · 0 timeouts · no skip/edge filters
-      &nbsp;·&nbsp; <strong>Next:</strong> Larger dataset or architectural tuning to reduce fold variance
+      <strong>R22 Dataset:</strong> &nbsp;Tools (100) · Machine design (100) · Mechanical Engineering (100)
+      &nbsp;·&nbsp; 300 STEP → 239 graphs · 19 timeouts · ~8 geometry errors
+      &nbsp;·&nbsp; <strong>↑ +16pt AUC vs R21</strong> · fold std ↓ from ±0.174 → ±0.050
     </div>
   </div>
 </div>

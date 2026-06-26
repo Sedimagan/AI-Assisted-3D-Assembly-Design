@@ -1,0 +1,304 @@
+
+[1/4] Loading dataset …
+      416 graphs loaded.
+
+[2/4] Building model …  (5-fold CV)
+
+[3/4] Training (5 folds) …
+
+=======================================================
+  FOLD 1 / 5
+=======================================================
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.80.
+  return self.forward(copy.copy(data))
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.40.
+  return self.forward(copy.copy(data))
+  Fold 1/5 — train: 176  val: 42  test: 34
+Model built on mps  |  total params: 169,537
+  Ep   1/200  loss=0.6792  AUC=0.5325  AP=0.5500  (1.7s)
+  ✓ Fold 1 new best AUC=0.5325  saved.
+  Ep   2/200  loss=0.6527  AUC=0.4373  AP=0.4918  (1.4s)
+  Ep   3/200  loss=0.6248  AUC=0.5180  AP=0.5436  (1.5s)
+  Ep   4/200  loss=0.6062  AUC=0.5465  AP=0.5696  (1.5s)
+  ✓ Fold 1 new best AUC=0.5465  saved.
+  Ep   5/200  loss=0.5718  AUC=0.5822  AP=0.6102  (1.6s)
+  ✓ Fold 1 new best AUC=0.5822  saved.
+  Ep   6/200  loss=0.5573  AUC=0.6280  AP=0.6043  (1.9s)
+  ✓ Fold 1 new best AUC=0.6280  saved.
+  Ep   7/200  loss=0.5384  AUC=0.6350  AP=0.6181  (1.6s)
+  ✓ Fold 1 new best AUC=0.6350  saved.
+  Ep   8/200  loss=0.5322  AUC=0.6283  AP=0.5981  (1.9s)
+  Ep   9/200  loss=0.5338  AUC=0.6269  AP=0.5946  (1.6s)
+  Ep  10/200  loss=0.5122  AUC=0.6185  AP=0.5916  (1.9s)
+  Ep  11/200  loss=0.5255  AUC=0.6071  AP=0.6087  (2.0s)
+  Ep  12/200  loss=0.5231  AUC=0.6388  AP=0.6237  (2.3s)
+  ✓ Fold 1 new best AUC=0.6388  saved.
+  Ep  13/200  loss=0.4899  AUC=0.6289  AP=0.6129  (2.1s)
+  Ep  14/200  loss=0.4935  AUC=0.6443  AP=0.6166  (2.8s)
+  ✓ Fold 1 new best AUC=0.6443  saved.
+  Ep  15/200  loss=0.4821  AUC=0.6487  AP=0.6119  (2.4s)
+  ✓ Fold 1 new best AUC=0.6487  saved.
+  Ep  16/200  loss=0.4749  AUC=0.6347  AP=0.6121  (2.3s)
+  Ep  17/200  loss=0.4878  AUC=0.6591  AP=0.6258  (2.0s)
+  ✓ Fold 1 new best AUC=0.6591  saved.
+  Ep  18/200  loss=0.4889  AUC=0.6498  AP=0.6054  (2.3s)
+  Ep  19/200  loss=0.4987  AUC=0.6434  AP=0.6139  (3.1s)
+  Ep  20/200  loss=0.4821  AUC=0.6524  AP=0.6276  (3.0s)
+  Ep  21/200  loss=0.4753  AUC=0.6388  AP=0.6277  (2.4s)
+  Ep  22/200  loss=0.4867  AUC=0.6222  AP=0.6166  (2.4s)
+  Ep  23/200  loss=0.4779  AUC=0.5981  AP=0.6242  (3.1s)
+  Ep  24/200  loss=0.4838  AUC=0.6202  AP=0.6445  (2.7s)
+  Ep  25/200  loss=0.4571  AUC=0.6475  AP=0.6589  (2.8s)
+  Ep  26/200  loss=0.4737  AUC=0.6324  AP=0.6535  (3.0s)
+  Ep  27/200  loss=0.4747  AUC=0.6394  AP=0.6124  (2.8s)
+  Ep  28/200  loss=0.4702  AUC=0.6272  AP=0.5914  (3.4s)
+  Ep  29/200  loss=0.4638  AUC=0.6190  AP=0.6025  (3.7s)
+  Ep  30/200  loss=0.4651  AUC=0.5732  AP=0.5851  (3.1s)
+  Ep  31/200  loss=0.4702  AUC=0.5987  AP=0.5764  (3.3s)
+  Ep  32/200  loss=0.4696  AUC=0.5842  AP=0.5686  (3.1s)
+  Ep  33/200  loss=0.4685  AUC=0.5784  AP=0.5680  (2.9s)
+  Ep  34/200  loss=0.4580  AUC=0.5523  AP=0.5640  (3.1s)
+  Ep  35/200  loss=0.4687  AUC=0.5331  AP=0.5483  (3.3s)
+  Ep  36/200  loss=0.4555  AUC=0.5261  AP=0.5402  (3.7s)
+  Ep  37/200  loss=0.4659  AUC=0.5267  AP=0.5385  (3.5s)
+
+  Early stopping at epoch 37.
+
+  Fold 1 test — AUC=0.6633  AP=0.7816
+
+=======================================================
+  FOLD 2 / 5
+=======================================================
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.40.
+  return self.forward(copy.copy(data))
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.80.
+  return self.forward(copy.copy(data))
+  Fold 2/5 — train: 174  val: 44  test: 34
+Model built on mps  |  total params: 169,537
+  Ep   1/200  loss=0.6832  AUC=0.4975  AP=0.6279  (4.6s)
+  ✓ Fold 2 new best AUC=0.4975  saved.
+  Ep   2/200  loss=0.6403  AUC=0.5148  AP=0.6017  (3.8s)
+  ✓ Fold 2 new best AUC=0.5148  saved.
+  Ep   3/200  loss=0.6282  AUC=0.5559  AP=0.6201  (4.6s)
+  ✓ Fold 2 new best AUC=0.5559  saved.
+  Ep   4/200  loss=0.5998  AUC=0.5567  AP=0.6235  (3.2s)
+  ✓ Fold 2 new best AUC=0.5567  saved.
+  Ep   5/200  loss=0.5860  AUC=0.5411  AP=0.6111  (4.0s)
+  Ep   6/200  loss=0.5638  AUC=0.5617  AP=0.6255  (4.2s)
+  ✓ Fold 2 new best AUC=0.5617  saved.
+  Ep   7/200  loss=0.5585  AUC=0.5987  AP=0.6662  (4.3s)
+  ✓ Fold 2 new best AUC=0.5987  saved.
+  Ep   8/200  loss=0.5493  AUC=0.6036  AP=0.6671  (4.1s)
+  ✓ Fold 2 new best AUC=0.6036  saved.
+  Ep   9/200  loss=0.5382  AUC=0.6086  AP=0.6837  (4.7s)
+  ✓ Fold 2 new best AUC=0.6086  saved.
+  Ep  10/200  loss=0.5304  AUC=0.5929  AP=0.6779  (3.9s)
+  Ep  11/200  loss=0.5022  AUC=0.5732  AP=0.6614  (4.1s)
+  Ep  12/200  loss=0.5041  AUC=0.5929  AP=0.6768  (3.9s)
+  Ep  13/200  loss=0.4862  AUC=0.6110  AP=0.6932  (5.3s)
+  ✓ Fold 2 new best AUC=0.6110  saved.
+  Ep  14/200  loss=0.4900  AUC=0.6028  AP=0.6831  (4.8s)
+  Ep  15/200  loss=0.5008  AUC=0.6102  AP=0.6952  (4.4s)
+  Ep  16/200  loss=0.4888  AUC=0.5905  AP=0.6766  (4.5s)
+  Ep  17/200  loss=0.4766  AUC=0.5872  AP=0.6772  (5.3s)
+  Ep  18/200  loss=0.4894  AUC=0.5814  AP=0.6676  (3.9s)
+  Ep  19/200  loss=0.4798  AUC=0.5798  AP=0.6701  (5.2s)
+  Ep  20/200  loss=0.4789  AUC=0.5905  AP=0.6761  (4.1s)
+  Ep  21/200  loss=0.4710  AUC=0.5979  AP=0.6905  (5.0s)
+  Ep  22/200  loss=0.4820  AUC=0.5896  AP=0.6787  (5.8s)
+  Ep  23/200  loss=0.4699  AUC=0.5863  AP=0.6758  (5.4s)
+  Ep  24/200  loss=0.4722  AUC=0.5806  AP=0.6758  (6.0s)
+  Ep  25/200  loss=0.4714  AUC=0.5806  AP=0.6745  (6.0s)
+  Ep  26/200  loss=0.4729  AUC=0.5765  AP=0.6710  (6.4s)
+  Ep  27/200  loss=0.4490  AUC=0.5773  AP=0.6759  (6.4s)
+  Ep  28/200  loss=0.4661  AUC=0.5732  AP=0.6715  (5.8s)
+  Ep  29/200  loss=0.4621  AUC=0.5765  AP=0.6706  (6.2s)
+  Ep  30/200  loss=0.4570  AUC=0.5666  AP=0.6636  (6.0s)
+  Ep  31/200  loss=0.4582  AUC=0.5658  AP=0.6642  (8.7s)
+  Ep  32/200  loss=0.4570  AUC=0.5798  AP=0.6805  (5.6s)
+  Ep  33/200  loss=0.4563  AUC=0.5913  AP=0.6938  (5.4s)
+
+  Early stopping at epoch 33.
+
+  Fold 2 test — AUC=0.7098  AP=0.8542
+
+=======================================================
+  FOLD 3 / 5
+=======================================================
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.40.
+  return self.forward(copy.copy(data))
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.80.
+  return self.forward(copy.copy(data))
+  Fold 3/5 — train: 171  val: 47  test: 34
+Model built on mps  |  total params: 169,537
+  Ep   1/200  loss=0.6896  AUC=0.6125  AP=0.7274  (8.7s)
+  ✓ Fold 3 new best AUC=0.6125  saved.
+  Ep   2/200  loss=0.6536  AUC=0.6395  AP=0.7342  (8.0s)
+  ✓ Fold 3 new best AUC=0.6395  saved.
+  Ep   3/200  loss=0.6095  AUC=0.6195  AP=0.7244  (8.3s)
+  Ep   4/200  loss=0.6017  AUC=0.6382  AP=0.7342  (8.0s)
+  Ep   5/200  loss=0.5811  AUC=0.6357  AP=0.7353  (10.7s)
+  Ep   6/200  loss=0.5611  AUC=0.6262  AP=0.7294  (7.9s)
+  Ep   7/200  loss=0.5457  AUC=0.6336  AP=0.7310  (8.0s)
+  Ep   8/200  loss=0.5280  AUC=0.6155  AP=0.7251  (7.5s)
+  Ep   9/200  loss=0.5272  AUC=0.6041  AP=0.7199  (9.5s)
+  Ep  10/200  loss=0.5313  AUC=0.6308  AP=0.7079  (10.0s)
+  Ep  11/200  loss=0.5212  AUC=0.6220  AP=0.7317  (7.6s)
+  Ep  12/200  loss=0.5276  AUC=0.6315  AP=0.7349  (7.1s)
+  Ep  13/200  loss=0.5362  AUC=0.6144  AP=0.7212  (7.9s)
+  Ep  14/200  loss=0.5085  AUC=0.6006  AP=0.7145  (8.7s)
+  Ep  15/200  loss=0.5108  AUC=0.6058  AP=0.7174  (7.9s)
+  Ep  16/200  loss=0.5045  AUC=0.5976  AP=0.7070  (7.8s)
+  Ep  17/200  loss=0.4946  AUC=0.5825  AP=0.6991  (7.8s)
+  Ep  18/200  loss=0.5211  AUC=0.5905  AP=0.7059  (8.5s)
+  Ep  19/200  loss=0.5086  AUC=0.6033  AP=0.7179  (7.4s)
+  Ep  20/200  loss=0.4946  AUC=0.5980  AP=0.7143  (7.6s)
+  Ep  21/200  loss=0.4922  AUC=0.5938  AP=0.7135  (8.5s)
+  Ep  22/200  loss=0.4969  AUC=0.5961  AP=0.7163  (7.2s)
+
+  Early stopping at epoch 22.
+
+  Fold 3 test — AUC=0.6916  AP=0.7889
+
+=======================================================
+  FOLD 4 / 5
+=======================================================
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.40.
+  return self.forward(copy.copy(data))
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.80.
+  return self.forward(copy.copy(data))
+  Fold 4/5 — train: 175  val: 43  test: 34
+Model built on mps  |  total params: 169,537
+  Ep   1/200  loss=0.6824  AUC=0.5151  AP=0.5699  (11.2s)
+  ✓ Fold 4 new best AUC=0.5151  saved.
+  Ep   2/200  loss=0.6461  AUC=0.5341  AP=0.5703  (8.8s)
+  ✓ Fold 4 new best AUC=0.5341  saved.
+  Ep   3/200  loss=0.6187  AUC=0.5238  AP=0.5579  (7.9s)
+  Ep   4/200  loss=0.6026  AUC=0.5310  AP=0.5596  (9.3s)
+  Ep   5/200  loss=0.5691  AUC=0.5278  AP=0.5525  (9.6s)
+  Ep   6/200  loss=0.5594  AUC=0.5333  AP=0.5697  (9.4s)
+  Ep   7/200  loss=0.5556  AUC=0.5373  AP=0.5597  (8.4s)
+  ✓ Fold 4 new best AUC=0.5373  saved.
+  Ep   8/200  loss=0.5310  AUC=0.5397  AP=0.5352  (9.0s)
+  ✓ Fold 4 new best AUC=0.5397  saved.
+  Ep   9/200  loss=0.5247  AUC=0.5381  AP=0.5479  (8.4s)
+  Ep  10/200  loss=0.5259  AUC=0.5365  AP=0.5678  (8.9s)
+  Ep  11/200  loss=0.5125  AUC=0.5365  AP=0.5741  (8.3s)
+  Ep  12/200  loss=0.5132  AUC=0.5413  AP=0.5823  (8.8s)
+  ✓ Fold 4 new best AUC=0.5413  saved.
+  Ep  13/200  loss=0.5052  AUC=0.5349  AP=0.5769  (11.3s)
+  Ep  14/200  loss=0.5016  AUC=0.5484  AP=0.5837  (8.6s)
+  ✓ Fold 4 new best AUC=0.5484  saved.
+  Ep  15/200  loss=0.5008  AUC=0.5437  AP=0.5815  (9.8s)
+  Ep  16/200  loss=0.4783  AUC=0.5429  AP=0.5804  (9.4s)
+  Ep  17/200  loss=0.4803  AUC=0.5317  AP=0.5466  (10.0s)
+  Ep  18/200  loss=0.4830  AUC=0.5294  AP=0.5789  (9.2s)
+  Ep  19/200  loss=0.4833  AUC=0.5405  AP=0.5622  (8.0s)
+  Ep  20/200  loss=0.4763  AUC=0.5524  AP=0.5863  (7.9s)
+  ✓ Fold 4 new best AUC=0.5524  saved.
+  Ep  21/200  loss=0.4699  AUC=0.5317  AP=0.5473  (9.5s)
+  Ep  22/200  loss=0.4763  AUC=0.5460  AP=0.5854  (8.0s)
+  Ep  23/200  loss=0.4757  AUC=0.5365  AP=0.5649  (10.3s)
+  Ep  24/200  loss=0.4655  AUC=0.5286  AP=0.5566  (7.9s)
+  Ep  25/200  loss=0.4608  AUC=0.5341  AP=0.5634  (8.9s)
+  Ep  26/200  loss=0.4620  AUC=0.5349  AP=0.5546  (11.1s)
+  Ep  27/200  loss=0.4523  AUC=0.5294  AP=0.5556  (9.6s)
+  Ep  28/200  loss=0.4674  AUC=0.5230  AP=0.5472  (12.4s)
+  Ep  29/200  loss=0.4654  AUC=0.5198  AP=0.5499  (10.4s)
+  Ep  30/200  loss=0.4550  AUC=0.5198  AP=0.5503  (10.7s)
+  Ep  31/200  loss=0.4527  AUC=0.5278  AP=0.5540  (8.5s)
+  Ep  32/200  loss=0.4546  AUC=0.5246  AP=0.5550  (11.9s)
+  Ep  33/200  loss=0.4400  AUC=0.5349  AP=0.5586  (10.6s)
+  Ep  34/200  loss=0.4401  AUC=0.5317  AP=0.5569  (10.7s)
+  Ep  35/200  loss=0.4463  AUC=0.5302  AP=0.5587  (10.7s)
+  Ep  36/200  loss=0.4362  AUC=0.5302  AP=0.5553  (10.4s)
+  Ep  37/200  loss=0.4462  AUC=0.5333  AP=0.5575  (9.3s)
+  Ep  38/200  loss=0.4426  AUC=0.5262  AP=0.5511  (11.4s)
+  Ep  39/200  loss=0.4454  AUC=0.5238  AP=0.5496  (9.1s)
+  Ep  40/200  loss=0.4344  AUC=0.5206  AP=0.5441  (9.9s)
+
+  Early stopping at epoch 40.
+
+  Fold 4 test — AUC=0.7273  AP=0.8562
+
+=======================================================
+  FOLD 5 / 5
+=======================================================
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.40.
+  return self.forward(copy.copy(data))
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.80.
+  return self.forward(copy.copy(data))
+  Fold 5/5 — train: 176  val: 42  test: 34
+Model built on mps  |  total params: 169,537
+  Ep   1/200  loss=0.6844  AUC=0.6345  AP=0.7801  (13.3s)
+  ✓ Fold 5 new best AUC=0.6345  saved.
+  Ep   2/200  loss=0.6506  AUC=0.6166  AP=0.7704  (10.3s)
+  Ep   3/200  loss=0.6147  AUC=0.5906  AP=0.7585  (11.6s)
+  Ep   4/200  loss=0.5803  AUC=0.5912  AP=0.7562  (11.0s)
+  Ep   5/200  loss=0.5650  AUC=0.5850  AP=0.7537  (10.3s)
+  Ep   6/200  loss=0.5478  AUC=0.5968  AP=0.7602  (10.7s)
+  Ep   7/200  loss=0.5384  AUC=0.6092  AP=0.7658  (9.4s)
+  Ep   8/200  loss=0.5348  AUC=0.6129  AP=0.7694  (12.9s)
+  Ep   9/200  loss=0.5361  AUC=0.6147  AP=0.7705  (8.7s)
+  Ep  10/200  loss=0.5278  AUC=0.6061  AP=0.7644  (10.5s)
+  Ep  11/200  loss=0.5175  AUC=0.6116  AP=0.7683  (12.1s)
+  Ep  12/200  loss=0.5252  AUC=0.6079  AP=0.7671  (10.8s)
+  Ep  13/200  loss=0.5152  AUC=0.6061  AP=0.7664  (12.9s)
+  Ep  14/200  loss=0.5013  AUC=0.6030  AP=0.7646  (12.5s)
+  Ep  15/200  loss=0.5094  AUC=0.6017  AP=0.7635  (10.5s)
+  Ep  16/200  loss=0.5019  AUC=0.6011  AP=0.7629  (11.3s)
+  Ep  17/200  loss=0.5179  AUC=0.6085  AP=0.7669  (9.5s)
+  Ep  18/200  loss=0.4982  AUC=0.6147  AP=0.7702  (17.1s)
+  Ep  19/200  loss=0.5045  AUC=0.6147  AP=0.7684  (11.6s)
+  Ep  20/200  loss=0.5069  AUC=0.6147  AP=0.7673  (8.6s)
+  Ep  21/200  loss=0.5082  AUC=0.6116  AP=0.7681  (12.8s)
+
+  Early stopping at epoch 21.
+
+  Fold 5 test — AUC=0.6912  AP=0.8540
+
+=======================================================
+  5-Fold CV Summary
+=======================================================
+  Fold 1: AUC=0.6633  AP=0.7816
+  Fold 2: AUC=0.7098  AP=0.8542
+  Fold 3: AUC=0.6916  AP=0.7889
+  Fold 4: AUC=0.7273  AP=0.8562
+  Fold 5: AUC=0.6912  AP=0.8540
+  ─────────────────────────────────────────
+  Mean AUC = 0.6966 ± 0.0239
+  Mean AP  = 0.8270 ± 0.0382
+  Best overall fold: 1  (val AUC=0.6591)
+
+[4/4] Final test evaluation (best_overall.pt) …
+Model built on mps  |  total params: 169,537
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.80.
+  return self.forward(copy.copy(data))
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.40.
+  return self.forward(copy.copy(data))
+  Fold 1/5 — train: 176  val: 42  test: 34
+
+  ── Test results (best overall model) ─────
+     auc         : 0.6670
+     ap          : 0.7809
+
+  Results saved        → results
+  Best overall ckpt    → checkpoints/best_overall.pt
+  Trained model export → ../trained_models/assembly_gnn_20260613_180449_auc06591.pt
+
+  Building assembly template cache …
+  [TemplateDB] Built 1 category templates from 416 training assemblies.
+    Fusion360 Assy Dataset                    bodies≈6  dist={'body': 4, 'fastener': 2, 'bearing': 1, 'plate': 2}
+  [TemplateDB] Saved 1 templates → data/assembly_templates.json
