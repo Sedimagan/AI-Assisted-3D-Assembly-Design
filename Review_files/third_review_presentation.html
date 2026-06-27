@@ -632,6 +632,39 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
         </div>
       </div>
 
+      <!-- ── R20 column ── -->
+      <div class="col">
+        <div class="card bp" style="flex:none;">
+          <h3>R20 — 5-Fold CV <span class="badge badge-amber" style="margin-left:6px;">38 categories</span></h3>
+          <table style="font-size:12px;">
+            <thead><tr><th>Fold</th><th>Val AUC</th><th>Test AUC</th><th>Test AP</th></tr></thead>
+            <tbody>
+              <tr><td>Fold 1 ★</td><td class="num"><strong>0.627</strong></td><td class="num">0.555</td><td class="num">0.770</td></tr>
+              <tr><td>Fold 2</td><td class="num">0.594</td><td class="num">0.499</td><td class="num">0.750</td></tr>
+              <tr><td>Fold 3</td><td class="num">0.562</td><td class="num">0.438</td><td class="num">0.727</td></tr>
+              <tr><td>Fold 4</td><td class="num">0.610</td><td class="num">0.536</td><td class="num">0.768</td></tr>
+              <tr><td>Fold 5</td><td class="num">0.567</td><td class="num">0.488</td><td class="num">0.733</td></tr>
+              <tr style="font-weight:700;">
+                <td>Mean ± Std</td><td></td>
+                <td class="num">0.503 ± 0.045</td>
+                <td class="num">0.749 ± 0.020</td>
+              </tr>
+            </tbody>
+          </table>
+          <p style="font-size:12px;margin-top:5px;">★ Best fold 1 (val AUC 0.627) · 444 graphs · <span class="badge badge-amber">Serving NOT promoted</span></p>
+        </div>
+        <div class="card bo" style="flex:1;">
+          <h3>Analysis — R20 vs R19</h3>
+          <table style="font-size:12.5px;">
+            <tr><td style="color:#4caf82;">✓</td><td><strong>AUC 0.503 ± 0.045</strong> — held steady vs R19 (0.504) despite 38 categories</td></tr>
+            <tr><td style="color:#f59e0b;">△</td><td><strong>AP 0.749 ± 0.020</strong> — dropped from R19 (0.835); expected across diverse domains</td></tr>
+            <tr><td style="color:#4caf82;">✓</td><td><strong>38 categories:</strong> Aerospace, Electronics, Furniture, Robotics, etc.</td></tr>
+            <tr><td style="color:#4caf82;">✓</td><td><strong>Serving gate:</strong> R20 correctly blocked — R19 incumbent held</td></tr>
+            <tr><td style="color:#4a7fcb;">→</td><td><strong>Outcome:</strong> R22 (3 categories) recovered parity that R20 (38 categories) lost</td></tr>
+          </table>
+        </div>
+      </div>
+
       <!-- ── R22 column (Optimum Run) ── -->
       <div class="col">
         <div class="card bt" style="flex:none;">
@@ -662,39 +695,6 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
             <tr><td style="color:#4caf82;">✓</td><td><strong>3 focused categories:</strong> Machine design (75) · Mech. Eng. (91) · Tools (73)</td></tr>
             <tr><td style="color:#4caf82;">✓</td><td><strong>Serving promoted:</strong> R22 replaced R19 as best_serving.pt</td></tr>
             <tr><td style="color:#4a7fcb;">→</td><td><strong>Insight:</strong> Focused 3-category corpus restores parity — diversity hurt generalisation (R20)</td></tr>
-          </table>
-        </div>
-      </div>
-
-      <!-- ── R20 column ── -->
-      <div class="col">
-        <div class="card bp" style="flex:none;">
-          <h3>R20 — 5-Fold CV <span class="badge badge-amber" style="margin-left:6px;">38 categories</span></h3>
-          <table style="font-size:12px;">
-            <thead><tr><th>Fold</th><th>Val AUC</th><th>Test AUC</th><th>Test AP</th></tr></thead>
-            <tbody>
-              <tr><td>Fold 1 ★</td><td class="num"><strong>0.627</strong></td><td class="num">0.555</td><td class="num">0.770</td></tr>
-              <tr><td>Fold 2</td><td class="num">0.594</td><td class="num">0.499</td><td class="num">0.750</td></tr>
-              <tr><td>Fold 3</td><td class="num">0.562</td><td class="num">0.438</td><td class="num">0.727</td></tr>
-              <tr><td>Fold 4</td><td class="num">0.610</td><td class="num">0.536</td><td class="num">0.768</td></tr>
-              <tr><td>Fold 5</td><td class="num">0.567</td><td class="num">0.488</td><td class="num">0.733</td></tr>
-              <tr style="font-weight:700;">
-                <td>Mean ± Std</td><td></td>
-                <td class="num">0.503 ± 0.045</td>
-                <td class="num">0.749 ± 0.020</td>
-              </tr>
-            </tbody>
-          </table>
-          <p style="font-size:12px;margin-top:5px;">★ Best fold 1 (val AUC 0.627) · 444 graphs · <span class="badge badge-amber">Serving NOT promoted</span></p>
-        </div>
-        <div class="card bo" style="flex:1;">
-          <h3>Analysis — R20 vs R19</h3>
-          <table style="font-size:12.5px;">
-            <tr><td style="color:#4caf82;">✓</td><td><strong>AUC 0.503 ± 0.045</strong> — held steady vs R19 (0.504) despite 38 categories</td></tr>
-            <tr><td style="color:#f59e0b;">△</td><td><strong>AP 0.749 ± 0.020</strong> — dropped from R19 (0.835); expected across diverse domains</td></tr>
-            <tr><td style="color:#4caf82;">✓</td><td><strong>38 categories:</strong> Aerospace, Electronics, Furniture, Robotics, etc.</td></tr>
-            <tr><td style="color:#4caf82;">✓</td><td><strong>Serving gate:</strong> R20 correctly blocked — R19 incumbent held</td></tr>
-            <tr><td style="color:#4a7fcb;">→</td><td><strong>Outcome:</strong> R22 (3 categories) recovered parity that R20 (38 categories) lost</td></tr>
           </table>
         </div>
       </div>
