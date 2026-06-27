@@ -396,7 +396,7 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
         <div class="card bl" style="flex:1;">
           <h3>System Architecture</h3>
           <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;">
-            <div class="flow-box">Source_3d_models/ (996 curated STEP files — 995 valid graphs)</div>
+            <div class="flow-box">Source_3d_models/Best_models_for_training/ (300 STEP files — 239 valid graphs)</div>
             <div class="flow-arrow">▼</div>
             <div class="flow-box">dataset.py — gmsh (OpenCASCADE)<br>
               <span style="color:#6b8bad;">Solid bodies → Nodes (22-dim) · Shared surfaces → Edges (6-dim)</span></div>
@@ -433,11 +433,11 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
         <div class="card bp">
           <h3>Dataset</h3>
           <table>
-            <tr><td><strong>Curated corpus (R18)</strong></td><td class="num">996 → 995 valid</td></tr>
+            <tr><td><strong>Curated corpus (R22)</strong></td><td class="num">300 → 239 valid</td></tr>
             <tr><td><strong>Fusion360 Gallery</strong></td><td class="num">996 (curated from 1,336)</td></tr>
-            <tr><td><strong>Skipped at parse</strong></td><td class="num">0 (perfect curation)</td></tr>
-            <tr><td><strong>Avg nodes/graph</strong></td><td class="num">12.7</td></tr>
-            <tr><td><strong>Avg edges/graph</strong></td><td class="num">28.8</td></tr>
+            <tr><td><strong>Skipped at parse</strong></td><td class="num">61 (19 timeouts + 42 errors)</td></tr>
+            <tr><td><strong>Avg nodes/graph</strong></td><td class="num">31.9</td></tr>
+            <tr><td><strong>Avg edges/graph</strong></td><td class="num">81.8</td></tr>
             <tr><td><strong>Train/Val/Test</strong></td><td>70 / 15 / 15</td></tr>
           </table>
         </div>
