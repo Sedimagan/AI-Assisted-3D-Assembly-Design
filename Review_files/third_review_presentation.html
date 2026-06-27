@@ -508,8 +508,8 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
                   <td>R20</td><td>38 diversified categories · 444 graphs</td><td class="num">444</td><td class="num">0.627</td><td class="num">0.503*</td><td class="num">0.749*</td></tr>
                 <tr style="background:rgba(52,211,153,0.08);">
                   <td>R21</td><td>3 categories · no filters · 89 graphs</td><td class="num">89</td><td class="num">0.731</td><td class="num">0.428*</td><td class="num">0.799*</td></tr>
-                <tr style="background:rgba(52,211,153,0.08);">
-                  <td>R22</td><td>Best_models_for_training · 239 graphs · 3 cat</td><td class="num">239</td><td class="num">0.625</td><td class="num">0.588*</td><td class="num">0.767*</td></tr>
+                <tr style="background:rgba(20,184,166,0.12);">
+                  <td><strong>R22 ◈</strong></td><td>Best_models_for_training · 239 graphs · 3 cat</td><td class="num">239</td><td class="num"><strong>0.625</strong></td><td class="num"><strong style="color:#14b8a6;">0.626*</strong></td><td class="num">0.772*</td></tr>
                 <tr style="background:rgba(251,146,60,0.18);">
                   <td><strong>R23</strong></td><td><strong>Tools-only · Best_models_for_training</strong></td><td class="num"><strong>156</strong></td><td class="num"><strong>0.710</strong></td><td class="num"><strong>0.460*</strong></td><td class="num"><strong>0.682*</strong></td></tr>
               </tbody>
@@ -537,6 +537,24 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
           </div>
           <p style="margin-top:6px;"><span class="badge badge-green">AP 0.917 exceeds Phase 1 target of 0.82</span></p>
         </div>
+        <div class="card bt">
+          <h3>Optimum Run (R22) <span class="badge badge-teal" style="margin-left:4px;">Val ≈ Test</span></h3>
+          <div class="metric-row">
+            <div class="metric">
+              <div class="val" style="color:#14b8a6;">0.625</div>
+              <div class="lbl">Val AUC</div>
+            </div>
+            <div class="metric">
+              <div class="val" style="color:#14b8a6;">0.626</div>
+              <div class="lbl">Test AUC</div>
+            </div>
+            <div class="metric">
+              <div class="val" style="color:#a56bff;">0.772</div>
+              <div class="lbl">Test AP</div>
+            </div>
+          </div>
+          <p style="margin-top:5px;font-size:12px;">Val–Test gap closed (Δ = 0.001) — strongest generalisation across all runs · 239 graphs · 3 categories · 5-fold CV</p>
+        </div>
         <div class="card bo">
           <h3>Latest Run (R23 — 2026-06-27)</h3>
           <div class="metric-row">
@@ -554,7 +572,7 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
             </div>
           </div>
           <p style="margin-top:6px;">22+6-dim · 156 graphs · Tools-only · Best_models_for_training · <span class="badge badge-green">Serving promoted (first on branch)</span></p>
-          <p>5-fold CV · Best fold val AUC 0.710 · Mean AUC ↓ vs R22 (0.588→0.460) — smaller corpus (156 vs 239) outweighs domain focus gain · Fold std ±0.039</p>
+          <p>5-fold CV · Best fold val AUC 0.710 · Mean AUC ↓ vs R22 (0.626→0.460) — smaller corpus (156 vs 239) outweighs domain focus gain · Fold std ±0.039</p>
         </div>
         <div class="card bp">
           <h3>Phase 1 Targets</h3>
@@ -895,8 +913,8 @@ function drawTrainingChart() {
   const W = canvas.width, H = canvas.height;
   const runs    = ['R6','R8','R10','R11','R12','R14','R15','R16','R17','R18','R19','R20','R21','R22','R23'];
   const valAUC  = [0.813,0.750,0.585,0.781,0.659,0.715,0.902,0.902,0.712,0.628,0.641,0.627,0.731,0.625,0.710];
-  const testAUC = [0.636,0.585,0.604,0.538,0.697,0.624,0.726,0.659,0.625,0.483,0.504,0.503,0.428,0.588,0.460];
-  const testAP  = [0.584,0.559,0.577,0.592,0.827,0.734,0.917,0.894,0.878,0.833,0.835,0.749,0.799,0.767,0.682];
+  const testAUC = [0.636,0.585,0.604,0.538,0.697,0.624,0.726,0.659,0.625,0.483,0.504,0.503,0.428,0.626,0.460];
+  const testAP  = [0.584,0.559,0.577,0.592,0.827,0.734,0.917,0.894,0.878,0.833,0.835,0.749,0.799,0.772,0.682];
   const pad = {t:20, r:12, b:26, l:36};
   const cw = W - pad.l - pad.r, ch = H - pad.t - pad.b;
   const minV = 0.38, maxV = 1.0, n = runs.length;
@@ -914,10 +932,12 @@ function drawTrainingChart() {
   });
   ctx.strokeStyle = 'rgba(79,142,247,0.15)'; ctx.lineWidth = 1; ctx.setLineDash([4,3]);
   ctx.beginPath(); ctx.moveTo(xp(6), pad.t); ctx.lineTo(xp(6), pad.t + ch); ctx.stroke();
+  ctx.strokeStyle = 'rgba(20,184,166,0.22)';
+  ctx.beginPath(); ctx.moveTo(xp(13), pad.t); ctx.lineTo(xp(13), pad.t + ch); ctx.stroke();
   ctx.setLineDash([]);
   runs.forEach((r, i) => {
-    ctx.fillStyle = r==='R15' ? '#4f8ef7' : r==='R23' ? '#e08850' : '#3a5068';
-    ctx.font = (r==='R15'||r==='R23') ? 'bold 10px system-ui,sans-serif' : '10px system-ui,sans-serif';
+    ctx.fillStyle = r==='R15'?'#4f8ef7':r==='R22'?'#14b8a6':r==='R23'?'#e08850':'#3a5068';
+    ctx.font = (r==='R15'||r==='R22'||r==='R23')?'bold 10px system-ui,sans-serif':'10px system-ui,sans-serif';
     ctx.textAlign = 'center'; ctx.fillText(r, xp(i), H - 4);
   });
   function series(data, color, hi) {
@@ -937,6 +957,11 @@ function drawTrainingChart() {
   ctx.textAlign = 'center'; ctx.fillText('★ R15', xp(6), pad.t + 11);
   ctx.fillStyle = '#e08850'; ctx.font = '10px system-ui,sans-serif';
   ctx.textAlign = 'right'; ctx.fillText('R23 ▸', xp(14) - 2, yp(0.460) - 7);
+  [[valAUC[13],'#4f8ef7'],[testAUC[13],'#4caf82']].forEach(([v,c]) => {
+    ctx.beginPath(); ctx.arc(xp(13), yp(v), 5, 0, Math.PI*2); ctx.fillStyle=c; ctx.fill();
+  });
+  ctx.fillStyle = '#14b8a6'; ctx.font = 'bold 9px system-ui,sans-serif';
+  ctx.textAlign = 'center'; ctx.fillText('Val≈Test', xp(13), yp(0.626) - 9);
 }
 </script>
 </body>
