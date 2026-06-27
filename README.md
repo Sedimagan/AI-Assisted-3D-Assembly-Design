@@ -554,6 +554,7 @@ python skills_agent.py
 After training completes a timestamped file is saved to `trained_models/`:
 
 ```
+trained_models/assembly_gnn_20260627_205341_auc10000.pt   ← R25 (22+6-dim, Mechanical Engineering, Best_models_for_training, 1006 graphs, best fold val AUC 1.0000, mean AUC 0.731, mean AP 0.863, 2026-06-27) — serving promoted
 trained_models/assembly_gnn_20260627_020624_auc07100.pt   ← R23 (22+6-dim, Tools-only, Best_models_for_training, 156 graphs, best fold val AUC 0.710, mean AUC 0.460, mean AP 0.682, 2026-06-27) — serving promoted (first on branch)
 trained_models/assembly_gnn_20260626_073453_auc06246.pt   ← R22 (22+6-dim, 3 categories, Best_models_for_training, 239 graphs, best fold val AUC 0.625, mean AUC 0.588, mean AP 0.767, 2026-06-26) — serving promoted
 trained_models/assembly_gnn_20260626_003859_auc07308.pt   ← R21 (22+6-dim, 3 new categories, 89 graphs, best fold val AUC 0.731, mean AUC 0.428, mean AP 0.799, 2026-06-26) — serving promoted
@@ -1097,9 +1098,9 @@ All previous output — red ⚠ body highlights, orange ❓ cross markers, AIDA 
 
 ![Training Progression — AUC-ROC & Average Precision](docs/training_history.png)
 
-Twenty-four training runs are shown, split into two eras. Each bar group shows Val AUC (light), Test AUC (solid), and Test AP (translucent) for that run. Dashed red/orange lines are the Phase 1 targets (AUC 0.85, AP 0.82). R12–R23 report best-fold metrics from 5-fold CV.
+Twenty-one training runs are shown, split into two eras. Each bar group shows Val AUC (light), Test AUC (solid), and Test AP (translucent) for that run. Dashed red/orange lines are the Phase 1 targets (AUC 0.85, AP 0.82). R12–R25 report best-fold metrics from 5-fold CV.
 
-![Change Log — R1 to R23](docs/training_changelog.png)
+![Change Log — R1 to R25](docs/training_changelog.png)
 
 | Run | Date | Change | Graphs | Val AUC | Test AUC | Test AP |
 |---|---|---|---|---|---|---|
@@ -1122,7 +1123,8 @@ Twenty-four training runs are shown, split into two eras. Each bar group shows V
 | R20 | 25 Jun 09:49 | 22+6-dim · 38 diversified categories · 444 graphs · 5-fold CV · Mean AUC=0.503±0.045 · Mean AP=0.749±0.020 · serving NOT promoted | 444 | 0.627 | 0.523 | 0.771 |
 | R21 | 26 Jun 00:26 | 22+6-dim · 3 new categories · no skip/edge filters · 89 graphs · 5-fold CV · Mean AUC=0.428±0.174 · Mean AP=0.799±0.063 · serving promoted | 89 | 0.731 | 0.500 | 0.834 |
 | R22 | 26 Jun 07:34 | 22+6-dim · 3 categories · Best_models_for_training · 239 graphs · 5-fold CV · Mean AUC=0.588±0.050 · Mean AP=0.767±0.031 · serving promoted | 239 | 0.625 | 0.626 | 0.772 |
-| **R23** | **27 Jun 02:06** | **22+6-dim · Tools-only · Best_models_for_training · 197 STEP → 156 graphs · 5-fold CV · Mean AUC=0.460±0.039 · Mean AP=0.682±0.024 · serving promoted (first on branch)** | **156** | **0.710** | **0.406** | **0.632** |
+| R23 | 27 Jun 02:06 | 22+6-dim · Tools-only · Best_models_for_training · 197 STEP → 156 graphs · 5-fold CV · Mean AUC=0.460±0.039 · Mean AP=0.682±0.024 · serving promoted (first on branch) | 156 | 0.710 | 0.406 | 0.632 |
+| **R25** | **27 Jun 20:53** | **22+6-dim · Mechanical Engineering · Best_models_for_training · 1212 STEP → 1006 graphs · 5-fold CV · Mean AUC=0.731±0.072 · Mean AP=0.863±0.031 · serving promoted** | **1006** | **1.0000** | **0.8286** | **0.9216** |
 
 > \* R3 metrics artificially inflated: 300 synthetic test graphs trivially match the 300 synthetic training graphs — not a valid measure of real-geometry performance.
 
@@ -1256,6 +1258,21 @@ Twenty-four training runs are shown, split into two eras. Each bar group shows V
 | **Mean** | | **0.503 ± 0.045** | **0.749 ± 0.020** |
 
 > ★ best fold (val AUC 0.627) — used for `best_overall.pt`; final test eval AUC 0.523, AP 0.771. Mean AUC 0.503 held steady vs R19 (0.504, −0.1 points) despite a far more diverse dataset (38 categories vs 4). Mean AP 0.749 dropped from R19 (0.835, −8.6 points) — expected when training spans domains from Aerospace to Jewelry to Wood Working, diluting category-specific assembly patterns. The `best_serving.pt` gate correctly blocked this run from replacing the incumbent. Top categories: Furniture+Household (42), Electronics (31), Mechanical Engineering (31), Tools (30), Machine design (28).
+
+#### R25 — 5-Fold Cross-Validation Detail (22+6-dim · Mechanical Engineering · Best_models_for_training · 1006 graphs)
+
+**Changes vs R23:** Dataset changed from Tools-only (156 graphs) to Mechanical Engineering Low Nodes Low Edges (1006 graphs from 1212 STEP files, 28 timeouts, 178 skipped). Single-category ME focus with 6.4× more training data than R23. Mean AUC 0.731 ± 0.072 is +27.1 points above R23 (0.460) and the best on this branch. Mean AP 0.863 ± 0.031 exceeds the Phase 1 target (0.82). `best_serving.pt` promoted.
+
+| Fold | Val AUC (best ep) | Test AUC | Test AP | Early stop ep |
+|---|---|---|---|---|
+| 1 | 0.7375 | 0.6286 | 0.8224 | 24 |
+| 2 ★ | 1.0000 (best overall) | 0.7238 | 0.8493 | 29 |
+| 3 | 1.0000 | 0.8000 | 0.8992 | 33 |
+| 4 | 0.6667 | 0.8000 | 0.8879 | 34 |
+| 5 | 0.9500 | 0.7048 | 0.8577 | 28 |
+| **Mean** | | **0.731 ± 0.072** | **0.863 ± 0.031** | |
+
+> ★ best fold (val AUC 1.0000) — used for `best_overall.pt`; final test eval AUC 0.829, AP 0.922. Mean AUC 0.731 ± 0.072 is a major improvement over R23 (0.460, +27.1 points), confirming that 1006 ME graphs provide far more training signal than 156 Tools graphs. Mean AP 0.863 exceeds the Phase 1 target (0.82). Two folds achieved val AUC=1.0000 (folds 2 and 3); fold 2 was the earliest so it remains `best_overall.pt`. The `best_serving.pt` gate promoted R25 over R23.
 
 #### R23 — 5-Fold Cross-Validation Detail (22+6-dim · Tools-only · Best_models_for_training · 156 graphs)
 
