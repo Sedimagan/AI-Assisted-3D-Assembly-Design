@@ -484,10 +484,10 @@ def _parse_step_with_timeout(step_path: str, timeout_secs: int = 120) -> tuple:
 
     if p.is_alive():
         p.terminate()
-        p.join(5)
+        p.join(10)
         if p.is_alive():
             p.kill()
-            p.join()
+            p.join(10)  # bounded — avoids infinite hang on uninterruptible-sleep zombies
         print(f"    [skip] {Path(step_path).name}: timeout after {timeout_secs}s")
         return None, "timeout"
 
