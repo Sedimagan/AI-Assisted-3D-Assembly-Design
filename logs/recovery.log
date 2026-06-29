@@ -1,14 +1,113 @@
-[2026-06-24 08:37:04] ═══ Recovery Log ═══
-[2026-06-24 08:37:04] Training PID=30669 started (start_fold=0, attempt=1)
-[2026-06-24 08:47:04] STALL detected: no output for 300s. Killing PID 30669.
-[2026-06-24 08:48:06] Training process exited with code 143
-[2026-06-24 08:48:06] Found checkpoint up to fold 4. Resuming from fold 5.
-[2026-06-24 08:48:06] Training PID=31598 started (start_fold=5, attempt=2)
-[2026-06-24 08:49:06] Training completed successfully in 12m 2s
-[2026-06-25 00:22:37] Auto-recovery monitor started
-[2026-06-25 00:25:48] Auto-recovery monitor started
-[2026-06-25 00:25:48] Auto-recovery monitor started
-[2026-06-25 00:46:18] Auto-recovery monitor started
-[2026-06-25 00:46:18] Auto-recovery monitor started
-[2026-06-25 02:41:52] Training completed successfully! Elapsed: 6934s
-[2026-06-25 02:41:52] Training completed successfully! Elapsed: 6934s
+[2026-06-28 10:12:25] Auto-recovery monitor started
+[2026-06-28 11:48:17] WARNING: No log output for 943s (threshold: 300s)
+[2026-06-28 11:48:19] Restarting from fold 0 after stale timeout
+[2026-06-28 11:48:19] Starting training (attempt 2/3, start-fold=0)
+[2026-06-28 11:48:19] Training PID: 39884
+[2026-06-28 14:48:04] Auto-recovery monitor started
+[2026-06-28 14:48:04] Auto-recovery monitor started
+[2026-06-28 15:42:22] WARNING: No log output for 846s (threshold: 300s)
+[2026-06-28 15:42:22] WARNING: No log output for 846s (threshold: 300s)
+[2026-06-28 15:42:24] Restarting from fold 0 after stale timeout
+[2026-06-28 15:42:24] Restarting from fold 0 after stale timeout
+[2026-06-28 15:42:24] Starting training (attempt 2/3, start-fold=0)
+[2026-06-28 15:42:24] Starting training (attempt 2/3, start-fold=0)
+[2026-06-28 15:42:24] Training PID: 40512
+[2026-06-28 15:42:24] Training PID: 40512
+[2026-06-28 15:45:25] Auto-recovery monitor started
+[2026-06-28 15:45:25] Auto-recovery monitor started
+[2026-06-28 16:45:21] WARNING: No log output for 3352s (threshold: 900s)
+[2026-06-28 16:45:21] WARNING: No log output for 3352s (threshold: 900s)
+[2026-06-28 16:45:23] Restarting from fold 0 after stale timeout
+[2026-06-28 16:45:23] Restarting from fold 0 after stale timeout
+[2026-06-28 16:45:23] Starting training (attempt 2/3, start-fold=0)
+[2026-06-28 16:45:23] Starting training (attempt 2/3, start-fold=0)
+[2026-06-28 16:45:23] Training PID: 51239
+[2026-06-28 16:45:23] Training PID: 51239
+[2026-06-28 17:18:30] Auto-recovery monitor started
+[2026-06-28 17:18:30] Auto-recovery monitor started
+[2026-06-28 18:46:06] WARNING: No log output for 1405s (threshold: 900s)
+[2026-06-28 18:46:06] WARNING: No log output for 1405s (threshold: 900s)
+[2026-06-28 18:46:08] Restarting from fold 0 after stale timeout
+[2026-06-28 18:46:08] Restarting from fold 0 after stale timeout
+[2026-06-28 18:46:08] Starting training (attempt 2/3, start-fold=0)
+[2026-06-28 18:46:08] Starting training (attempt 2/3, start-fold=0)
+[2026-06-28 18:46:08] Training PID: 53162
+[2026-06-28 18:46:08] Training PID: 53162
+[2026-06-28 18:54:16] Auto-recovery monitor started
+[2026-06-28 18:54:16] Auto-recovery monitor started
+[2026-06-28 19:48:55] Auto-recovery monitor started
+[2026-06-28 19:48:55] Auto-recovery monitor started
+[2026-06-28 21:32:34] Auto-recovery monitor started
+[2026-06-28 21:32:34] Auto-recovery monitor started
+[2026-06-28 21:47:46] Auto-recovery monitor started
+[2026-06-28 21:47:46] Auto-recovery monitor started
+[2026-06-28 21:56:29] Auto-recovery monitor started
+[2026-06-28 21:56:29] Auto-recovery monitor started
+[2026-06-28 23:43:28] Auto-recovery monitor started
+[2026-06-28 23:43:28] Auto-recovery monitor started
+[2026-06-29 00:16:14] Auto-recovery monitor started
+[2026-06-29 00:16:14] Auto-recovery monitor started
+[2026-06-29 01:34:00] Auto-recovery monitor started
+[2026-06-29 01:34:00] Auto-recovery monitor started
+[2026-06-29 03:50:59] WARNING: No log output for 956s (threshold: 900s)
+[2026-06-29 03:50:59] WARNING: No log output for 956s (threshold: 900s)
+[2026-06-29 03:51:01] Restarting from fold 0 after stale timeout
+[2026-06-29 03:51:01] Restarting from fold 0 after stale timeout
+[2026-06-29 03:51:01] Starting training (attempt 2/3, start-fold=0)
+[2026-06-29 03:51:01] Starting training (attempt 2/3, start-fold=0)
+[2026-06-29 03:51:01] Training PID: 64268
+[2026-06-29 03:51:01] Training PID: 64268
+[2026-06-29 04:36:12] WARNING: No log output for 954s (threshold: 900s)
+[2026-06-29 04:36:12] WARNING: No log output for 954s (threshold: 900s)
+[2026-06-29 04:36:14] Restarting from fold 0 after stale timeout
+[2026-06-29 04:36:14] Restarting from fold 0 after stale timeout
+[2026-06-29 04:36:14] Starting training (attempt 3/3, start-fold=0)
+[2026-06-29 04:36:14] Starting training (attempt 3/3, start-fold=0)
+[2026-06-29 04:36:14] Training PID: 64439
+[2026-06-29 04:36:14] Training PID: 64439
+back_end/auto_recover.sh: line 132: 64267 Exit 120                $PYTHON train.py --config config.yaml $extra_args 2>&1
+     64268 Terminated: 15          | while IFS= read -r line; do
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $line";
+done >> "$LOG"
+[2026-06-29 05:36:39] WARNING: No log output for 951s (threshold: 900s)
+[2026-06-29 05:36:39] WARNING: No log output for 951s (threshold: 900s)
+[2026-06-29 05:36:41] FATAL: Max retries (3) exceeded. Giving up.
+[2026-06-29 05:36:41] FATAL: Max retries (3) exceeded. Giving up.
+[2026-06-29 05:54:50] Auto-recovery monitor started
+[2026-06-29 05:54:50] Auto-recovery monitor started
+[2026-06-29 07:43:09] Auto-recovery monitor started
+[2026-06-29 07:43:09] Auto-recovery monitor started
+[2026-06-29 09:38:23] Auto-recovery monitor started
+[2026-06-29 09:38:23] Auto-recovery monitor started
+[2026-06-29 11:37:27] Auto-recovery monitor started
+[2026-06-29 11:37:27] Auto-recovery monitor started
+[2026-06-29 11:50:24] Auto-recovery monitor started
+[2026-06-29 11:50:24] Auto-recovery monitor started
+[2026-06-29 12:11:16] Auto-recovery monitor started
+[2026-06-29 12:11:16] Auto-recovery monitor started
+[2026-06-29 12:18:16] Auto-recovery monitor started
+[2026-06-29 12:18:16] Auto-recovery monitor started
+[2026-06-29 12:43:27] WARNING: No log output for 906s (threshold: 900s)
+[2026-06-29 12:43:27] WARNING: No log output for 906s (threshold: 900s)
+[2026-06-29 12:43:29] Restarting from fold 2 after stale timeout
+[2026-06-29 12:43:29] Restarting from fold 2 after stale timeout
+[2026-06-29 12:43:29] Starting training (attempt 2/3, start-fold=2)
+[2026-06-29 12:43:29] Starting training (attempt 2/3, start-fold=2)
+[2026-06-29 12:43:29] Training PID: 72542
+[2026-06-29 12:43:29] Training PID: 72542
+back_end/auto_recover.sh: line 132: 72541 Terminated: 15          $PYTHON train.py --config config.yaml $extra_args 2>&1
+     72542 Done                    | while IFS= read -r line; do
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $line";
+done >> "$LOG"
+[2026-06-29 13:01:08] Training process exited unexpectedly
+[2026-06-29 13:01:08] Training process exited unexpectedly
+[2026-06-29 13:01:08] Restarting from fold 3 (attempt 3/3)
+[2026-06-29 13:01:08] Restarting from fold 3 (attempt 3/3)
+[2026-06-29 13:01:08] Starting training (attempt 3/3, start-fold=3)
+[2026-06-29 13:01:08] Starting training (attempt 3/3, start-fold=3)
+[2026-06-29 13:01:08] Training PID: 72676
+[2026-06-29 13:01:08] Training PID: 72676
+[2026-06-29 13:29:22] Auto-recovery monitor started
+[2026-06-29 13:29:22] Auto-recovery monitor started
+[2026-06-29 14:19:41] Training completed successfully! Elapsed: 3019s
+[2026-06-29 14:19:41] Training completed successfully! Elapsed: 3019s
