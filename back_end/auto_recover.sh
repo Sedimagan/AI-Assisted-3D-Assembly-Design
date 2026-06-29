@@ -61,7 +61,7 @@ start_training() {
 
     cd "$BACK_END"
     echo "=== Recovery restart at $(date -u '+%Y-%m-%d %H:%M:%S UTC') (attempt $((attempt+1)), fold $start_fold) ===" >> "$LOG"
-    $PYTHON train.py --config config.yaml $extra_args 2>&1 | while IFS= read -r line; do
+    PYTHONUNBUFFERED=1 $PYTHON -u train.py --config config.yaml $extra_args 2>&1 | while IFS= read -r line; do
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] $line"
     done >> "$LOG" &
 

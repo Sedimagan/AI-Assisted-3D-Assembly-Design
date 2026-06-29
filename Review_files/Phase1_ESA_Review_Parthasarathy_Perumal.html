@@ -481,7 +481,9 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
                 <tr style="background:rgba(167,139,250,0.12);">
                   <td>R24</td><td>Machine_design-only · Best_models_for_training</td><td class="num">159</td><td class="num">0.652</td><td class="num">0.559*</td><td class="num">0.709*</td><td><svg width="48" height="22" style="display:block;"><rect x="0" y="1" width="31" height="5" rx="1" fill="#a78bfa" opacity="0.8"/><rect x="0" y="8" width="27" height="5" rx="1" fill="#a78bfa" opacity="0.6"/><rect x="0" y="15" width="34" height="5" rx="1" fill="#a56bff" opacity="0.8"/></svg></td></tr>
                 <tr style="background:rgba(244,114,182,0.18);">
-                  <td><strong>R25</strong></td><td><strong>Mechanical Engineering · Best_models_for_training</strong></td><td class="num"><strong>1006</strong></td><td class="num"><strong>1.0000</strong></td><td class="num"><strong>0.731*</strong></td><td class="num"><strong>0.863*</strong></td><td><svg width="48" height="22" style="display:block;"><rect x="0" y="1" width="48" height="5" rx="1" fill="#f472b6"/><rect x="0" y="8" width="35" height="5" rx="1" fill="#f472b6" opacity="0.8"/><rect x="0" y="15" width="41" height="5" rx="1" fill="#a56bff"/></svg></td></tr>
+                  <td>R25</td><td>Mechanical Engineering · Best_models_for_training</td><td class="num">1006</td><td class="num">1.0000</td><td class="num">0.731*</td><td class="num">0.863*</td><td><svg width="48" height="22" style="display:block;"><rect x="0" y="1" width="48" height="5" rx="1" fill="#f472b6"/><rect x="0" y="8" width="35" height="5" rx="1" fill="#f472b6" opacity="0.8"/><rect x="0" y="15" width="41" height="5" rx="1" fill="#a56bff"/></svg></td></tr>
+                <tr style="background:rgba(134,239,172,0.18);">
+                  <td><strong>R26</strong></td><td><strong>ME Medium Nodes Medium Edges · Best_models_for_training</strong></td><td class="num"><strong>707</strong></td><td class="num"><strong>0.7051</strong></td><td class="num"><strong>0.416*</strong></td><td class="num"><strong>0.759*</strong></td><td><svg width="48" height="22" style="display:block;"><rect x="0" y="1" width="34" height="5" rx="1" fill="#86efac"/><rect x="0" y="8" width="20" height="5" rx="1" fill="#86efac" opacity="0.8"/><rect x="0" y="15" width="36" height="5" rx="1" fill="#a56bff"/></svg></td></tr>
               </tbody>
             </table>
             <div style="display:flex;gap:16px;margin-top:5px;font-size:10px;color:#3a5068;">
@@ -532,23 +534,23 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
           <p style="margin-top:5px;font-size:12px;">Val–Test gap closed (Δ = 0.001) — strongest generalisation · 239 graphs · 3 categories · 5-fold CV</p>
         </div>
         <div class="card bo">
-          <h3>Latest Run (R25 — 2026-06-27)</h3>
+          <h3>Latest Run (R26 — 2026-06-29)</h3>
           <div class="metric-row">
             <div class="metric">
-              <div class="val">0.731</div>
+              <div class="val">0.416</div>
               <div class="lbl">Mean AUC-ROC</div>
             </div>
             <div class="metric">
-              <div class="val" style="color:#4caf82;">0.863</div>
+              <div class="val">0.759</div>
               <div class="lbl">Mean Avg Precision</div>
             </div>
             <div class="metric">
-              <div class="val" style="color:#4caf82;">1006</div>
+              <div class="val">707</div>
               <div class="lbl">Graphs</div>
             </div>
           </div>
-          <p style="margin-top:6px;">22+6-dim · 1006 graphs · Mechanical Engineering · Best_models_for_training · <span class="badge badge-green">Serving promoted</span></p>
-          <p>Mean AUC ↑ vs R23 (0.460→0.731, +27.1 pts) · Mean AP 0.863 exceeds Phase 1 target (0.82) · Fold std ±0.072</p>
+          <p style="margin-top:6px;">22+6-dim · 707 graphs · ME Medium Nodes Medium Edges · Best_models_for_training · <span class="badge badge-amber">Serving NOT promoted</span></p>
+          <p>Mean AUC ↓ vs R25 (0.731→0.416, −31.5 pts) · Medium-complexity assemblies harder for current GAT · Fold std ±0.049 · Incumbent R25 retained as serving model</p>
         </div>
         <div class="card bp">
           <h3>Phase 1 Targets</h3>
@@ -750,7 +752,8 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
               <tr style="background:rgba(20,184,166,0.12);"><td><strong>22+6-dim (R22) ◈</strong></td><td class="num">22+6</td><td>Best_models · 3 cat · 239 graphs</td><td class="num"><strong style="color:#14b8a6;">0.626</strong></td><td class="num"><strong style="color:#14b8a6;">0.772</strong></td></tr>
               <tr style="background:rgba(251,146,60,0.1);"><td>22+6-dim (R23)</td><td class="num">22+6</td><td>Tools-only · Best_models · 156 graphs</td><td class="num">0.460</td><td class="num">0.682</td></tr>
               <tr style="background:rgba(167,139,250,0.1);"><td>22+6-dim (R24)</td><td class="num">22+6</td><td>Machine_design-only · Best_models · 159 graphs</td><td class="num">0.559</td><td class="num">0.709</td></tr>
-              <tr style="background:rgba(244,114,182,0.15);"><td><strong>22+6-dim (R25)</strong></td><td class="num">22+6</td><td><strong>Mech. Engineering · Best_models · 1006 graphs</strong></td><td class="num"><strong>0.731</strong></td><td class="num"><strong style="color:#4caf82;">0.863</strong></td></tr>
+              <tr style="background:rgba(244,114,182,0.15);"><td>22+6-dim (R25)</td><td class="num">22+6</td><td>Mech. Engineering · Best_models · 1006 graphs</td><td class="num">0.731</td><td class="num" style="color:#4caf82;">0.863</td></tr>
+              <tr style="background:rgba(134,239,172,0.12);"><td><strong>22+6-dim (R26)</strong></td><td class="num">22+6</td><td><strong>ME Medium Nodes Medium Edges · Best_models · 707 graphs</strong></td><td class="num"><strong>0.416</strong></td><td class="num"><strong>0.759</strong></td></tr>
             </tbody>
           </table>
         </div>
@@ -813,7 +816,8 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
               <tr style="background:rgba(20,184,166,0.12);"><td><strong>R22 ◈</strong></td><td class="num"><strong>239</strong></td><td>Best_models · 3 cat · Val≈Test</td><td class="num"><strong style="color:#14b8a6;">0.626</strong></td></tr>
               <tr style="background:rgba(251,146,60,0.1);"><td>R23</td><td class="num">156</td><td>Tools-only · Best_models</td><td class="num">0.460</td></tr>
               <tr style="background:rgba(167,139,250,0.1);"><td>R24</td><td class="num">159</td><td>Machine_design-only · Best_models</td><td class="num">0.559</td></tr>
-              <tr style="background:rgba(244,114,182,0.15);"><td><strong>R25</strong></td><td class="num"><strong>1006</strong></td><td><strong>Mech. Engineering · Best_models</strong></td><td class="num"><strong style="color:#f472b6;">0.731</strong></td></tr>
+              <tr style="background:rgba(244,114,182,0.15);"><td>R25</td><td class="num">1006</td><td>Mech. Engineering · Best_models</td><td class="num" style="color:#f472b6;">0.731</td></tr>
+              <tr style="background:rgba(134,239,172,0.12);"><td><strong>R26</strong></td><td class="num"><strong>707</strong></td><td><strong>ME Medium Nodes Medium Edges · Best_models</strong></td><td class="num"><strong>0.416</strong></td></tr>
             </tbody>
           </table>
           <p style="font-size:12px;margin-top:4px;">◈ R22 (Optimum Run): Val≈Test gap closed (Δ=0.001) · 300 STEP → 239 valid · Serving promoted.</p>
@@ -1091,10 +1095,10 @@ function drawTrainingChart() {
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
-  const runs    = ['R6','R8','R10','R11','R12','R14','R15','R16','R17','R18','R19','R20','R21','R22','R23','R24','R25'];
-  const valAUC  = [0.813,0.750,0.585,0.781,0.659,0.715,0.902,0.902,0.712,0.628,0.641,0.627,0.731,0.625,0.710,0.652,1.000];
-  const testAUC = [0.636,0.585,0.604,0.538,0.697,0.624,0.726,0.659,0.625,0.483,0.504,0.503,0.428,0.626,0.460,0.559,0.731];
-  const testAP  = [0.584,0.559,0.577,0.592,0.827,0.734,0.917,0.894,0.878,0.833,0.835,0.749,0.799,0.772,0.682,0.709,0.863];
+  const runs    = ['R6','R8','R10','R11','R12','R14','R15','R16','R17','R18','R19','R20','R21','R22','R23','R24','R25','R26'];
+  const valAUC  = [0.813,0.750,0.585,0.781,0.659,0.715,0.902,0.902,0.712,0.628,0.641,0.627,0.731,0.625,0.710,0.652,1.000,0.705];
+  const testAUC = [0.636,0.585,0.604,0.538,0.697,0.624,0.726,0.659,0.625,0.483,0.504,0.503,0.428,0.626,0.460,0.559,0.731,0.416];
+  const testAP  = [0.584,0.559,0.577,0.592,0.827,0.734,0.917,0.894,0.878,0.833,0.835,0.749,0.799,0.772,0.682,0.709,0.863,0.759];
 
   const pad = {t:22, r:14, b:26, l:38};
   const cw = W - pad.l - pad.r, ch = H - pad.t - pad.b;
@@ -1121,8 +1125,8 @@ function drawTrainingChart() {
   ctx.setLineDash([]);
 
   runs.forEach((r, i) => {
-    const bold = r==='R15'||r==='R22'||r==='R25';
-    ctx.fillStyle = r==='R15'?'#4f8ef7':r==='R22'?'#14b8a6':r==='R24'?'#a78bfa':r==='R25'?'#f472b6':'#3a5068';
+    const bold = r==='R15'||r==='R22'||r==='R25'||r==='R26';
+    ctx.fillStyle = r==='R15'?'#4f8ef7':r==='R22'?'#14b8a6':r==='R24'?'#a78bfa':r==='R25'?'#f472b6':r==='R26'?'#86efac':'#3a5068';
     ctx.font = bold ? 'bold 11px system-ui,sans-serif' : '10px system-ui,sans-serif';
     ctx.textAlign = 'center'; ctx.fillText(r, xp(i), H - 4);
   });
@@ -1148,6 +1152,8 @@ function drawTrainingChart() {
 
   ctx.fillStyle = '#f472b6'; ctx.font = 'bold 10px system-ui,sans-serif';
   ctx.textAlign = 'right'; ctx.fillText('R25 ▸', xp(16) - 4, yp(0.731) - 9);
+  ctx.fillStyle = '#86efac'; ctx.font = 'bold 10px system-ui,sans-serif';
+  ctx.textAlign = 'left'; ctx.fillText('◂ R26', xp(17) + 4, yp(0.416) + 14);
 
   [[valAUC[13],'#4f8ef7'],[testAUC[13],'#4caf82']].forEach(([v,c]) => {
     ctx.beginPath(); ctx.arc(xp(13), yp(v), 6, 0, Math.PI*2);

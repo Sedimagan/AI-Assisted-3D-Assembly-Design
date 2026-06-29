@@ -77,6 +77,9 @@ runs = [
     dict(id="R25", date="27 Jun\n20:53", graphs="1006 real",
          note="Mechanical Engineering · Best_models_for_training · 6.4× more data\n1212 STEP → 1006 graphs · 28 timeouts · 178 skipped\nSingle-category ME focus vs Tools-only R23\n5-Fold CV · Mean AUC=0.731±0.072 · Mean AP=0.863±0.031",
          val_auc=1.0000, test_auc=0.8286, test_ap=0.9216, synthetic=False),
+    dict(id="R26", date="29 Jun\n14:17", graphs="707 real",
+         note="ME Medium Nodes Medium Edges · Best_models_for_training\n793 STEP → 707 graphs · 32 quarantined · 11 timeouts\nMedium-complexity assemblies vs R25 low-node subset\n5-Fold CV · Mean AUC=0.416±0.049 · Mean AP=0.759±0.022",
+         val_auc=0.7051, test_auc=0.4861, test_ap=0.7978, synthetic=False),
 ]
 
 n   = len(runs)
@@ -106,6 +109,7 @@ log_colors = {
     "R23": "#fb923c",
     "R24": "#a78bfa",
     "R25": "#f472b6",
+    "R26": "#86efac",
 }
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -172,7 +176,7 @@ ax.legend(handles=legend_patches, loc="upper left", facecolor=PANEL,
 col_labels = ["Run", "Date", "Node Dims", "Graphs", "Val AUC", "Test AUC", "Test AP"]
 table_data = [
     [r["id"], r["date"].replace("\n", " "),
-     "22+6-dim · 1006g · ME" if r["id"] == "R25" else "22+6-dim · 159g · Machine_design" if r["id"] == "R24" else "22+6-dim · 156g · Tools" if r["id"] == "R23" else "22+6-dim · 239g · 3cat" if r["id"] == "R22" else "22+6-dim · 89g · 3cat" if r["id"] == "R21" else "22+6-dim · 444g · 38cat" if r["id"] == "R20" else "22+6-dim · 995g" if r["id"] in ("R18","R19") else "13-dim" if r["id"] in ("R1","R3","R6") else "21-dim · 1760g" if r["id"] == "R17" else "21-dim · bbox+affine" if r["id"] == "R16" else "18-dim · P1-P6" if r["id"] == "R15" else "16-dim (5-fold CV)" if r["id"] in ("R12","R13","R14") else "16-dim",
+     "22+6-dim · 707g · ME-MN-ME" if r["id"] == "R26" else "22+6-dim · 1006g · ME" if r["id"] == "R25" else "22+6-dim · 159g · Machine_design" if r["id"] == "R24" else "22+6-dim · 156g · Tools" if r["id"] == "R23" else "22+6-dim · 239g · 3cat" if r["id"] == "R22" else "22+6-dim · 89g · 3cat" if r["id"] == "R21" else "22+6-dim · 444g · 38cat" if r["id"] == "R20" else "22+6-dim · 995g" if r["id"] in ("R18","R19") else "13-dim" if r["id"] in ("R1","R3","R6") else "21-dim · 1760g" if r["id"] == "R17" else "21-dim · bbox+affine" if r["id"] == "R16" else "18-dim · P1-P6" if r["id"] == "R15" else "16-dim (5-fold CV)" if r["id"] in ("R12","R13","R14") else "16-dim",
      r["graphs"],
      f"{r['val_auc']:.3f}", f"{r['test_auc']:.3f}", f"{r['test_ap']:.3f}"]
     for r in runs
@@ -236,6 +240,9 @@ for (row, col), cell in tbl.get_celld().items():
     if row > 0 and runs[row-1]["id"] == "R25":
         cell.set_facecolor("#2d0a1a")
         cell.set_text_props(color="#f472b6", fontweight="bold")
+    if row > 0 and runs[row-1]["id"] == "R26":
+        cell.set_facecolor("#0a2d12")
+        cell.set_text_props(color="#86efac", fontweight="bold")
 
 ax.text(0.5, -0.42, "* Inflated: synthetic test graphs trivially match synthetic training patterns.",
         transform=ax.transAxes, ha="center", color=SUBTEXT, fontsize=7.5, style="italic")
@@ -256,7 +263,7 @@ fig2 = plt.figure(figsize=(18, fig_h), facecolor=BG)
 ax2 = fig2.add_axes([0.02, 0.02, 0.96, 0.96], facecolor=PANEL)
 ax2.axis("off")
 
-ax2.text(0.5, 0.99, "Change Log — R1 to R25", transform=ax2.transAxes,
+ax2.text(0.5, 0.99, "Change Log — R1 to R26", transform=ax2.transAxes,
          ha="center", va="top", color=TEXT, fontsize=14, fontweight="bold")
 
 # Two-column layout: runs split left/right
