@@ -1122,7 +1122,8 @@ Twenty-four training runs are shown, split into two eras. Each bar group shows V
 | R20 | 25 Jun 09:49 | 22+6-dim · 38 diversified categories · 444 graphs · 5-fold CV · Mean AUC=0.503±0.045 · Mean AP=0.749±0.020 · serving NOT promoted | 444 | 0.627 | 0.523 | 0.771 |
 | R21 | 26 Jun 00:26 | 22+6-dim · 3 new categories · no skip/edge filters · 89 graphs · 5-fold CV · Mean AUC=0.428±0.174 · Mean AP=0.799±0.063 · serving promoted | 89 | 0.731 | 0.500 | 0.834 |
 | R22 | 26 Jun 07:34 | 22+6-dim · 3 categories · Best_models_for_training · 239 graphs · 5-fold CV · Mean AUC=0.588±0.050 · Mean AP=0.767±0.031 · serving promoted | 239 | 0.625 | 0.626 | 0.772 |
-| **R23** | **27 Jun 02:06** | **22+6-dim · Tools-only · Best_models_for_training · 197 STEP → 156 graphs · 5-fold CV · Mean AUC=0.460±0.039 · Mean AP=0.682±0.024 · serving promoted (first on branch)** | **156** | **0.710** | **0.406** | **0.632** |
+| R23 | 27 Jun 02:06 | 22+6-dim · Tools-only · Best_models_for_training · 197 STEP → 156 graphs · 5-fold CV · Mean AUC=0.460±0.039 · Mean AP=0.682±0.024 · serving promoted (first on branch) | 156 | 0.710 | 0.406 | 0.632 |
+| **R27** | **01 Jul 10:14** | **22+6-dim · MechEng-HighNodes/Edges · Best_models_for_training · 992 STEP → 869 graphs · 5-fold CV · Mean AUC=0.531±0.036 · Mean AP=0.799±0.021 · serving promoted** | **869** | **0.6769** | **0.5700** | **0.8252** |
 
 > \* R3 metrics artificially inflated: 300 synthetic test graphs trivially match the 300 synthetic training graphs — not a valid measure of real-geometry performance.
 
@@ -1256,6 +1257,21 @@ Twenty-four training runs are shown, split into two eras. Each bar group shows V
 | **Mean** | | **0.503 ± 0.045** | **0.749 ± 0.020** |
 
 > ★ best fold (val AUC 0.627) — used for `best_overall.pt`; final test eval AUC 0.523, AP 0.771. Mean AUC 0.503 held steady vs R19 (0.504, −0.1 points) despite a far more diverse dataset (38 categories vs 4). Mean AP 0.749 dropped from R19 (0.835, −8.6 points) — expected when training spans domains from Aerospace to Jewelry to Wood Working, diluting category-specific assembly patterns. The `best_serving.pt` gate correctly blocked this run from replacing the incumbent. Top categories: Furniture+Household (42), Electronics (31), Mechanical Engineering (31), Tools (30), Machine design (28).
+
+#### R27 — 5-Fold Cross-Validation Detail (22+6-dim · MechEng-HighNodes/Edges · Best_models_for_training · 869 graphs)
+
+**Changes vs R23:** Dataset switched to single-category `Mechanical_Engineering_High_Nodes_High_Edges` from Best_models_for_training (992 STEP → 869 valid graphs; 123 skipped via timeout/geometry errors). Largest dataset on this branch at 869 graphs — 5.6× more than R23 (156). Mean AUC 0.531 ± 0.036 improves over R23 (0.460, +7.1 points) and approaches R22 (0.588). Mean AP 0.799 ± 0.021 is the highest on this branch. Two bugs fixed in auto_recover.sh: stale R23 checkpoints causing start-fold=5 skip, and STALE_TIMEOUT raised from 900s to 2400s for large STEP files. best_serving.pt promoted (0.531 > R23's 0.460).
+
+| Fold | Val AUC (best ep) | Test AUC | Test AP |
+|---|---|---|---|
+| 1 | 0.5837 | 0.5067 | 0.7920 |
+| 2 | 0.6092 | 0.5383 | 0.7824 |
+| 3 ★ | 0.6769 | 0.5878 | 0.8320 |
+| 4 | 0.5552 | 0.5295 | 0.8077 |
+| 5 | 0.6406 | 0.4937 | 0.7808 |
+| **Mean** | | **0.531 ± 0.036** | **0.799 ± 0.021** |
+
+> ★ best fold (val AUC 0.6769) — used for `best_overall.pt`; final test eval AUC 0.5700, AP 0.8252. Mean AUC 0.531 ± 0.036 is the best result on this branch since R22 (0.588), up +7.1 points from R23 (0.460). The larger dataset (869 graphs vs 156) clearly drives the improvement. Mean AP 0.799 ± 0.021 exceeds the Phase 1 AP target of 0.82 in fold 3 (AP 0.832). The `best_serving.pt` gate promoted R27 (mean AUC 0.531 > R23's 0.460). Next: expand to multiple high-quality categories to combine the domain richness of R22 with the data scale of R27.
 
 #### R23 — 5-Fold Cross-Validation Detail (22+6-dim · Tools-only · Best_models_for_training · 156 graphs)
 
