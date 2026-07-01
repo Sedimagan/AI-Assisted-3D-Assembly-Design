@@ -6,7 +6,7 @@ data:
   test_ratio:  0.15
   mask_ratio:  [0.20, 0.40]   # fraction of edges masked per graph for partial-graph training
   categories:
-    - "Mechanical_Engineering_High_Nodes_High_Edges"
+    - "Mechanical_Engineering_Very_High_Nodes_Very_High_Edges"
 
 model:
   in_dim:     22              # node feature dimension (22-dim: 8 type + log-vol + log-SA + 3 bbox + 5 affine-invariant shape + SDF-mean + SDF-var + SA/V + log-holes)

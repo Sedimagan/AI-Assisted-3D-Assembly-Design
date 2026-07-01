@@ -694,11 +694,18 @@ class AssemblyDataset(InMemoryDataset):
             print(f"  Category filter: {self.categories}")
             print(f"  {len(step_files)} STEP files after category filter")
 
+        # Per-graph cache: each assembly saved immediately after parsing.
+        # Survives force_reload and stall restarts — only data.pt is deleted,
+        # not this directory.  Key = parent folder name (unique within a category).
+        graph_cache_dir = Path(self.processed_paths[0]).parent / "graph_cache"
+        graph_cache_dir.mkdir(parents=True, exist_ok=True)
+
         graphs:           List[Data] = []
         source_paths:     List[str]  = []
         graph_categories: List[str]  = []
-        n_errors = 0
+        n_errors   = 0
         n_timeouts = 0
+        n_cached   = 0
 
         _TIMEOUT = 120
         _category_dirs = {
@@ -709,17 +716,40 @@ class AssemblyDataset(InMemoryDataset):
             print(f"  Found {len(step_files)} STEP file(s) in {self.source_dir}",
                   flush=True)
             for idx, sf in enumerate(sorted(step_files), 1):
-                print(f"  [{idx}/{len(step_files)}] Parsing: {sf.name}", flush=True)
+                label      = f"{sf.parent.name}/{sf.name}"
+                cache_path = graph_cache_dir / f"{sf.parent.name}.pt"
+
+                # ── Load from per-graph cache if available ────────────────
+                if cache_path.exists():
+                    try:
+                        cached = torch.load(cache_path, weights_only=False)
+                        g   = cached["data"]
+                        cat = cached["category"]
+                        src = cached["source"]
+                        graphs.append(g)
+                        graph_categories.append(cat)
+                        source_paths.append(src)
+                        n_cached += 1
+                        print(f"  [{idx}/{len(step_files)}] [CACHED] {label}"
+                              f" — {g.num_nodes} nodes", flush=True)
+                        continue
+                    except Exception as cache_err:
+                        print(f"  [{idx}/{len(step_files)}] [CACHE-ERR] {label}:"
+                              f" {cache_err} — re-parsing", flush=True)
+                        cache_path.unlink(missing_ok=True)
+
+                # ── Parse STEP file ───────────────────────────────────────
+                print(f"  [{idx}/{len(step_files)}] Parsing: {label}", flush=True)
                 t0 = time.time()
                 g, status = _parse_step_with_timeout(str(sf), timeout_secs=_TIMEOUT)
                 elapsed = round(time.time() - t0, 1)
 
                 if status == "timeout":
-                    print(f"  [TIMEOUT] {sf.name} ({elapsed}s)", flush=True)
+                    print(f"  [TIMEOUT] {label} ({elapsed}s)", flush=True)
                     n_timeouts += 1
                     continue
                 if status == "error":
-                    print(f"  [ERROR]   {sf.name} — parse failed", flush=True)
+                    print(f"  [ERROR]   {label} — parse failed", flush=True)
                     n_errors += 1
                     continue
                 if g is not None and g.num_nodes >= 2:
@@ -730,15 +760,20 @@ class AssemblyDataset(InMemoryDataset):
                             cat = part
                             break
                     g.category = cat
+
+                    # Save to per-graph cache immediately so restarts skip this file
+                    torch.save({"data": g, "category": cat, "source": str(sf)},
+                               cache_path)
+
                     graphs.append(g)
                     graph_categories.append(cat)
                     source_paths.append(str(sf))
-                    print(f"  [OK]  {sf.name} — {g.num_nodes} nodes  "
+                    print(f"  [OK]  {label} — {g.num_nodes} nodes  "
                           f"{n_dir//2} edges  ({elapsed}s)", flush=True)
 
             print(
-                f"  Parsed {len(graphs)} valid  |  "
-                f"errors: {n_errors}  timeouts: {n_timeouts}",
+                f"  Parsed {len(graphs) - n_cached} new  |  "
+                f"cached: {n_cached}  errors: {n_errors}  timeouts: {n_timeouts}",
                 flush=True,
             )
         else:

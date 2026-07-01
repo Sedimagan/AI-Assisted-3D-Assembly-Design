@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-# auto_recover.sh — Polls log every 60s, restarts on crash (up to 3 attempts)
+# auto_recover.sh — Polls log every 60s, restarts on crash or stall.
+# On a parsing stall the offending assembly folder is quarantined and training
+# resumes from the next folder — already-parsed graphs are loaded from
+# graph_cache/ so no full re-parse is ever needed.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -12,8 +15,10 @@ RECOVERY_LOG="$PROJECT_ROOT/logs/recovery.log"
 PID_FILE="$PROJECT_ROOT/logs/training_pid.txt"
 CKPT_DIR="$SCRIPT_DIR/checkpoints"
 BACK_END="$SCRIPT_DIR"
+SOURCE_MODELS="$PROJECT_ROOT/Source_3d_models/Best_models_for_training"
+QUARANTINE_DIR="$SOURCE_MODELS/_quarantine_stall"
 
-MAX_RETRIES=3
+MAX_RETRIES=10  # high: each retry makes progress (cached graphs skip re-parse)
 STALE_TIMEOUT=2400  # seconds with no log output = stale (large STEP files can take >900s)
 POLL_INTERVAL=60
 
@@ -33,6 +38,48 @@ get_last_completed_fold() {
         fi
     done
     echo $((max_fold + 1))
+}
+
+# Quarantine the assembly folder that caused a parsing stall.
+# Reads the last "Parsing: folder/file" line from the training log,
+# moves that folder to _quarantine_stall/, then deletes only data.pt
+# so the next run reassembles from graph_cache/ without re-parsing.
+quarantine_stalling_folder() {
+    # Find the last line that started a parse (folder/file format printed since R28)
+    local last_parse_line
+    last_parse_line=$(grep "] Parsing: " "$LOG" 2>/dev/null | tail -1 || true)
+
+    if [ -z "$last_parse_line" ]; then
+        log_recovery "QUARANTINE: no Parsing line found in log — skipping quarantine"
+        return
+    fi
+
+    # Extract folder name (the part before the first '/')
+    local folder_name
+    folder_name=$(echo "$last_parse_line" | sed 's/.*Parsing: //' | cut -d'/' -f1)
+
+    if [ -z "$folder_name" ]; then
+        log_recovery "QUARANTINE: could not extract folder name from: $last_parse_line"
+        return
+    fi
+
+    # Search for the folder under Best_models_for_training (max depth 3)
+    local folder_path
+    folder_path=$(find "$SOURCE_MODELS" -maxdepth 3 -type d -name "$folder_name" 2>/dev/null | grep -v "_quarantine" | head -1 || true)
+
+    if [ -z "$folder_path" ]; then
+        log_recovery "QUARANTINE: folder '$folder_name' not found under $SOURCE_MODELS"
+        return
+    fi
+
+    mkdir -p "$QUARANTINE_DIR"
+    mv "$folder_path" "$QUARANTINE_DIR/"
+    log_recovery "QUARANTINE: moved '$folder_name' → _quarantine_stall/ (was stalling)"
+
+    # Delete only data.pt — graph_cache/ is preserved so all already-parsed
+    # graphs are loaded instantly on the next run
+    find "$BACK_END/data/processed" -name "data.pt" -delete 2>/dev/null || true
+    log_recovery "QUARANTINE: deleted data.pt (graph_cache preserved — $(ls "$BACK_END/data/processed/graph_cache/" 2>/dev/null | wc -l | tr -d ' ') graphs cached)"
 }
 
 start_training() {
@@ -55,7 +102,6 @@ start_training() {
 }
 
 check_for_traceback() {
-    # Check last 20 lines for Python traceback
     tail -20 "$LOG" 2>/dev/null | grep -q "Traceback\|Error:" && return 0 || return 1
 }
 
@@ -64,7 +110,6 @@ log_recovery "auto_recover.sh started. Monitoring $LOG every ${POLL_INTERVAL}s"
 while true; do
     sleep $POLL_INTERVAL
 
-    # Check if training process is alive
     TRAIN_PID=""
     [ -f "$PID_FILE" ] && TRAIN_PID=$(cat "$PID_FILE" 2>/dev/null) || true
 
@@ -75,17 +120,20 @@ while true; do
         STALE=$((NOW - MTIME))
 
         if [ $STALE -gt $STALE_TIMEOUT ]; then
-            log_recovery "Log stale ${STALE}s > ${STALE_TIMEOUT}s — killing and restarting"
+            log_recovery "Log stale ${STALE}s > ${STALE_TIMEOUT}s — killing stalling process"
             kill "$TRAIN_PID" 2>/dev/null || true
-            sleep 3
+            sleep 5
 
             if [ $attempt -ge $MAX_RETRIES ]; then
                 log_recovery "FAILED: max retries ($MAX_RETRIES) exhausted. Giving up."
                 exit 1
             fi
+
+            quarantine_stalling_folder
+
             attempt=$((attempt + 1))
             next_fold=$(get_last_completed_fold)
-            log_recovery "Restarting from fold $next_fold after stale timeout"
+            log_recovery "Restarting from fold $next_fold after stall quarantine"
             start_training "$next_fold"
         fi
     else
@@ -103,6 +151,7 @@ while true; do
             log_recovery "FAILED: max retries ($MAX_RETRIES) exhausted. Giving up."
             exit 1
         fi
+
         attempt=$((attempt + 1))
         next_fold=$(get_last_completed_fold)
         log_recovery "Restarting from fold $next_fold (attempt $((attempt+1))/$MAX_RETRIES)"
