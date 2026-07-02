@@ -293,9 +293,17 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
             <div class="agenda-num">9</div>
             <div class="agenda-label">References</div>
           </a>
-          <a class="agenda-item" onclick="go(11)" style="grid-column:2/4;">
+          <a class="agenda-item" onclick="go(11)">
             <div class="agenda-num" style="background:linear-gradient(135deg,#166534,#22c55e);">10</div>
             <div class="agenda-label">Live Demo &rarr; localhost:8501</div>
+          </a>
+          <a class="agenda-item" onclick="go(12)">
+            <div class="agenda-num" style="background:linear-gradient(135deg,#0d5e7a,#0ea5e9);">11</div>
+            <div class="agenda-label">Use Case Diagram</div>
+          </a>
+          <a class="agenda-item" onclick="go(13)">
+            <div class="agenda-num" style="background:linear-gradient(135deg,#4c1d95,#a855f7);">12</div>
+            <div class="agenda-label">Dataset Insights</div>
           </a>
         </div>
       </div>
@@ -370,30 +378,10 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
   <div class="sbody">
     <div class="row">
       <div class="col coll">
-        <div class="card bl" style="flex:1;">
-          <h3>System Architecture</h3>
-          <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;">
-            <div class="flow-box">Source_3d_models/Best_models_for_training/ (300 STEP files — 239 valid graphs)</div>
-            <div class="flow-arrow">▼</div>
-            <div class="flow-box">dataset.py — gmsh (OpenCASCADE)<br>
-              <span style="color:#6b8bad;">Solid bodies → Nodes (22-dim) · Shared surfaces → Edges (6-dim)</span></div>
-            <div class="flow-arrow">▼</div>
-            <div class="flow-box">model.py — AssemblyGNN (3-layer GAT)<br>
-              <span style="color:#6b8bad;">22 → 128 → 128 → 64 dim · [8,4,1]-head attention</span></div>
-            <div class="flow-arrow">▼</div>
-            <div style="display:flex;gap:8px;">
-              <div class="flow-box" style="flex:1;">LinkPredictor MLP<br>
-                <span style="color:#6b8bad;">MLP(h<sub>u</sub>‖h<sub>v</sub>) → BCE</span></div>
-              <div class="flow-box" style="flex:1;">AssemblyTemplateDB<br>
-                <span style="color:#6b8bad;">Category matching + gap analysis</span></div>
-              <div class="flow-box" style="flex:1;">OctreeNode<br>
-                <span style="color:#6b8bad;">Open surface detection</span></div>
-            </div>
-            <div class="flow-arrow">▼</div>
-            <div class="flow-box">skills_agent.py — Gemini AI (AIDA) · 4-section engineering explanation</div>
-            <div class="flow-arrow">▼</div>
-            <div class="flow-box" style="border-color:#4caf82;">front_end/app.py — Streamlit Interactive 3D Viewer + Dual Panel UI</div>
-          </div>
+        <div class="card bl" style="flex:1;padding:10px 12px;">
+          <h3 style="flex-shrink:0;">System Architecture</h3>
+          <img src="../docs/system_architecture.png" alt="System Architecture Diagram"
+               style="flex:1;min-height:0;width:100%;object-fit:contain;border-radius:6px;background:#060c14;">
         </div>
       </div>
       <div class="col cols">
@@ -1044,6 +1032,38 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
   </div>
 </div>
 
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 12 — USE CASE DIAGRAM                                          -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="slide" id="s12">
+  <div class="shdr">
+    <div class="snum">11</div>
+    <h2>Use Case Diagram</h2>
+    <button class="home-btn" onclick="go(1)" title="Back to Agenda">⌂</button>
+  </div>
+  <div class="sbody" style="padding:10px;align-items:center;justify-content:center;">
+    <img src="../docs/use_case_diagram.png" alt="Use Case Diagram"
+         style="max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;">
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 13 — DATASET INSIGHTS                                           -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="slide" id="s13">
+  <div class="shdr">
+    <div class="snum" style="border-color:#a855f7;color:#a855f7;">12</div>
+    <h2>Dataset Insights</h2>
+    <button class="home-btn" onclick="go(1)" title="Back to Agenda">⌂</button>
+  </div>
+  <div class="sbody" style="padding:8px;gap:6px;">
+    <img src="../docs/eda_dashboard.png" alt="EDA Dashboard — 2,271 assemblies · 16,829 body parts"
+         style="flex:1;min-height:0;width:100%;object-fit:contain;border-radius:8px;background:#060c14;">
+    <img src="../docs/eda_insights_deep.png" alt="EDA Deep Insights — cross-category analysis"
+         style="flex:1;min-height:0;width:100%;object-fit:contain;border-radius:8px;background:#060c14;">
+  </div>
+</div>
+
 </div><!-- /deck -->
 
 <div id="nav">
@@ -1054,7 +1074,7 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
 </div>
 
 <script>
-const TOTAL = 11;
+const TOTAL = 13;
 let cur = 1;
 
 let r22ChartsDrawn = false;
