@@ -247,50 +247,67 @@ print(f"Saved: {out1}")
 
 
 # ═════════════════════════════════════════════════════════════════════════════
-# IMAGE 2: Change Log — separate full-width image
+# IMAGE 2a/2b: Change Log — split into two images to avoid overlap
 # ═════════════════════════════════════════════════════════════════════════════
-n_runs = len(runs)
-row_h = 0.58       # inches per run
-fig_h = 1.2 + n_runs * row_h
-fig2 = plt.figure(figsize=(18, fig_h), facecolor=BG)
-ax2 = fig2.add_axes([0.02, 0.02, 0.96, 0.96], facecolor=PANEL)
-ax2.axis("off")
 
-ax2.text(0.5, 0.99, "Change Log — R1 to R28", transform=ax2.transAxes,
-         ha="center", va="top", color=TEXT, fontsize=14, fontweight="bold")
+def draw_changelog(subset, title, outpath):
+    n = len(subset)
+    mid = (n + 1) // 2
+    col_left  = subset[:mid]
+    col_right = subset[mid:]
+    max_col   = mid   # max items in any column
 
-# Two-column layout: runs split left/right
-mid = (n_runs + 1) // 2  # 7 left, 7 right
-cols = [runs[:mid], runs[mid:]]
-col_x_offsets = [0.02, 0.52]
+    fig = plt.figure(figsize=(18, 8.5), facecolor=BG)
+    ax  = fig.add_axes([0.02, 0.02, 0.96, 0.96], facecolor=PANEL)
+    ax.axis("off")
 
-for ci, (col_runs, x_off) in enumerate(zip(cols, col_x_offsets)):
-    y = 0.93
-    step = 0.88 / mid
-    for r in col_runs:
-        c = log_colors[r["id"]]
-        # Run ID + date
-        ax2.text(x_off, y, r["id"], transform=ax2.transAxes,
-                 color=c, fontsize=11, fontweight="bold", va="top")
-        ax2.text(x_off + 0.06, y, r["date"].replace("\n", " "), transform=ax2.transAxes,
-                 color=SUBTEXT, fontsize=9, va="top")
-        ax2.text(x_off + 0.18, y, f"Graphs: {r['graphs']}", transform=ax2.transAxes,
-                 color=SUBTEXT, fontsize=9, va="top")
-        # Note lines
-        for j, line in enumerate(r["note"].split("\n")):
-            ax2.text(x_off + 0.005, y - 0.030 - j * 0.028, line,
-                     transform=ax2.transAxes,
-                     color=TEXT if j == 0 else SUBTEXT, fontsize=9.5, va="top")
-        y -= step
-        # Separator
-        ax2.plot([x_off, x_off + 0.46], [y + 0.008, y + 0.008],
-                 transform=ax2.transAxes, color="#333", linewidth=0.5)
+    ax.text(0.5, 0.985, title, transform=ax.transAxes,
+            ha="center", va="top", color=TEXT, fontsize=14, fontweight="bold")
 
-# Vertical divider
-ax2.plot([0.50, 0.50], [0.02, 0.94], transform=ax2.transAxes,
-         color="#333", linewidth=1)
+    y_top  = 0.93
+    y_span = 0.88         # fraction available for run entries
+    step   = y_span / max_col
 
-out2 = "docs/training_changelog.png"
-plt.savefig(out2, dpi=150, bbox_inches="tight", facecolor=BG)
-plt.close(fig2)
-print(f"Saved: {out2}")
+    col_x_offsets = [0.02, 0.52]
+    for col_runs, x_off in zip([col_left, col_right], col_x_offsets):
+        y = y_top
+        for r in col_runs:
+            c = log_colors[r["id"]]
+            # Header row: Run ID, date, graph count
+            ax.text(x_off,        y, r["id"],
+                    transform=ax.transAxes, color=c, fontsize=11,
+                    fontweight="bold", va="top")
+            ax.text(x_off + 0.06, y, r["date"].replace("\n", " "),
+                    transform=ax.transAxes, color=SUBTEXT, fontsize=9, va="top")
+            ax.text(x_off + 0.18, y, f"Graphs: {r['graphs']}",
+                    transform=ax.transAxes, color=SUBTEXT, fontsize=9, va="top")
+            # Note lines (indented slightly)
+            for j, line in enumerate(r["note"].split("\n")):
+                ax.text(x_off + 0.005, y - 0.033 - j * 0.026, line,
+                        transform=ax.transAxes,
+                        color=TEXT if j == 0 else SUBTEXT, fontsize=9.5, va="top")
+            y -= step
+            # Separator
+            ax.plot([x_off, x_off + 0.46], [y + 0.010, y + 0.010],
+                    transform=ax.transAxes, color="#333", linewidth=0.5)
+
+    # Vertical divider between columns
+    ax.plot([0.50, 0.50], [0.02, 0.94], transform=ax.transAxes,
+            color="#333", linewidth=1)
+
+    fig.savefig(outpath, dpi=150, bbox_inches="tight", facecolor=BG)
+    plt.close(fig)
+    print(f"Saved: {outpath}")
+
+
+mid_all = len(runs) // 2
+runs_a  = runs[:mid_all]   # early runs  (R1–R14)
+runs_b  = runs[mid_all:]   # recent runs (R15–R28)
+
+first_a = runs_a[0]["id"];  last_a = runs_a[-1]["id"]
+first_b = runs_b[0]["id"];  last_b = runs_b[-1]["id"]
+
+draw_changelog(runs_a, f"Change Log — {first_a} to {last_a} (Early Runs)",
+               "docs/training_changelog_a.png")
+draw_changelog(runs_b, f"Change Log — {first_b} to {last_b} (Recent Runs)",
+               "docs/training_changelog_b.png")
