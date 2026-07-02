@@ -3,13 +3,13 @@
     "category": "best_models_for_training",
     "label": "Best Models For Training",
     "component_counts": {
-      "body": 8,
-      "fastener": 4,
+      "body": 22,
+      "fastener": 10,
       "bearing": 1,
-      "plate": 3,
-      "housing": 1
+      "plate": 6,
+      "housing": 2
     },
-    "total_bodies": 12,
+    "total_bodies": 39,
     "examples": [
       "assembly.step",
       "assembly.step",
@@ -17,6 +17,6 @@
       "assembly.step",
       "assembly.step"
     ],
-    "n_assemblies": 869
+    "n_assemblies": 695
   }
 ]

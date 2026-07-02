@@ -554,6 +554,8 @@ python skills_agent.py
 After training completes a timestamped file is saved to `trained_models/`:
 
 ```
+trained_models/assembly_gnn_20260702_101436_auc05783.pt   ← R28 (22+6-dim, MechEng-VeryHighNodes/Edges, Best_models_for_training, 1000 STEP → 695 graphs, best fold val AUC 0.5783, mean AUC 0.5455, mean AP 0.7124, 2026-07-02) — serving promoted
+trained_models/assembly_gnn_20260701_101409_auc06769.pt   ← R27 (22+6-dim, MechEng-HighNodes/Edges, Best_models_for_training, 992 STEP → 869 graphs, best fold val AUC 0.6769, mean AUC 0.531, mean AP 0.799, 2026-07-01) — serving promoted
 trained_models/assembly_gnn_20260627_020624_auc07100.pt   ← R23 (22+6-dim, Tools-only, Best_models_for_training, 156 graphs, best fold val AUC 0.710, mean AUC 0.460, mean AP 0.682, 2026-06-27) — serving promoted (first on branch)
 trained_models/assembly_gnn_20260626_073453_auc06246.pt   ← R22 (22+6-dim, 3 categories, Best_models_for_training, 239 graphs, best fold val AUC 0.625, mean AUC 0.588, mean AP 0.767, 2026-06-26) — serving promoted
 trained_models/assembly_gnn_20260626_003859_auc07308.pt   ← R21 (22+6-dim, 3 new categories, 89 graphs, best fold val AUC 0.731, mean AUC 0.428, mean AP 0.799, 2026-06-26) — serving promoted
@@ -1123,7 +1125,8 @@ Twenty-four training runs are shown, split into two eras. Each bar group shows V
 | R21 | 26 Jun 00:26 | 22+6-dim · 3 new categories · no skip/edge filters · 89 graphs · 5-fold CV · Mean AUC=0.428±0.174 · Mean AP=0.799±0.063 · serving promoted | 89 | 0.731 | 0.500 | 0.834 |
 | R22 | 26 Jun 07:34 | 22+6-dim · 3 categories · Best_models_for_training · 239 graphs · 5-fold CV · Mean AUC=0.588±0.050 · Mean AP=0.767±0.031 · serving promoted | 239 | 0.625 | 0.626 | 0.772 |
 | R23 | 27 Jun 02:06 | 22+6-dim · Tools-only · Best_models_for_training · 197 STEP → 156 graphs · 5-fold CV · Mean AUC=0.460±0.039 · Mean AP=0.682±0.024 · serving promoted (first on branch) | 156 | 0.710 | 0.406 | 0.632 |
-| **R27** | **01 Jul 10:14** | **22+6-dim · MechEng-HighNodes/Edges · Best_models_for_training · 992 STEP → 869 graphs · 5-fold CV · Mean AUC=0.531±0.036 · Mean AP=0.799±0.021 · serving promoted** | **869** | **0.6769** | **0.5700** | **0.8252** |
+| R27 | 01 Jul 10:14 | 22+6-dim · MechEng-HighNodes/Edges · Best_models_for_training · 992 STEP → 869 graphs · 5-fold CV · Mean AUC=0.531±0.036 · Mean AP=0.799±0.021 · serving promoted | 869 | 0.6769 | 0.5700 | 0.8252 |
+| **R28** | **02 Jul 10:14** | **22+6-dim · MechEng-VeryHighNodes/Edges · Best_models_for_training · 1000 STEP → 695 graphs · 5-fold CV · Mean AUC=0.5455±0.0251 · Mean AP=0.7124±0.0139 · serving promoted** | **695** | **0.5783** | **0.5527** | **0.7050** |
 
 > \* R3 metrics artificially inflated: 300 synthetic test graphs trivially match the 300 synthetic training graphs — not a valid measure of real-geometry performance.
 
@@ -1271,7 +1274,22 @@ Twenty-four training runs are shown, split into two eras. Each bar group shows V
 | 5 | 0.6406 | 0.4937 | 0.7808 |
 | **Mean** | | **0.531 ± 0.036** | **0.799 ± 0.021** |
 
-> ★ best fold (val AUC 0.6769) — used for `best_overall.pt`; final test eval AUC 0.5700, AP 0.8252. Mean AUC 0.531 ± 0.036 is the best result on this branch since R22 (0.588), up +7.1 points from R23 (0.460). The larger dataset (869 graphs vs 156) clearly drives the improvement. Mean AP 0.799 ± 0.021 exceeds the Phase 1 AP target of 0.82 in fold 3 (AP 0.832). The `best_serving.pt` gate promoted R27 (mean AUC 0.531 > R23's 0.460). Next: expand to multiple high-quality categories to combine the domain richness of R22 with the data scale of R27.
+> ★ best fold (val AUC 0.6769) — used for `best_overall.pt`; final test eval AUC 0.5700, AP 0.8252. Mean AUC 0.531 ± 0.036 is the best result on this branch since R22 (0.588), up +7.1 points from R23 (0.460). The larger dataset (869 graphs vs 156) clearly drives the improvement. Mean AP 0.799 ± 0.021 exceeds the Phase 1 AP target of 0.82 in fold 3 (AP 0.832). The `best_serving.pt` gate promoted R27 (mean AUC 0.531 > R23's 0.460). Next: expand to very-high-complexity assemblies (VHN/VHE category) to test scaling behaviour.
+
+#### R28 — 5-Fold Cross-Validation Detail (22+6-dim · MechEng-VeryHighNodes/Edges · Best_models_for_training · 695 graphs)
+
+**Changes vs R27:** Dataset escalated to `Mechanical_Engineering_Very_High_Nodes_Very_High_Edges` — higher-complexity assemblies with very high node/edge counts (1000 STEP → 695 valid graphs; 305 skipped via timeout/geometry errors). Fewer valid graphs than R27 (695 vs 869) due to more complex files timing out. Mean AUC 0.5455 ± 0.0251 improves over R27 (0.531, +1.4 points). Mean AP 0.7124 ± 0.0139 is lower than R27 (0.799) — the VHN/VHE category has denser, more ambiguous graphs that reduce AP precision. Total training time ~23 hours; watchdog never fired. best_serving.pt promoted (mean AUC 0.5455 > R27's 0.531).
+
+| Fold | Val AUC (best ep) | Test AUC | Test AP | Early stop ep |
+|---|---|---|---|---|
+| 1 | 0.5441 | 0.5474 | 0.7053 | 27 |
+| 2 | 0.5593 | 0.5819 | 0.7357 | 21 |
+| 3 | 0.5360 | 0.5229 | 0.6993 | 27 |
+| 4 | 0.5311 | 0.5209 | 0.7118 | 25 |
+| 5 ★ | 0.5783 | 0.5545 | 0.7099 | 22 |
+| **Mean** | | **0.5455 ± 0.0251** | **0.7124 ± 0.0139** | |
+
+> ★ best fold (val AUC 0.5783) — used for `best_overall.pt`; final test eval AUC 0.5527, AP 0.7050. Mean AUC 0.5455 ± 0.0251 continues the upward trend from R23 (0.460) → R27 (0.531) → R28 (0.546). The VHN/VHE category produces denser, noisier graphs with lower AP than R27 (0.712 vs 0.799), consistent with higher graph complexity making positive/negative edge discrimination harder. All 5 folds triggered early stopping at epochs 21–27 (patience=20), confirming the model converges quickly on this dataset. The `best_serving.pt` gate promoted R28 (mean AUC 0.5455 > R27's 0.531).
 
 #### R23 — 5-Fold Cross-Validation Detail (22+6-dim · Tools-only · Best_models_for_training · 156 graphs)
 
