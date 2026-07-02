@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Presentation Script — Phase 1 ESA Review</title>
+<style>
+  :root{
+    --blue:#2563eb; --green:#0d9488; --purple:#7c3aed; --amber:#b45309; --red:#dc2626; --teal:#0f766e;
+    --ink:#101828; --sub:#475467; --line:#e4e7ec; --bg:#f8fafc; --card:#ffffff;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:'Segoe UI', system-ui, -apple-system, sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.6;
+  }
+  .wrap{max-width:880px; margin:0 auto; padding:36px 24px 80px;}
+  header.top{
+    background:linear-gradient(135deg,#0d2040,#123a6b);
+    color:#fff; padding:34px 30px; border-radius:14px; margin-bottom:28px;
+  }
+  header.top h1{margin:0 0 6px; font-size:26px;}
+  header.top .sub{color:#bcd6f7; font-size:14.5px; margin-bottom:14px;}
+  header.top .meta{display:flex; gap:18px; flex-wrap:wrap; font-size:13px; color:#9fc1ea;}
+  header.top .meta b{color:#eaf3ff;}
+  .format-badge{
+    display:inline-block; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.25);
+    padding:4px 12px; border-radius:20px; font-size:12.5px; font-weight:600; margin-top:10px;
+  }
+  h2.slide-title{
+    font-size:15px; text-transform:uppercase; letter-spacing:0.4px; color:var(--sub);
+    margin:34px 0 4px; padding-bottom:6px; border-bottom:1px solid var(--line);
+  }
+  .timecard{
+    background:var(--card); border:1px solid var(--line); border-left:4px solid var(--blue);
+    border-radius:10px; padding:16px 20px; margin-bottom:6px;
+  }
+  .timecard .time{
+    font-variant-numeric:tabular-nums; font-weight:700; color:var(--blue); font-size:13px; margin-bottom:8px; display:block;
+  }
+  .timecard h3{margin:0 0 8px; font-size:17px; color:var(--ink);}
+  .timecard p{margin:0 0 8px; font-size:14.5px; color:#33404f;}
+  .timecard p:last-child{margin-bottom:0;}
+  .cue{
+    font-size:12.5px; color:var(--sub); font-style:italic; background:#f1f5f9;
+    padding:6px 10px; border-radius:6px; margin-top:8px;
+  }
+  .say{
+    background:#eef4ff; border-radius:8px; padding:12px 16px; font-size:14.5px;
+    color:#1e2b3d; margin:8px 0;
+  }
+  .say b{color:var(--blue);}
+  .demo-box{
+    background:#ecfdf5; border:1px solid #a7f3d0; border-left:4px solid var(--green);
+    border-radius:10px; padding:18px 22px; margin-top:10px;
+  }
+  .demo-box h3{margin-top:0; color:var(--teal);}
+  .demo-box ol{padding-left:20px; margin:10px 0;}
+  .demo-box li{margin-bottom:8px; font-size:14.5px;}
+  .pace-box{
+    background:#fffbeb; border:1px solid #fde68a; border-left:4px solid var(--amber);
+    border-radius:10px; padding:16px 20px; margin-top:18px;
+  }
+  .pace-box h3{margin-top:0; color:var(--amber);}
+  .pace-box ul{padding-left:20px; margin:8px 0;}
+  .pace-box li{font-size:14px; margin-bottom:6px;}
+  code{
+    background:#eef2f6; padding:1px 6px; border-radius:4px; font-size:13px; color:#0f172a;
+  }
+  .toc{
+    background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px 20px; margin-bottom:10px;
+  }
+  .toc h3{margin:0 0 8px; font-size:13px; text-transform:uppercase; letter-spacing:0.4px; color:var(--sub);}
+  .toc ol{margin:0; padding-left:20px; columns:2; font-size:13.5px;}
+  .toc li{margin-bottom:4px;}
+  .toc a{color:var(--blue); text-decoration:none;}
+  .toc a:hover{text-decoration:underline;}
+  @media print{
+    body{background:#fff;}
+    header.top{background:#0d2040 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+    .timecard{break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>Phase 1 ESA Review — Presentation Script</h1>
+    <div class="sub">AI-Assisted 3D Assembly Design: Predicting Missing Components in CAD Assemblies using Graph Neural Networks</div>
+    <div class="meta">
+      <span><b>Student:</b> Parthasarathy Perumal</span>
+      <span><b>Guide:</b> Prof. Sagarika Borah</span>
+      <span><b>Programme:</b> M.Tech DS &amp; AI, Sem 4, PES University</span>
+    </div>
+    <div class="format-badge">10 min presentation + 5 min live demo + 5 min Q&amp;A</div>
+  </header>
+
+  <div class="toc">
+    <h3>Jump to</h3>
+    <ol>
+      <li><a href="#s1">Slide 1 — Agenda</a></li>
+      <li><a href="#s2">Slide 2 — Title &amp; Abstract</a></li>
+      <li><a href="#s3">Slide 3 — Use Case Diagram</a></li>
+      <li><a href="#s4">Slide 4 — Overall Design</a></li>
+      <li><a href="#s5">Slide 5 — EDA</a></li>
+      <li><a href="#s6">Slide 6 — Deep Insights</a></li>
+      <li><a href="#s7">Slide 7 — Experimental Results</a></li>
+      <li><a href="#s8">Slide 8 — Training History Visual</a></li>
+      <li><a href="#s9">Slide 9 — R22 Training Curves</a></li>
+      <li><a href="#s10">Slide 10 — Performance Evaluation</a></li>
+      <li><a href="#s11">Slide 11 — Model Comparison</a></li>
+      <li><a href="#s12">Slide 12 — Challenges &amp; Counter Actions</a></li>
+      <li><a href="#s13">Slide 13 — References</a></li>
+      <li><a href="#demo">Demo Flow</a></li>
+      <li><a href="#pacing">Pacing Notes</a></li>
+    </ol>
+  </div>
+
+  <p style="font-size:13.5px;color:var(--sub);">Timings are cumulative targets — glance at the clock, don't read verbatim. <b>Bold numbers</b> in the "say" blocks are the ones the invigilator will remember; hit them clearly.</p>
+
+  <h2 class="slide-title" id="s1">[0:00–0:15] Slide 1 — Agenda</h2>
+  <div class="timecard">
+    <span class="time">0:00 → 0:15</span>
+    <div class="say">"Good [morning/afternoon]. I'm Parthasarathy Perumal, and this is my Phase 1 review for <b>AI-Assisted 3D Assembly Design</b>, guided by Prof. Sagarika Borah. I'll cover the problem, the system design, our data, what 28 training runs taught us, where we stand against our Phase 1 targets, and the challenges we solved along the way — then a live demo."</div>
+    <div class="cue">Click through agenda quickly — don't read every bullet, just gesture at the shape of the talk.</div>
+  </div>
+
+  <h2 class="slide-title" id="s2">[0:15–1:10] Slide 2 — Title &amp; Abstract</h2>
+  <div class="timecard">
+    <span class="time">0:15 → 1:10</span>
+    <div class="say">"The business problem is simple to state: engineers manually check CAD assemblies for missing parts — bolts, bearings, joints — and that check is <b>slow, expertise-dependent, and error-prone</b>. Miss one part and it can halt a production line.</div>
+    <div class="say">We built a system that takes a partial 3D assembly, uploaded as a STEP file, and automatically flags what's missing and where — using a <b>Graph Attention Network</b> trained via link prediction. Alongside the GNN we built three supporting modules: a <b>Gemini-powered agent called AIDA</b> that explains predictions in engineering language, an <b>Assembly Completeness Model</b> that learns per-category component templates, and an <b>Octree open-surface detector</b> — adapted from my guide's own 2020 mesh-watermarking research — that highlights unmated joints directly on the 3D mesh.</div>
+    <div class="say">Everything is pure Python — PyTorch Geometric, no proprietary CAD API."</div>
+    <div class="cue">Point at Key Contributions list only if time allows — otherwise skip, it's covered by the above.</div>
+  </div>
+
+  <h2 class="slide-title" id="s3">[1:10–1:45] Slide 3 — Use Case Diagram</h2>
+  <div class="timecard">
+    <span class="time">1:10 → 1:45</span>
+    <div class="say">"This is the use-case view. One actor — the <b>Engineer</b> — uploads a STEP file, which always triggers two things: assembly-type identification, and missing-component detection. Detection in turn always includes open-surface detection and AI explanation generation, which is where Gemini comes in. Training the GNN is a separate, optional use case — it only runs when no checkpoint exists yet; in production the engineer just gets inference. Reviewing analysis results and inspecting the 3D model with overlays are optional extensions the engineer can choose."</div>
+  </div>
+
+  <h2 class="slide-title" id="s4">[1:45–2:50] Slide 4 — Overall Design</h2>
+  <div class="timecard">
+    <span class="time">1:45 → 2:50</span>
+    <div class="say">"Walking through the pipeline left to right. <b>Stage 1</b> parses the STEP file with gmsh and OpenCASCADE — fragmenting solids, detecting contacts, computing bounding boxes and volume. <b>trimesh</b> then gives us exact surface area and SDF ray-casting for shape signal, and we infer an 8-class component type from that geometry — no hardcoded part catalogue.</div>
+    <div class="say"><b>Stage 2</b> builds a PyTorch Geometric graph: each node carries <b>22 features</b> — type one-hot, log-volume, log-surface-area, bounding box, affine-invariant shape descriptors, SDF mean and variance, and hole count. Each edge carries <b>6 features</b> — mate type, weight, and a 4-way joint-type one-hot: rigid, revolute, slider, cylindrical.</div>
+    <div class="say">That graph feeds a <b>3-layer Graph Attention Network</b> — the AssemblyGNN — producing 64-dim node embeddings, which a LinkPredictor MLP turns into missing-edge scores.</div>
+    <div class="say">Running alongside — not after — the GNN are the AssemblyTemplateDB for gap analysis and the Octree module for open-surface localisation. Everything lands in a <b>Streamlit dual-panel UI</b>: a 6-section colour-coded analysis panel on the left, a Plotly 3D viewer with overlays on the right."</div>
+    <div class="cue">Right column: mention Dataset numbers only briefly — 300 curated STEP files down to 239 valid, ~32 nodes / 82 edges per graph average — since Slide 5/6 covers EDA in depth.</div>
+  </div>
+
+  <h2 class="slide-title" id="s5">[2:50–3:30] Slide 5 — EDA</h2>
+  <div class="timecard">
+    <span class="time">2:50 → 3:30</span>
+    <div class="say">"Before modelling, we ran EDA across our full raw corpus — <b>2,271 assemblies, 16,829 body parts</b>. A few things shaped every decision after this: only <b>72% of assemblies have any contacts at all</b> — the rest can't form graph edges and get filtered immediately. Mechanical Engineering is <b>80% of the dataset</b> — a severe class imbalance we had to actively correct for later. And nearly two-thirds of assemblies have hole-count data, which turned out to be one of our strongest features — a body with N holes is almost certainly a fastener attachment point."</div>
+  </div>
+
+  <h2 class="slide-title" id="s6">[3:30–4:05] Slide 6 — Deep Insights</h2>
+  <div class="timecard">
+    <span class="time">3:30 → 4:05</span>
+    <div class="say">"Digging deeper surfaced two data-quality issues that directly explain results you'll see in a minute. First, <b>144 duplicated folders — 6.3% of the dataset — appear across category boundaries</b>, which is a data-leakage risk if the same assembly ends up in both train and test. Second, <b>379 assemblies are 'over-dense'</b> — one bolt touching 10 faces of a housing gets recorded as 10 separate contacts instead of one part-pair relationship, which inflates edge counts and corrupts the negative-sampling ratio. We used this analysis to drive our category-curation strategy in later runs."</div>
+  </div>
+
+  <h2 class="slide-title" id="s7">[4:05–5:30] Slide 7 — Experimental Results</h2>
+  <div class="timecard">
+    <span class="time">4:05 → 5:30</span>
+    <div class="say">"This is 28 training runs, so I'll anchor on three. <b>R15</b>, on 270 graphs with 18-dim affine-invariant features and richer GAT attention heads, is our <b>best-ever result: mean AUC 0.726, mean Average Precision 0.917</b> — that AP number <b>clears our Phase 1 target of 0.82</b>.</div>
+    <div class="say">Then we scaled up — 1,760 graphs at R17, 995 at R18, richer 22+6-dim features — and AUC actually <b>dropped</b>, down to 0.483 at R18. More data with more diverse categories hurt us. So we did the opposite: narrowed to <b>3 mechanically-related categories, 239 curated graphs — that's R22</b>, our "optimum run." AUC recovered to 0.626, and critically, <b>validation AUC and test AUC landed within 0.001 of each other</b> — the tightest generalisation gap of any run, which is why R22 is what we call out as optimum rather than just "highest number."</div>
+    <div class="say">R28, from this morning, is our <b>currently deployed model</b> — 695 graphs on our most complex category, mean AUC 0.546, AP 0.712, promoted through our serving gate."</div>
+    <div class="cue">Gesture at the table's trend column and the R15/R22/R28 highlighted rows — don't read every row.</div>
+  </div>
+
+  <h2 class="slide-title" id="s8">[5:30–6:00] Slide 8 — Training History Visual</h2>
+  <div class="timecard">
+    <span class="time">5:30 → 6:00</span>
+    <div class="say">"This chart is the same 28 runs plotted over time. Note the greyed-out bars on the far left — R1 and R3 — those are from our <b>synthetic-data era</b>, and they score suspiciously high, near 0.93–0.99, because synthetic test graphs trivially match synthetic training patterns. We flag that explicitly rather than claim it as real performance. Everything from R6 onward is real STEP-file data, and you can see AUC settle into the realistic 0.4–0.7 band you'd expect from real, noisy CAD assemblies."</div>
+  </div>
+
+  <h2 class="slide-title" id="s9">[6:00–6:45] Slide 9 — R22 Training Curves</h2>
+  <div class="timecard">
+    <span class="time">6:00 → 6:45</span>
+    <div class="say">"Zooming into R22 specifically. On the left, per-epoch curves for the best fold — training loss falling smoothly, validation AUC climbing to a <b>peak of 0.6246 around epoch 72</b>. On the right, all 5 folds' validation vs test AUC side by side — <b>Fold 3, starred, is the best</b>, and that teal dashed line is the mean test AUC across folds. This is the run that got promoted to production."</div>
+  </div>
+
+  <h2 class="slide-title" id="s10">[6:45–7:45] Slide 10 — Performance Evaluation</h2>
+  <div class="timecard">
+    <span class="time">6:45 → 7:45</span>
+    <div class="say">"Three runs, side by side, showing our whole learning arc. <b>R15</b> — best AP, 0.917, achieved with the P1 through P6 improvements: richer attention heads, affine-invariant features, hard-negative sampling. <b>R20</b> — we pushed to 38 categories for diversity, and Average Precision <b>fell</b> from 0.835 to 0.749; our serving gate correctly <b>refused to promote it</b> because it was worse than the incumbent. <b>R22</b> — narrowing back to 3 focused categories <b>restored parity</b> between validation and test AUC, and got promoted. The story across these three columns is: diversity without curation hurts; focus with curation recovers."</div>
+  </div>
+
+  <h2 class="slide-title" id="s11">[7:45–8:30] Slide 11 — Model Comparison</h2>
+  <div class="timecard">
+    <span class="time">7:45 → 8:30</span>
+    <div class="say">"This is the feature-schema evolution — 13 dimensions at baseline, up to today's 22 node + 6 edge dimensions. The jump that mattered most was 16-dim to 18-dim at R15: replacing raw bounding-box features with <b>affine-invariant shape descriptors</b> — elongation, flatness, aspect ratios, sphericity — features that don't change if the same part is scaled or rotated. That's what drove mean AUC from 0.624 to 0.726. On the right, the GAT architecture itself — hidden dims moved from 512→256→64 down to a leaner 128→128→64 by R17 onward, alongside 8-4-1 attention heads and hard-negative sampling at 0.3× weight."</div>
+  </div>
+
+  <h2 class="slide-title" id="s12">[8:30–9:35] Slide 12 — Challenges &amp; Counter Actions</h2>
+  <div class="timecard">
+    <span class="time">8:30 → 9:35</span>
+    <div class="say">"Five real challenges, quickly. <b>61 of 300 STEP files failed to parse</b> — timeouts and complex-geometry errors — so we built a pre-screening filter pipeline. <b>Our AUC target of 0.85 is not yet met</b> — best is 0.726 at R15 — richer features alone didn't fix it, so we're carrying category-specific model heads into Phase 2. <b>More data hurt us</b> — 1,760 graphs scored worse than 270 — so we now gate on quality, not volume. <b>38-category diversity dropped AP</b> by nearly 9 points — assembly topology just doesn't transfer well across unrelated domains, so we narrowed to related categories. And we hit <b>training instability</b> — some epochs took 1,024 seconds instead of the usual 4 to 9, from MPS device contention on Apple Silicon — fixed with device-handling logic and a best-checkpoint promotion gate, which by the way has <b>already blocked 4 regressions</b> from reaching production across 25 runs.</div>
+    <div class="say">The single biggest lesson: <b>data quality beats data quantity</b>, and validation-test parity is a better generalisation signal than raw AUC."</div>
+  </div>
+
+  <h2 class="slide-title" id="s13">[9:35–9:50] Slide 13 — References</h2>
+  <div class="timecard">
+    <span class="time">9:35 → 9:50</span>
+    <div class="say">"Foundational work — Kipf &amp; Welling, Veličković's Graph Attention Networks, GraphSAGE, GNNExplainer for Phase 2. CAD datasets — ABC, PartNet, Fusion 360 Gallery. And the Octree open-surface method is directly adapted from Prof. Borah's own 2020 paper on reversible mesh watermarking."</div>
+  </div>
+
+  <h2 class="slide-title">[9:50–10:00] Transition to Demo</h2>
+  <div class="timecard">
+    <span class="time">9:50 → 10:00</span>
+    <div class="say">"That's Phase 1. Let me show it running live." → <b>click Live Demo → localhost:8501</b></div>
+  </div>
+
+  <div class="demo-box" id="demo">
+    <h3>Demo Flow (5 minutes) — suggested beats</h3>
+    <ol>
+      <li><b>Open Streamlit app</b> (localhost:8501) — orient the invigilator to the two panels: 3D viewer (right), analysis panel (left).</li>
+      <li><b>Upload a STEP file</b> from <code>Test_3D_models/</code> (pick one you've rehearsed with — known to run cleanly).</li>
+      <li><b>Point at the 3D viewer</b>: rotate to show the mesh; call out the lime-green open-surface overlay if the model has one.</li>
+      <li><b>Walk the 6-section analysis panel</b>: assembly type identified → missing components predicted → AIDA's engineering-language explanation → confidence/scores.</li>
+      <li><b>Say out loud what's happening under the hood</b> as it loads: "this is calling FastAPI's <code>/predict/missing</code> and <code>/explain</code> endpoints — the GNN scores candidate edges, AIDA turns the top predictions into an explanation."</li>
+      <li>Keep one backup: if live inference is slow/flaky, have a <b>pre-run result screenshot or a second, smaller test file</b> ready so you're never stuck narrating a spinner.</li>
+    </ol>
+  </div>
+
+  <div class="pace-box" id="pacing">
+    <h3>Pacing Notes</h3>
+    <ul>
+      <li>Total script ≈ 9:35 of speaking, leaving ~25s slack for slide-click fumbles or a slower start.</li>
+      <li>If you're running long by Slide 7 (Experimental Results), cut Slide 13 (References) to one sentence: "Full reference list is in the deck and the report."</li>
+      <li>If you're running short, expand Slide 12 (Challenges) — invigilators respond well to "here's what went wrong and what we did about it," and it's your strongest material for demonstrating engineering judgment.</li>
+    </ul>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anticipated Q&amp;A — Phase 1 ESA Review</title>
+<style>
+  :root{
+    --blue:#2563eb; --green:#0d9488; --purple:#7c3aed; --amber:#b45309; --red:#dc2626; --teal:#0f766e;
+    --ink:#101828; --sub:#475467; --line:#e4e7ec; --bg:#f8fafc; --card:#ffffff;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:'Segoe UI', system-ui, -apple-system, sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.62;
+  }
+  .wrap{max-width:920px; margin:0 auto; padding:36px 24px 80px;}
+  header.top{
+    background:linear-gradient(135deg,#3b0d40,#6b1a5c);
+    color:#fff; padding:34px 30px; border-radius:14px; margin-bottom:28px;
+  }
+  header.top h1{margin:0 0 6px; font-size:26px;}
+  header.top .sub{color:#eecdf0; font-size:14.5px;}
+  .toc{
+    background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px 20px; margin-bottom:24px;
+  }
+  .toc h3{margin:0 0 8px; font-size:13px; text-transform:uppercase; letter-spacing:0.4px; color:var(--sub);}
+  .toc ol{margin:0; padding-left:20px; columns:2; font-size:13.5px;}
+  .toc li{margin-bottom:4px;}
+  .toc a{color:var(--purple); text-decoration:none;}
+  .toc a:hover{text-decoration:underline;}
+  h2.cat{
+    font-size:14px; text-transform:uppercase; letter-spacing:0.5px; color:#fff;
+    background:linear-gradient(135deg,#374151,#1f2937); display:inline-block;
+    padding:6px 16px; border-radius:20px; margin:34px 0 14px;
+  }
+  .qa{
+    background:var(--card); border:1px solid var(--line); border-left:4px solid var(--purple);
+    border-radius:10px; padding:16px 20px; margin-bottom:12px;
+  }
+  .qa .q{font-weight:700; font-size:15px; color:var(--ink); margin-bottom:8px; display:flex; gap:8px;}
+  .qa .q .qtag{color:var(--purple); flex-shrink:0;}
+  .qa .a{font-size:14px; color:#33404f; margin:0;}
+  .qa .a b{color:var(--ink);}
+  .qa .a code{background:#eef2f6; padding:1px 6px; border-radius:4px; font-size:12.5px; color:#0f172a;}
+  .caution-banner{
+    background:#fff1f2; border:1px solid #fecdd3; border-left:4px solid var(--red);
+    border-radius:10px; padding:18px 22px; margin-bottom:26px;
+  }
+  .caution-banner h3{margin-top:0; color:var(--red); font-size:15px;}
+  .caution-banner ul{padding-left:20px; margin:8px 0 0;}
+  .caution-banner li{font-size:13.5px; margin-bottom:8px; color:#4a1015;}
+  .caution-banner li b{color:var(--red);}
+  @media print{
+    body{background:#fff;}
+    .qa{break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>Anticipated Q&amp;A — Best Answers</h1>
+    <div class="sub">Questions the invigilator is likely to ask, from the deck, the demo, and the underlying code — with grounded, honest answers. Read the caution list below first: it's the fastest way to avoid overclaiming under pressure.</div>
+  </header>
+
+  <div class="toc">
+    <h3>Jump to</h3>
+    <ol>
+      <li><a href="#capA">A — Motivation &amp; Scope</a></li>
+      <li><a href="#capB">B — Data &amp; EDA</a></li>
+      <li><a href="#capC">C — Model Architecture</a></li>
+      <li><a href="#capD">D — Training &amp; Evaluation</a></li>
+      <li><a href="#capE">E — Results, Honestly</a></li>
+      <li><a href="#capF">F — Auxiliary Modules</a></li>
+      <li><a href="#capG">G — Code-Level "Gotcha" Questions</a></li>
+      <li><a href="#capH">H — Phase 2 &amp; Future Work</a></li>
+      <li><a href="#capI">I — Curveballs</a></li>
+    </ol>
+  </div>
+
+  <div class="caution-banner">
+    <h3>⚠ Five things NOT to overclaim, from a direct code audit</h3>
+    <ul>
+      <li><b>NodeRanker</b> (in <code>model.py</code>) is a defined class but is <b>completely unused and untrained</b> — pure Phase 2 stub, never instantiated in <code>train.py</code>, <code>api.py</code>, or <code>infer.py</code>. If asked about next-component ranking, say it's designed but not implemented yet.</li>
+      <li>The edge feature <b>"mate type"</b> (dim [0]) is <b>hardcoded to 0.0</b> for every edge in the real STEP parser — it carries no live signal today. Only the joint-type one-hot (dims [2–5]) carries real per-edge information.</li>
+      <li>The <b>"MPS device-fix"</b> mentioned on the Challenges slide is a device-selection <em>priority order</em> (checking MPS before CUDA/CPU), not a dedicated bug workaround — don't imply a separate patch exists.</li>
+      <li>AIDA's <b>"4-section structured explanation"</b> isn't a literally-named structure in the code — it's a prompt requesting 3–4 bullet points across 4 themes in <code>explain_prediction()</code>. Describe it as "structured bullet-point explanation," not a formally named 4-section format.</li>
+      <li>The <b>system_architecture.png diagram</b> shows an older hidden-dim configuration (1024→512→64) and an older dataset snapshot (1,760 graphs). The <em>current</em> model (R17 onward) uses 128→128→64 hidden dims on far smaller, category-focused datasets (239–1,006 graphs). Always quote Slide 7/11's tables as current truth over the architecture diagram's side-annotations.</li>
+    </ul>
+  </div>
+
+  <h2 class="cat" id="capA">A — Motivation &amp; Scope</h2>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> Why frame this as a graph link-prediction problem instead of, say, image classification on renders of the assembly?</div>
+    <p class="a"><b>A.</b> An assembly's defining structure is <i>relational</i> — which parts touch which, and how — not visual appearance from one viewpoint. A graph representation captures topology directly: nodes are parts, edges are contacts/mates. "Missing component" then becomes "a mate/edge that should exist but doesn't," which link prediction is a native fit for. An image-based approach would need to reconstruct that topology from pixels first, which throws away information STEP geometry already gives us for free.</p>
+  </div>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> Why STEP files specifically, and not native SolidWorks/Fusion360/CATIA files?</div>
+    <p class="a"><b>A.</b> STEP (ISO 10303) is a vendor-neutral exchange format every major CAD tool can export. Building on it — via open-source <code>gmsh</code>/OpenCASCADE and <code>trimesh</code> rather than a vendor API — means the system doesn't depend on a paid CAD license or a specific vendor's SDK, and works on assemblies regardless of which tool authored them.</p>
+  </div>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> What's the actual business/engineering value if AUC is only ~0.6–0.7, not near 1.0?</div>
+    <p class="a"><b>A.</b> Two honest points. First, Average Precision — which measures ranking quality of the true missing links among all candidates — is much stronger (0.917 at best, consistently above 0.68 across all 28 runs), meaning the model reliably ranks true missing connections near the top even when raw AUC is modest. Second, this is intended as a decision-support triage tool, not full automation: it narrows an engineer's manual check from "inspect the whole assembly" to "review this ranked shortlist," which still saves time even at today's accuracy level. We're explicit that AUC ≥ 0.85 is a Phase 1 target not yet met.</p>
+  </div>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> How is this different from just applying a general-purpose GNN paper's method off the shelf?</div>
+    <p class="a"><b>A.</b> The novelty is less in the GAT architecture itself (Veličković et al. 2018 is used largely as published) and more in the domain-specific feature engineering: geometry-driven 8-class typing via SDF ray-casting, affine-invariant shape descriptors so the model generalises across part scale, and joint-type/hole-count features extracted from real assembly metadata. The Octree open-surface module and the AssemblyTemplateDB gap analysis are also domain-specific additions on top of the base GNN.</p>
+  </div>
+
+  <h2 class="cat" id="capB">B — Data &amp; EDA</h2>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> Where does your data come from, and how much do you actually have?</div>
+    <p class="a"><b>A.</b> Fusion 360 Gallery (Willis et al., 2021) plus local STEP files, EDA'd across 2,271 raw assemblies / 16,829 body parts. After filtering for usable contacts, successful parsing, and edge-count thresholds, roughly 58% survive to become training-usable graphs. Different training runs then curate category-specific subsets from that pool — e.g. R22 uses 239 graphs across 3 categories, R28 (current production) uses 695 graphs from one high-complexity category.</p>
+  </div>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> You mention 144 duplicate folders as a "data leakage" risk. Did this actually corrupt any of your reported numbers?</div>
+    <p class="a"><b>A.</b> We flagged it as a risk from EDA, and it's listed as a Low-effort, high-priority action item not yet fully executed (dedup-by-folder-ID before splitting). It's a caveat we disclose rather than a bug we've silently left in — the honest answer is: our 5-fold CV splits are graph-level and seeded, and duplicate folders that slip across category labels remain a real risk to full trust in the absolute AUC numbers until deduplication is applied. We chose to report this transparently rather than claim clean numbers we haven't verified.</p>
+  </div>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> Why did you keep narrowing categories (R20's 38 categories → R22's 3 → R23–R28 single-category runs)? Isn't that just overfitting to fewer domains?</div>
+    <p class="a"><b>A.</b> It's a controlled experiment, not overfitting in the traditional sense — each run still uses proper 5-fold CV with held-out test edges from graphs the model never trained on. What we found is that assembly topology is domain-specific: a fastener-heavy Tools assembly and a sparse Automotive assembly have structurally different graphs, and a single shared attention head struggles to represent both. Narrowing scope is a legitimate response to that — the tradeoff we're explicit about is: the resulting model serves that category well but wouldn't be claimed to generalise to unrelated domains. That's exactly why Phase 2 proposes category-specific model heads instead of one universal model.</p>
+  </div>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> Your EDA dashboard flags a max body volume of 5.7×10¹⁰ cm³ as an outlier. How do you actually handle that in the pipeline?</div>
+    <p class="a"><b>A.</b> Volume and surface area both go through <code>log1p()</code> before becoming node features, with explicit clipping (13.8 for log-volume, 11.5 for log-surface-area) — so a single mis-unit outlier can't dominate the gradient the way a raw, unclipped value would.</p>
+  </div>
+
+  <h2 class="cat" id="capC">C — Model Architecture</h2>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> Walk me through the exact GAT architecture — layers, heads, dimensions.</div>
+    <p class="a"><b>A.</b> Three <code>GATConv</code> layers. Layer 1 takes the 22-dim node input and the 6-dim edge features (edge features are injected <i>only</i> at this first layer, via <code>edge_dim=6</code>), with 8 attention heads at hidden width 128 → outputs 1024-dim (128×8, concatenated). Layer 2 takes that 1024-dim input, 4 heads at hidden width 128 → outputs 512-dim. Layer 3 takes 512-dim input, 1 head, <code>concat=False</code>, outputs the final 64-dim node embedding with no activation after. Layers 1 and 2 use ELU activation, BatchNorm, and 0.2 dropout after each.</p>
+  </div>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> How exactly does the LinkPredictor turn two node embeddings into an edge score?</div>
+    <p class="a"><b>A.</b> It concatenates the two 64-dim node embeddings into a 128-dim vector (not a dot product or cosine similarity), then passes that through an MLP: Linear(128→64) → ReLU → Dropout(0.1) → Linear(64→1), producing a single logit that's passed through sigmoid at evaluation time to get a probability.</p>
+  </div>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> Why GAT specifically, rather than GCN or GraphSAGE?</div>
+    <p class="a"><b>A.</b> Attention lets each node weigh its neighbours unevenly — relevant here because a part's most informative neighbour (e.g. the specific bolt threading into it) usually matters far more than an unrelated adjacent part in a crowded contact graph. GCN's fixed-weight aggregation and GraphSAGE's uniform sampling both treat neighbours more equally by default. GAT's multi-head attention also gave us a natural place to inject the 6-dim edge features via <code>edge_dim</code>, which was important once joint-type became a feature.</p>
+  </div>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> How is the 8-class component type actually determined — is that itself a trained classifier?</div>
+    <p class="a"><b>A.</b> No — it's a rule-based geometric cascade, not a learned classifier. It computes elongation and flatness ratios from the bounding box plus SDF mean/variance from ray-casting, then applies ordered thresholds: high elongation + moderate SDF → shaft; high elongation + low SDF → fastener; low flatness → plate; bimodal SDF variance → bearing; moderate SDF variance → housing; otherwise → generic body. It's a heuristic, which is honestly a limitation — two of the eight vocabulary classes (gear, other) aren't reachable by this cascade at all in real STEP data today.</p>
+  </div>
+
+  <h2 class="cat" id="capD">D — Training &amp; Evaluation</h2>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> What loss function do you train with, and how do negatives get sampled?</div>
+    <p class="a"><b>A.</b> Binary cross-entropy with logits over positive and negative edges, plus a hard-negative term weighted at 0.3×. Hard negatives are mined per batch: for up to 20 positive-edge source nodes, we find the most cosine-similar node in the embedding space that <i>isn't</i> actually connected, and use that as a harder negative example than a random one — this pushes the model to distinguish "plausible but wrong" pairs, not just obviously unrelated ones. Standard negatives come from PyG's <code>RandomLinkSplit</code> at a 0.5 negative-per-positive ratio.</p>
+  </div>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> Is your cross-validation split at the edge level or the graph level? Why does that matter?</div>
+    <p class="a"><b>A.</b> Graph level. A fixed 15% of whole graphs is held out as the test set first; the remaining 85% goes through 5-fold CV via <code>sklearn.KFold</code> on graph indices, so each fold trains and validates on entirely different assemblies. Within a selected graph, its own edges are then further split into train/val/test edges via <code>RandomLinkSplit</code>. Graph-level splitting matters because edge-level splitting would let the model see 90% of an assembly's structure during training and then "predict" a held-out edge in a graph it's already mostly memorised — a much easier and less honest task.</p>
+  </div>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> Exactly how do you compute AUC-ROC and Average Precision — any custom logic?</div>
+    <p class="a"><b>A.</b> Standard scikit-learn: <code>roc_auc_score</code> and <code>average_precision_score</code>, computed on scores aggregated across an entire DataLoader (all graphs in that split concatenated), not averaged per-graph. Positive/negative edges come directly from PyG's <code>edge_label</code>/<code>edge_label_index</code>. There's a fallback for very small or dense graphs where PyG allocates zero negative edges: we manually enumerate valid non-existing node pairs and sample an equal number to positives.</p>
+  </div>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> What exactly does the "best_serving.pt promotion gate" check before replacing the production model?</div>
+    <p class="a"><b>A.</b> After a run finishes 5-fold CV, its <code>(mean_auc, mean_ap)</code> tuple is compared lexicographically against the currently-saved <code>best_serving.pt</code>'s recorded metrics — AUC compared first, AP as a tiebreaker. The new run only overwrites the production checkpoint if it's strictly better on that tuple; otherwise it's discarded from serving (though still logged in our run history). This is why R20, R21, R23, and R24 — all of which scored below their respective incumbents — never reached production despite being fully trained.</p>
+  </div>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> What are your optimizer settings and stopping criterion?</div>
+    <p class="a"><b>A.</b> Adam, learning rate 1e-3, weight decay 5e-4, with <code>ReduceLROnPlateau</code> (factor 0.5, patience 8 epochs) tracking validation AUC. Early stopping patience is 20 epochs without a validation AUC improvement; the epoch cap is 200 but early stopping usually triggers well before that. A checkpoint is saved every time a new best validation AUC is found within a fold.</p>
+  </div>
+
+  <h2 class="cat" id="capE">E — Results, Honestly</h2>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> Your best AUC (R15/R25, ~0.73) is well below your 0.85 target. What's actually holding it back?</div>
+    <p class="a"><b>A.</b> Three compounding factors, in order of evidence strength: (1) dataset size per category is small — the richest single-category run (R25) still only reaches 1,006 graphs; (2) the 8-class component typing is a geometric heuristic, not learned, so some type-inference errors propagate as noisy node features; (3) our joint-type edge feature is sparse — only 18.9% of raw assemblies have any joint annotation at all, so most edges fall back to an uninformative all-zero default. Phase 2's category-specific heads and expanded capacity target this directly.</p>
+  </div>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> R22 is called your "optimum run" but it doesn't have the highest AUC or AP of any run. Isn't that a contradiction?</div>
+    <p class="a"><b>A.</b> No — "optimum" here specifically means smallest validation/test gap (Δ=0.001), which is a stronger signal of genuine generalisation than raw score, because a model can score high on validation while actually overfitting to it. R15 has higher raw numbers (0.726 AUC / 0.917 AP) but a larger val/test gap. We report both explicitly rather than picking whichever framing looks best — R15 is "best result," R22 is "most trustworthy result," and R28 is "currently deployed."</p>
+  </div>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> Why is R28 (current production) scoring lower (0.546 AUC) than R15 (0.726) or R22 (0.626) if it's supposedly your best/latest model?</div>
+    <p class="a"><b>A.</b> R28 isn't chasing the highest score — it's deliberately training on the hardest, most complex sub-population within Mechanical Engineering (very-high node/edge count assemblies), as the next rung of a complexity ladder (R23→R24→...→R28) designed to stress-test generalisation on harder cases rather than curate toward an easy win. It's still an improvement over its immediate predecessor R27 (0.531→0.5455), which is the actual comparison the serving gate makes.</p>
+  </div>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> Do you have a non-GNN baseline to compare against — e.g. a simple heuristic or a random-forest edge classifier?</div>
+    <p class="a"><b>A.</b> Not yet formally benchmarked in Phase 1 — this is a fair gap to acknowledge. What we do have as an implicit sanity baseline is the AssemblyTemplateDB's simple count-based gap analysis (present-vs-median-template component counts), which runs in parallel to the GNN and gives a non-learned second opinion. A formal classical-ML baseline (e.g. logistic regression on hand-engineered pairwise features) is a reasonable Phase 2 addition if reviewers want a stronger comparison point.</p>
+  </div>
+
+  <h2 class="cat" id="capF">F — Auxiliary Modules</h2>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> How does the Octree open-surface detector actually decide a surface is "open"?</div>
+    <p class="a"><b>A.</b> After <code>gmsh</code> fragments the assembly, any boundary surface touching exactly one body (not shared between two) is a candidate free surface. It's only accepted if its area is at least 4% of that body's total surface area — smaller candidates are filtered out as fillets or chamfers, not real unmated joints. Accepted candidates are then spatially clustered using an octree (max depth 3, max 4 items per leaf before splitting), and from each spatial cluster we keep the single highest-area-ratio surface as that region's representative, capped at 4 surfaces shown per assembly.</p>
+  </div>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> How exactly does the AssemblyTemplateDB's "gap analysis" work — is it learned or rule-based?</div>
+    <p class="a"><b>A.</b> Rule-based, and complementary to the GNN rather than a competing model. For each category, we compute the median count of each component type across all assemblies in that category that contain it at all. At inference, we compare the uploaded assembly's present component-type counts against that learned median template — any type where present count falls short of the template's median is reported as a gap, with the shortfall quantity. Category matching itself uses an overlap/union score with a 25% bonus if the assembly has no unexpected extra types beyond the template.</p>
+  </div>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> What does AIDA actually do — is it doing any reasoning, or just formatting the GNN's numbers into English?</div>
+    <p class="a"><b>A.</b> AIDA is a Gemini-2.0-Flash agent with a system prompt built from 6 domain-skill descriptions (mechanical engineering, 3D modelling, assembly design, parts identification, GNN interpretation, assembly sequencing) injected once at construction. Given the GNN's raw output (missing links, confidence scores) as context, it generates 3–4 bullet points interpreting what the top missing link likely represents mechanically, what mate type it's likely to be, how confident the model is and what that means practically, and any unusual findings. So it's genuinely doing language-model reasoning over structured input, not template-filling — but it's also not doing any geometry computation itself; all numeric analysis comes from the GNN/Octree/TemplateDB upstream.</p>
+  </div>
+
+  <h2 class="cat" id="capG">G — Code-Level "Gotcha" Questions</h2>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> You list "mate type" as an edge feature — what values does it actually take on real data?</div>
+    <p class="a"><b>A.</b> Honestly: currently always 0.0. Real per-contact mate-type classification (coincident, concentric, etc.) isn't wired into the STEP parsing pipeline yet — only the weight (constant 1.0, signalling "a contact exists") and the 4-dim joint-type one-hot (sourced from <code>assembly.json</code> metadata, when present) carry real signal today. This is a known gap, not a hidden one — worth fixing before mate-type could be trusted as a genuine 6th independent feature.</p>
+  </div>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> Is NodeRanker actually being used for next-component suggestions in the demo?</div>
+    <p class="a"><b>A.</b> No. NodeRanker is defined in <code>model.py</code> as a Phase 2 design — it would score candidate next-components via cosine similarity against a partial-assembly context vector — but it's never instantiated or trained anywhere in the current pipeline. Today's missing-component detection is entirely via the LinkPredictor's edge scoring, which identifies missing connections between existing and candidate nodes, not a ranked "what to add next" recommendation. That ranking capability (Hit@K, MRR, NDCG@K) is explicitly scoped for Phase 2.</p>
+  </div>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> What happens if I upload a STEP file from a category your model has never seen?</div>
+    <p class="a"><b>A.</b> The GNN still runs — GAT is inductive, so it will produce embeddings and edge scores for any valid graph — but its predictions are unlikely to be well-calibrated for an unfamiliar category, since our EDA specifically showed topology patterns don't transfer well across unrelated domains (that's the R20 diversification finding). The AssemblyTemplateDB's category matcher also has a minimum-confidence threshold (0.10) below which it reports no confident category match rather than forcing a guess — so the UI would show a low-confidence signal rather than silently mispredicting with false authority.</p>
+  </div>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> Why do the edge features only get injected at the first GAT layer and not all three?</div>
+    <p class="a"><b>A.</b> This follows the standard PyG <code>GATConv</code> pattern where edge attributes modulate attention weights at that layer; after layer 1, information from edges is already folded into the resulting node embeddings, so layers 2 and 3 propagate that enriched representation without needing the raw edge tensor again. It's an architectural convention rather than a deliberate novel design choice on our part — worth being upfront about if asked whether this was an intentional research decision.</p>
+  </div>
+
+  <h2 class="cat" id="capH">H — Phase 2 &amp; Future Work</h2>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> What's the concrete plan to close the AUC gap in Phase 2?</div>
+    <p class="a"><b>A.</b> Four concrete items from the Challenges slide: category-specific GAT heads so the model stops averaging across incompatible domain topologies; increasing hidden capacity to 256-dim now that we understand the scale/quality tradeoff better; an automated STEP repair pipeline to recover some of the 61 currently-unparseable files (more usable data within the same categories, not more diverse categories); and expanding to 5+ categories each with their own serving gate, so growth doesn't repeat R20's diversification mistake.</p>
+  </div>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> What is NodeRanker going to add in Phase 2 that LinkPredictor doesn't already do?</div>
+    <p class="a"><b>A.</b> LinkPredictor answers "is this specific pair of nodes connected or not" — good for flagging missing joints between parts that already exist in the uploaded assembly. NodeRanker is designed to answer a different question: "given this partial assembly, what component should be added next, ranked by relevance" — evaluated with ranking metrics (Hit@K, MRR, NDCG@K) rather than binary classification metrics. It's a genuinely different task (component suggestion vs. connection verification), which is why it's scoped as separate Phase 2 work rather than a Phase 1 stretch goal.</p>
+  </div>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> Any plans to add explainability beyond AIDA's text output — e.g. visualizing which features drove a prediction?</div>
+    <p class="a"><b>A.</b> Yes — GNNExplainer (Ying et al. 2019) is explicitly listed in our references as Phase 2 scope, specifically to surface which nodes/edges/features the GAT's attention weights relied on most for a given prediction, which would let us show an attention-weight overlay on the 3D viewer rather than relying solely on AIDA's natural-language summary.</p>
+  </div>
+
+  <h2 class="cat" id="capI">I — Curveballs</h2>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> If I gave you infinite compute and data right now, what's the single change you'd make first?</div>
+    <p class="a"><b>A.</b> Fix the data-leakage risk first (dedupe the 144 cross-category folders by folder ID before any split) — it's cheap, and until it's done, every AUC number in this deck carries an asterisk of uncertainty. Only after that would scaling compute or capacity be worth trusting the resulting numbers from.</p>
+  </div>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> Your synthetic-era runs (R1, R3) scored 0.93–0.99 — why include them in the deck at all if they're not trustworthy?</div>
+    <p class="a"><b>A.</b> Transparency — showing the full run history, including the misleadingly high early numbers, and explicitly labelling why they're inflated, is more credible than only showing the runs that support a clean narrative. It also documents the actual methodology evolution: we started with synthetic data, learned it gave a false sense of progress, and switched to real STEP files by R6 — that's a real part of the project's story, not something to hide.</p>
+  </div>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> How would this system fail in a real factory setting — what's the worst-case scenario?</div>
+    <p class="a"><b>A.</b> Most likely failure mode is a false negative on an unfamiliar assembly category or an assembly with unusual geometry the SDF-based type inference misclassifies — the system would report high confidence in a complete assembly that's actually missing a part. This is why we frame it as decision support, not autonomous sign-off: the AIDA explanation and confidence scores are meant to help an engineer allocate attention, not replace their final inspection, and low-confidence template matches are surfaced explicitly rather than suppressed.</p>
+  </div>
+
+  <div class="qa">
+    <div class="q"><span class="qtag">Q.</span> Why is your guide's own paper (Borah &amp; Borah 2020) in your reference list — isn't that unusual?</div>
+    <p class="a"><b>A.</b> It's cited because the Octree spatial-partitioning technique for open-surface detection is a direct structural adaptation of the octree-based region clustering used in that paper's mesh-watermarking work — reusing a proven spatial-indexing approach in a new domain (open-joint localisation instead of tamper localisation). It's cited for the specific technique, the same way any other foundational reference is, not as a courtesy citation.</p>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Slide-by-Slide Deep Dive — Phase 1 ESA Review</title>
+<style>
+  :root{
+    --blue:#2563eb; --green:#0d9488; --purple:#7c3aed; --amber:#b45309; --red:#dc2626; --teal:#0f766e;
+    --ink:#101828; --sub:#475467; --line:#e4e7ec; --bg:#f8fafc; --card:#ffffff;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:'Segoe UI', system-ui, -apple-system, sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.65;
+  }
+  .wrap{max-width:920px; margin:0 auto; padding:36px 24px 80px;}
+  header.top{
+    background:linear-gradient(135deg,#0d2040,#123a6b);
+    color:#fff; padding:34px 30px; border-radius:14px; margin-bottom:28px;
+  }
+  header.top h1{margin:0 0 6px; font-size:26px;}
+  header.top .sub{color:#bcd6f7; font-size:14.5px;}
+  .toc{
+    background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px 20px; margin-bottom:24px;
+  }
+  .toc h3{margin:0 0 8px; font-size:13px; text-transform:uppercase; letter-spacing:0.4px; color:var(--sub);}
+  .toc ol{margin:0; padding-left:20px; columns:2; font-size:13.5px;}
+  .toc li{margin-bottom:4px;}
+  .toc a{color:var(--blue); text-decoration:none;}
+  .toc a:hover{text-decoration:underline;}
+  section.slide-sec{
+    background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:22px 26px; margin-bottom:20px;
+  }
+  section.slide-sec h2{
+    font-size:19px; margin:0 0 4px; color:var(--ink); display:flex; align-items:center; gap:10px;
+  }
+  section.slide-sec .imgref{
+    font-size:12.5px; color:var(--sub); margin-bottom:14px; font-family:monospace;
+  }
+  section.slide-sec p{font-size:14.5px; color:#2a3646; margin:0 0 12px;}
+  section.slide-sec p:last-child{margin-bottom:0;}
+  section.slide-sec strong{color:var(--ink);}
+  .callout{
+    border-radius:8px; padding:12px 16px; margin:12px 0; font-size:13.5px;
+  }
+  .callout.caution{background:#fff7ed; border-left:4px solid var(--amber); color:#7c3a0a;}
+  .callout.caution b{color:var(--amber);}
+  .callout.tech{background:#f0f9ff; border-left:4px solid #0284c7; color:#0c4a6e;}
+  .callout.tech b{color:#0284c7;}
+  table{width:100%; border-collapse:collapse; margin:12px 0; font-size:13px;}
+  th{background:#eef2f6; color:#334155; font-weight:600; padding:7px 10px; text-align:left; border-bottom:2px solid var(--line);}
+  td{padding:6px 10px; border-bottom:1px solid #eef1f4; color:#33404f;}
+  tr:hover td{background:#f8fafc;}
+  code{background:#eef2f6; padding:1px 6px; border-radius:4px; font-size:12.5px; color:#0f172a;}
+  .badge{
+    display:inline-block; font-size:11px; font-weight:700; padding:2px 9px; border-radius:10px;
+    background:#eef2f6; color:#475467;
+  }
+  em.title{font-style:italic;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>Slide-by-Slide Deep Dive</h1>
+    <div class="sub">Detailed interpretation of every visual, table, and number in the ESA Review deck — use this to rehearse <em>why</em> each number is what it is. The presentation script tells you what to say; this tells you why it's true, so you can improvise if the invigilator interrupts.</div>
+  </header>
+
+  <div class="toc">
+    <h3>Jump to</h3>
+    <ol>
+      <li><a href="#d1">Slide 1 — Agenda</a></li>
+      <li><a href="#d2">Slide 2 — Title &amp; Abstract</a></li>
+      <li><a href="#d3">Slide 3 — Use Case Diagram</a></li>
+      <li><a href="#d4">Slide 4 — Overall Design</a></li>
+      <li><a href="#d5">Slide 5 — EDA Dashboard</a></li>
+      <li><a href="#d6">Slide 6 — Deep Insights</a></li>
+      <li><a href="#d7">Slide 7 — Experimental Results</a></li>
+      <li><a href="#d8">Slide 8 — Training History Visual</a></li>
+      <li><a href="#d9">Slide 9 — R22 Training Curves</a></li>
+      <li><a href="#d10">Slide 10 — Performance Evaluation</a></li>
+      <li><a href="#d11">Slide 11 — Model Comparison</a></li>
+      <li><a href="#d12">Slide 12 — Challenges &amp; Counter Actions</a></li>
+      <li><a href="#d13">Slide 13 — References</a></li>
+      <li><a href="#d14">Slide 14 — Live Demo</a></li>
+    </ol>
+  </div>
+
+  <section class="slide-sec" id="d1">
+    <h2>Slide 1 — Agenda</h2>
+    <p>Pure navigation. 13 clickable items map to the <code>SLIDE_ORDER</code> array in the HTML — order was deliberately restructured to put the Use Case Diagram right after the title (so structure is established early) and EDA before Experimental Results (so the data story precedes the model story). No content to defend here beyond the ordering logic if asked "why this structure."</p>
+  </section>
+
+  <section class="slide-sec" id="d2">
+    <h2>Slide 2 — Title &amp; Abstract</h2>
+    <p><b>Business Problem card</b>: the yellow-bordered card exists specifically to answer "why does this matter" before any technical content — invigilators often want the <em>motivation</em> stated explicitly, not inferred.</p>
+    <p><b>Abstract card</b> names four system components in one paragraph: GAT (core prediction), AIDA (explanation), Assembly Completeness Model (template-based gap analysis — this is the <code>AssemblyTemplateDB</code>), Octree detector (spatial open-surface localisation). Note the phrase "no proprietary CAD API dependency" — a deliberate contrast with commercial tools (SolidWorks API, Fusion360 API) that would lock the system to a paid CAD platform. gmsh + OpenCASCADE + trimesh are all open-source.</p>
+    <p><b>Key Contributions list</b>: six bullets, each corresponds to a distinct deliverable. The "22-dim node + 6-dim edge features" bullet is worth knowing cold — see Slide 11 below for the exact breakdown.</p>
+    <p><b>Project Details table</b>: Phase 1 runs May 10 – Jul 10, 2026 (dates matter if asked "are you on schedule" — you are, this review lands right at the boundary). Phase 2 is Jul 10 – Sep 10, 2026.</p>
+  </section>
+
+  <section class="slide-sec" id="d3">
+    <h2>Slide 3 — Use Case Diagram</h2>
+    <div class="imgref">image: docs/use_case_diagram.png</div>
+    <p>One actor (<b>Engineer</b>) plus one external system (<b>Gemini AI</b>). Reading the diagram left to right:</p>
+    <table>
+      <tr><td><code>[Upload STEP File]</code></td><td>Engineer-triggered ("Always") · <code>&lt;&lt;include&gt;&gt;</code> Identify Assembly Type</td></tr>
+      <tr><td><code>[Detect Missing Components]</code></td><td>Engineer-triggered ("Always") · always includes Identify Assembly Type, Detect Open Surfaces, Generate AI Explanation</td></tr>
+      <tr><td><code>[Generate AI Explanation]</code></td><td><code>&lt;&lt;extend&gt;&gt;</code> out to the Gemini AI actor</td></tr>
+      <tr><td><code>[Train GNN Model]</code></td><td><code>&lt;&lt;extend&gt;&gt;</code> into Detect Missing Components — <b>"optional precursor, only when no checkpoint exists"</b></td></tr>
+      <tr><td><code>[View 3D Model with Overlays]</code></td><td>optional <code>&lt;&lt;extend&gt;&gt;</code></td></tr>
+      <tr><td><code>[Review Analysis Results]</code></td><td>optional <code>&lt;&lt;extend&gt;&gt;</code></td></tr>
+    </table>
+    <div class="callout tech"><b>Interpretation point:</b> this diagram encodes a design decision — inference is decoupled from training. In normal operation, the Engineer never trains anything; training is a one-time/maintenance operation, not part of the per-upload flow. If asked "does the engineer retrain every time," the answer is explicitly <b>no</b>.</div>
+  </section>
+
+  <section class="slide-sec" id="d4">
+    <h2>Slide 4 — Overall Design</h2>
+    <div class="imgref">image: docs/system_architecture.png</div>
+    <p>Six-stage pipeline, read left to right:</p>
+    <p><b>Stage 1 — Parsing</b>: STEP file → <code>gmsh + OpenCASCADE</code> (parse, <code>fragment()</code> to split touching solids, contact detection, bbox, volume) → <code>trimesh</code> (exact surface area, SDF ray-casting for mean+variance) → Type Inference (SDF + bbox heuristics → 8-class component typing).</p>
+    <p><b>Stage 2 — Graph Construction</b>: PyG graph assembled. <b>22-dim nodes</b> (type one-hot + vol + SA + bbox + shape + SDF + SA/V + holes), <b>6-dim edges</b> (mate type + weight + joint type). Feeds into <code>AssemblyGNN — 3-Layer GAT Encoder</code>.</p>
+    <div class="callout caution">
+      <b>Caution on this specific diagram:</b> the box labelled "3-Layer GAT Encoder" shows hidden-dim progression <b>22 → 1024 (8 heads) → 512 (4 heads) → 64 (1 head)</b>. That is the <b>R15/R16-era architecture</b>. The current deployed architecture (R17 onward, including R22 and R28) uses a leaner <b>128 → 128 → 64</b> hidden-dim progression with the same [8,4,1] head structure (confirmed in Slide 11's "GAT Architecture Comparison" table and in the actual <code>model.py</code>/<code>config.yaml</code>). The diagram is manually maintained and hasn't been redrawn since the hidden-dim shrink at R17. <b>If asked directly about current hidden dims, say 128→128→64, not 1024→512→64.</b> Similarly, the "Dataset: 1,760 graphs · 24,811 nodes · 33,166 edges" side-annotation reflects the <b>R17</b> snapshot, not the current R28 serving dataset (695 graphs, single category) — quote Slide 7 (Experimental Results)'s R28 card instead.
+    </div>
+    <p><b>Stage 4 — Analysis</b>: three parallel consumers of the graph/embeddings — <code>LinkPredictor MLP</code> (→ AUC-ROC, Avg Precision), <code>AssemblyTemplateDB</code> (→ assembly type + missing types), <code>Octree Open Surface</code> (→ open joint surfaces, citing Borah &amp; Borah 2020).</p>
+    <p><b>Stage 6 — UI</b>: Streamlit dual-panel — left is the 6-section colour-coded AI analysis panel, right is the Plotly Mesh3d 3D viewer with overlays. The legend on the diagram defines overlay colours: red = not assembled, orange = auto-ref missing, lime = open joints, blue = GNN predicted links, teal = template missing, purple = assembly type. <b>Know these — you'll be pointing at these colours during the demo.</b></p>
+    <p><b>Right-column tables on Slide 4 itself</b> (not the architecture image): Graph Schema table repeats the 22/6 dims; Dataset table shows the <em>current</em> curation numbers — 300 curated STEP files → 239 valid, 61 skipped (19 timeouts + 42 errors), avg 31.9 nodes / 81.8 edges per graph, 70/15/15 train/val/test split.</p>
+  </section>
+
+  <section class="slide-sec" id="d5">
+    <h2>Slide 5 — EDA Dashboard</h2>
+    <div class="imgref">image: docs/eda_dashboard.png</div>
+    <p>This is the <em>raw corpus</em> EDA — <b>2,271 assemblies, 16,829 body parts</b> — before any category curation.</p>
+    <table>
+      <tr><th>Panel</th><th>Key numbers</th></tr>
+      <tr><td>Total Scale</td><td>mean 7.4 nodes/graph, 11.9 contacts/graph (raw) — much smaller than curated 31.9-node average on Slide 4</td></tr>
+      <tr><td>Graph Annotation</td><td>71.8% have contacts (28.2% have zero, filtered before parsing); 64.6% have hole annotations; only 18.9% (430 of 2,271) have joint-type annotations</td></tr>
+      <tr><td>Joint Type Mix</td><td>of 2,230 joints across those 430 assemblies: 47% rigid, 38% revolute, 7% slider, ~6% cylindrical/other</td></tr>
+      <tr><td>Node Count Distribution</td><td>33.8% of assemblies have 6–10 bodies (modal bucket); P95 = 17 nodes; zero assemblies exceed 21 — <code>max_nodes=20</code> loses no real data</td></tr>
+      <tr><td>Per-Category Summary</td><td>Mechanical Eng. = 1,821/2,271 (<b>80.2%</b>, severe imbalance); Tools = only 180 assemblies but richest signal (8.6 bodies, 20.0 contacts, 13.9 holes mean — 2× average density)</td></tr>
+      <tr><td>Usable Graph Funnel</td><td>2,271 → 1,630 have contacts (71.8%) → ~1,548 parse OK (~68%) → ~1,316 pass edge filter ≥8 edges (~58%) → ~1,053 train / ~263 val per fold</td></tr>
+      <tr><td>Physical Properties</td><td>median body volume 6.13 cm³, area 48.9 cm², mass 0.036 kg (small-to-medium steel components, 79.9% steel); flags extreme outliers (max volume 5.7×10¹⁰ cm³, likely mm³/cm³ unit mismatch)</td></tr>
+    </table>
+    <p><b>Key Insights panel</b> (bottom-right) is literally the punch list that became later feature-engineering decisions: hole count and joint type were flagged here as "free signal, currently unused" and both were added as features by R18.</p>
+    <div class="callout tech">Good numbers to have ready: <b>~58%</b> of raw data survives to become a usable training example; <b>80.2%</b> category imbalance is the reason category-focused runs (R22–R28) exist at all.</div>
+  </section>
+
+  <section class="slide-sec" id="d6">
+    <h2>Slide 6 — Deep Insights</h2>
+    <div class="imgref">image: docs/eda_insights_deep.png</div>
+    <p>The <em>risk-and-action</em> layer on top of the same 2,271-assembly corpus.</p>
+    <table>
+      <tr><th>Panel</th><th>Finding</th></tr>
+      <tr><td>Cross-Category Duplicates</td><td><b>144 folders (6.3%)</b> duplicated across category boundaries — 46 in both Machine Design + Mech. Eng., 11 appear in all four categories. Flagged <span class="badge">CRITICAL</span> data-leakage risk: same assembly in train under one label, test under another → inflated test AUC.</td></tr>
+      <tr><td>Assembly Richness Funnel</td><td>1,630 have contacts (71.8%) → 1,343 moderate+ (59.1%) → <b>522 "rich"</b> (≥8 bodies, ≥10 contacts, 23.0%) — best training signal, worth oversampling</td></tr>
+      <tr><td>Category Richness Ranking</td><td>Tools is <b>38% rich</b> (61/162) despite being only 7.9% of the dataset — most information-dense category, severely underrepresented by raw count</td></tr>
+      <tr><td>Unused Features</td><td>Hole count flagged "strongest missing node feature" (→ shipped as dim [21]); Joint type flagged "strongest missing edge feature" (→ shipped as dims [2:6]); Material (steel 79.9%) flagged coarse/still-unused — good Phase 2 answer if asked "what would you add next"</td></tr>
+      <tr><td>Data Quality → Model Impact</td><td>144-duplicate leakage risk again (tied to "inflated test AUC" — good honest answer if asked "do you trust your AUC numbers"); <b>379 over-dense graphs</b> where face-level contact detection creates phantom multi-edges (1 bolt touching 10 faces = 10 recorded contacts, corrupting negative-sampling ratio)</td></tr>
+    </table>
+    <p><b>Prioritised Action List table</b> (bottom): a literal 7-item backlog, ranked by impact, tagged with target file and effort. Strong slide to point to if asked "what's your concrete next step" — items 1–2 (dedup, pre-filter) are Low effort and directly address the leakage risk; item 7 (joint_type as edge feature) is tagged High impact and <b>was already shipped by R18</b> — good evidence the EDA→action loop is real, not aspirational.</p>
+  </section>
+
+  <section class="slide-sec" id="d7">
+    <h2>Slide 7 — Experimental Results (28-run table)</h2>
+    <p>The densest slide — walk it by pointing at three highlighted rows, not reading all 20. Sparkline column: 3 mini-bars (blue=Val AUC, green=Test AUC, purple=Test AP) — a row where blue and green are similar length has a small Val/Test gap (good generalisation).</p>
+    <table>
+      <tr><th>Run</th><th>What happened</th></tr>
+      <tr><td><b>R15</b> (best-ever)</td><td>270 graphs, 18-dim, Val AUC 0.902, Test AUC 0.726, <b>Test AP 0.917</b> — only run clearing the AP≥0.82 target, by a comfortable margin. <code>*</code> = 5-fold CV mean, not a single split.</td></tr>
+      <tr><td>R17 ("scale-up")</td><td>1,760 graphs (6.5× more than R15), hidden dim widened to 128 — mean AUC <b>fell</b> to 0.625. Strongest "more data ≠ better" evidence.</td></tr>
+      <tr><td>R18</td><td>22+6-dim schema debut, 995 curated graphs, AUC dropped further to <b>0.483</b> — worst AUC of any post-synthetic run.</td></tr>
+      <tr><td>R20</td><td>38-category diversification, 444 graphs. Test AP fell to 0.749 (from R19's 0.835). Promotion gate <b>correctly refused</b> to update <code>best_serving.pt</code>.</td></tr>
+      <tr><td><b>R22</b> (◈ "Optimum Run")</td><td>239 graphs, 3 categories (Machine design 75 + Mech. Eng. 91 + Tools 73). Val AUC 0.625, Test AUC 0.626 — <b>Δ = 0.001</b>, smallest val/test gap of all 28 runs. <em>Not</em> the highest raw AUC (R15's 0.726, R25's 0.731 are both higher) — "optimum" refers to generalisation parity, not raw score.</td></tr>
+      <tr><td>R25 (counterpoint)</td><td>1,006 graphs, single Mech. Eng. category, scored 0.731 mean AUC — higher than R22. Shows scale <em>can</em> help when it's scale within one homogeneous category, not scale-with-diversity.</td></tr>
+      <tr><td><b>R28</b> (currently deployed)</td><td>695 graphs, highest-complexity single category, mean AUC 0.5455, AP 0.7124, fold std ±0.025. Latest link in a complexity-ladder: R23 (Tools-only, 0.460) → R24 (Machine design-only, 0.559) → R25 (all Mech Eng, 0.731) → R26 (Medium-complexity, 0.416) → R27 (High-complexity, 0.531) → R28 (Very-high-complexity, 0.5455).</td></tr>
+    </table>
+    <div class="callout tech"><b>Phase 1 Targets:</b> AUC ≥ 0.85 — not met (best is R15/R25, ~0.72–0.73), "In progress." AP ≥ 0.82 — met at R15 (0.917), "Achieved."</div>
+  </section>
+
+  <section class="slide-sec" id="d8">
+    <h2>Slide 8 — Training History Visual</h2>
+    <div class="imgref">image: docs/training_history.png</div>
+    <p>Plots all 20 real-data runs (R6 onward) plus two greyed-out bars on the far left — <b>R1 and R3, labelled "Synthetic era"</b>, captioned <em>"Inflated: synthetic test graphs trivially match synthetic training patterns."</em> R1/R3 score 0.93–0.99, which looks spectacular but is explicitly called out as <b>not a real result</b>.</p>
+    <div class="callout tech">This is one of the best things to point to if asked "how do you know your numbers are honest" — you flagged your own inflated numbers rather than hiding or reporting them.</div>
+    <p>Vertical dashed reference lines at AUC 0.85 and AP 0.82 mark the Phase 1 targets — real-data bars (R6 onward) cluster mostly below the AUC line, crossing above the AP line at R15 and R16 (both P1–P6-improvement runs).</p>
+  </section>
+
+  <section class="slide-sec" id="d9">
+    <h2>Slide 9 — R22 Training Curves &amp; Fold Analysis</h2>
+    <p><b>Left panel</b> (per-epoch curves): training loss falls from ~0.54 with exponential decay; Val AUC rises toward a peak of <b>0.6246 at epoch 72</b> before a slight late decline (mild overfitting signature after the peak — good answer if asked "does your model overfit": mildly, late, and it's why early stopping / best-checkpoint saving matters); Test AP climbs more steadily toward ~0.762.</p>
+    <p><b>Right panel</b> (5-fold bars): Fold 3 starred as best (Val AUC 0.6246), dashed teal line at mean Test AUC across folds.</p>
+    <div class="callout caution">
+      <b>Reconciling two "R22" numbers:</b> the mean Test AUC across all 5 folds is ~0.588 (per the underlying fold data), while Slide 7's headline "0.626" figure is the <em>best/promoted fold's</em> Test AUC. If asked to reconcile: "the headline number is the best-fold value; the full fold spread is 0.54–0.67, shown on Slide 10."
+    </div>
+    <div class="callout caution">
+      <b>Technical honesty note:</b> this slide's canvas charts are generated by a small deterministic seeded-random function (<code>mulberry32</code>) that interpolates <em>toward</em> the real summary statistics (peak Val AUC 0.6246 at ep72, final AP ~0.762) — it's a smoothed illustrative curve anchored to real numbers, not a raw per-epoch training-log readout. If asked directly "is this the actual logged loss curve," the accurate answer: "the start/end/peak values are the real R22 fold-3 statistics; the per-epoch curve shape is a smoothed illustrative interpolation for the visual." Better to volunteer this proactively than be caught overclaiming.
+    </div>
+  </section>
+
+  <section class="slide-sec" id="d10">
+    <h2>Slide 10 — Performance Evaluation</h2>
+    <p>Straight fold tables for R15 / R20 / R22 side by side — use this slide if asked "show me your actual fold-level numbers" (vs. Slide 7's summary-row view).</p>
+    <table>
+      <tr><th>Run</th><th>Detail</th></tr>
+      <tr><td>R15</td><td>Fold 2 starred best (Val AUC 0.902 — distinct from the 0.7302–0.7566 <em>test</em> AUC range across folds; R15's val/test diverge much more than R22's, which is why R22 is "optimum" despite lower raw numbers). Mean±Std: Test AUC 0.726±0.041, Test AP 0.917±0.012.</td></tr>
+      <tr><td>R20</td><td>Fold 1 best (Val AUC 0.627). Mean±Std row leaves Val AUC blank (only Test AUC/AP reported: 0.503±0.045 / 0.749±0.020). Card tagged "Serving NOT promoted."</td></tr>
+      <tr><td>R22</td><td>Fold 3 starred (Val 0.6246, Test 0.5686). Mean±Std: Test AUC 0.588±0.050, Test AP 0.767±0.031 — note this mean (0.588) differs from the single best-fold "headline" 0.626 used elsewhere.</td></tr>
+    </table>
+    <p><b>R20 vs R19 analysis table</b>: a good model for presenting a <em>negative</em> result honestly — checkmark for what held steady (AUC), triangle for what regressed (AP), arrow for the actionable outcome (R22 recovered what R20 lost).</p>
+    <p><b>R22 analysis table</b> ends with: "Insight: Focused 3-category corpus restores parity — diversity hurt generalisation (R20)." — your one-sentence thesis for the whole 28-run arc if you only get to say one thing.</p>
+  </section>
+
+  <section class="slide-sec" id="d11">
+    <h2>Slide 11 — Model Comparison</h2>
+    <p><b>Feature Dimension Evolution table</b>: the standout jump is 16-dim (R8–R14 avg: AUC 0.624, AP 0.734) → 18-dim (R15: AUC 0.726, AP 0.917) — <b>+10 points AUC, +18 points AP</b> from one change: replacing raw, scale-dependent bounding-box numbers with <b>affine-invariant</b> descriptors (elongation, flatness, aspect ratios, sphericity) that stay constant regardless of a part's scale/rotation/position.</p>
+    <div class="callout tech">Conceptual explanation if asked "why did that help so much": a raw bbox width feature means different things for a 10mm bolt and a 500mm shaft; a <em>ratio</em>-based feature (elongation = long axis / short axis) means the same thing regardless of absolute part size, so the GNN learns one consistent rule instead of being confused by scale.</div>
+    <p><b>Node Features (22 dims, R18+)</b> — confirmed against the actual <code>dataset.py</code> implementation:</p>
+    <table>
+      <tr><th>Dims</th><th>Feature</th><th>Real source</th></tr>
+      <tr><td>[0–7]</td><td>8-class type one-hot</td><td>rule-based cascade on bbox ratios + SDF thresholds — <b>not</b> ML-inferred, a geometric heuristic</td></tr>
+      <tr><td>[8]</td><td>log1p(volume), clipped 13.8</td><td>gmsh</td></tr>
+      <tr><td>[9]</td><td>log1p(surface area), clipped 11.5</td><td>trimesh</td></tr>
+      <tr><td>[10–12]</td><td>bbox Δx/Δy/Δz (normalised)</td><td>gmsh</td></tr>
+      <tr><td>[13–14]</td><td>elongation, flatness</td><td>bbox axis ratios</td></tr>
+      <tr><td>[15–17]</td><td>aspect x/y, y/z, sphericity</td><td>bbox + trimesh (sphericity = π^(1/3)(6V)^(2/3)/SA, clipped to 1.0)</td></tr>
+      <tr><td>[18–19]</td><td>SDF mean, SDF variance</td><td>trimesh inward ray-casting, ~300 samples/body</td></tr>
+      <tr><td>[20]</td><td>SA/V ratio</td><td>derived</td></tr>
+      <tr><td>[21]</td><td>log1p(n_holes)</td><td><code>assembly.json</code> metadata, per-body</td></tr>
+    </table>
+    <p><b>Edge Features (6 dims, R18+)</b>:</p>
+    <table>
+      <tr><th>Dims</th><th>Feature</th><th>Source / caveat</th></tr>
+      <tr><td>[0]</td><td>"Mate type (0–5 normalised)"</td><td><b>Caveat if asked directly:</b> hardcoded to <code>0.0</code> for every edge in the current parser — real per-edge mate-type classification isn't wired into the STEP pipeline yet. Don't claim live signal here.</td></tr>
+      <tr><td>[1]</td><td>Weight (1.0)</td><td>constant — signals "a contact was detected here"</td></tr>
+      <tr><td>[2–5]</td><td>Joint type one-hot (rigid/revolute/slider/cylindrical)</td><td><code>assembly.json</code>, real signal; all-zero default if no joint metadata</td></tr>
+    </table>
+    <p><b>GAT Architecture Comparison</b>: node dim grows 13→22 over the project; edge dim jumps 2→6 at R18 (same joint-type addition). Hidden dims <em>shrink</em> from 1024→512→64 (R15–16) to a leaner 128→128→64 from R17 onward — a deliberate capacity reduction given small graph counts (270–1000 graphs is small for a 1024-wide hidden layer). Heads stabilise at [8,4,1] from R15 onward. Hard-negative sampling switches on at R15 (0.3× weight); negative ratio halves from 1.0 to 0.5 at the same point.</p>
+    <p><b>Dataset Scaling Impact table</b> — compact version of the "scale vs quality" story: 25 → 780 → 416 → 270 (R14: 0.624) → 270+P1-6 (R15: <b>0.726</b>) → 1,760 (R17: 0.625) → 995 (R18: 0.483) → 444 (R20: 0.503) → 89 (R21: 0.428) → <b>239 curated (R22: 0.626, ◈ Val≈Test)</b> → … → 695 (R28: 0.5455, current serving).</p>
+  </section>
+
+  <section class="slide-sec" id="d12">
+    <h2>Slide 12 — Challenges &amp; Counter Actions</h2>
+    <p>Five red/amber challenge rows on the left, five teal "New Learnings" on the right, plus a Phase 2 action list. Treat this as your <b>strongest slide for demonstrating engineering maturity</b> — structured as problem → root cause → concrete counteraction.</p>
+    <table>
+      <tr><th>#</th><th>Challenge</th><th>Detail</th></tr>
+      <tr><td>1</td><td>Dataset Parsability (61/300 failed)</td><td>19 timeouts + 42 geometry errors. Real code detail: timeouts enforced at <b>120 seconds</b> via a child-process wrapper (<code>terminate()</code> → 5s grace → <code>kill()</code>). Complex assemblies disproportionately time out because <code>gmsh</code>'s <code>fragment()</code> is combinatorially expensive on complex boundary topology.</td></tr>
+      <tr><td>2</td><td>AUC Target Gap (0.85 not met, best 0.726)</td><td>Honestly reported as still open. Category-focus (R22) recovered generalisation (Val≈Test) but not the raw AUC bar — carried into Phase 2 as category-specific model heads + larger capacity.</td></tr>
+      <tr><td>3</td><td>Scale vs Quality</td><td>R17's 1,760 graphs scored worse than R15's 270 — headline empirical finding of the project so far.</td></tr>
+      <tr><td>4</td><td>Category Diversity (R20: AP 0.835→0.749)</td><td>A bolt-to-shaft joint and a PCB-to-enclosure joint have fundamentally different local graph topology (fastener assemblies dense/rigid-dominant; electronics assemblies sparse/positional) — a single shared GAT head has to average across contradictory patterns, hurting both.</td></tr>
+      <tr><td>5</td><td>Training Instability (some epochs 1,024s vs typical 4–9s)</td><td>Attributed to MPS device contention. <b>Caveat:</b> the actual fix is a device-selection <em>priority order</em> (MPS checked before CUDA/CPU) plus the <code>best_serving.pt</code> gate — no separate dedicated "MPS bug workaround" exists beyond that ordering choice.</td></tr>
+    </table>
+    <div class="callout tech"><b>"Serving Gate is Essential Infrastructure"</b> — the claim of "prevented 4 regressions across 25 runs" refers to a lexicographic <code>(mean_auc, mean_ap)</code> tuple comparison in <code>train.py</code>: a new run only overwrites <code>best_serving.pt</code> if strictly better on that tuple than the incumbent. R20, R21, R23, R24 all computed worse tuples and were correctly held back.</div>
+    <p><b>Phase 2 Actions</b>: category-specific GAT heads (→ challenge #4), 256-dim hidden capacity (→ challenge #2), automated STEP repair pipeline (→ challenge #1), 5+ categories with per-category serving gates (scaling the R22 strategy rather than reverting to R20's approach).</p>
+  </section>
+
+  <section class="slide-sec" id="d13">
+    <h2>Slide 13 — References</h2>
+    <p>Three columns: foundational GNN papers (Kipf &amp; Welling GCN 2017, Veličković GAT 2018 — the architecture used here, Hamilton GraphSAGE 2017, Ying GNNExplainer 2019 — earmarked for Phase 2 interpretability), CAD/dataset papers (ABC, PartNet, Fusion 360 Gallery — the actual data source), recent CAD+AI literature (BrepGen, SolidGen, CAD-GPT — related work, not methods used), and tools/frameworks.</p>
+    <div class="callout tech">
+      <b>Borah &amp; Borah (2020)</b> reference, tagged "Octree concept adapted" — full title: <em class="title">"Prediction Error Expansion (PEE) based Reversible polygon mesh watermarking scheme for regional tamper localization,"</em> Multimedia Tools and Applications, Vol. 79. Connection: that paper's octree-based spatial partitioning for mesh regions is the same structural idea reused here for clustering candidate open-surface centroids.
+    </div>
+  </section>
+
+  <section class="slide-sec" id="d14">
+    <h2>Slide 14 — Live Demo</h2>
+    <p>Static launch card — 239 assemblies (R22), Test AUC 0.626, 22+6 dims, Best AP 0.917 (R15) shown as headline metrics. Links to <code>localhost:8501</code>. See the presentation script's "Demo Flow" section for the actual walkthrough beats, and the Q&amp;A prep document for likely demo-triggered questions.</p>
+  </section>
+
+</div>
+</body>
+</html>
