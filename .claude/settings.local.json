@@ -59,7 +59,22 @@
       "Bash(nohup env PYTHONUNBUFFERED=1 *)",
       "Bash(pip3 install *)",
       "Bash(brew list *)",
-      "Bash(git rm *)"
-    ]
+      "Bash(git rm *)",
+      "Bash(top -l 1 -n 0)",
+      "Bash(vm_stat)",
+      "Bash(top -l 1 -n 15 -o cpu -stats pid,command,cpu,rsize)",
+      "Bash(ps aux *)",
+      "Bash(ps -Arcmo pid,comm,%cpu,%mem,rss)",
+      "Bash(ps -Arcmo pid,comm,%mem,rss)",
+      "Bash(kill 857)",
+      "Bash(kill -9 84899 84906)",
+      "Bash(sudo kill -9 84091)",
+      "Bash(kill -9 878 1012)",
+      "Bash(bash auto_recover.sh)",
+      "Bash(echo \"auto_recover PID: $!\")",
+      "Skill(update-config)",
+      "Skill(loop)"
+    ],
+    "defaultMode": "bypassPermissions"
   }
 }

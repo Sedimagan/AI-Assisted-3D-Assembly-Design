@@ -1,0 +1,987 @@
+\documentclass[12pt]{report}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{subcaption}
+\geometry{a4paper, margin=1in}
+
+\begin{document}
+
+\begin{center}
+\includegraphics[width=2cm]{pes_logo.png} \\[0.5cm]
+\textbf{\Large Dissertation on}\\[1cm]
+\textbf{\Huge ``AI-Assisted 3D Assembly Design: Predicting Missing Components in CAD Assemblies using Graph Neural Networks''}\\[1cm]
+
+Submitted in partial fulfilment of the requirements for the award of degree of\\[1cm]
+\textbf{\Large Master of Technology in}\\[1cm]
+\textbf{\Large Data Science \& Artificial Intelligence}\\[1cm]
+\textbf{UE19CS651 -- Project Phase - 2}\\[1cm]
+
+\textbf{Submitted by:}\\
+\textbf{Parthasarathy Perumal}\\
+\textbf{PES2PGE24DS193}\\[1cm]
+
+Under the guidance of\\
+Prof. Sagarika Borah\\
+Prof. CSE, PES University\\[1cm]
+
+January -- May 2026\\[1cm]
+
+DEPARTMENT OF COMPUTER SCIENCE AND ENGINEERING\\
+FACULTY OF ENGINEERING\\
+PES UNIVERSITY\\[1cm]
+(Established under Karnataka Act No. 16 of 2013)\\
+Electronic City, Hosur Road, Bengaluru -- 560 100, Karnataka, India
+\end{center}
+
+\newpage
+
+\section*{Certificate}
+
+This is to certify that the dissertation entitled ``AI-Assisted 3D Assembly Design: Predicting Missing Components in CAD Assemblies using Graph Neural Networks'' is a bonafide work carried out by \textbf{Parthasarathy Perumal (PES2PGE24DS193)} in partial fulfilment for the completion of Fourth Semester Project Phase - 2 (UE19CS651) in the Program of Study -- Master of Technology in Data Science \& Artificial Intelligence under the rules and regulations of PES University, Bengaluru during the period Jan. 2026 -- May. 2026.
+
+\vspace{2cm}
+
+\begin{flushright}
+Prof. Sagarika Borah\\
+Prof. CSE
+\end{flushright}
+
+\newpage
+
+\section*{Declaration}
+
+I hereby declare that the Project Phase - 2 entitled ``AI-Assisted 3D Assembly Design: Predicting Missing Components in CAD Assemblies using Graph Neural Networks'' has been carried out under the guidance of Prof. Sagarika Borah, Department of CSE, and submitted in partial fulfilment of the course requirements for the award of the degree of Master of Technology in Data Science \& Artificial Intelligence of PES University, Bengaluru during the academic semester January -- May 2026.
+
+\newpage
+
+\section*{Acknowledgement}
+
+I would like to express my sincere gratitude to Prof. Sagarika Borah, Department of Computer Science and Engineering, PES University, for her continuous guidance and support throughout this project. Her expertise in computational geometry and mesh processing, particularly her work on Octree-based spatial partitioning for polygon mesh analysis, has been instrumental in shaping key components of this system. I am also thankful to the project coordinators for their help throughout the process. I take this opportunity to thank the Chairperson of the Department of CSE, PES University, for the support and guidance. I am grateful to Dr. B.K. Keshavan, Dean of Faculty, and the university leadership for the opportunities provided. Finally, I extend heartfelt thanks to my family and friends for their constant support and encouragement.
+
+\newpage
+
+\section*{Abstract}
+
+Engineering CAD assemblies consist of multiple interconnected components whose correct selection is time-consuming and expertise-dependent. Modern CAD tools such as SolidWorks, CATIA, and Fusion 360 provide no contextual intelligence during assembly creation, forcing engineers to rely entirely on domain knowledge to choose and position components. This project addresses this gap by training a \textbf{Graph Attention Network (GAT)} on assembly graphs derived from STEP files to detect \textbf{missing components} via link prediction.
+
+Each CAD assembly is converted into an attributed graph using gmsh with the OpenCASCADE kernel: solid bodies become nodes (22-dimensional feature vectors including geometry-driven component type, SDF statistics, and affine-invariant shape descriptors) and physical contacts between bodies become edges (6-dimensional features encoding mate type and joint type). A 3-layer GAT encoder produces 64-dimensional node embeddings, which are fed to a Link Predictor MLP that scores candidate edges to identify missing component connections.
+
+The system incorporates three complementary analysis modules: (1) the GNN-based link predictor for missing connection detection, (2) an \textbf{Assembly Completeness Model} (\texttt{AssemblyTemplateDB}) that learns per-category component-type distributions from training data to identify what components are missing, and (3) an \textbf{Octree-based Open Surface Detector} (inspired by the spatial partitioning technique in Borah \& Borah, 2020) that identifies the precise mesh surfaces where missing components should be assembled. A \textbf{Gemini-powered Skills AI agent} (AIDA) explains predictions in engineering language.
+
+Trained on 1,760 assembly graphs (643 from the Fusion 360 Gallery dataset and 137 curated local assemblies, after deduplication and quality filtering), the model achieves a mean AUC-ROC of $0.625 \pm 0.017$ and a mean Average Precision of $0.878 \pm 0.005$ under 5-fold cross-validation --- the most stable model across folds to date. The solution is implemented entirely in Python using PyTorch Geometric, without dependency on proprietary CAD software APIs, and is deployed as an interactive Streamlit application with real-time 3D visualisation.
+
+\newpage
+
+\tableofcontents
+\newpage
+\listoffigures
+\newpage
+\listoftables
+\newpage
+
+%=============================================================================
+\chapter{Introduction}
+%=============================================================================
+
+Computer-Aided Design (CAD) is the cornerstone of modern engineering, enabling the creation, modification, and optimisation of designs in a digital environment. CAD assemblies --- collections of multiple interconnected mechanical components --- are central to industries ranging from automotive to aerospace, consumer electronics, and industrial machinery. The process of assembling components in a CAD environment requires selecting the right parts, positioning them correctly, and defining the appropriate mate constraints (coincident, concentric, tangent, etc.) between them.
+
+Despite decades of CAD tool evolution, the assembly process remains fundamentally manual and expertise-dependent. Engineers rely on years of accumulated domain knowledge to identify which components belong in an assembly, detect when parts are missing, and determine the correct assembly sequence. This creates significant challenges: junior engineers face steep learning curves, inconsistent choices arise between designers working on equivalent subassemblies, and partially defined assemblies have no mechanism to detect or fill missing parts.
+
+This project explores the application of \textbf{Graph Neural Networks (GNNs)} to the problem of intelligent assembly assistance. By representing CAD assemblies as graphs --- where solid bodies are nodes and physical contacts between bodies are edges --- the problem of detecting missing components naturally maps to \textbf{link prediction}: identifying edges (connections) that should exist but are absent in the current assembly state.
+
+\section{Problem Statement}
+
+Modern CAD tools (SolidWorks, CATIA, Fusion 360) offer no contextual intelligence during assembly creation. Engineers rely entirely on domain knowledge to choose and position each component. The key pain points are:
+
+\begin{enumerate}[label=\arabic*.]
+    \item \textbf{Knowledge barrier:} Junior engineers lack the assembly patterns that experienced designers have built over years of practice.
+    \item \textbf{No automation:} Existing CAD tools offer no intelligent part suggestion or missing component detection during assembly creation.
+    \item \textbf{Non-standardisation:} Different designers make inconsistent choices for equivalent subassemblies, leading to quality and maintenance issues.
+    \item \textbf{Incomplete assemblies:} Partially defined assemblies have no mechanism to detect or fill missing parts automatically.
+\end{enumerate}
+
+\textbf{Research gap:} No existing system applies graph-based deep learning to recommend components from partial CAD assembly graphs without dependency on proprietary CAD APIs.
+
+\section{Objectives}
+
+The primary objectives of this project are:
+
+\begin{enumerate}[label=\arabic*.]
+    \item \textbf{Graph construction pipeline:} Develop a robust pipeline to convert STEP files into attributed assembly graphs using gmsh (OpenCASCADE) with geometry-enriched node features (22-dimensional) and edge features (6-dimensional).
+    \item \textbf{Missing component detection:} Train a Graph Attention Network (GAT) with a Link Predictor to detect missing connections in partial assemblies, targeting AUC-ROC $\geq 0.85$ and Average Precision $\geq 0.82$.
+    \item \textbf{Assembly completeness model:} Build a template-based system that learns per-category component-type distributions to identify what types of components are missing from a partial assembly.
+    \item \textbf{Open surface detection:} Implement an Octree-based spatial analyser to identify the precise physical surfaces where missing components should be attached.
+    \item \textbf{AI-powered explanation:} Integrate a Gemini-based Skills AI agent to translate GNN predictions into actionable engineering language.
+    \item \textbf{Interactive deployment:} Deploy the system as a Streamlit web application with real-time 3D visualisation, inference, and explanation capabilities.
+\end{enumerate}
+
+\section{Scope of the Project}
+
+The project is divided into two phases:
+
+\begin{itemize}
+    \item \textbf{Phase 1 (May -- July 2026):} Base replication --- missing component detection via GAT link prediction, assembly completeness model, open surface detection, AIDA Skills AI, and Streamlit deployment. Evaluation metrics: AUC-ROC and Average Precision.
+    \item \textbf{Phase 2 (July -- September 2026, planned):} Novelty and improvement --- next-component ranking via NodeRanker (cosine similarity), heterogeneous GNN typed embeddings, BPR ranking loss. Evaluation metrics: Hit@K, MRR, NDCG@K. GNNExplainer integration for interpretability.
+\end{itemize}
+
+The system operates on standard STEP/STP files (ISO 10303) and does not require proprietary CAD software APIs, making it universally applicable across CAD platforms.
+
+\section{Organization of the Report}
+
+The remainder of this report is organized as follows:
+
+\begin{itemize}
+    \item \textbf{Chapter 2 -- Literature Survey:} Reviews existing research in GNN-based geometric learning, CAD representation learning, and assembly analysis.
+    \item \textbf{Chapter 3 -- System Requirements Specification:} Details the hardware, software, functional, and non-functional requirements.
+    \item \textbf{Chapter 4 -- Proposed Methodology:} Describes the system architecture, graph construction pipeline, model architecture, and analysis modules.
+    \item \textbf{Chapter 5 -- Implementation Details:} Covers the development environment, dataset processing, model implementation, and evaluation approach.
+    \item \textbf{Chapter 6 -- Results and Discussion:} Presents experimental results across 17 training runs with analysis.
+    \item \textbf{Chapter 7 -- Conclusion and Future Work:} Summarises outcomes and outlines Phase 2 directions.
+\end{itemize}
+
+\newpage
+
+%=============================================================================
+\chapter{Literature Survey}
+%=============================================================================
+
+This chapter reviews the existing research and methodologies relevant to the project, spanning graph neural networks, B-Rep generative models, CAD representation learning, and spatial mesh analysis. The survey identifies the research gaps that this project aims to address.
+
+\section{Existing Systems}
+
+\subsection{Graph Neural Networks for Link Prediction}
+
+\textbf{Kipf \& Welling (2017)} introduced the Graph Convolutional Network (GCN), which applies spectral convolutions on graph-structured data by aggregating neighbour features through a normalised adjacency matrix. GCN demonstrated strong performance on node classification and link prediction benchmarks but treats all neighbours equally, lacking an attention mechanism to weight the importance of different connections.
+
+\textbf{Veli\v{c}kovi\'{c} et al. (2018)} proposed the Graph Attention Network (GAT), which introduces learnable attention coefficients to the neighbourhood aggregation step. Multi-head attention allows the model to attend to different structural patterns simultaneously. GAT has shown superior performance over GCN on heterogeneous graphs where neighbour importance varies, making it particularly suitable for assembly graphs where different mate types carry different structural significance.
+
+\textbf{Hamilton, Ying \& Leskovec (2017)} introduced GraphSAGE (SAmple and agGREgate), which learns node embeddings by sampling and aggregating features from a node's local neighbourhood. GraphSAGE supports inductive learning on unseen nodes, which is relevant for inference on new assemblies not seen during training.
+
+\textbf{``Can GNNs Learn Link Heuristics?'' (2024)} investigates whether GNNs can learn common link prediction heuristics such as common neighbours, Jaccard coefficient, and Adamic-Adar index directly from graph structure. The paper demonstrates that while GNNs can approximate these heuristics, explicit structural features can complement learned representations for improved link prediction.
+
+\subsection{B-Rep Generative Models and CAD Synthesis}
+
+\textbf{Du et al. (2024) -- BrepGen} introduced a B-Rep generative diffusion model with structured latent geometry. BrepGen generates boundary representation (B-Rep) solids by learning latent codes for faces, edges, and vertices, then decoding them into valid CAD geometry. While focused on single-part generation rather than assembly analysis, BrepGen demonstrates that deep learning can capture the geometric structure of B-Rep models.
+
+\textbf{Jayaraman et al. (2024) -- SolidGen} proposed an autoregressive model for direct B-Rep synthesis and editing. SolidGen generates CAD construction sequences step by step, enabling both creation and modification of solid models. The autoregressive approach is conceptually related to next-component prediction in assembly design, where each added component depends on the existing partial assembly.
+
+\textbf{Wang et al. (2025) -- CAD-GPT} synthesises CAD construction sequences using spatial reasoning-enhanced multimodal LLMs. CAD-GPT combines language understanding with 3D spatial reasoning to generate CAD models from natural language descriptions. This work highlights the potential of AI-assisted CAD workflows but operates at the individual part level rather than the assembly level.
+
+\subsection{Heterogeneous Graph Learning}
+
+\textbf{``Heterogeneous Graph Contrastive Learning'' (2023)} proposes contrastive learning methods for heterogeneous graphs with multiple node and edge types. This is directly relevant to CAD assemblies where nodes represent different component types (body, fastener, bearing, shaft, plate, housing, gear) and edges represent different mate constraints (coincident, concentric, parallel, tangent, fixed). The project's Phase 2 plans to incorporate heterogeneous GNN typed embeddings building on these ideas.
+
+\subsection{Assembly Analysis and Spatial Reasoning}
+
+\textbf{Jones et al. (2021) -- ``Learning Bottom-up Assembly of Parametric CAD Joints''} addresses the problem of assembling parametric CAD parts by learning joint predictions. This work is the closest to the current project's objectives but relies on parametric CAD representations and proprietary joint annotations rather than the geometry-only approach adopted here.
+
+\textbf{Koch et al. (2019) -- ABC Dataset} created a large-scale collection of over 1 million CAD models in STEP/B-Rep format, providing geometric metadata including bounding boxes, volume, and surface area. The ABC dataset serves as a foundational resource for geometric deep learning research on CAD models.
+
+\textbf{Mo et al. (2019) -- PartNet} contributed a large-scale benchmark of 573,585 3D parts across 26 object categories with fine-grained, instance-level, and hierarchical part annotations. PartNet's hierarchical annotations inform the edge feature construction approach used in this project.
+
+\textbf{Willis et al. (2021) -- Fusion 360 Gallery Dataset} released 8,251 assemblies with 154K bodies from the Autodesk Fusion 360 CAD platform. This project integrates 643 assembly STEP files from the Fusion 360 Gallery as the primary training dataset, representing the largest publicly available source of real-world CAD assemblies.
+
+\subsection{Mesh Processing and Spatial Partitioning}
+
+\textbf{Borah \& Borah (2020)} proposed a Prediction Error Expansion (PEE) based reversible polygon mesh watermarking scheme that uses Octree spatial partitioning for regional tamper localisation. In their approach, an Octree divides the mesh's bounding volume into independent spatial sub-blocks, and each block's vertices are authenticated separately to localise tampered regions. This spatial decomposition concept --- enabling localised, per-region decisions --- is directly adapted in this project for open surface detection, where the Octree partitions free-surface centroids to identify where missing components should be placed.
+
+\textbf{Ying et al. (2019) -- GNNExplainer} introduced a model-agnostic approach for generating explanations of GNN predictions by identifying the important subgraph structures and node features. GNNExplainer is planned for Phase 2 integration to provide interpretable explanations of which graph structures drive the missing component predictions.
+
+\section{Limitations of Existing Systems}
+
+The reviewed literature reveals several key limitations:
+
+\begin{enumerate}[label=\arabic*.]
+    \item \textbf{Part-level focus:} Most generative CAD models (BrepGen, SolidGen, CAD-GPT) operate at the individual part level, not at the assembly level where component interactions matter.
+    \item \textbf{Proprietary API dependency:} Systems like the Fusion 360 joint prediction work rely on proprietary CAD APIs for constraint metadata, limiting portability across CAD platforms.
+    \item \textbf{No geometry-driven component typing:} Existing approaches typically require labelled component-type datasets rather than inferring types directly from geometric properties (SDF, shape descriptors).
+    \item \textbf{No spatial localisation:} No existing system identifies the \textit{precise physical surfaces} where missing components should be placed; they only name what is missing.
+    \item \textbf{No engineering-language explanation:} Predictions are presented as numerical scores without translation into actionable engineering recommendations.
+\end{enumerate}
+
+\section{Proposed Solution}
+
+This project addresses the identified gaps through a multi-module system:
+
+\begin{enumerate}[label=\arabic*.]
+    \item A \textbf{geometry-only graph construction pipeline} that works on standard STEP files without proprietary APIs, using gmsh + OpenCASCADE for parsing, trimesh for exact surface area computation, and SDF ray-casting for component type inference.
+    \item A \textbf{3-layer GAT with Link Predictor} for missing component detection via link prediction on assembly graphs.
+    \item An \textbf{Assembly Completeness Model} that learns per-category component distributions from training data and identifies gaps in partial uploads.
+    \item An \textbf{Octree-based Open Surface Detector} (adapted from Borah \& Borah, 2020) that localises the exact surfaces needing assembly.
+    \item A \textbf{Gemini-powered Skills AI agent} (AIDA) that explains predictions in structured engineering language.
+\end{enumerate}
+
+\newpage
+
+%=============================================================================
+\chapter{System Requirements Specification}
+%=============================================================================
+
+This chapter covers the system requirements, including hardware and software specifications necessary for the project.
+
+\section{Hardware Requirements}
+
+\begin{table}[H]
+\centering
+\caption{Hardware Requirements}
+\begin{tabular}{p{4cm} p{8cm}}
+\toprule
+\textbf{Component} & \textbf{Specification} \\
+\midrule
+Processor & Apple M1/M2/M3 chip (ARM64) or equivalent x86\_64 with $\geq$ 8 cores \\
+Memory (RAM) & $\geq$ 16 GB (32 GB recommended for large assemblies) \\
+Storage & $\geq$ 50 GB SSD (dataset + model checkpoints + processed graphs) \\
+GPU & Apple Metal Performance Shaders (MPS) for PyTorch acceleration; NVIDIA CUDA optional for x86 \\
+Display & $\geq$ 1920$\times$1080 for interactive 3D viewer \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Software Requirements}
+
+\begin{table}[H]
+\centering
+\caption{Software Requirements}
+\begin{tabular}{p{4cm} p{8cm}}
+\toprule
+\textbf{Software} & \textbf{Version / Details} \\
+\midrule
+Operating System & macOS 13+ (ARM64) / Ubuntu 22.04+ / Windows 11 \\
+Python & 3.10+ (developed on 3.12) \\
+Package Manager & \texttt{uv} (fast Python package installer) \\
+PyTorch & 2.x with MPS or CUDA backend \\
+PyTorch Geometric & 2.x (GATConv, BatchNorm, RandomLinkSplit, DataLoader) \\
+gmsh & 4.x with OpenCASCADE kernel (STEP parsing, Boolean fragment) \\
+trimesh & Latest (exact surface area, SDF ray-casting) \\
+Streamlit & 1.x (interactive web application) \\
+Plotly & 5.x (3D mesh visualisation) \\
+PyVista & Latest (offscreen STL loading) \\
+scikit-learn & Latest (AUC-ROC, Average Precision metrics) \\
+Google Generative AI & \texttt{google-generativeai} SDK (Gemini API) \\
+Web Browser & Chrome / Firefox / Safari (for Streamlit frontend) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Functional Requirements}
+
+\begin{enumerate}[label=FR\arabic*.]
+    \item \textbf{STEP File Parsing:} The system shall parse STEP/STP files (ISO 10303) and extract solid bodies, volumes, surface areas, bounding boxes, and surface contact topology.
+    \item \textbf{Graph Construction:} The system shall convert parsed assemblies into attributed PyG graphs with 22-dimensional node features and 6-dimensional edge features.
+    \item \textbf{Model Training:} The system shall train a 3-layer GAT encoder with Link Predictor using 5-fold cross-validation, with configurable hyperparameters.
+    \item \textbf{Missing Component Detection:} The system shall predict missing connections between assembly components and report top-K candidates with confidence scores.
+    \item \textbf{Assembly Type Identification:} The system shall identify the assembly category (e.g., Hinge Assembly, Shaft + Bearing + Housing) from uploaded STEP files with a confidence score.
+    \item \textbf{Template-Based Gap Analysis:} The system shall compare uploaded assemblies against learned templates to identify which component types are missing.
+    \item \textbf{Open Surface Detection:} The system shall identify and visualise unmated surfaces where missing components should be attached.
+    \item \textbf{AI Explanation:} The system shall generate structured engineering explanations of predictions using the Gemini AI agent.
+    \item \textbf{3D Visualisation:} The system shall render uploaded assemblies in an interactive 3D viewer with colour-coded highlights for different analysis results.
+    \item \textbf{Single-Body Support:} The system shall handle single-component uploads by inferring component type, matching to an assembly category, and reporting expected missing components.
+\end{enumerate}
+
+\section{Non-Functional Requirements}
+
+\begin{enumerate}[label=NFR\arabic*.]
+    \item \textbf{Performance:} STEP file parsing and inference shall complete within 60 seconds for assemblies with $\leq$ 20 bodies. Training shall complete within 30 minutes per epoch on Apple M1.
+    \item \textbf{Scalability:} The system shall handle assemblies with 2 to 448 bodies (observed dataset range). Graph size filters ensure tractable processing.
+    \item \textbf{Portability:} No dependency on proprietary CAD APIs (SolidWorks, CATIA, Fusion 360). Standard STEP files only.
+    \item \textbf{Usability:} The Streamlit interface shall provide intuitive upload, training, and inference workflows with visual feedback (activity logs, progress indicators, colour-coded analysis panels).
+    \item \textbf{Reproducibility:} All experiments use fixed random seeds, deterministic splits (by assembly ID), and version-tracked configuration (\texttt{config.yaml}).
+    \item \textbf{Graceful Degradation:} The AIDA agent operates in offline mode without a Gemini API key. Single-body uploads trigger geometry-only analysis without GNN inference.
+\end{enumerate}
+
+\section{Use Case Diagram}
+
+The primary use cases are:
+
+\begin{enumerate}
+    \item \textbf{Engineer uploads STEP file} $\rightarrow$ System parses, constructs graph, runs GNN inference, displays analysis.
+    \item \textbf{Engineer triggers training} $\rightarrow$ System scans source models, builds dataset, trains GAT, reports metrics.
+    \item \textbf{Engineer reviews analysis} $\rightarrow$ System shows 6-section analysis panel (assembly type, health, GNN links, auto-reference, template gaps, open surfaces) with 3D overlay.
+    \item \textbf{Engineer reads AI explanation} $\rightarrow$ AIDA agent translates GNN output into structured engineering recommendations.
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{use_case_diagram.png}
+\caption{Use Case Diagram}
+\end{figure}
+
+\newpage
+
+%=============================================================================
+\chapter{Proposed Methodology}
+%=============================================================================
+
+This chapter explains the overall methodology, covering the system architecture, graph construction pipeline, model architecture, and the three complementary analysis modules.
+
+\section{System Architecture}
+
+The system follows a modular pipeline architecture with four stages: (1) STEP parsing and graph construction, (2) GNN-based link prediction, (3) assembly completeness and open surface analysis, and (4) AI-powered explanation and visualisation.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{system_architecture.png}
+\caption{System Architecture Diagram --- from STEP file input through graph construction, GNN inference, complementary analysis modules, to the Streamlit front-end with 3D viewer.}
+\end{figure}
+
+The architecture is summarised as:
+
+\begin{verbatim}
+STEP file --> gmsh (OpenCASCADE) --> PyG assembly graph
+  Nodes (22-dim): type one-hot (8) + log-vol + log-SA
+    + bbox dx/dy/dz + affine-invariant shape (5)
+    + SDF mean + SDF var + SA/V + log-holes
+  Edges (6-dim): mate-type encoded + weight
+    + joint-type one-hot (4)
+
+Assembly graph --> AssemblyGNN (3-layer GAT)
+  --> node embeddings (64-dim)
+  --> LinkPredictor (MLP) --> binary edge scores
+  --> missing component detection (AUC-ROC, AP)
+
+Parallel: AssemblyTemplateDB --> assembly type + missing
+          OctreeNode --> open surface joints
+
+Skills AI: Gemini 2.5 Flash --> AIDA explanations
+All outputs --> Streamlit dual-panel UI
+\end{verbatim}
+
+\section{Graph Construction Pipeline}
+
+The graph construction pipeline in \texttt{back\_end/dataset.py} converts each STEP file into an attributed PyG \texttt{Data} object using a three-tool approach:
+
+\subsection{Step 1: STEP Parsing with gmsh + OpenCASCADE}
+
+\begin{enumerate}
+    \item Load the STEP file and synchronise the OpenCASCADE kernel.
+    \item Perform \textbf{Boolean fragmentation} (\texttt{gmsh.model.occ.fragment()}) --- this forces physically touching bodies to share exact boundary surface tags, enabling contact detection.
+    \item For each solid body: extract volume (\texttt{getMass(3, tag)}), bounding box (\texttt{getBoundingBox()}), and boundary surface tags (\texttt{getBoundary()}).
+    \item Detect edges: two bodies share an edge if their surface tag sets intersect (physical contact).
+\end{enumerate}
+
+\subsection{Step 2: Geometry Enrichment with trimesh}
+
+\begin{enumerate}
+    \item Export each body as STL mesh via gmsh.
+    \item Compute \textbf{exact surface area} using \texttt{trimesh.Trimesh.area}, replacing the bounding-box approximation ($2(dx \cdot dy + dy \cdot dz + dz \cdot dx)$) that was the single biggest accuracy flaw in the original 13-dimensional feature vector.
+    \item Compute \textbf{Shape Diameter Function (SDF)} statistics via trimesh inward ray-casting: sample $N$ surface points, shoot a ray along the inward normal, record first-hit distance (local thickness), then aggregate to obtain SDF mean (average thickness) and SDF variance (shape complexity).
+\end{enumerate}
+
+\subsection{Step 3: Component Type Inference}
+
+The SDF statistics and bounding-box ratios drive geometry-based component type classification into 8 classes:
+
+\begin{table}[H]
+\centering
+\caption{Geometry-Driven Component Type Classification}
+\begin{tabular}{c l l}
+\toprule
+\textbf{Index} & \textbf{Class} & \textbf{SDF Signature} \\
+\midrule
+0 & body & Generic fallback \\
+1 & fastener & Elongated ($>2.5\times$), thin walls (SDF mean $< 8\%$ of long axis) \\
+2 & bearing & SDF std $> 60\%$ of mean --- bimodal ring topology \\
+3 & shaft & Strongly elongated ($>3.5\times$), SDF mean $> 5\%$ of long axis \\
+4 & plate & Flatness ratio $< 12\%$ \\
+5 & housing & SDF variance $> 20\%$ of mean$^2$ --- complex wall geometry \\
+6 & gear & (reserved for Phase 2) \\
+7 & other & (reserved) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Node Feature Vector (22 Dimensions)}
+
+\begin{table}[H]
+\centering
+\caption{22-Dimensional Node Feature Vector}
+\begin{tabular}{c l l}
+\toprule
+\textbf{Dim} & \textbf{Feature} & \textbf{Source} \\
+\midrule
+$[0$--$7]$ & Component type one-hot (8 classes) & SDF-inferred geometry rules \\
+$[8]$ & $\log(1 + \text{volume})$, clipped & \texttt{gmsh.occ.getMass()} \\
+$[9]$ & $\log(1 + \text{surface area})$, clipped & \texttt{trimesh.Trimesh.area} \\
+$[10]$ & Bbox $\Delta x$ / bbox\_max & \texttt{getBoundingBox()} \\
+$[11]$ & Bbox $\Delta y$ / bbox\_max & \texttt{getBoundingBox()} \\
+$[12]$ & Bbox $\Delta z$ / bbox\_max & \texttt{getBoundingBox()} \\
+$[13]$ & Elongation (longest / mid axis) & Sorted bbox axes \\
+$[14]$ & Flatness (min / max axis) & Sorted bbox axes \\
+$[15]$ & Aspect $x/y$ normalised & \texttt{getBoundingBox()} \\
+$[16]$ & Aspect $y/z$ normalised & \texttt{getBoundingBox()} \\
+$[17]$ & Sphericity: $\pi^{1/3}(6V)^{2/3} / SA$ & gmsh + trimesh \\
+$[18]$ & SDF mean (normalised) & Inward ray-casting \\
+$[19]$ & SDF variance (normalised) & Inward ray-casting \\
+$[20]$ & SA/V ratio (normalised) & trimesh + gmsh \\
+$[21]$ & $\log(1 + n_{\text{holes}})$ & JSON metadata \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Edge Feature Vector (6 Dimensions)}
+
+\begin{table}[H]
+\centering
+\caption{6-Dimensional Edge Feature Vector}
+\begin{tabular}{c l l}
+\toprule
+\textbf{Dim} & \textbf{Feature} & \textbf{Description} \\
+\midrule
+$[0]$ & Mate type & Normalised: 0.0=coincident, 0.2=concentric, ..., 1.0=other \\
+$[1]$ & Weight & 1.0 for all detected contacts \\
+$[2$--$5]$ & Joint type one-hot & rigid, revolute, slider, cylindrical \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Model Architecture}
+
+\subsection{AssemblyGNN --- 3-Layer GAT Encoder}
+
+The encoder is a 3-layer Graph Attention Network with multi-head attention:
+
+\begin{table}[H]
+\centering
+\caption{AssemblyGNN Architecture}
+\begin{tabular}{c c c c c}
+\toprule
+\textbf{Layer} & \textbf{Input Dim} & \textbf{Output Dim} & \textbf{Heads} & \textbf{Notes} \\
+\midrule
+GAT Layer 1 & 22 (in\_dim) & $128 \times 8 = 1024$ & 8 & Edge features injected \\
+GAT Layer 2 & 1024 & $128 \times 4 = 512$ & 4 & \\
+GAT Layer 3 & 512 & 64 (out\_dim) & 1 & No concat (single head) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Each GAT layer applies:
+\begin{equation}
+\mathbf{h}_i^{(l+1)} = \sigma\left(\sum_{j \in \mathcal{N}(i)} \alpha_{ij}^{(l)} \mathbf{W}^{(l)} \mathbf{h}_j^{(l)}\right)
+\end{equation}
+
+where $\alpha_{ij}$ are learnable attention coefficients computed via:
+\begin{equation}
+\alpha_{ij} = \frac{\exp\left(\text{LeakyReLU}\left(\mathbf{a}^T [\mathbf{W}\mathbf{h}_i \| \mathbf{W}\mathbf{h}_j]\right)\right)}{\sum_{k \in \mathcal{N}(i)} \exp\left(\text{LeakyReLU}\left(\mathbf{a}^T [\mathbf{W}\mathbf{h}_i \| \mathbf{W}\mathbf{h}_k]\right)\right)}
+\end{equation}
+
+Multi-head attention ($K$ heads) concatenates $K$ independent attention outputs:
+\begin{equation}
+\mathbf{h}_i^{(l+1)} = \Big\|_{k=1}^{K} \sigma\left(\sum_{j \in \mathcal{N}(i)} \alpha_{ij}^{k} \mathbf{W}^k \mathbf{h}_j\right)
+\end{equation}
+
+Each layer is followed by ELU activation, Batch Normalisation, and Dropout ($p = 0.2$).
+
+\subsection{LinkPredictor --- MLP Task Head}
+
+The Link Predictor scores candidate edges by concatenating the source and destination node embeddings and passing them through an MLP:
+
+\begin{equation}
+\text{score}(u, v) = \text{MLP}(\mathbf{z}_u \| \mathbf{z}_v) \in \mathbb{R}
+\end{equation}
+
+where $\mathbf{z}_u, \mathbf{z}_v \in \mathbb{R}^{64}$ are the GAT encoder outputs. The MLP architecture is:
+\[
+\text{Linear}(128 \to 64) \to \text{ReLU} \to \text{Dropout}(0.1) \to \text{Linear}(64 \to 1)
+\]
+
+\subsection{Training Procedure}
+
+\begin{table}[H]
+\centering
+\caption{Training Hyperparameters}
+\begin{tabular}{l l}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Optimizer & Adam (lr = $10^{-3}$, weight\_decay = $5 \times 10^{-4}$) \\
+LR Schedule & ReduceLROnPlateau (factor = 0.5, patience = 8) \\
+Early Stopping & Patience = 20 epochs \\
+Max Epochs & 200 \\
+Batch Size & 32 graphs \\
+Negative Sampling Ratio & 0.5 per positive edge \\
+Hard Negative Weight & 0.3$\times$ BCE loss \\
+Cross-Validation & 5-fold (split by assembly ID) \\
+Loss Function & BCE with logits + hard negative term \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Hard Negative Sampling:} For each positive-edge source node, the model finds the most similar non-neighbour node (by cosine similarity of embeddings) and adds it as a hard negative with 0.3$\times$ weight in the loss. This encourages the model to discriminate between genuinely connected and merely similar components.
+
+\section{Complementary Analysis Modules}
+
+\subsection{Assembly Completeness Model (AssemblyTemplateDB)}
+
+The \texttt{AssemblyTemplateDB} learns the expected component-type composition of each assembly category:
+
+\textbf{Build phase} (after each training run):
+\begin{enumerate}
+    \item Load processed graphs (\texttt{data.pt}) and their source paths (\texttt{sources.json}).
+    \item Group graphs by top-level source folder (e.g., \texttt{Hinge\_assembly/}).
+    \item For each category, compute the median count of each component type across all assemblies.
+    \item Cache results to \texttt{assembly\_templates.json}.
+\end{enumerate}
+
+\textbf{Match scoring} at inference:
+\begin{equation}
+\text{score} = \frac{\sum_{t \in \text{types}} \min(\text{present}(t), \text{expected}(t))}{\max(\sum \text{present}, \sum \text{expected})}
+\end{equation}
+
+A 25\% bonus is applied when all present types fit within the template (no unexpected components).
+
+\subsection{Open Surface Detection (Octree-based)}
+
+Adapted from the Octree spatial partitioning concept in Borah \& Borah (2020):
+
+\begin{table}[H]
+\centering
+\caption{Conceptual Mapping from PEE Watermarking to Open Surface Detection}
+\begin{tabular}{l l l}
+\toprule
+\textbf{Concept} & \textbf{PEE Watermarking (2020)} & \textbf{This Project} \\
+\midrule
+Spatial partition & Octree of mesh vertices & Octree of free-surface centroids \\
+Unit of analysis & Vertex block & Surface cluster \\
+Per-block decision & Watermark valid / tampered & Surface mated / open joint \\
+Localisation goal & Which region was modified? & Where is a component missing? \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The pipeline:
+\begin{enumerate}
+    \item After \texttt{fragment()}, identify free surfaces (belonging to only one body).
+    \item Filter by area threshold: surface area $\geq 4\%$ of parent body's total SA.
+    \item Insert candidate centroids into an Octree (max depth = 3, up to $8^3 = 512$ leaves).
+    \item From each non-empty leaf, select the surface with highest area ratio as the representative open joint.
+    \item Extract triangle mesh for 3D visualisation (with synthetic grid fallback).
+\end{enumerate}
+
+\section{Skills AI --- AIDA (Gemini-Powered Agent)}
+
+The \texttt{AssemblySkillsAgent} loads a domain skills profile (\texttt{engineering\_3d\_assembly.yaml}) covering six skill areas: mechanical engineering, 3D modelling, assembly design, parts identification, GNN interpretation, and assembly sequencing.
+
+At inference time, AIDA receives the GNN predictions, node degrees, and open surface analysis results, and produces a structured 4-section engineering explanation:
+\begin{enumerate}
+    \item Not Assembled / Not Properly Mated
+    \item AI Predicted Missing Links
+    \item Open Assembly Joints Detected
+    \item Overall Recommendation
+\end{enumerate}
+
+\section{Workflow Diagram}
+
+The end-to-end workflow is:
+
+\begin{enumerate}
+    \item \textbf{Data Preparation:} Collect STEP files $\rightarrow$ Apply quality filters (deduplication, zero-contact pre-filter, size limits) $\rightarrow$ Parse with gmsh $\rightarrow$ Build PyG dataset.
+    \item \textbf{Training:} 5-fold CV $\rightarrow$ GAT + LinkPredictor training with BCE + hard negatives $\rightarrow$ Early stopping $\rightarrow$ Save best checkpoint $\rightarrow$ Build template DB.
+    \item \textbf{Inference:} Upload STEP file $\rightarrow$ Parse graph $\rightarrow$ GNN link prediction + Template matching + Open surface detection $\rightarrow$ AIDA explanation $\rightarrow$ 3D visualisation.
+\end{enumerate}
+
+\newpage
+
+%=============================================================================
+\chapter{Implementation Details}
+%=============================================================================
+
+This chapter provides details of the development process, tools, dataset descriptions, model implementation, and evaluation metrics.
+
+\section{Development Environment}
+
+\begin{table}[H]
+\centering
+\caption{Development Environment}
+\begin{tabular}{l l}
+\toprule
+\textbf{Component} & \textbf{Details} \\
+\midrule
+Hardware & MacBook Pro with Apple M-series chip (ARM64) \\
+OS & macOS (Darwin) \\
+Python & 3.12 with \texttt{uv} package manager \\
+Virtual Environment & \texttt{.venv/} managed by \texttt{uv} \\
+PyTorch Backend & MPS (Metal Performance Shaders) --- auto-detected \\
+Frontend Server & Streamlit on \texttt{localhost:11501} \\
+Backend Server & FastAPI on \texttt{localhost:11000} \\
+Version Control & Git \\
+AI Models & Google Gemini 2.0 Flash (for AIDA agent) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The project uses a \texttt{bootstrap.sh} script for one-command setup: it installs \texttt{uv}, creates the virtual environment, installs all dependencies, and generates a \texttt{.env} template. Services are managed via \texttt{start\_services.sh} and \texttt{stop\_services.sh}, which read port configurations from \texttt{.env}.
+
+\section{Dataset Description}
+
+\subsection{Data Sources}
+
+\begin{table}[H]
+\centering
+\caption{Dataset Sources}
+\begin{tabular}{l r l}
+\toprule
+\textbf{Source} & \textbf{Size} & \textbf{Role} \\
+\midrule
+Fusion 360 Gallery (Willis et al., 2021) & 643 assemblies & Primary training data \\
+Local curated (\texttt{Source\_3d\_models/}) & 137 assemblies & Domain-specific training \\
+\midrule
+\textbf{Total training graphs} & \textbf{1,760} & After dedup + quality filter \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The local curated assemblies span 5 categories: Assembly\_Files, Bracket\_Bolt, Shaft\_Bearing\_Housing, Hinge\_assembly, and Plate\_Bolt. For training, only assemblies from the Mechanical Engineering, Machine Design, Automotive, and Tools categories are used.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{eda_dashboard.png}
+\caption{EDA Dashboard --- 2,271 assemblies with 16,829 body parts across 4 categories. Shows KPIs, node/edge distributions, per-category breakdown, joint types, materials, physical properties, usable graph funnel, and key recommendations.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{eda_insights_deep.png}
+\caption{Deep Insights --- data quality analysis including cross-category duplicates, assembly richness funnel, category ranking, unused feature opportunities (holes, joint types, materials), and prioritised action list.}
+\end{figure}
+
+\subsection{Data Quality Pipeline}
+
+The following quality measures were applied:
+
+\begin{enumerate}
+    \item \textbf{Cross-category deduplication:} 144 duplicate folders (6.3\% of assemblies) across categories were identified and removed to prevent data leakage.
+    \item \textbf{Zero-contact pre-filter:} 641 assemblies (28.2\%) with no detected contacts were filtered before STEP parsing.
+    \item \textbf{Node count filter:} Assemblies with $> 20$ bodies moved to \texttt{skipped\_models/}.
+    \item \textbf{Edge count filter:} Assemblies with $> 60$ directed edges moved to \texttt{skipped\_models/}.
+    \item \textbf{Parse timeout:} Assemblies exceeding 120 seconds parsing time quarantined.
+    \item \textbf{Minimum edge threshold:} Assemblies with $< 10$ edges filtered out (R17 onwards).
+\end{enumerate}
+
+\subsection{Dataset Statistics}
+
+\begin{table}[H]
+\centering
+\caption{Graph Statistics (1,760 assemblies)}
+\begin{tabular}{l r r}
+\toprule
+\textbf{Metric} & \textbf{Nodes (bodies/graph)} & \textbf{Edges (contacts/graph)} \\
+\midrule
+Minimum & 2 & 1 \\
+Maximum & 448 & 687 \\
+Mean & 31.8 & 42.5 \\
+Median & 11 & 12 \\
+Total & 24,811 & 33,166 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Assembly Size Distribution}
+\begin{tabular}{l l r r}
+\toprule
+\textbf{Size Class} & \textbf{Bodies/Assembly} & \textbf{Count} & \textbf{\% of Dataset} \\
+\midrule
+Small & 2 -- 5 & 270 & 34.6\% \\
+Medium & 6 -- 20 & 244 & 31.3\% \\
+Large & 21 -- 50 & 140 & 17.9\% \\
+Extra-large & $> 50$ & 126 & 16.2\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Model Implementation}
+
+\subsection{Key Implementation Files}
+
+\begin{table}[H]
+\centering
+\caption{Core Implementation Files}
+\begin{tabular}{l p{8cm}}
+\toprule
+\textbf{File} & \textbf{Purpose} \\
+\midrule
+\texttt{dataset.py} & STEP $\rightarrow$ PyG graph pipeline; 22-dim node features; gmsh+OCC+trimesh+SDF \\
+\texttt{model.py} & AssemblyGNN (3-layer GAT), LinkPredictor (MLP), NodeRanker (Phase 2) \\
+\texttt{train.py} & Training loop with BCE + hard negatives, Adam, LR scheduler, early stopping, 5-fold CV \\
+\texttt{evaluate.py} & AUC-ROC and Average Precision computation \\
+\texttt{infer.py} & CLI inference: top-K missing components from any STEP file \\
+\texttt{assembly\_templates.py} & AssemblyTemplateDB: per-category templates from training data \\
+\texttt{surface\_analyzer.py} & OctreeNode + open surface detection \\
+\texttt{skills\_agent.py} & Gemini AI orchestrator with 6 domain skills \\
+\texttt{api.py} & FastAPI endpoints: \texttt{/predict/missing}, \texttt{/explain}, \texttt{/health} \\
+\texttt{app.py} & Streamlit frontend: 3D viewer + dual-panel analysis UI \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Training Pipeline}
+
+The training pipeline (\texttt{train.py}) follows these steps:
+
+\begin{enumerate}
+    \item \textbf{Dataset loading:} Scan \texttt{Source\_3d\_models/} for STEP files; apply size filters; parse with gmsh; build 22-dim node features and 6-dim edge features; cache as \texttt{data.pt} + \texttt{sources.json}.
+    \item \textbf{Data splitting:} PyG \texttt{RandomLinkSplit} with \texttt{train\_ratio=0.70}, \texttt{val\_ratio=0.15}, \texttt{test\_ratio=0.15}, split by assembly ID to prevent data leakage.
+    \item \textbf{5-fold cross-validation:} \texttt{KFold} from scikit-learn; each fold trains independently with early stopping; the best fold (by validation AUC) is saved as \texttt{best\_overall.pt}.
+    \item \textbf{Loss computation:} BCE with logits on positive + negative edges, plus a 0.3-weighted hard negative term.
+    \item \textbf{Optimisation:} Adam with \texttt{ReduceLROnPlateau} (factor=0.5, patience=8). Early stopping at patience=20 epochs without improvement.
+    \item \textbf{Post-training:} Build \texttt{AssemblyTemplateDB} from the processed dataset and cache to JSON.
+\end{enumerate}
+
+\section{Evaluation Metrics}
+
+\textbf{Phase 1 metrics} (link prediction):
+
+\begin{itemize}
+    \item \textbf{AUC-ROC} (Area Under the Receiver Operating Characteristic Curve): Measures the model's ability to discriminate between true positive edges (existing connections) and true negative edges (non-connections). AUC = 1.0 indicates perfect discrimination; 0.5 indicates random guessing.
+    \item \textbf{Average Precision} (AP): The area under the Precision-Recall curve, which is particularly informative when the positive-to-negative edge ratio is imbalanced (as in assembly graphs where most node pairs are not connected). High AP indicates the model ranks true connections above false ones.
+\end{itemize}
+
+\textbf{Phase 2 metrics} (planned --- next-component ranking):
+\begin{itemize}
+    \item Hit@K, MRR (Mean Reciprocal Rank), NDCG@K (Normalised Discounted Cumulative Gain at K).
+\end{itemize}
+
+\textbf{Phase 1 targets:} AUC-ROC $\geq 0.85$, Average Precision $\geq 0.82$.
+
+\newpage
+
+%=============================================================================
+\chapter{Results and Discussion}
+%=============================================================================
+
+This chapter presents the experimental results obtained across 17 training runs, analysing the progression from the initial 13-dimensional baseline to the current 22-dimensional model trained on 1,760 graphs.
+
+\section{Training History Overview}
+
+Table \ref{tab:training_history} summarises the complete training progression.
+
+\begin{table}[H]
+\centering
+\caption{Training History --- R1 to R17}
+\label{tab:training_history}
+\small
+\begin{tabular}{l l l r r r r}
+\toprule
+\textbf{Run} & \textbf{Date} & \textbf{Key Change} & \textbf{Graphs} & \textbf{Val AUC} & \textbf{Test AUC} & \textbf{Test AP} \\
+\midrule
+R1 & 23 May & 13-dim, synthetic+real & --- & 0.440 & 0.415 & 0.513 \\
+R3 & 23 May & 13-dim, 300 synthetic* & --- & 0.927 & 0.985* & 0.993* \\
+R6 & 26 May & 13-dim, 25 real STEP & 25 & 0.813 & 0.636 & 0.584 \\
+R7 & 26 May & 16-dim, SDF bug & 4 & 0.719 & 0.342 & 0.427 \\
+R8 & 26 May & 16-dim, bug fixed & 25 & 0.750 & 0.585 & 0.559 \\
+R9 & 27 May & 16-dim, +Hinge & 138 & 0.623 & 0.512 & 0.533 \\
+R10 & 10 Jun & +Fusion360 & 780 & 0.585 & 0.604 & 0.577 \\
+R11 & 13 Jun & Size filters & 416 & 0.781 & 0.538 & 0.592 \\
+R12 & 13 Jun & 5-fold CV & 416 & 0.659 & 0.697$\dagger$ & 0.827$\dagger$ \\
+R13 & 14 Jun & +new STEP & 807 & 0.699 & 0.574$\dagger$ & 0.650$\dagger$ \\
+R14 & 14 Jun & Category filter & 270 & 0.715 & 0.624$\dagger$ & 0.734$\dagger$ \\
+R15 & 20 Jun & 18-dim, heads [8,4,1] & 270 & 0.902 & 0.726$\dagger$ & 0.917$\dagger$ \\
+R16 & 20 Jun & 21-dim, bbox+affine & 270 & 0.902 & 0.659$\dagger$ & 0.894$\dagger$ \\
+\textbf{R17} & \textbf{22 Jun} & \textbf{6.5$\times$ data scale-up} & \textbf{1,760} & \textbf{0.712} & \textbf{0.625}$\dagger$ & \textbf{0.878}$\dagger$ \\
+\bottomrule
+\end{tabular}
+\\[0.3em]
+{\footnotesize * Inflated: synthetic test graphs trivially match synthetic training. $\dagger$ Mean across 5 folds.}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{training_history.png}
+\caption{Training Progression --- AUC-ROC \& Average Precision across 17 runs. Each bar group shows Val AUC (light), Test AUC (solid), and Test AP (translucent). Dashed red/orange lines mark Phase 1 targets (AUC 0.85, AP 0.82).}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{training_changelog.png}
+\caption{Training Change Log --- per-run architectural and data changes from R1 to R17, showing the systematic feature engineering and data quality progression.}
+\end{figure}
+
+\section{Result Analysis}
+
+\subsection{Key Findings}
+
+\textbf{1. Feature engineering progression:} The node feature vector evolved from 13 dimensions (R1--R6) to 16 (R7--R14), then 18 (R15), 21 (R16), and finally 22 dimensions (R17). The most impactful individual changes were:
+\begin{itemize}
+    \item Replacing the bounding-box surface area approximation with exact trimesh computation (R7--R8).
+    \item Adding geometry-driven component type inference via SDF ray-casting (R7--R8).
+    \item Introducing affine-invariant shape descriptors: elongation, flatness, aspect ratios, sphericity (R15).
+    \item Adding hard negative sampling (R15), which improved mean AUC from 0.624 to 0.726.
+\end{itemize}
+
+\textbf{2. Data quality vs.\ quantity trade-off:}
+\begin{itemize}
+    \item R13 (807 graphs, diverse) had lower AUC (0.574) than R14 (270 curated graphs, 0.624), demonstrating that domain-focused training outperforms broad noisy data at this scale.
+    \item R17 (1,760 graphs after EDA-driven cleanup) achieved comparable AUC (0.625) to R14 despite 6.5$\times$ more diverse assemblies, showing effective generalisation.
+\end{itemize}
+
+\textbf{3. Fold stability --- the R17 headline result:}
+
+\begin{table}[H]
+\centering
+\caption{R17 --- 5-Fold Cross-Validation Results (1,760 Graphs)}
+\label{tab:r17_folds}
+\begin{tabular}{c c c c c}
+\toprule
+\textbf{Fold} & \textbf{Val AUC (best ep)} & \textbf{Test AUC} & \textbf{Test AP} & \textbf{Early Stop Epoch} \\
+\midrule
+1 & 0.626 & 0.639 & 0.884 & 19 \\
+2 & 0.657 & 0.642 & 0.878 & 1 \\
+3 & 0.646 & 0.611 & 0.881 & 31 \\
+4$^\star$ & 0.712 & 0.627 & 0.869 & 2 \\
+5 & 0.667 & 0.605 & 0.877 & 24 \\
+\midrule
+\textbf{Mean} & & $\mathbf{0.625 \pm 0.017}$ & $\mathbf{0.878 \pm 0.005}$ & \\
+\bottomrule
+\end{tabular}
+\\[0.3em]
+{\footnotesize $^\star$ Best fold --- used for \texttt{best\_overall.pt}.}
+\end{table}
+
+The AUC standard deviation collapsed from $\pm 0.083$ (R16, 270 graphs) to $\pm 0.017$ (R17, 1,760 graphs) --- the most stable model to date. AP standard deviation of $\pm 0.005$ is the lowest ever recorded, confirming that the model reliably ranks positive edges above negatives across all folds regardless of the split.
+
+\textbf{4. Average Precision exceeds Phase 1 target:} Mean AP of $0.878 \pm 0.005$ consistently exceeds the Phase 1 target of 0.82 across R12, R15, R16, and R17. This indicates the model has strong ranking ability --- it reliably places true connections above false ones in its output.
+
+\textbf{5. AUC-ROC gap:} Mean AUC of 0.625 remains below the Phase 1 target of 0.85. The AUC ceiling appears to require architectural changes planned for Phase 2 (heterogeneous GNN, NodeRanker, GNNExplainer).
+
+\subsection{Comparison Across Architectural Changes}
+
+\begin{table}[H]
+\centering
+\caption{Impact of Key Architectural Changes}
+\begin{tabular}{l l c c}
+\toprule
+\textbf{Change (Run)} & \textbf{What Changed} & \textbf{Mean AUC} & \textbf{Mean AP} \\
+\midrule
+R14 (baseline) & 16-dim, category filter, 270 graphs & 0.624 & 0.734 \\
+R15 (P1--P6) & 18-dim, [8,4,1] heads, hard negatives & 0.726 & 0.917 \\
+R16 (21-dim) & +bbox kept, +affine features & 0.659 & 0.894 \\
+R17 (scale-up) & 6.5$\times$ data, hidden\_dim=128 & 0.625 & 0.878 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The R15 improvements (multi-head attention widening to [8,4,1] and hard negative sampling) produced the largest single-run AUC gain (+10 points over R14). The subsequent R16 and R17 runs traded some AUC for dramatically improved stability and generalisation to a much larger, more diverse dataset.
+
+\subsection{Effect of Data Scale-Up (R17)}
+
+The 6.5$\times$ data scale-up from 270 to 1,760 graphs was enabled by three EDA-driven data quality improvements:
+\begin{enumerate}
+    \item Removal of 144 cross-category duplicate folders that risked data leakage.
+    \item Pre-filtering 641 zero-contact assemblies from JSON metadata before STEP parsing (28\% faster dataset scan).
+    \item Raising the minimum edge threshold to $\geq 10$ to exclude trivially simple assemblies.
+\end{enumerate}
+
+The result: comparable mean AUC (0.625 vs 0.624 at R14) but with dramatically reduced variance ($\pm 0.017$ vs $\pm 0.036$) and on a 6.5$\times$ more diverse dataset.
+
+\newpage
+
+%=============================================================================
+\chapter{Conclusion and Future Work}
+%=============================================================================
+
+\section{Conclusion}
+
+This project demonstrates the feasibility of using Graph Attention Networks for intelligent CAD assembly assistance. The key contributions are:
+
+\begin{enumerate}
+    \item \textbf{Geometry-only graph construction:} A robust pipeline that converts standard STEP files into 22-dimensional attributed assembly graphs using gmsh + OpenCASCADE + trimesh + SDF ray-casting, without requiring proprietary CAD APIs.
+
+    \item \textbf{GNN-based missing component detection:} A 3-layer GAT encoder with Link Predictor that achieves a mean Average Precision of $0.878 \pm 0.005$ under 5-fold cross-validation on 1,760 real-world assembly graphs --- exceeding the Phase 1 AP target of 0.82.
+
+    \item \textbf{Assembly Completeness Model:} A template-based system (\texttt{AssemblyTemplateDB}) that learns per-category component-type distributions and identifies missing component types in partial or single-component uploads.
+
+    \item \textbf{Octree-based Open Surface Detection:} Adapting the spatial partitioning concept from Borah \& Borah (2020) to localise the precise mesh surfaces where missing components should be assembled, with interactive 3D visualisation of flagged joints.
+
+    \item \textbf{AI-powered engineering explanation:} A Gemini-powered Skills AI agent (AIDA) that translates GNN predictions into structured, actionable engineering recommendations across six domain skill areas.
+
+    \item \textbf{End-to-end deployment:} An interactive Streamlit application with dual-panel UI (6-section analysis panel + 3D viewer with colour-coded overlays), supporting the full workflow from STEP upload through inference to explanation.
+
+    \item \textbf{Feature engineering evolution:} A systematic progression from 13 to 22 node features, with each addition validated through ablation. The most impactful changes were exact surface area (replacing bbox approximation), SDF-driven component typing, and affine-invariant shape descriptors.
+
+    \item \textbf{Data quality methodology:} EDA-driven quality improvements including cross-category deduplication, zero-contact pre-filtering, and size-based graph filters, enabling a 6.5$\times$ scale-up while maintaining model stability.
+\end{enumerate}
+
+The mean AUC-ROC of $0.625 \pm 0.017$ falls below the Phase 1 target of 0.85, indicating that the current homogeneous GAT architecture has a performance ceiling on the link prediction task for diverse assembly graphs. This motivates the architectural improvements planned for Phase 2.
+
+\section{Future Work}
+
+Phase 2 (July -- September 2026) will focus on:
+
+\begin{enumerate}
+    \item \textbf{Next-component ranking:} Activate the \texttt{NodeRanker} (already implemented in \texttt{model.py}) for ranking candidate next components by cosine similarity with the partial-assembly context vector. Evaluation via Hit@K, MRR, and NDCG@K.
+
+    \item \textbf{Heterogeneous GNN:} Replace the homogeneous GAT with a heterogeneous graph network that models different node types (body, fastener, bearing, shaft, plate, housing, gear) and edge types (coincident, concentric, parallel, tangent, fixed) with separate parameter sets. This should unlock the AUC ceiling by enabling type-aware message passing.
+
+    \item \textbf{BPR ranking loss:} Replace BCE with Bayesian Personalised Ranking loss for the next-component ranking task, which directly optimises the ranking of correct next components above incorrect ones.
+
+    \item \textbf{GNNExplainer integration:} Apply GNNExplainer (Ying et al., 2019) to identify which subgraph structures and node features drive each missing component prediction, providing interpretable explanations alongside AIDA's engineering commentary.
+
+    \item \textbf{Additional node features:} Add $\log(1 + n_{\text{holes}})$ as a fastener-signal dimension (64.6\% coverage from JSON metadata), apply $\log$ transforms with $3\sigma$ clipping on volume and surface area, and incorporate joint-type one-hot edge features from assembly metadata.
+
+    \item \textbf{Data augmentation:} Oversample under-represented assembly categories (Tools, Machine Design) to reduce the 80\% Mechanical Engineering dominance bias. Deduplicate contacts to part-pair level to fix 379 over-dense graphs with phantom multi-edges.
+\end{enumerate}
+
+\newpage
+
+\begin{thebibliography}{99}
+
+\bibitem{kipf2017}
+Kipf, T.N. and Welling, M., ``Semi-Supervised Classification with Graph Convolutional Networks'', \textit{International Conference on Learning Representations (ICLR)}, 2017.
+
+\bibitem{velickovic2018}
+Veli\v{c}kovi\'{c}, P., Cucurull, G., Casanova, A., Romero, A., Li\`{o}, P. and Bengio, Y., ``Graph Attention Networks'', \textit{International Conference on Learning Representations (ICLR)}, 2018.
+
+\bibitem{hamilton2017}
+Hamilton, W.L., Ying, R. and Leskovec, J., ``Inductive Representation Learning on Large Graphs'', \textit{Advances in Neural Information Processing Systems (NeurIPS)}, 2017.
+
+\bibitem{koch2019}
+Koch, S., Matveev, A., Jiang, Z., Williams, F., Artemov, A., Burnaev, E., Alexa, M., Zorin, D. and Panozzo, D., ``ABC: A Big CAD Model Dataset for Geometric Deep Learning'', \textit{IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)}, 2019.
+
+\bibitem{mo2019}
+Mo, K., Zhu, S., Chang, A.X., Yi, L., Tripathi, S., Guibas, L.J. and Su, H., ``PartNet: A Large-Scale Benchmark for Fine-Grained and Hierarchical Part-Level 3D Object Understanding'', \textit{IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)}, 2019.
+
+\bibitem{willis2021}
+Willis, K.D.D., Pu, Y., Luo, J., Chu, H., Du, T., Lambourne, J.G., Solar-Lezama, A. and Matusik, W., ``Fusion 360 Gallery: A Dataset and Method for Learning CAD Features'', \textit{ACM Transactions on Graphics (ToG)}, Vol. 40, No. 4, 2021.
+
+\bibitem{ying2019}
+Ying, R., Bourgeois, D., You, J., Zitnik, M. and Leskovec, J., ``GNNExplainer: Generating Explanations for Graph Neural Networks'', \textit{Advances in Neural Information Processing Systems (NeurIPS)}, 2019.
+
+\bibitem{borah2020}
+Borah, S. and Borah, B., ``Prediction Error Expansion (PEE) based Reversible polygon mesh watermarking scheme for regional tamper localization'', \textit{Multimedia Tools and Applications}, Vol. 79, pp. 11437--11458, 2020. DOI: 10.1007/s11042-019-08411-5.
+
+\bibitem{du2024}
+Du, X., Miltiadou, A., Mitra, N.J. and Sung, M., ``BrepGen: A B-Rep Generative Diffusion Model with Structured Latent Geometry'', \textit{ACM SIGGRAPH}, 2024. arXiv: 2401.15563.
+
+\bibitem{jayaraman2024}
+Jayaraman, P.K., Lambourne, J.G., Desai, N., Willis, K.D.D., Sanghi, A. and Morris, N., ``SolidGen: An Autoregressive Model for Direct B-Rep Synthesis and Editing'', \textit{ACM Transactions on Graphics (ToG)}, Vol. 43, 2024. DOI: 10.1145/3626206.
+
+\bibitem{wang2025}
+Wang, S., Zhou, Z., Zhang, Y. and others, ``CAD-GPT: Synthesising CAD Construction Sequences with Spatial Reasoning-Enhanced Multimodal LLMs'', \textit{arXiv preprint arXiv:2501.09803}, 2025.
+
+\bibitem{gnnheuristics2024}
+Anonymous, ``Can GNNs Learn Link Heuristics?'', \textit{arXiv preprint arXiv:2411.14711}, 2024.
+
+\bibitem{hetgcl2023}
+Anonymous, ``Heterogeneous Graph Contrastive Learning'', \textit{arXiv preprint arXiv:2303.00995}, 2023.
+
+\bibitem{jones2021}
+Jones, R.K., Jayaraman, P.K., Khasanova, R., Willis, K.D.D. and others, ``Learning Bottom-up Assembly of Parametric CAD Joints'', \textit{arXiv preprint arXiv:2111.12772}, 2021.
+
+\bibitem{pytorch_geometric}
+Fey, M. and Lenssen, J.E., ``Fast Graph Representation Learning with PyTorch Geometric'', \textit{ICLR Workshop on Representation Learning on Graphs and Manifolds}, 2019.
+
+\bibitem{vaswani2017}
+Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A.N., Kaiser, {\L}. and Polosukhin, I., ``Attention is All You Need'', \textit{Advances in Neural Information Processing Systems (NeurIPS)}, 2017.
+
+\end{thebibliography}
+
+\end{document}

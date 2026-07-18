@@ -229,6 +229,8 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
 .ll  { width:18px; height:3px; border-radius:2px; flex-shrink:0; }
 .llb { width:13px; height:13px; border-radius:3px; flex-shrink:0; }
 .cwrap canvas { flex:1; display:block; min-height:0; width:100%; }
+.placeholder-card { border-style:dashed !important; opacity:0.88; }
+.placeholder-card li { color:#5a7898; font-style:italic; }
 </style>
 </head>
 <body>
@@ -254,59 +256,59 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
         <span>M.Tech Data Science &amp; AI, Sem 4</span>
         <span>PES University, Electronic City, Bengaluru</span>
       </div>
-      <div style="margin-top:16px;width:100%;max-width:860px;">
+      <div style="margin-top:16px;width:100%;max-width:900px;">
         <div style="font-size:13px;font-weight:700;color:#4f8ef7;margin-bottom:8px;letter-spacing:0.5px;">AGENDA</div>
         <div class="agenda-grid">
           <a class="agenda-item" onclick="go(2)">
             <div class="agenda-num">1</div>
-            <div class="agenda-label">Title &amp; Abstract</div>
+            <div class="agenda-label">Problem Statement</div>
           </a>
           <a class="agenda-item" onclick="go(3)">
-            <div class="agenda-num" style="background:linear-gradient(135deg,#0d5e7a,#0ea5e9);">2</div>
-            <div class="agenda-label">Use Case Diagram</div>
+            <div class="agenda-num">2</div>
+            <div class="agenda-label">Abstract &amp; Scope</div>
           </a>
           <a class="agenda-item" onclick="go(4)">
-            <div class="agenda-num">3</div>
-            <div class="agenda-label">Overall Design</div>
+            <div class="agenda-num" style="background:linear-gradient(135deg,#0d5e7a,#0ea5e9);">3</div>
+            <div class="agenda-label">Literature Survey</div>
           </a>
           <a class="agenda-item" onclick="go(5)">
-            <div class="agenda-num" style="background:linear-gradient(135deg,#065f46,#10b981);">4</div>
-            <div class="agenda-label">EDA</div>
+            <div class="agenda-num" style="background:linear-gradient(135deg,#92400e,#f59e0b);">4</div>
+            <div class="agenda-label">Suggestions from 3 Reviews</div>
           </a>
           <a class="agenda-item" onclick="go(6)">
-            <div class="agenda-num" style="background:linear-gradient(135deg,#065f46,#10b981);">5</div>
-            <div class="agenda-label">Deep Insights</div>
-          </a>
-          <a class="agenda-item" onclick="go(7)">
-            <div class="agenda-num">6</div>
-            <div class="agenda-label">Experimental Results</div>
+            <div class="agenda-num">5</div>
+            <div class="agenda-label">Design Approach</div>
           </a>
           <a class="agenda-item" onclick="go(8)">
-            <div class="agenda-num" style="background:linear-gradient(135deg,#0d5e7a,#0ea5e9);">7</div>
-            <div class="agenda-label">Training History Visual</div>
+            <div class="agenda-num" style="background:linear-gradient(135deg,#374151,#6b7280);">6</div>
+            <div class="agenda-label">Design Constraints, Assumptions &amp; Dependencies</div>
           </a>
           <a class="agenda-item" onclick="go(9)">
-            <div class="agenda-num" style="background:linear-gradient(135deg,#0d5e7a,#0ea5e9);">8</div>
-            <div class="agenda-label">R22 Training Curves</div>
+            <div class="agenda-num" style="background:linear-gradient(135deg,#0d5e7a,#0ea5e9);">7</div>
+            <div class="agenda-label">Proposed Methodology</div>
           </a>
           <a class="agenda-item" onclick="go(10)">
-            <div class="agenda-num">9</div>
-            <div class="agenda-label">Performance Evaluation</div>
+            <div class="agenda-num" style="background:linear-gradient(135deg,#0d5e7a,#0ea5e9);">8</div>
+            <div class="agenda-label">Architecture</div>
           </a>
           <a class="agenda-item" onclick="go(11)">
-            <div class="agenda-num">10</div>
-            <div class="agenda-label">Model Comparison</div>
+            <div class="agenda-num" style="background:linear-gradient(135deg,#065f46,#10b981);">9</div>
+            <div class="agenda-label">Design Description</div>
           </a>
-          <a class="agenda-item" onclick="go(12)">
-            <div class="agenda-num" style="background:linear-gradient(135deg,#7c3aed,#a855f7);">11</div>
-            <div class="agenda-label">Challenges &amp; Counter Actions</div>
+          <a class="agenda-item" onclick="go(14)">
+            <div class="agenda-num" style="background:linear-gradient(135deg,#7c3aed,#a855f7);">10</div>
+            <div class="agenda-label">Technologies Used</div>
           </a>
-          <a class="agenda-item" onclick="go(13)">
+          <a class="agenda-item" onclick="go(15)">
+            <div class="agenda-num" style="background:linear-gradient(135deg,#9d174d,#f472b6);">11</div>
+            <div class="agenda-label">Project Progress</div>
+          </a>
+          <a class="agenda-item" onclick="go(21)">
             <div class="agenda-num">12</div>
             <div class="agenda-label">References</div>
           </a>
-          <a class="agenda-item" onclick="go(14)">
-            <div class="agenda-num" style="background:linear-gradient(135deg,#166534,#22c55e);">13</div>
+          <a class="agenda-item" onclick="go(22)">
+            <div class="agenda-num" style="background:linear-gradient(135deg,#166534,#22c55e);">+</div>
             <div class="agenda-label">Live Demo &rarr; localhost:8501</div>
           </a>
         </div>
@@ -316,12 +318,64 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
-<!-- SLIDE 2 — TITLE & ABSTRACT                                           -->
+<!-- SLIDE 2 — PROBLEM STATEMENT (WITH VISUAL)                            -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="slide" id="s_problem">
+  <div class="shdr">
+    <div class="snum">1</div>
+    <h2>Problem Statement</h2>
+    <button class="home-btn" onclick="go(1)" title="Back to Agenda">⌂</button>
+  </div>
+  <div class="sbody">
+    <div class="row">
+      <div class="col">
+        <div class="card by" style="flex:none;">
+          <h3 style="color:#eab308;">The Problem</h3>
+          <p>In manufacturing and product design, CAD assemblies routinely comprise dozens to hundreds of interconnected parts. Verifying that an assembly is <strong>complete</strong> — that every mating part, fastener, and joint is present — is currently a <strong>manual, expertise-dependent task</strong>. A single missing bolt, bearing, or bracket can go unnoticed until physical assembly or downstream simulation fails, forcing costly rework.</p>
+        </div>
+        <div class="card br" style="flex:none;">
+          <h3>Why It Matters</h3>
+          <ul>
+            <li>No automated, geometry-driven way exists to flag missing components directly from a 3D CAD file</li>
+            <li>Manual checks do not scale with assembly complexity — reviewer time grows slower than part count</li>
+            <li>Errors surface late, at physical build or simulation stage, when they are most expensive to fix</li>
+            <li>The engineering judgement needed to spot a gap is scarce and inconsistent across reviewers</li>
+          </ul>
+        </div>
+        <div class="card bl" style="flex:1;padding:8px;">
+          <img src="../docs/wheel%20missing.png" alt="GNN-predicted missing wheel component overlay on a bicycle CAD assembly"
+               style="flex:1;min-height:0;width:100%;object-fit:contain;border-radius:6px;background:#060c14;">
+        </div>
+      </div>
+      <div class="col cols">
+        <div class="card bl" style="flex:1;">
+          <h3>Where Detection Breaks Down Today</h3>
+          <div style="display:flex;flex-direction:column;gap:6px;flex:1;justify-content:center;">
+            <div class="flow-box">CAD Assembly Modeled &amp; Parts Mated</div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-box">Manual Visual Review <span style="color:#7a9ab8;font-weight:400;">(slow, expertise-dependent)</span></div>
+            <div class="flow-arrow" style="color:#e08850;">↓</div>
+            <div class="flow-box" style="border-color:#e08850;color:#f0b088;">⚠ Missing Component Goes Undetected</div>
+            <div class="flow-arrow" style="color:#ef4444;">↓</div>
+            <div class="flow-box" style="border-color:#ef4444;color:#fca5a5;">✕ Build / Simulation Failure &amp; Rework</div>
+          </div>
+        </div>
+        <div class="card bg" style="flex:none;">
+          <h3>This Project's Goal</h3>
+          <p>Replace the manual review step with an <strong>automated GNN-based detector</strong> that flags missing components directly from the uploaded STEP file — before build or simulation.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 3 — ABSTRACT & SCOPE                                           -->
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <div class="slide" id="s2">
   <div class="shdr">
-    <div class="snum">1</div>
-    <h2>Title &amp; Abstract</h2>
+    <div class="snum">2</div>
+    <h2>Abstract &amp; Scope</h2>
     <button class="home-btn" onclick="go(1)" title="Back to Agenda">⌂</button>
   </div>
   <div class="sbody">
@@ -333,36 +387,49 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
             AI-Assisted 3D Assembly Design: Predicting Missing Components in CAD Assemblies using Graph Neural Networks
           </p>
         </div>
-        <div class="card by" style="flex:none;padding:10px 18px;">
-          <h3 style="color:#eab308;">Business Problem</h3>
-          <p>In manufacturing and product design, engineers must manually verify that CAD assemblies contain all required components — a process that is <strong>time-consuming, expertise-dependent, and error-prone</strong>. A missing bolt, bearing, or joint can halt production. This project builds an AI system that <strong>automatically detects missing components</strong> from a partial 3D assembly upload and explains what should be added and where.</p>
-        </div>
         <div class="card bg" style="flex:1;">
           <h3>Abstract</h3>
           <p>A <strong>Graph Attention Network (GAT)</strong> is trained on assembly graphs to detect missing components via link prediction. A <strong>Gemini-powered AIDA agent</strong> explains predictions in engineering language. An <strong>Assembly Completeness Model</strong> learns per-category distributions. An <strong>Octree open-surface detector</strong> (Borah &amp; Borah 2020) highlights unmated joints on the 3D mesh. Implemented entirely in Python using PyTorch Geometric — <strong>no proprietary CAD API dependency</strong>.</p>
         </div>
-      </div>
-      <div class="col cols">
         <div class="card bp">
           <h3>Key Contributions</h3>
           <ul>
             <li><strong>GNN-based link prediction</strong> for missing component detection in 3D assemblies</li>
             <li><strong>22-dim node + 6-dim edge features</strong> — geometry-driven SDF, affine-invariant shape descriptors, hole counts, joint types</li>
             <li><strong>Assembly Completeness Model</strong> — template-based gap analysis per assembly category</li>
-            <li><strong>Octree open surface detection</strong> — spatial localisation of unmated joints</li>
             <li><strong>AIDA</strong> — Gemini AI agent for engineering-language explanations</li>
-            <li><strong>End-to-end Streamlit app</strong> — interactive 3D viewer with dual-panel analysis</li>
           </ul>
         </div>
-        <div class="card bo">
+      </div>
+      <div class="col cols">
+        <div class="card by" style="flex:1;">
+          <h3 style="color:#eab308;">Scope — In Scope (Phase 1, May 10 – Jul 10, 2026)</h3>
+          <ul>
+            <li>Missing-component detection via GAT link prediction</li>
+            <li>AssemblyTemplateDB per-category gap analysis</li>
+            <li>Octree open-surface detection (unmated joints)</li>
+            <li>AIDA Skills AI — Gemini-based engineering explanations</li>
+            <li>End-to-end Streamlit deployment with 3D viewer</li>
+            <li>28 documented training runs (R1–R28)</li>
+          </ul>
+        </div>
+        <div class="card bt" style="flex:1;">
+          <h3>Scope — Deferred to Phase 2 (Jul 10 – Sep 10, 2026)</h3>
+          <ul>
+            <li>NodeRanker next-component ranking model</li>
+            <li>Heterogeneous GNN + BPR loss</li>
+            <li>GNNExplainer-based interpretability</li>
+            <li>Hit@K / MRR / NDCG@K evaluation metrics</li>
+            <li>Category-specific model heads</li>
+          </ul>
+        </div>
+        <div class="card bo" style="flex:none;">
           <h3>Project Details</h3>
           <table>
             <tr><td><strong>Student</strong></td><td>Parthasarathy Perumal</td></tr>
             <tr><td><strong>Guide</strong></td><td>Prof. Sagarika Borah</td></tr>
             <tr><td><strong>Programme</strong></td><td>M.Tech DS &amp; AI, Sem 4</td></tr>
             <tr><td><strong>University</strong></td><td>PES University, Bengaluru</td></tr>
-            <tr><td><strong>Phase 1</strong></td><td>May 10 – Jul 10, 2026</td></tr>
-            <tr><td><strong>Phase 2</strong></td><td>Jul 10 – Sep 10, 2026</td></tr>
           </table>
         </div>
       </div>
@@ -371,21 +438,281 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
-<!-- SLIDE 3 — OVERALL DESIGN                                             -->
+<!-- SLIDE 4 — LITERATURE SURVEY                                          -->
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
-<div class="slide" id="s3">
+<div class="slide" id="s_litsurvey">
   <div class="shdr">
-    <div class="snum">3</div>
-    <h2>Overall Design</h2>
+    <div class="snum" style="border-color:#0ea5e9;color:#0ea5e9;">3</div>
+    <h2>Literature Survey</h2>
+    <button class="home-btn" onclick="go(1)" title="Back to Agenda">⌂</button>
+  </div>
+  <div class="sbody">
+    <div class="row">
+      <div class="col">
+        <div class="card bl" style="flex:1;">
+          <h3>Foundational GNN Architectures</h3>
+          <ul>
+            <li><strong>Kipf &amp; Welling (2017)</strong> — GCN: first-order spectral graph convolutions enabling scalable semi-supervised node classification; the message-passing formulation this project's GAT layers build upon.</li>
+            <li><strong>Veličković et al. (2018)</strong> — GAT: attention-weighted neighbour aggregation, so nodes learn which neighbours matter most; adopted directly as the backbone (3-layer GAT, heads [8,4,1]) for assembly-graph encoding.</li>
+            <li><strong>Hamilton et al. (2017)</strong> — GraphSAGE: inductive neighbour-sampling aggregation for graphs unseen at training time; informed the choice of an inductive (not transductive) architecture so new assemblies can be scored at inference.</li>
+            <li><strong>Ying et al. (2019)</strong> — GNNExplainer: post-hoc explainability via subgraph/feature masks; earmarked for Phase 2 to make "why is this missing" explanations more rigorous than the current LLM narrative.</li>
+          </ul>
+        </div>
+        <div class="card bp" style="flex:1;">
+          <h3>Domain-Adapted Technique</h3>
+          <ul>
+            <li><strong>Borah S. &amp; Borah B. (2020)</strong> — Prediction Error Expansion (PEE)-based reversible polygon-mesh watermarking with Octree spatial partitioning for regional tamper localisation. <span class="badge badge-purple">Octree concept adapted</span> — the guide's own prior work; its octree partitioning idea underlies this project's open-surface / unmated-joint detector on the 3D mesh.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card bg" style="flex:1;">
+          <h3>CAD Datasets &amp; Structure</h3>
+          <ul>
+            <li><strong>Koch et al. (2019)</strong> — ABC Dataset: a large-scale CAD B-Rep model corpus for geometric deep learning benchmarks; referenced when scoping dataset size/quality tradeoffs.</li>
+            <li><strong>Mo et al. (2019)</strong> — PartNet: hierarchical part-level 3D object segmentation benchmark; informed the part/body-level node granularity decision (nodes = solid bodies, not whole assemblies).</li>
+            <li><strong>Willis et al. (2021)</strong> — Fusion 360 Gallery: an assembly dataset with mates/joints metadata and programmatic construction sequences; the <strong>primary training data source</strong> for this project (curated Best_models_for_training corpus, R14–R28).</li>
+          </ul>
+        </div>
+        <div class="card bo" style="flex:1;">
+          <h3>Recent CAD Generative / Reasoning AI <span style="font-size:11px;color:#5a7898;font-weight:400;">(context)</span></h3>
+          <ul>
+            <li><strong>Du et al. (2024)</strong> — BrepGen: diffusion-based B-Rep generation; a generative alternative to the discriminative link-prediction framing used here.</li>
+            <li><strong>Jayaraman et al. (2024)</strong> — SolidGen: autoregressive direct B-Rep synthesis; a relevant future direction for Phase 2's "suggest next component" (not just detect missing).</li>
+            <li><strong>Wang et al. (2025)</strong> — CAD-GPT: multimodal LLM CAD-sequence reasoning; parallels this project's AIDA/Gemini agent for natural-language engineering explanations.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 5 — SUGGESTIONS FROM REVIEW-3 (PLACEHOLDER)                    -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="slide" id="s_review3">
+  <div class="shdr">
+    <div class="snum" style="border-color:#f59e0b;color:#f59e0b;">4</div>
+    <h2>Suggestions from 3 Reviews</h2>
+    <button class="home-btn" onclick="go(1)" title="Back to Agenda">⌂</button>
+  </div>
+  <div class="sbody">
+    <div class="row">
+      <div class="col">
+        <div class="card by" style="flex:1;">
+          <h3 style="color:#eab308;">Panel Feedback</h3>
+          <ul>
+            <li><strong>1.</strong> Investigate CGAL as a potential geometry-processing library for the pipeline</li>
+            <li><strong>2.</strong> Review the Octree spatial-partitioning approach for suitability</li>
+            <li><strong>3.</strong> Train on a more diverse set of assembly models</li>
+            <li><strong>4.</strong> Introduce 5-fold cross-validation to improve AUC and AP scores</li>
+            <li><strong>5.</strong> Increase the number of edges in the training graphs for richer learning signal</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card bt" style="flex:1;">
+          <h3>Actions Taken</h3>
+          <ul>
+            <li><strong>1. CGAL:</strong> Studied CGAL as suggested. Before this, the pipeline was <strong>gmsh + OpenCASCADE only</strong> (13-dim node / 2-dim edge features — bounding-box surface-area approximation, no shape descriptors). Rather than add CGAL's heavier C++ dependency, its <strong>Shape Diameter Function (SDF)</strong> concept was replicated via <strong>trimesh</strong> (pure-Python, pip-installable) — adding exact surface area and SDF mean/variance as new node dimensions (R6 → R8, 13-dim → 16-dim). This directly improved link prediction quality and set up the feature-dimension growth (16 → 18 → 22-dim) that carried through to R15's peak AUC of 0.726.</li>
+            <li><strong>2. Octree:</strong> Reviewed the Octree spatial-partitioning approach (adapted from the guide's own Borah &amp; Borah 2020 paper) and confirmed its suitability — implemented in <code>back_end/surface_analyzer.py</code>'s <code>OctreeNode</code> as the production open-surface / unmated-joint detector.</li>
+            <li><strong>3. Diverse models:</strong> Expanded to 38 diversified categories (R20, 444 graphs) — diversity increased but AUC/AP dropped due to domain heterogeneity. Separately evaluated the large-scale AutoMate CAD dataset (255K assemblies) as a further diversification source; the conversion prototype worked technically but was not adopted after a data-quality review. Net finding: category-focused corpora (R22, R25–R28) generalise better — diversification continues cautiously, with category-specific model heads planned for Phase 2.</li>
+            <li><strong>4. 5-fold CV:</strong> Implemented from R12 onward in <code>back_end/train.py</code>'s <code>get_splits()</code> — every run since (R14–R28) reports mean ± std AUC/AP across 5 folds with a best-fold <code>best_serving.pt</code> promotion gate, directly improving reported AUC/AP reliability over a single train/test split.</li>
+            <li><strong>5. More edges:</strong> Ran progressively higher edge-density category slices — R26 (Medium Nodes/Edges) → R27 (High Nodes/Edges) → R28 (Very High Nodes/Edges, 695 graphs) — confirming mean AUC improves with edge density/complexity (0.416 → 0.531 → 0.546). R28 is the current serving model and specifically maximises edge count within the curated corpus.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 6 — DESIGN APPROACH                                            -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="slide" id="s_design_approach">
+  <div class="shdr">
+    <div class="snum">5</div>
+    <h2>Design Approach</h2>
+    <button class="home-btn" onclick="go(1)" title="Back to Agenda">⌂</button>
+  </div>
+  <div class="sbody">
+    <div class="row">
+      <div class="col">
+        <div class="card bl" style="flex:1;">
+          <h3>Why Graph Neural Networks?</h3>
+          <p>CAD assemblies are naturally graph-structured — solid bodies are <strong>nodes</strong>, mates/contacts are <strong>edges</strong>. GNNs model this relational structure directly, unlike CNN or point-cloud methods that discard part-level topology when they voxelise or sample the geometry.</p>
+        </div>
+        <div class="card bg" style="flex:1;">
+          <h3>Why Link Prediction Framing?</h3>
+          <p>Missing-component detection is posed as <strong>edge link prediction</strong>: mask a subset of true mate edges during training, train the model to recover them; at inference, low-confidence or absent expected edges flag incompleteness. This reuses well-studied GNN link-prediction machinery (AUC-ROC, AP) instead of inventing a bespoke "completeness score".</p>
+        </div>
+        <div class="card bp" style="flex:1;">
+          <h3>Why Attention (GAT) over Plain Convolution (GCN)?</h3>
+          <p>Assemblies mix load-bearing structural mates with loose freeform contacts of very different relational importance. Attention lets each node weigh its neighbours instead of averaging uniformly — chosen after this project's own convolution-vs-attention comparisons across 28 training runs.</p>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card bo" style="flex:1;">
+          <h3>Alternatives Considered</h3>
+          <table style="font-size:12.5px;">
+            <thead><tr><th>Alternative</th><th>Why Not Chosen</th></tr></thead>
+            <tbody>
+              <tr><td>CNN on voxelised assembly</td><td>Discards part-level topology; poor scaling with assembly size</td></tr>
+              <tr><td>Point-cloud (PointNet++)</td><td>Loses discrete part/mate structure; hard to attribute a prediction to one missing part</td></tr>
+              <tr><td>Rule-based template matching only</td><td>Brittle across categories; can't generalise to unseen assemblies — kept as AssemblyTemplateDB, but as a complementary module, not the core detector</td></tr>
+              <tr><td>Plain GCN (uniform averaging)</td><td>Underweights structurally important mates vs incidental contacts — GAT outperformed in early ablations</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card bt" style="flex:1;">
+          <h3>Design Principles Followed</h3>
+          <ul>
+            <li><strong>No proprietary CAD API</strong> — open-source gmsh/OpenCASCADE + trimesh pipeline only</li>
+            <li><strong>Inductive, not transductive</strong> — model must score assemblies never seen during training</li>
+            <li><strong>Explainable by design</strong> — predictions paired with an AIDA natural-language rationale, not a bare score</li>
+            <li><strong>Serving safety gate</strong> — a new run only replaces the production checkpoint if it beats the incumbent on held-out AUC</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 7 — USE CASE DIAGRAM  (sub-slide of Design Approach)           -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="slide" id="s12">
+  <div class="shdr">
+    <div class="snum">5</div>
+    <h2>Design Approach — Use Case Diagram</h2>
+    <button class="home-btn" onclick="go(1)" title="Back to Agenda">⌂</button>
+  </div>
+  <div class="sbody" style="padding:10px;align-items:center;justify-content:center;">
+    <img src="../docs/use_case_diagram.png" alt="Use Case Diagram"
+         style="max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;">
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 8 — DESIGN CONSTRAINTS, ASSUMPTIONS & DEPENDENCIES             -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="slide" id="s_constraints">
+  <div class="shdr">
+    <div class="snum" style="border-color:#6b7280;color:#9ca3af;">6</div>
+    <h2>Design Constraints, Assumptions &amp; Dependencies</h2>
+    <button class="home-btn" onclick="go(1)" title="Back to Agenda">⌂</button>
+  </div>
+  <div class="sbody">
+    <div class="row">
+      <div class="col">
+        <div class="card br" style="flex:1;">
+          <h3>Constraints</h3>
+          <ul>
+            <li><strong>Compute:</strong> single Apple Silicon machine, MPS backend only — no multi-GPU cluster; R28 took ~23h wall-clock</li>
+            <li><strong>Parse timeout:</strong> 120s per STEP file (gmsh/OpenCASCADE) — complex/degenerate geometries are skipped, not repaired</li>
+            <li><strong>Data licensing:</strong> only CC0/public datasets usable (Fusion 360 Gallery); proprietary CAD APIs (Fusion cloud, SolidWorks) out of reach</li>
+            <li><strong>AUC target (&ge; 0.85) not yet met</strong> within the Phase 1 timeline — best achieved is 0.726 (R15)</li>
+          </ul>
+        </div>
+        <div class="card by" style="flex:1;">
+          <h3 style="color:#eab308;">Assumptions</h3>
+          <ul>
+            <li>Physical contact between two solid bodies (shared boundary surface) is a reliable proxy for a design "mate" — the original parametric mate definitions are unavailable for most source files</li>
+            <li>Assembly category labels in the curated corpus are accurate ground truth for category-focused training splits</li>
+            <li>A held-out edge in the link-prediction formulation adequately stands in for a "missing component" — an approximation, not identical to physically removing a whole part</li>
+            <li>Users upload individual STEP files representing single assemblies, not multi-assembly product structures</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card bt" style="flex:1;">
+          <h3>Dependencies</h3>
+          <ul>
+            <li><strong>Open-source stack:</strong> PyTorch Geometric, gmsh, trimesh, Streamlit, FastAPI</li>
+            <li><strong>External API:</strong> Google Gemini (AIDA agent) — requires network access and an API key; a hard runtime dependency for the explanation feature</li>
+            <li><strong>Guide's prior research:</strong> Borah &amp; Borah (2020) octree/PEE watermarking paper — conceptual basis for the open-surface detector</li>
+            <li><strong>Public dataset:</strong> Willis et al. Fusion 360 Gallery Assembly Dataset — primary training corpus</li>
+          </ul>
+        </div>
+        <div class="card bp" style="flex:none;">
+          <h3>Risk if a Dependency Fails</h3>
+          <table style="font-size:12.5px;">
+            <tr><td>Gemini API unreachable</td><td>AIDA explanation panel degrades to raw scores only</td></tr>
+            <tr><td>gmsh/OCC parse failure</td><td>Assembly skipped from training corpus (already observed: 61/300 in R14–R22 curation)</td></tr>
+            <tr><td>MPS backend instability</td><td>Falls back to CPU training — slower, not incorrect</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 9 — PROPOSED METHODOLOGY / APPROACH                           -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="slide" id="s_methodology">
+  <div class="shdr">
+    <div class="snum" style="border-color:#0ea5e9;color:#0ea5e9;">7</div>
+    <h2>Proposed Methodology</h2>
     <button class="home-btn" onclick="go(1)" title="Back to Agenda">⌂</button>
   </div>
   <div class="sbody">
     <div class="row">
       <div class="col coll">
-        <div class="card bl" style="flex:1;padding:10px 12px;">
-          <h3 style="flex-shrink:0;">System Architecture</h3>
-          <img src="../docs/system_architecture.png" alt="System Architecture Diagram"
-               style="flex:1;min-height:0;width:100%;object-fit:contain;border-radius:6px;background:#060c14;">
+        <div class="card bl" style="flex:1;">
+          <h3>End-to-End Pipeline</h3>
+          <div style="display:flex;flex-direction:column;gap:5px;flex:1;justify-content:center;">
+            <div class="flow-box">1 · STEP file input</div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-box">2 · gmsh (OpenCASCADE) parses solids &amp; boundaries</div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-box">3 · trimesh + SDF ray-casting → geometric descriptors</div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-box">4 · Construct PyG assembly graph (22-dim nodes, 6-dim edges)</div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-box">5 · AssemblyGNN (3-layer GAT) → node embeddings</div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-box">6 · LinkPredictor MLP → edge scores</div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-box" style="border-color:#4caf82;color:#a8e0b8;">7 · Rank missing components · AIDA explains · Octree flags open surfaces</div>
+          </div>
+        </div>
+        <div class="card bt" style="flex:none;padding:8px 16px;">
+          <h3 style="font-size:13px;">Training Data Samples <span style="font-size:10.5px;color:#5a7898;font-weight:400;">(Fusion360 Gallery, by trained category)</span></h3>
+          <div style="display:flex;gap:18px;align-items:flex-end;flex-wrap:wrap;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+              <div style="display:flex;gap:3px;">
+                <img src="../docs/training_thumbnails/machine_design_1_80096_63969088.png" alt="Machine Design sample 1" style="width:50px;height:50px;object-fit:cover;border-radius:5px;background:#fff;">
+                <img src="../docs/training_thumbnails/machine_design_2_22534_e899f645.png" alt="Machine Design sample 2" style="width:50px;height:50px;object-fit:cover;border-radius:5px;background:#fff;">
+                <img src="../docs/training_thumbnails/machine_design_3_21601_360ce1c7.png" alt="Machine Design sample 3" style="width:50px;height:50px;object-fit:cover;border-radius:5px;background:#fff;">
+              </div>
+              <div style="font-size:10.5px;color:#8ab4f8;font-weight:600;">Machine Design</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+              <div style="display:flex;gap:3px;">
+                <img src="../docs/training_thumbnails/mechanical_engineering_1_100797_b7eaa569.png" alt="Mechanical Engineering sample 1" style="width:50px;height:50px;object-fit:cover;border-radius:5px;background:#fff;">
+                <img src="../docs/training_thumbnails/mechanical_engineering_2_146889_355637a1.png" alt="Mechanical Engineering sample 2" style="width:50px;height:50px;object-fit:cover;border-radius:5px;background:#fff;">
+                <img src="../docs/training_thumbnails/mechanical_engineering_3_31458_dd80eda7.png" alt="Mechanical Engineering sample 3" style="width:50px;height:50px;object-fit:cover;border-radius:5px;background:#fff;">
+              </div>
+              <div style="font-size:10.5px;color:#8ab4f8;font-weight:600;">Mechanical Engineering</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+              <div style="display:flex;gap:3px;">
+                <img src="../docs/training_thumbnails/tools_1_20505_017d4cc4.png" alt="Tools sample 1" style="width:50px;height:50px;object-fit:cover;border-radius:5px;background:#fff;">
+                <img src="../docs/training_thumbnails/tools_2_22126_e1cca10f.png" alt="Tools sample 2" style="width:50px;height:50px;object-fit:cover;border-radius:5px;background:#fff;">
+                <img src="../docs/training_thumbnails/tools_3_22654_4c426b0f.png" alt="Tools sample 3" style="width:50px;height:50px;object-fit:cover;border-radius:5px;background:#fff;">
+              </div>
+              <div style="font-size:10.5px;color:#8ab4f8;font-weight:600;">Tools</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+              <div style="display:flex;gap:3px;">
+                <img src="../docs/training_thumbnails/automotive_1_127545_6fa39158.png" alt="Automotive sample 1" style="width:50px;height:50px;object-fit:cover;border-radius:5px;background:#fff;">
+                <img src="../docs/training_thumbnails/automotive_2_79241_14f7881c.png" alt="Automotive sample 2" style="width:50px;height:50px;object-fit:cover;border-radius:5px;background:#fff;">
+                <img src="../docs/training_thumbnails/automotive_3_20319_9f53cd7c.png" alt="Automotive sample 3" style="width:50px;height:50px;object-fit:cover;border-radius:5px;background:#fff;">
+              </div>
+              <div style="font-size:10.5px;color:#8ab4f8;font-weight:600;">Automotive</div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="col cols">
@@ -400,26 +727,31 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
           </table>
         </div>
         <div class="card bp">
-          <h3>Dataset</h3>
+          <h3>Dataset — Current Serving Corpus <span class="badge badge-green" style="margin-left:4px;">R28</span></h3>
           <table>
-            <tr><td><strong>Curated corpus (R22)</strong></td><td class="num">300 → 239 valid</td></tr>
-            <tr><td><strong>Fusion360 Gallery</strong></td><td class="num">300 (curated from 1,336)</td></tr>
-            <tr><td><strong>Skipped at parse</strong></td><td class="num">61 (19 timeouts + 42 errors)</td></tr>
-            <tr><td><strong>Avg nodes/graph</strong></td><td class="num">31.9</td></tr>
-            <tr><td><strong>Avg edges/graph</strong></td><td class="num">81.8</td></tr>
-            <tr><td><strong>Train/Val/Test</strong></td><td>70 / 15 / 15</td></tr>
+            <tr><td><strong>Category</strong></td><td>Mechanical_Engineering_Very_High_Nodes_Very_High_Edges</td></tr>
+            <tr><td><strong>Source</strong></td><td>Best_models_for_training (Fusion360 Gallery, curated)</td></tr>
+            <tr><td><strong>STEP scanned → valid graphs</strong></td><td class="num">1,000 → 695</td></tr>
+            <tr><td><strong>Skipped at parse</strong></td><td class="num">305 (timeout / geometry errors)</td></tr>
+            <tr><td><strong>Avg nodes/graph</strong></td><td class="num">56.8 <span style="color:#5a7898;">(2–324 range)</span></td></tr>
+            <tr><td><strong>Avg edges/graph</strong></td><td class="num">76.0</td></tr>
+            <tr><td><strong>Train/Val/Test</strong></td><td>70 / 15 / 15 · 5-fold CV</td></tr>
           </table>
         </div>
         <div class="card bo">
-          <h3>Technology Stack</h3>
-          <ul>
-            <li><strong>CAD Parsing:</strong> gmsh + OpenCASCADE</li>
-            <li><strong>Geometry:</strong> trimesh (exact SA, SDF ray-casting)</li>
-            <li><strong>Graph ML:</strong> PyTorch Geometric · GAT</li>
-            <li><strong>AI Agent:</strong> Google Gemini (AIDA)</li>
-            <li><strong>Front-end:</strong> Streamlit · Plotly Mesh3d</li>
-            <li><strong>Open Surfaces:</strong> Octree (Borah &amp; Borah 2020)</li>
-          </ul>
+          <h3>Corpus Evolution — R1 → R28</h3>
+          <table style="font-size:12px;">
+            <thead><tr><th>Run</th><th>Graphs</th><th>Milestone</th></tr></thead>
+            <tbody>
+              <tr><td>R6</td><td class="num">25</td><td>First honest real-STEP baseline (synthetic data dropped)</td></tr>
+              <tr><td>R10</td><td class="num">780</td><td>+Fusion360 Gallery — first large external corpus</td></tr>
+              <tr><td>R17</td><td class="num">1,760</td><td>Peak scale — dedup + pre-filter across categories</td></tr>
+              <tr><td>R18</td><td class="num">995</td><td>22+6-dim schema on a zero-parse-failure curated set</td></tr>
+              <tr style="background:rgba(20,184,166,0.12);"><td>R22 ◈</td><td class="num">239</td><td>3-category focus — best Val≈Test parity (Δ=0.001)</td></tr>
+              <tr style="background:rgba(163,230,53,0.18);"><td><strong>R28</strong></td><td class="num"><strong>695</strong></td><td><strong>Current serving — single very-high-complexity category</strong></td></tr>
+            </tbody>
+          </table>
+          <p style="font-size:11.5px;color:#5a7898;margin-top:3px;">Full 28-run history in Project Progress → Experimental Results / Model Comparison.</p>
         </div>
       </div>
     </div>
@@ -427,19 +759,128 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
-<!-- SLIDE 4 — EXPERIMENTAL RESULTS                                       -->
+<!-- SLIDE 10 — ARCHITECTURE                                              -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="slide" id="s3">
+  <div class="shdr">
+    <div class="snum" style="border-color:#0ea5e9;color:#0ea5e9;">8</div>
+    <h2>Architecture</h2>
+    <button class="home-btn" onclick="go(1)" title="Back to Agenda">⌂</button>
+  </div>
+  <div class="sbody">
+    <div class="card bl" style="flex:1;padding:10px 12px;">
+      <h3 style="flex-shrink:0;">System Architecture</h3>
+      <img src="../docs/system_architecture.png" alt="System Architecture Diagram"
+           style="flex:1;min-height:0;width:100%;object-fit:contain;border-radius:6px;background:#060c14;">
+      <p style="flex-shrink:0;font-size:12px;color:#5a7898;">Two parallel modules run alongside the GNN rather than sequentially after it: <strong>AssemblyTemplateDB</strong> (per-category gap analysis, works on single-body uploads) and <strong>OctreeNode</strong> (free-surface clustering for open-joint localisation).</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 11 — DESIGN DESCRIPTION                                        -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="slide" id="s_design_desc">
+  <div class="shdr">
+    <div class="snum" style="border-color:#10b981;color:#10b981;">9</div>
+    <h2>Design Description</h2>
+    <button class="home-btn" onclick="go(1)" title="Back to Agenda">⌂</button>
+  </div>
+  <div class="sbody">
+    <div class="card bg" style="flex:1;">
+      <h3>Module-Level Breakdown</h3>
+      <table style="font-size:13px;">
+        <thead><tr><th>File</th><th>Responsibility</th></tr></thead>
+        <tbody>
+          <tr><td><strong>back_end/dataset.py</strong></td><td>STEP parser (gmsh+OCC+trimesh+SDF); builds 22-dim node / 6-dim edge features; quality filters; PyG <code>AssemblyDataset</code></td></tr>
+          <tr><td><strong>back_end/model.py</strong></td><td><code>AssemblyGNN</code> (3-layer GAT), <code>LinkPredictor</code> (MLP), <code>NodeRanker</code> (Phase 2, unused yet)</td></tr>
+          <tr><td><strong>back_end/train.py</strong></td><td>5-fold CV training loop, early stopping, <code>best_serving.pt</code> promotion gate, builds template DB</td></tr>
+          <tr><td><strong>back_end/evaluate.py</strong></td><td>AUC-ROC, Average Precision (Phase 1); Hit@K/MRR/NDCG@K reserved for Phase 2</td></tr>
+          <tr><td><strong>back_end/infer.py</strong></td><td>CLI inference — top-K missing components for a given assembly</td></tr>
+          <tr><td><strong>back_end/assembly_templates.py</strong></td><td><code>AssemblyTemplateDB</code> — per-category component-type templates, gap analysis</td></tr>
+          <tr><td><strong>back_end/surface_analyzer.py</strong></td><td><code>OctreeNode</code> + open-surface detection for unmated joints</td></tr>
+          <tr><td><strong>back_end/api.py</strong></td><td>FastAPI endpoints — <code>/predict/missing</code>, <code>/explain</code>, <code>/identify</code>, <code>/health</code></td></tr>
+          <tr><td><strong>back_end/skills_agent.py</strong></td><td>Gemini AI orchestrator (AIDA) — 6 domain skills</td></tr>
+          <tr><td><strong>front_end/app.py</strong></td><td>Streamlit — 3D viewer (Plotly) + dual-panel analysis UI + training monitor</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE EDA 1 — EDA DASHBOARD  (sub-slide of Design Description)       -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="slide" id="s_eda1">
+  <div class="shdr">
+    <div class="snum" style="border-color:#10b981;color:#10b981;">9</div>
+    <h2>Design Description — EDA</h2>
+    <button class="home-btn" onclick="go(1)" title="Back to Agenda">⌂</button>
+  </div>
+  <div class="sbody" style="padding:8px;align-items:center;justify-content:center;">
+    <img src="../docs/eda_dashboard.png" alt="EDA Dashboard — 2,271 assemblies · 16,829 body parts"
+         style="max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;">
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE EDA 2 — DEEP INSIGHTS  (sub-slide of Design Description)       -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="slide" id="s_eda2">
+  <div class="shdr">
+    <div class="snum" style="border-color:#10b981;color:#10b981;">9</div>
+    <h2>Design Description — Deep Insights</h2>
+    <button class="home-btn" onclick="go(1)" title="Back to Agenda">⌂</button>
+  </div>
+  <div class="sbody" style="padding:8px;align-items:center;justify-content:center;">
+    <img src="../docs/eda_insights_deep.png" alt="EDA Deep Insights — cross-category analysis"
+         style="max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;">
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 12 — TECHNOLOGIES USED                                         -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="slide" id="s_tech">
+  <div class="shdr">
+    <div class="snum" style="border-color:#a855f7;color:#c084fc;">10</div>
+    <h2>Technologies Used</h2>
+    <button class="home-btn" onclick="go(1)" title="Back to Agenda">⌂</button>
+  </div>
+  <div class="sbody">
+    <div class="card bp" style="flex:1;">
+      <h3>Technology Stack</h3>
+      <table>
+        <thead><tr><th>Category</th><th>Technology</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td>CAD Parsing</td><td>gmsh + OpenCASCADE</td><td>Solid/topology extraction from STEP files</td></tr>
+          <tr><td>Geometry</td><td>trimesh</td><td>Exact surface area, SDF ray-casting</td></tr>
+          <tr><td>Graph ML</td><td>PyTorch Geometric</td><td>GAT layers, graph batching, link prediction</td></tr>
+          <tr><td>AI Agent</td><td>Google Gemini (gemini-2.0-flash)</td><td>AIDA structured engineering explanations</td></tr>
+          <tr><td>Front-end</td><td>Streamlit + Plotly Mesh3d</td><td>Interactive 3D viewer, dual-panel analysis UI</td></tr>
+          <tr><td>Back-end</td><td>FastAPI</td><td><code>/predict/missing</code>, <code>/explain</code>, <code>/identify</code>, <code>/health</code></td></tr>
+          <tr><td>Open Surfaces</td><td>Custom Octree (Borah &amp; Borah 2020 concept)</td><td>Unmated joint localisation on 3D mesh</td></tr>
+          <tr><td>Language / Env</td><td>Python 3.12, venv, PyTorch 2.12 (MPS)</td><td>Apple Silicon local training &amp; serving</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 13 — PROJECT PROGRESS: EXPERIMENTAL RESULTS                    -->
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <div class="slide" id="s4">
   <div class="shdr">
-    <div class="snum">6</div>
-    <h2>Experimental Results</h2>
+    <div class="snum">11</div>
+    <h2>Project Progress — Experimental Results</h2>
     <button class="home-btn" onclick="go(1)" title="Back to Agenda">⌂</button>
   </div>
   <div class="sbody">
     <div class="row">
       <div class="col coll">
         <div class="card" style="flex:1;min-height:0;">
-          <h3>Training History — 23 Runs</h3>
+          <h3>Training History — 28 Runs</h3>
           <div style="overflow-x:auto;flex:1;min-height:0;">
             <table style="font-size:11.5px;">
               <thead>
@@ -561,12 +1002,12 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
-<!-- SLIDE 5 — TRAINING HISTORY VISUAL                                    -->
+<!-- SLIDE 14 — PROJECT PROGRESS: TRAINING HISTORY VISUAL                 -->
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <div class="slide" id="s5">
   <div class="shdr">
-    <div class="snum" style="border-color:#0ea5e9;color:#0ea5e9;">7</div>
-    <h2>Training History Visual</h2>
+    <div class="snum" style="border-color:#0ea5e9;color:#0ea5e9;">11</div>
+    <h2>Project Progress — Training History Visual</h2>
     <button class="home-btn" onclick="go(1)" title="Back to Agenda">⌂</button>
   </div>
   <div class="sbody" style="padding:12px 20px 10px;">
@@ -580,15 +1021,12 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
-<!-- SLIDE 6 — PERFORMANCE EVALUATION                                     -->
-<!-- ═══════════════════════════════════════════════════════════════════════ -->
-<!-- ═══════════════════════════════════════════════════════════════════════ -->
-<!-- SLIDE 6 — R22 TRAINING CURVES & FOLD ANALYSIS                       -->
+<!-- SLIDE 15 — PROJECT PROGRESS: R22 TRAINING CURVES & FOLD ANALYSIS     -->
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <div class="slide" id="s6">
   <div class="shdr">
-    <div class="snum" style="border-color:#0ea5e9;color:#0ea5e9;">8</div>
-    <h2>R22 — Training Curves &amp; Fold Analysis</h2>
+    <div class="snum" style="border-color:#0ea5e9;color:#0ea5e9;">11</div>
+    <h2>Project Progress — R22 Training Curves &amp; Fold Analysis</h2>
     <span style="font-size:12px;color:#2e5080;flex:1;text-align:right;padding-right:10px;">Best Fold 3 · 80 epochs · Val≈Test Δ=0.001</span>
     <button class="home-btn" onclick="go(1)" title="Back to Agenda">⌂</button>
   </div>
@@ -620,12 +1058,12 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
-<!-- SLIDE 7 — PERFORMANCE EVALUATION                                     -->
+<!-- SLIDE 16 — PROJECT PROGRESS: PERFORMANCE EVALUATION                  -->
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <div class="slide" id="s7">
   <div class="shdr">
-    <div class="snum">9</div>
-    <h2>Performance Evaluation</h2>
+    <div class="snum">11</div>
+    <h2>Project Progress — Performance Evaluation</h2>
     <button class="home-btn" onclick="go(1)" title="Back to Agenda">⌂</button>
   </div>
   <div class="sbody">
@@ -720,12 +1158,12 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
-<!-- SLIDE 7 — MODEL COMPARISON                                           -->
+<!-- SLIDE 17 — PROJECT PROGRESS: MODEL COMPARISON                        -->
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <div class="slide" id="s8">
   <div class="shdr">
-    <div class="snum">10</div>
-    <h2>Model Comparison</h2>
+    <div class="snum">11</div>
+    <h2>Project Progress — Model Comparison</h2>
     <button class="home-btn" onclick="go(1)" title="Back to Agenda">⌂</button>
   </div>
   <div class="sbody">
@@ -828,12 +1266,12 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
-<!-- SLIDE 8 — CHALLENGES & COUNTER ACTIONS                               -->
+<!-- SLIDE 18 — PROJECT PROGRESS: CHALLENGES & COUNTER ACTIONS            -->
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <div class="slide" id="s9">
   <div class="shdr">
     <div class="snum">11</div>
-    <h2>Challenges &amp; Counter Actions</h2>
+    <h2>Project Progress — Challenges &amp; Counter Actions</h2>
     <button class="home-btn" onclick="go(1)" title="Back to Agenda">⌂</button>
   </div>
   <div class="sbody">
@@ -911,14 +1349,14 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
             <div class="ch-icon" style="color:#14b8a6;">💡</div>
             <div class="ch-body">
               <strong>AP Consistently High Despite AUC Gaps</strong>
-              <p>Test AP stayed above 0.68 across all 23 runs and peaked at 0.917 (R15). The model consistently ranks positive edge pairs well — ranking quality is solid even when AUC lags.</p>
+              <p>Test AP stayed above 0.68 across all 28 runs and peaked at 0.917 (R15). The model consistently ranks positive edge pairs well — ranking quality is solid even when AUC lags.</p>
             </div>
           </div>
           <div class="ch-row">
             <div class="ch-icon" style="color:#14b8a6;">💡</div>
             <div class="ch-body">
               <strong>Serving Gate is Essential Infrastructure</strong>
-              <p>best_serving.pt promotion gate (R19) prevented 4 regressions across 25 runs. Without it, production would have been overwritten by R20, R21, R23, or R24 — all below the incumbent.</p>
+              <p>best_serving.pt promotion gate (R19) prevented several regressions across 28 runs. Without it, production would have been overwritten by R20, R21, R23, or R24 — all below the incumbent.</p>
             </div>
           </div>
         </div>
@@ -927,7 +1365,7 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
           <ul style="font-size:12.5px;">
             <li>Category-specific GAT heads to handle domain diversity without mixing</li>
             <li>Larger model capacity (256-dim hidden) for AUC ≥ 0.85 target</li>
-            <li>Automated STEP repair pipeline to reduce the 61 parse failures</li>
+            <li>Automated STEP repair pipeline to reduce parse failures</li>
             <li>Expand to 5+ categories with per-category serving gates</li>
           </ul>
         </div>
@@ -937,7 +1375,7 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
-<!-- SLIDE 9 — REFERENCES                                                 -->
+<!-- SLIDE 19 — REFERENCES                                                -->
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <div class="slide" id="s10">
   <div class="shdr">
@@ -977,26 +1415,17 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
             <li><strong>Wang et al. (2025)</strong> — CAD-GPT: Synthesising CAD Construction Sequences with Spatial Reasoning-Enhanced Multimodal LLMs. <em>arXiv.</em></li>
           </ul>
         </div>
-        <div class="card bt">
-          <h3>Tools &amp; Frameworks</h3>
-          <ul style="font-size:13px;line-height:1.8;">
-            <li><strong>PyTorch Geometric</strong> — Fey &amp; Lenssen (2019). Fast Graph Representation Learning.</li>
-            <li><strong>gmsh</strong> — Geuzaine &amp; Remacle (2009). Open-source 3D finite element mesh generator.</li>
-            <li><strong>trimesh</strong> — Pure-Python mesh processing library.</li>
-            <li><strong>Google Gemini</strong> — Multimodal AI for engineering explanations (AIDA agent).</li>
-          </ul>
-        </div>
       </div>
     </div>
   </div>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
-<!-- SLIDE 10 — DEMO                                                      -->
+<!-- SLIDE 20 — DEMO (BONUS)                                              -->
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <div class="slide" id="s11">
   <div class="shdr">
-    <div class="snum">13</div>
+    <div class="snum">+</div>
     <h2>Live Demo</h2>
     <button class="home-btn" onclick="go(1)" title="Back to Agenda">⌂</button>
   </div>
@@ -1036,51 +1465,6 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════════════ -->
-<!-- SLIDE 12 — USE CASE DIAGRAM                                          -->
-<!-- ═══════════════════════════════════════════════════════════════════════ -->
-<div class="slide" id="s12">
-  <div class="shdr">
-    <div class="snum">2</div>
-    <h2>Use Case Diagram</h2>
-    <button class="home-btn" onclick="go(1)" title="Back to Agenda">⌂</button>
-  </div>
-  <div class="sbody" style="padding:10px;align-items:center;justify-content:center;">
-    <img src="../docs/use_case_diagram.png" alt="Use Case Diagram"
-         style="max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;">
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════════════════ -->
-<!-- SLIDE EDA 1 — EDA DASHBOARD                                           -->
-<!-- ═══════════════════════════════════════════════════════════════════════ -->
-<div class="slide" id="s_eda1">
-  <div class="shdr">
-    <div class="snum" style="border-color:#10b981;color:#10b981;">4</div>
-    <h2>EDA</h2>
-    <button class="home-btn" onclick="go(1)" title="Back to Agenda">⌂</button>
-  </div>
-  <div class="sbody" style="padding:8px;align-items:center;justify-content:center;">
-    <img src="../docs/eda_dashboard.png" alt="EDA Dashboard — 2,271 assemblies · 16,829 body parts"
-         style="max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;">
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════════════════ -->
-<!-- SLIDE EDA 2 — DEEP INSIGHTS                                           -->
-<!-- ═══════════════════════════════════════════════════════════════════════ -->
-<div class="slide" id="s_eda2">
-  <div class="shdr">
-    <div class="snum" style="border-color:#10b981;color:#10b981;">5</div>
-    <h2>Deep Insights</h2>
-    <button class="home-btn" onclick="go(1)" title="Back to Agenda">⌂</button>
-  </div>
-  <div class="sbody" style="padding:8px;align-items:center;justify-content:center;">
-    <img src="../docs/eda_insights_deep.png" alt="EDA Deep Insights — cross-category analysis"
-         style="max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;">
-  </div>
-</div>
-
 </div><!-- /deck -->
 
 <div id="nav">
@@ -1091,9 +1475,32 @@ td.num { text-align:right; font-variant-numeric:tabular-nums; }
 </div>
 
 <script>
-const TOTAL = 14;
+const TOTAL = 22;
 // Logical slide position → DOM element ID
-const SLIDE_ORDER = ['s1','s2','s12','s3','s_eda1','s_eda2','s4','s5','s6','s7','s8','s9','s10','s11'];
+const SLIDE_ORDER = [
+  's1',                 // 1  Agenda
+  's_problem',          // 2  Problem Statement
+  's2',                 // 3  Abstract & Scope
+  's_litsurvey',        // 4  Literature Survey
+  's_review3',          // 5  Suggestions from Review-3
+  's_design_approach',  // 6  Design Approach
+  's12',                // 7  Design Approach — Use Case Diagram
+  's_constraints',      // 8  Design Constraints, Assumptions & Dependencies
+  's_methodology',      // 9  Proposed Methodology / Approach
+  's3',                 // 10 Architecture
+  's_design_desc',      // 11 Design Description
+  's_eda1',             // 12 Design Description — EDA
+  's_eda2',             // 13 Design Description — Deep Insights
+  's_tech',             // 14 Technologies Used
+  's4',                 // 15 Project Progress — Experimental Results
+  's5',                 // 16 Project Progress — Training History Visual
+  's6',                 // 17 Project Progress — R22 Training Curves
+  's7',                 // 18 Project Progress — Performance Evaluation
+  's8',                 // 19 Project Progress — Model Comparison
+  's9',                 // 20 Project Progress — Challenges & Counter Actions
+  's10',                // 21 References
+  's11',                // 22 Live Demo (bonus)
+];
 let cur = 1;
 
 let r22ChartsDrawn = false;
@@ -1104,7 +1511,7 @@ function go(n) {
   document.getElementById(SLIDE_ORDER[n - 1]).classList.add('active');
   cur = n;
   renderDots();
-  if (n === 9 && !r22ChartsDrawn) {
+  if (SLIDE_ORDER[n - 1] === 's6' && !r22ChartsDrawn) {
     r22ChartsDrawn = true;
     setTimeout(() => { drawR22TrainChart(); drawR22FoldChart(); }, 90);
   }

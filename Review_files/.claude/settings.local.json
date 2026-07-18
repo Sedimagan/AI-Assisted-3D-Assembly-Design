@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"import pptx\")",
+      "Bash(python3 *)",
+      "Read(//Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/**)",
+      "Bash(cat .gitignore)",
+      "Bash(zip -r -X /Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Review_files/Phase1_Code_Parthasarathy_Perumal.zip . -x .*)",
+      "Bash(zip -r /Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Review_files/Phase1_Code_Parthasarathy_Perumal.zip .gitignore .env.example .dockerignore .streamlit)",
+      "Bash(unzip -l /Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Review_files/Phase1_Code_Parthasarathy_Perumal.zip)"
+    ]
+  }
+}

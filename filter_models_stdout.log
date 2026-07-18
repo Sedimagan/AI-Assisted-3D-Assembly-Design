@@ -1,0 +1,1786 @@
+
+============================================================
+filter_models.py — 2026-06-20 14:13:57
+Source: /Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Source_3d_models
+Thresholds: nodes > 20  edges > 60  timeout 120s
+============================================================
+
+Found 7048 assembly.json model(s).
+Found 182 hand-crafted STEP model(s) (no assembly.json).
+
+--- Phase 1: JSON-based filtering (7048 models) ---
+  [1/7048] NODES>20 (64 bodies): 100112_bc0a563a → nodes_gt_20/
+  [4/7048] NODES>20 (92 bodies): 105065_0b0d7804 → nodes_gt_20/
+  [8/7048] NODES>20 (22 bodies): 108251_bcccb9dd → nodes_gt_20/
+  [9/7048] NODES>20 (178 bodies): 109857_1d24326e → nodes_gt_20/
+  [11/7048] NODES>20 (120 bodies): 112273_e1552c6c → nodes_gt_20/
+  [13/7048] NODES>20 (24 bodies): 113368_210655c3 → nodes_gt_20/
+  [15/7048] NODES>20 (39 bodies): 113835_cf320425 → nodes_gt_20/
+  [17/7048] NODES>20 (35 bodies): 114425_891ab08d → nodes_gt_20/
+  [21/7048] NODES>20 (50 bodies): 115786_e4499f95 → nodes_gt_20/
+  [28/7048] NODES>20 (60 bodies): 121540_629c716f → nodes_gt_20/
+  [29/7048] NODES>20 (37 bodies): 123401_73b57b14 → nodes_gt_20/
+  [32/7048] NODES>20 (79 bodies): 127545_6fa39158 → nodes_gt_20/
+  [33/7048] NODES>20 (31 bodies): 128050_2bab985c → nodes_gt_20/
+  [36/7048] NODES>20 (22 bodies): 129421_483d2957 → nodes_gt_20/
+  [37/7048] NODES>20 (115 bodies): 129428_edce5555 → nodes_gt_20/
+  [39/7048] NODES>20 (153 bodies): 130093_18da9bca → nodes_gt_20/
+  [40/7048] NODES>20 (29 bodies): 130365_d37d0b81 → nodes_gt_20/
+  [42/7048] NODES>20 (52 bodies): 131100_0424791a → nodes_gt_20/
+  [43/7048] NODES>20 (81 bodies): 131350_bbdad30d → nodes_gt_20/
+  [44/7048] NODES>20 (54 bodies): 131395_085f7312 → nodes_gt_20/
+  [45/7048] NODES>20 (32 bodies): 131711_b6dd09f7 → nodes_gt_20/
+  [47/7048] NODES>20 (26 bodies): 131969_9e97c6e0 → nodes_gt_20/
+  [52/7048] NODES>20 (24 bodies): 132581_e683b2ae → nodes_gt_20/
+  [56/7048] NODES>20 (39 bodies): 134513_9d184eee → nodes_gt_20/
+  [59/7048] NODES>20 (25 bodies): 135643_3ad56ced → nodes_gt_20/
+  [63/7048] NODES>20 (60 bodies): 136891_4af46e9c → nodes_gt_20/
+  [70/7048] NODES>20 (48 bodies): 139616_43234ab8 → nodes_gt_20/
+  [71/7048] NODES>20 (37 bodies): 139661_105bb47a → nodes_gt_20/
+  [72/7048] NODES>20 (21 bodies): 139665_4e8aac7d → nodes_gt_20/
+  [74/7048] NODES>20 (88 bodies): 139796_515f80a8 → nodes_gt_20/
+  [76/7048] NODES>20 (260 bodies): 139866_1209934f → nodes_gt_20/
+  [77/7048] NODES>20 (137 bodies): 140413_44177109 → nodes_gt_20/
+  [84/7048] NODES>20 (44 bodies): 144049_49d5d28c → nodes_gt_20/
+  [86/7048] NODES>20 (23 bodies): 144534_3b4fdb09 → nodes_gt_20/
+  [93/7048] NODES>20 (22 bodies): 145726_27898357 → nodes_gt_20/
+  [96/7048] NODES>20 (34 bodies): 145879_bf41ef7a → nodes_gt_20/
+  [99/7048] NODES>20 (69 bodies): 146226_5cf38887 → nodes_gt_20/
+  [103/7048] NODES>20 (27 bodies): 146999_eea2e46a → nodes_gt_20/
+  [104/7048] NODES>20 (31 bodies): 147581_111d626e → nodes_gt_20/
+  [106/7048] NODES>20 (54 bodies): 20278_d442e77d → nodes_gt_20/
+  [107/7048] NODES>20 (45 bodies): 20319_9f53cd7c → nodes_gt_20/
+  [109/7048] NODES>20 (68 bodies): 20675_66ac9773 → nodes_gt_20/
+  [112/7048] NODES>20 (25 bodies): 20870_dedaef5b → nodes_gt_20/
+  [115/7048] NODES>20 (42 bodies): 21134_7aa7cd89 → nodes_gt_20/
+  [116/7048] NODES>20 (116 bodies): 21244_24c3ce72 → nodes_gt_20/
+  [117/7048] NODES>20 (92 bodies): 21244_d67bbabc → nodes_gt_20/
+  [118/7048] NODES>20 (100 bodies): 21351_675c66b1 → nodes_gt_20/
+  [120/7048] NODES>20 (21 bodies): 21352_d60bc953 → nodes_gt_20/
+  [125/7048] NODES>20 (42 bodies): 21685_93737a7a → nodes_gt_20/
+  [127/7048] NODES>20 (62 bodies): 22076_20e8a107 → nodes_gt_20/
+  [129/7048] NODES>20 (23 bodies): 22085_e039a7d3 → nodes_gt_20/
+  [132/7048] NODES>20 (22 bodies): 22245_ca848576 → nodes_gt_20/
+  [133/7048] NODES>20 (33 bodies): 22298_51433023 → nodes_gt_20/
+  [135/7048] NODES>20 (64 bodies): 22428_c1ffa51a → nodes_gt_20/
+  [136/7048] NODES>20 (130 bodies): 22430_c6f08b03 → nodes_gt_20/
+  [137/7048] NODES>20 (27 bodies): 22443_fa24c6f9 → nodes_gt_20/
+  [141/7048] NODES>20 (104 bodies): 22617_a286f13c → nodes_gt_20/
+  [142/7048] NODES>20 (49 bodies): 22630_b6010fff → nodes_gt_20/
+  [146/7048] NODES>20 (42 bodies): 22852_dc1dbed6 → nodes_gt_20/
+  [147/7048] NODES>20 (25 bodies): 23036_7f9d143f → nodes_gt_20/
+  [149/7048] NODES>20 (35 bodies): 23123_f35404c4 → nodes_gt_20/
+  [151/7048] NODES>20 (114 bodies): 23156_7788f78a → nodes_gt_20/
+  [152/7048] NODES>20 (43 bodies): 23310_7daded69 → nodes_gt_20/
+  [153/7048] NODES>20 (69 bodies): 23313_210c6783 → nodes_gt_20/
+  [154/7048] NODES>20 (31 bodies): 23475_b14d1dc8 → nodes_gt_20/
+  [155/7048] NODES>20 (40 bodies): 23542_b7fcb8f4 → nodes_gt_20/
+  [157/7048] NODES>20 (68 bodies): 23876_74957d38 → nodes_gt_20/
+  [158/7048] NODES>20 (90 bodies): 23900_065c2c79 → nodes_gt_20/
+  [167/7048] NODES>20 (212 bodies): 24202_0db5d57a → nodes_gt_20/
+  [172/7048] NODES>20 (28 bodies): 24308_89c2be2b → nodes_gt_20/
+  [179/7048] NODES>20 (35 bodies): 24429_ace910b3 → nodes_gt_20/
+  [182/7048] NODES>20 (51 bodies): 24548_a611c624 → nodes_gt_20/
+  [188/7048] NODES>20 (44 bodies): 24920_51bb7cea → nodes_gt_20/
+  [193/7048] NODES>20 (23 bodies): 25257_7bfa2776 → nodes_gt_20/
+  [196/7048] NODES>20 (22 bodies): 25287_4e0c896d → nodes_gt_20/
+  [199/7048] NODES>20 (27 bodies): 25287_b8ae84ad → nodes_gt_20/
+  [202/7048] NODES>20 (26 bodies): 25287_c37b8c13 → nodes_gt_20/
+  [205/7048] NODES>20 (23 bodies): 25337_423c48ac → nodes_gt_20/
+  [211/7048] NODES>20 (82 bodies): 25420_7a418e01 → nodes_gt_20/
+  [212/7048] NODES>20 (25 bodies): 25447_e6b5204c → nodes_gt_20/
+  [216/7048] NODES>20 (37 bodies): 25464_7e27d057 → nodes_gt_20/
+  [217/7048] NODES>20 (100 bodies): 25471_7f83f00b → nodes_gt_20/
+  [218/7048] NODES>20 (36 bodies): 25482_23b75bd5 → nodes_gt_20/
+  [222/7048] NODES>20 (27 bodies): 27682_04277f62 → nodes_gt_20/
+  [223/7048] NODES>20 (47 bodies): 28936_71968a77 → nodes_gt_20/
+  [225/7048] NODES>20 (40 bodies): 29933_3aefe67a → nodes_gt_20/
+  [227/7048] NODES>20 (23 bodies): 31099_481b30db → nodes_gt_20/
+  [228/7048] NODES>20 (21 bodies): 31100_d63b7b26 → nodes_gt_20/
+  [230/7048] NODES>20 (55 bodies): 31282_05c4b783 → nodes_gt_20/
+  [231/7048] NODES>20 (47 bodies): 31378_34c52a73 → nodes_gt_20/
+  [232/7048] NODES>20 (61 bodies): 31495_ecc4c17c → nodes_gt_20/
+  [237/7048] EDGES>60 (86 dir-edges): 35942_15af9085 → edges_gt_60/
+  [240/7048] NODES>20 (39 bodies): 37442_5d12f8ed → nodes_gt_20/
+  [241/7048] NODES>20 (31 bodies): 38396_3b96876b → nodes_gt_20/
+  [243/7048] NODES>20 (70 bodies): 38840_0e449caf → nodes_gt_20/
+  [245/7048] NODES>20 (204 bodies): 41948_c0d68e8c → nodes_gt_20/
+  [246/7048] NODES>20 (26 bodies): 42203_33083e24 → nodes_gt_20/
+  [247/7048] NODES>20 (38 bodies): 42688_09be2738 → nodes_gt_20/
+  [249/7048] NODES>20 (134 bodies): 43172_bebbafc3 → nodes_gt_20/
+  [251/7048] NODES>20 (70 bodies): 44373_0073c4fd → nodes_gt_20/
+  [252/7048] NODES>20 (160 bodies): 44387_1618ffe6 → nodes_gt_20/
+  [253/7048] NODES>20 (48 bodies): 44530_34f11745 → nodes_gt_20/
+  [258/7048] NODES>20 (57 bodies): 47870_64cc3d62 → nodes_gt_20/
+  [259/7048] NODES>20 (37 bodies): 49141_4dbe564e → nodes_gt_20/
+  [262/7048] NODES>20 (86 bodies): 50823_d1830e58 → nodes_gt_20/
+  [267/7048] NODES>20 (30 bodies): 51940_e06fee1b → nodes_gt_20/
+  [272/7048] NODES>20 (31 bodies): 53232_f8760054 → nodes_gt_20/
+  [273/7048] NODES>20 (56 bodies): 53590_a324861b → nodes_gt_20/
+  [276/7048] NODES>20 (103 bodies): 55129_96245c46 → nodes_gt_20/
+  [281/7048] NODES>20 (32 bodies): 60737_e4b1c57e → nodes_gt_20/
+  [285/7048] NODES>20 (25 bodies): 70639_fceccc4a → nodes_gt_20/
+  [289/7048] NODES>20 (24 bodies): 71504_6c2ae353 → nodes_gt_20/
+  [292/7048] NODES>20 (215 bodies): 71833_9b2c8d39 → nodes_gt_20/
+  [300/7048] NODES>20 (24 bodies): 76880_9bb28e72 → nodes_gt_20/
+  [302/7048] NODES>20 (107 bodies): 78113_8d1cee7b → nodes_gt_20/
+  [303/7048] NODES>20 (111 bodies): 78113_df39c641 → nodes_gt_20/
+  [304/7048] NODES>20 (77 bodies): 78187_e4dcbbe8 → nodes_gt_20/
+  [305/7048] NODES>20 (39 bodies): 78775_e2d8b091 → nodes_gt_20/
+  [306/7048] NODES>20 (21 bodies): 78993_bcd98f5f → nodes_gt_20/
+  [310/7048] NODES>20 (25 bodies): 79241_14f7881c → nodes_gt_20/
+  [312/7048] NODES>20 (31 bodies): 80100_a2cb3616 → nodes_gt_20/
+  [313/7048] NODES>20 (184 bodies): 80183_3adc2070 → nodes_gt_20/
+  [315/7048] NODES>20 (63 bodies): 81227_f2ce5bb7 → nodes_gt_20/
+  [317/7048] NODES>20 (23 bodies): 82166_d38439c3 → nodes_gt_20/
+  [321/7048] NODES>20 (22 bodies): 82191_29cb4c44 → nodes_gt_20/
+  [329/7048] NODES>20 (67 bodies): 82996_b8dc67c9 → nodes_gt_20/
+  [330/7048] NODES>20 (69 bodies): 82996_efb46df2 → nodes_gt_20/
+  [334/7048] NODES>20 (169 bodies): 87044_409f2ff1 → nodes_gt_20/
+  [340/7048] NODES>20 (70 bodies): 98413_f0baae49 → nodes_gt_20/
+  [341/7048] NODES>20 (37 bodies): 98488_cfd034d6 → nodes_gt_20/
+  [349/7048] NODES>20 (53 bodies): 21093_1bda9bbe → nodes_gt_20/
+  [384/7048] NODES>20 (50 bodies): 20792_d2ea0500 → nodes_gt_20/
+  [461/7048] NODES>20 (42 bodies): 21134_7aa7cd89 → nodes_gt_20/
+  [470/7048] NODES>20 (27 bodies): 22443_fa24c6f9 → nodes_gt_20/
+  [473/7048] NODES>20 (104 bodies): 22617_a286f13c → nodes_gt_20/
+  Progress: 500/7048 — nodes_mv: 134  edges_mv: 1
+  [502/7048] NODES>20 (23 bodies): 25257_7bfa2776 → nodes_gt_20/
+  [505/7048] NODES>20 (22 bodies): 25287_4e0c896d → nodes_gt_20/
+  [508/7048] NODES>20 (27 bodies): 25287_b8ae84ad → nodes_gt_20/
+  [511/7048] NODES>20 (26 bodies): 25287_c37b8c13 → nodes_gt_20/
+  [682/7048] NODES>20 (43 bodies): 21982_bdafa78d → nodes_gt_20/
+  [683/7048] NODES>20 (39 bodies): 21990_7bb6efcf → nodes_gt_20/
+  [746/7048] NODES>20 (21 bodies): 23612_dd8e34c4 → nodes_gt_20/
+  [760/7048] NODES>20 (21 bodies): 24213_1983ae2c → nodes_gt_20/
+  [775/7048] NODES>20 (22 bodies): 24441_81a5987f → nodes_gt_20/
+  [812/7048] NODES>20 (27 bodies): 25422_352534f4 → nodes_gt_20/
+  [816/7048] NODES>20 (28 bodies): 25456_9e34edbf → nodes_gt_20/
+  [826/7048] NODES>20 (28 bodies): 20668_b2f2633e → nodes_gt_20/
+  [835/7048] NODES>20 (39 bodies): 23563_ce75caff → nodes_gt_20/
+  [936/7048] NODES>20 (38 bodies): 22414_14ead4a3 → nodes_gt_20/
+  [955/7048] NODES>20 (27 bodies): 24271_dbc0fd2d → nodes_gt_20/
+  [979/7048] NODES>20 (44 bodies): 26553_bc82229b → nodes_gt_20/
+  [980/7048] NODES>20 (26 bodies): 26643_987faf85 → nodes_gt_20/
+  Progress: 1000/7048 — nodes_mv: 151  edges_mv: 1
+  [1040/7048] NODES>20 (28 bodies): 20412_42170125 → nodes_gt_20/
+  [1086/7048] NODES>20 (21 bodies): 28796_810887dd → nodes_gt_20/
+  [1105/7048] NODES>20 (44 bodies): 25363_3f263d97 → nodes_gt_20/
+  [1197/7048] NODES>20 (23 bodies): 25399_93a1afcd → nodes_gt_20/
+  [1213/7048] NODES>20 (27 bodies): 21541_abc67be6 → nodes_gt_20/
+  [1238/7048] NODES>20 (21 bodies): 24230_636208ab → nodes_gt_20/
+  [1252/7048] NODES>20 (63 bodies): 101831_2478d1ce → nodes_gt_20/
+  [1254/7048] NODES>20 (37 bodies): 102410_f9877a7b → nodes_gt_20/
+  [1258/7048] NODES>20 (92 bodies): 105065_0b0d7804 → nodes_gt_20/
+  [1260/7048] NODES>20 (140 bodies): 106637_a3b7cc4d → nodes_gt_20/
+  [1261/7048] NODES>20 (102 bodies): 108012_72f3523e → nodes_gt_20/
+  [1262/7048] NODES>20 (102 bodies): 108012_834cbeab → nodes_gt_20/
+  [1263/7048] NODES>20 (92 bodies): 108012_e3d8f99c → nodes_gt_20/
+  [1264/7048] NODES>20 (22 bodies): 108251_bcccb9dd → nodes_gt_20/
+  [1269/7048] NODES>20 (125 bodies): 111698_28d1b5b3 → nodes_gt_20/
+  [1271/7048] NODES>20 (48 bodies): 111863_c925f4f3 → nodes_gt_20/
+  [1272/7048] NODES>20 (120 bodies): 112273_e1552c6c → nodes_gt_20/
+  [1273/7048] NODES>20 (36 bodies): 113695_62f7c3cc → nodes_gt_20/
+  [1276/7048] NODES>20 (39 bodies): 113835_cf320425 → nodes_gt_20/
+  [1277/7048] NODES>20 (35 bodies): 114425_891ab08d → nodes_gt_20/
+  [1280/7048] NODES>20 (44 bodies): 115257_0e775b19 → nodes_gt_20/
+  [1284/7048] NODES>20 (75 bodies): 115798_edc9829b → nodes_gt_20/
+  [1285/7048] NODES>20 (28 bodies): 116157_4a539cae → nodes_gt_20/
+  [1292/7048] NODES>20 (180 bodies): 120069_0ebfe193 → nodes_gt_20/
+  [1295/7048] NODES>20 (113 bodies): 123499_6a009716 → nodes_gt_20/
+  [1298/7048] NODES>20 (108 bodies): 127202_42451722 → nodes_gt_20/
+  [1301/7048] NODES>20 (56 bodies): 129010_4bd46fcf → nodes_gt_20/
+  [1302/7048] NODES>20 (115 bodies): 129428_edce5555 → nodes_gt_20/
+  [1304/7048] NODES>20 (153 bodies): 130093_18da9bca → nodes_gt_20/
+  [1305/7048] NODES>20 (21 bodies): 130183_71b61321 → nodes_gt_20/
+  [1306/7048] NODES>20 (29 bodies): 130365_d37d0b81 → nodes_gt_20/
+  [1310/7048] NODES>20 (21 bodies): 131121_65919c61 → nodes_gt_20/
+  [1311/7048] NODES>20 (54 bodies): 131395_085f7312 → nodes_gt_20/
+  [1313/7048] NODES>20 (32 bodies): 131711_b6dd09f7 → nodes_gt_20/
+  [1316/7048] NODES>20 (26 bodies): 131969_9e97c6e0 → nodes_gt_20/
+  [1317/7048] NODES>20 (146 bodies): 131998_287fefc5 → nodes_gt_20/
+  [1326/7048] NODES>20 (98 bodies): 134008_d46e42d8 → nodes_gt_20/
+  [1327/7048] NODES>20 (28 bodies): 134582_7eb0e129 → nodes_gt_20/
+  [1329/7048] NODES>20 (23 bodies): 134811_63ed1489 → nodes_gt_20/
+  [1330/7048] NODES>20 (64 bodies): 134855_59332110 → nodes_gt_20/
+  [1332/7048] NODES>20 (105 bodies): 134979_7857b2e0 → nodes_gt_20/
+  [1333/7048] NODES>20 (48 bodies): 135066_6988a2eb → nodes_gt_20/
+  [1338/7048] NODES>20 (25 bodies): 135643_3ad56ced → nodes_gt_20/
+  [1340/7048] NODES>20 (251 bodies): 135790_a27f9deb → nodes_gt_20/
+  [1341/7048] NODES>20 (23 bodies): 135949_06517574 → nodes_gt_20/
+  [1353/7048] NODES>20 (48 bodies): 139616_43234ab8 → nodes_gt_20/
+  [1354/7048] NODES>20 (37 bodies): 139661_105bb47a → nodes_gt_20/
+  [1355/7048] NODES>20 (21 bodies): 139665_4e8aac7d → nodes_gt_20/
+  [1357/7048] NODES>20 (88 bodies): 139796_515f80a8 → nodes_gt_20/
+  [1359/7048] NODES>20 (25 bodies): 139853_d0680974 → nodes_gt_20/
+  [1361/7048] NODES>20 (260 bodies): 139866_1209934f → nodes_gt_20/
+  [1362/7048] NODES>20 (26 bodies): 140011_8c40a59c → nodes_gt_20/
+  [1363/7048] NODES>20 (54 bodies): 141333_3ba803f4 → nodes_gt_20/
+  [1364/7048] NODES>20 (32 bodies): 141333_e315d257 → nodes_gt_20/
+  [1366/7048] NODES>20 (41 bodies): 142332_8e1a3b5a → nodes_gt_20/
+  [1370/7048] NODES>20 (186 bodies): 143293_fc5b0ff7 → nodes_gt_20/
+  [1373/7048] NODES>20 (89 bodies): 143658_f856aac2 → nodes_gt_20/
+  [1375/7048] NODES>20 (44 bodies): 144049_49d5d28c → nodes_gt_20/
+  [1381/7048] NODES>20 (22 bodies): 145726_27898357 → nodes_gt_20/
+  [1384/7048] NODES>20 (34 bodies): 145879_bf41ef7a → nodes_gt_20/
+  [1389/7048] NODES>20 (35 bodies): 146518_0ab70b0c → nodes_gt_20/
+  [1396/7048] NODES>20 (27 bodies): 146999_eea2e46a → nodes_gt_20/
+  [1399/7048] NODES>20 (31 bodies): 147581_111d626e → nodes_gt_20/
+  [1400/7048] NODES>20 (27 bodies): 147641_7198279f → nodes_gt_20/
+  [1419/7048] NODES>20 (97 bodies): 21421_fb12b69b → nodes_gt_20/
+  [1420/7048] NODES>20 (57 bodies): 21429_6d2d3974 → nodes_gt_20/
+  [1422/7048] NODES>20 (62 bodies): 21557_53eafe15 → nodes_gt_20/
+  [1438/7048] NODES>20 (21 bodies): 21923_41fa6eda → nodes_gt_20/
+  [1441/7048] NODES>20 (46 bodies): 22056_79373464 → nodes_gt_20/
+  [1445/7048] NODES>20 (21 bodies): 22065_0d414124 → nodes_gt_20/
+  [1447/7048] NODES>20 (39 bodies): 22079_31335df2 → nodes_gt_20/
+  [1448/7048] NODES>20 (54 bodies): 22081_ab3124af → nodes_gt_20/
+  [1449/7048] NODES>20 (34 bodies): 22082_39503fa6 → nodes_gt_20/
+  [1450/7048] NODES>20 (87 bodies): 22125_e3a4cad4 → nodes_gt_20/
+  [1452/7048] NODES>20 (39 bodies): 22242_4ceddc2b → nodes_gt_20/
+  [1453/7048] NODES>20 (77 bodies): 22357_e2f7b060 → nodes_gt_20/
+  [1455/7048] NODES>20 (77 bodies): 22413_901f5867 → nodes_gt_20/
+  [1456/7048] NODES>20 (37 bodies): 22440_014f1bac → nodes_gt_20/
+  [1457/7048] NODES>20 (22 bodies): 22474_b10fea1a → nodes_gt_20/
+  [1460/7048] NODES>20 (46 bodies): 22535_0ba01cc9 → nodes_gt_20/
+  [1469/7048] NODES>20 (191 bodies): 23048_8a1a5553 → nodes_gt_20/
+  [1472/7048] NODES>20 (99 bodies): 23154_7c74d190 → nodes_gt_20/
+  [1474/7048] NODES>20 (35 bodies): 23195_2629864e → nodes_gt_20/
+  [1475/7048] NODES>20 (39 bodies): 23217_7c6062e3 → nodes_gt_20/
+  [1476/7048] NODES>20 (77 bodies): 23235_f9ccb8b0 → nodes_gt_20/
+  [1477/7048] NODES>20 (50 bodies): 23271_f833d903 → nodes_gt_20/
+  [1478/7048] NODES>20 (53 bodies): 23282_a1b17daa → nodes_gt_20/
+  [1479/7048] NODES>20 (53 bodies): 23283_fadf3820 → nodes_gt_20/
+  [1482/7048] NODES>20 (79 bodies): 23380_abffc859 → nodes_gt_20/
+  [1483/7048] NODES>20 (66 bodies): 23422_f214bd4d → nodes_gt_20/
+  [1484/7048] NODES>20 (34 bodies): 23473_1dfa6e40 → nodes_gt_20/
+  [1487/7048] NODES>20 (24 bodies): 23784_38fa1454 → nodes_gt_20/
+  [1488/7048] EDGES>60 (68 dir-edges): 23786_0647c995 → edges_gt_60/
+  [1490/7048] NODES>20 (52 bodies): 23803_af2dcf60 → nodes_gt_20/
+  [1494/7048] NODES>20 (32 bodies): 23953_ab633029 → nodes_gt_20/
+  [1497/7048] EDGES>60 (64 dir-edges): 24040_f02e7ce1 → edges_gt_60/
+  [1498/7048] NODES>20 (32 bodies): 24055_82f753d7 → nodes_gt_20/
+  [1500/7048] NODES>20 (55 bodies): 24082_78ed35a9 → nodes_gt_20/
+  Progress: 1500/7048 — nodes_mv: 247  edges_mv: 3
+  [1501/7048] NODES>20 (56 bodies): 24082_f82a20c2 → nodes_gt_20/
+  [1508/7048] NODES>20 (71 bodies): 24353_bc09d896 → nodes_gt_20/
+  [1510/7048] NODES>20 (25 bodies): 24405_b96b34b6 → nodes_gt_20/
+  [1512/7048] NODES>20 (152 bodies): 24413_786c8353 → nodes_gt_20/
+  [1513/7048] NODES>20 (60 bodies): 24414_7a63ec0b → nodes_gt_20/
+  [1528/7048] NODES>20 (126 bodies): 25127_ecba81df → nodes_gt_20/
+  [1529/7048] NODES>20 (24 bodies): 25178_3fb6fdd8 → nodes_gt_20/
+  [1531/7048] NODES>20 (29 bodies): 25210_0816d83f → nodes_gt_20/
+  [1532/7048] NODES>20 (38 bodies): 25365_bb0e4ede → nodes_gt_20/
+  [1542/7048] NODES>20 (185 bodies): 25487_dd2c17e8 → nodes_gt_20/
+  [1543/7048] NODES>20 (34 bodies): 25552_c1ea16b1 → nodes_gt_20/
+  [1545/7048] NODES>20 (149 bodies): 25823_95f0f8cb → nodes_gt_20/
+  [1546/7048] NODES>20 (75 bodies): 25845_e9c6813d → nodes_gt_20/
+  [1547/7048] NODES>20 (71 bodies): 25847_f459c420 → nodes_gt_20/
+  [1550/7048] NODES>20 (48 bodies): 29360_8dda073e → nodes_gt_20/
+  [1553/7048] NODES>20 (29 bodies): 30385_dde90484 → nodes_gt_20/
+  [1554/7048] NODES>20 (22 bodies): 30442_4ff1d06c → nodes_gt_20/
+  [1557/7048] NODES>20 (22 bodies): 30996_10b0a412 → nodes_gt_20/
+  [1558/7048] NODES>20 (23 bodies): 31099_481b30db → nodes_gt_20/
+  [1560/7048] NODES>20 (47 bodies): 31378_34c52a73 → nodes_gt_20/
+  [1563/7048] NODES>20 (30 bodies): 33529_756075a0 → nodes_gt_20/
+  [1564/7048] NODES>20 (123 bodies): 33765_4d6288b9 → nodes_gt_20/
+  [1565/7048] NODES>20 (31 bodies): 33968_1d605403 → nodes_gt_20/
+  [1566/7048] NODES>20 (21 bodies): 33994_6e20599c → nodes_gt_20/
+  [1567/7048] NODES>20 (31 bodies): 33995_18423507 → nodes_gt_20/
+  [1569/7048] NODES>20 (40 bodies): 34343_6d3253e1 → nodes_gt_20/
+  [1570/7048] NODES>20 (53 bodies): 34440_af990c77 → nodes_gt_20/
+  [1574/7048] NODES>20 (69 bodies): 35053_10e4ad39 → nodes_gt_20/
+  [1575/7048] NODES>20 (56 bodies): 35179_ead7bf35 → nodes_gt_20/
+  [1576/7048] EDGES>60 (86 dir-edges): 35942_15af9085 → edges_gt_60/
+  [1579/7048] NODES>20 (26 bodies): 37599_faf701a1 → nodes_gt_20/
+  [1584/7048] NODES>20 (38 bodies): 40417_b8d98f73 → nodes_gt_20/
+  [1585/7048] NODES>20 (48 bodies): 40589_2673464e → nodes_gt_20/
+  [1586/7048] NODES>20 (26 bodies): 41128_ee74f244 → nodes_gt_20/
+  [1587/7048] NODES>20 (39 bodies): 41306_8f26e703 → nodes_gt_20/
+  [1589/7048] NODES>20 (23 bodies): 41677_be02acde → nodes_gt_20/
+  [1591/7048] NODES>20 (24 bodies): 42246_ccdb18b0 → nodes_gt_20/
+  [1594/7048] NODES>20 (62 bodies): 43628_a95b7e66 → nodes_gt_20/
+  [1599/7048] NODES>20 (160 bodies): 44387_1618ffe6 → nodes_gt_20/
+  [1600/7048] NODES>20 (48 bodies): 44530_34f11745 → nodes_gt_20/
+  [1603/7048] NODES>20 (57 bodies): 47870_64cc3d62 → nodes_gt_20/
+  [1604/7048] NODES>20 (26 bodies): 48227_390437ae → nodes_gt_20/
+  [1605/7048] NODES>20 (56 bodies): 48292_5ac1b984 → nodes_gt_20/
+  [1606/7048] NODES>20 (90 bodies): 48402_8c965495 → nodes_gt_20/
+  [1607/7048] NODES>20 (27 bodies): 48724_70685a9d → nodes_gt_20/
+  [1609/7048] NODES>20 (86 bodies): 50823_d1830e58 → nodes_gt_20/
+  [1610/7048] NODES>20 (34 bodies): 51443_8bcb2ac6 → nodes_gt_20/
+  [1611/7048] NODES>20 (24 bodies): 51471_289b2a1d → nodes_gt_20/
+  [1612/7048] NODES>20 (94 bodies): 51542_78281fea → nodes_gt_20/
+  [1614/7048] NODES>20 (46 bodies): 51590_034b8b08 → nodes_gt_20/
+  [1616/7048] NODES>20 (42 bodies): 51723_ab02be01 → nodes_gt_20/
+  [1618/7048] NODES>20 (32 bodies): 52154_ba4a9f43 → nodes_gt_20/
+  [1621/7048] NODES>20 (25 bodies): 52890_7ae554d9 → nodes_gt_20/
+  [1624/7048] NODES>20 (44 bodies): 52890_e23bf00b → nodes_gt_20/
+  [1625/7048] NODES>20 (62 bodies): 52890_f69f01a8 → nodes_gt_20/
+  [1627/7048] NODES>20 (31 bodies): 53232_f8760054 → nodes_gt_20/
+  [1631/7048] NODES>20 (27 bodies): 53848_7c64ed9f → nodes_gt_20/
+  [1632/7048] NODES>20 (33 bodies): 54071_9817455b → nodes_gt_20/
+  [1634/7048] NODES>20 (24 bodies): 54627_cc4c8cad → nodes_gt_20/
+  [1635/7048] NODES>20 (27 bodies): 54663_f581fe72 → nodes_gt_20/
+  [1640/7048] NODES>20 (28 bodies): 55029_a712d5a7 → nodes_gt_20/
+  [1641/7048] NODES>20 (26 bodies): 55115_bc8ee065 → nodes_gt_20/
+  [1642/7048] NODES>20 (103 bodies): 55129_96245c46 → nodes_gt_20/
+  [1643/7048] NODES>20 (37 bodies): 55627_971fde61 → nodes_gt_20/
+  [1645/7048] NODES>20 (106 bodies): 55801_72138780 → nodes_gt_20/
+  [1648/7048] NODES>20 (88 bodies): 61814_050e1a89 → nodes_gt_20/
+  [1649/7048] NODES>20 (45 bodies): 61814_119a4078 → nodes_gt_20/
+  [1650/7048] NODES>20 (115 bodies): 64017_a1afb6aa → nodes_gt_20/
+  [1663/7048] NODES>20 (50 bodies): 73546_5bc13383 → nodes_gt_20/
+  [1667/7048] NODES>20 (88 bodies): 75175_879cdaa5 → nodes_gt_20/
+  [1668/7048] NODES>20 (61 bodies): 75271_2fbfd6f0 → nodes_gt_20/
+  [1669/7048] NODES>20 (36 bodies): 75506_31b65030 → nodes_gt_20/
+  [1670/7048] NODES>20 (36 bodies): 75506_8c7c5f34 → nodes_gt_20/
+  [1671/7048] NODES>20 (36 bodies): 75506_f7862d5b → nodes_gt_20/
+  [1675/7048] NODES>20 (85 bodies): 79248_314ca891 → nodes_gt_20/
+  [1676/7048] NODES>20 (85 bodies): 79248_cf16bd68 → nodes_gt_20/
+  [1679/7048] NODES>20 (28 bodies): 80200_c18892ba → nodes_gt_20/
+  [1680/7048] NODES>20 (63 bodies): 81227_f2ce5bb7 → nodes_gt_20/
+  [1681/7048] NODES>20 (90 bodies): 81675_8d27fc68 → nodes_gt_20/
+  [1683/7048] NODES>20 (22 bodies): 82191_29cb4c44 → nodes_gt_20/
+  [1689/7048] NODES>20 (38 bodies): 82798_c2345d59 → nodes_gt_20/
+  [1693/7048] NODES>20 (35 bodies): 85430_4d9dfbf5 → nodes_gt_20/
+  [1694/7048] NODES>20 (196 bodies): 86906_78d912d7 → nodes_gt_20/
+  [1695/7048] NODES>20 (169 bodies): 87044_409f2ff1 → nodes_gt_20/
+  [1696/7048] NODES>20 (41 bodies): 88134_97474b52 → nodes_gt_20/
+  [1699/7048] NODES>20 (31 bodies): 88496_e9091f87 → nodes_gt_20/
+  [1710/7048] NODES>20 (64 bodies): 100112_bc0a563a → nodes_gt_20/
+  [1729/7048] NODES>20 (37 bodies): 100622_1c7038f5 → nodes_gt_20/
+  [1736/7048] NODES>20 (22 bodies): 101087_f4846d38 → nodes_gt_20/
+  [1747/7048] NODES>20 (63 bodies): 101831_2478d1ce → nodes_gt_20/
+  [1749/7048] NODES>20 (23 bodies): 102081_0edae3ed → nodes_gt_20/
+  [1752/7048] NODES>20 (37 bodies): 102410_f9877a7b → nodes_gt_20/
+  [1756/7048] NODES>20 (57 bodies): 102760_26430589 → nodes_gt_20/
+  [1764/7048] NODES>20 (49 bodies): 103443_7f94acd4 → nodes_gt_20/
+  [1770/7048] NODES>20 (24 bodies): 104100_ee5c2434 → nodes_gt_20/
+  [1778/7048] NODES>20 (23 bodies): 104631_ddc4b27c → nodes_gt_20/
+  [1781/7048] NODES>20 (76 bodies): 104641_2cd02839 → nodes_gt_20/
+  [1782/7048] NODES>20 (90 bodies): 104646_1573b273 → nodes_gt_20/
+  [1786/7048] NODES>20 (74 bodies): 104805_af0cfc04 → nodes_gt_20/
+  [1790/7048] NODES>20 (22 bodies): 104906_e8782c1d → nodes_gt_20/
+  [1792/7048] NODES>20 (74 bodies): 104995_a625a7c5 → nodes_gt_20/
+  [1793/7048] NODES>20 (92 bodies): 105065_0b0d7804 → nodes_gt_20/
+  [1804/7048] NODES>20 (68 bodies): 105823_ac4f4682 → nodes_gt_20/
+  [1807/7048] NODES>20 (76 bodies): 105897_9472c380 → nodes_gt_20/
+  [1823/7048] NODES>20 (140 bodies): 106637_a3b7cc4d → nodes_gt_20/
+  [1840/7048] NODES>20 (56 bodies): 107494_a135a4a5 → nodes_gt_20/
+  [1843/7048] NODES>20 (88 bodies): 107575_84d42f2c → nodes_gt_20/
+  [1850/7048] NODES>20 (25 bodies): 107917_b809bbb2 → nodes_gt_20/
+  [1852/7048] NODES>20 (75 bodies): 108093_59334cb3 → nodes_gt_20/
+  [1856/7048] NODES>20 (92 bodies): 108259_20dc5b09 → nodes_gt_20/
+  [1859/7048] NODES>20 (43 bodies): 108412_8de2f9c3 → nodes_gt_20/
+  [1871/7048] NODES>20 (36 bodies): 108854_20032e01 → nodes_gt_20/
+  [1872/7048] NODES>20 (21 bodies): 108855_86bf65d0 → nodes_gt_20/
+  [1881/7048] NODES>20 (84 bodies): 109231_7287ee58 → nodes_gt_20/
+  [1883/7048] NODES>20 (56 bodies): 109310_8a6b9e6c → nodes_gt_20/
+  [1890/7048] NODES>20 (21 bodies): 109637_8b7fe169 → nodes_gt_20/
+  [1892/7048] NODES>20 (30 bodies): 109772_5faa88e8 → nodes_gt_20/
+  [1894/7048] NODES>20 (23 bodies): 109772_ead94f62 → nodes_gt_20/
+  [1895/7048] NODES>20 (44 bodies): 109772_f1a0845e → nodes_gt_20/
+  [1902/7048] NODES>20 (22 bodies): 109946_242843a6 → nodes_gt_20/
+  [1911/7048] NODES>20 (91 bodies): 110237_4ea5b5f9 → nodes_gt_20/
+  [1925/7048] NODES>20 (21 bodies): 110867_c97b35ff → nodes_gt_20/
+  [1954/7048] NODES>20 (27 bodies): 111380_68491dc0 → nodes_gt_20/
+  [1956/7048] NODES>20 (107 bodies): 111392_5bfd15ff → nodes_gt_20/
+  [1964/7048] NODES>20 (54 bodies): 111684_599efe0c → nodes_gt_20/
+  [1965/7048] NODES>20 (125 bodies): 111698_28d1b5b3 → nodes_gt_20/
+  [1974/7048] NODES>20 (61 bodies): 112017_a8394d4b → nodes_gt_20/
+  [1981/7048] NODES>20 (120 bodies): 112273_e1552c6c → nodes_gt_20/
+  [1985/7048] NODES>20 (58 bodies): 112553_5b128ae5 → nodes_gt_20/
+  [1986/7048] NODES>20 (66 bodies): 112553_8dd213f8 → nodes_gt_20/
+  [1993/7048] NODES>20 (162 bodies): 113004_ef603168 → nodes_gt_20/
+  Progress: 2000/7048 — nodes_mv: 377  edges_mv: 4
+  [2002/7048] NODES>20 (26 bodies): 113343_e692c488 → nodes_gt_20/
+  [2003/7048] NODES>20 (87 bodies): 113344_d630e8fa → nodes_gt_20/
+  [2004/7048] NODES>20 (23 bodies): 113345_5889a8f8 → nodes_gt_20/
+  [2013/7048] NODES>20 (24 bodies): 113368_210655c3 → nodes_gt_20/
+  [2016/7048] NODES>20 (36 bodies): 113695_62f7c3cc → nodes_gt_20/
+  [2021/7048] NODES>20 (39 bodies): 113835_cf320425 → nodes_gt_20/
+  [2022/7048] NODES>20 (40 bodies): 113841_5c85a0f0 → nodes_gt_20/
+  [2024/7048] NODES>20 (23 bodies): 113952_b846ab8d → nodes_gt_20/
+  [2028/7048] NODES>20 (31 bodies): 114265_5baa8fde → nodes_gt_20/
+  [2040/7048] NODES>20 (35 bodies): 114425_891ab08d → nodes_gt_20/
+  [2046/7048] NODES>20 (49 bodies): 114935_797875fe → nodes_gt_20/
+  [2053/7048] NODES>20 (56 bodies): 115326_0fe04ddd → nodes_gt_20/
+  [2054/7048] NODES>20 (46 bodies): 115326_1e6b1e16 → nodes_gt_20/
+  [2055/7048] NODES>20 (21 bodies): 115326_7a784b76 → nodes_gt_20/
+  [2061/7048] NODES>20 (76 bodies): 115603_50901239 → nodes_gt_20/
+  [2066/7048] NODES>20 (22 bodies): 115626_a0f4576b → nodes_gt_20/
+  [2070/7048] NODES>20 (50 bodies): 115786_e4499f95 → nodes_gt_20/
+  [2074/7048] NODES>20 (26 bodies): 116078_f83cffb9 → nodes_gt_20/
+  [2094/7048] NODES>20 (33 bodies): 117225_d344efa7 → nodes_gt_20/
+  [2097/7048] NODES>20 (91 bodies): 117315_34c61072 → nodes_gt_20/
+  [2111/7048] NODES>20 (42 bodies): 117850_a02fde95 → nodes_gt_20/
+  [2137/7048] NODES>20 (29 bodies): 118537_5805bf71 → nodes_gt_20/
+  [2142/7048] NODES>20 (84 bodies): 118629_1004111b → nodes_gt_20/
+  [2152/7048] NODES>20 (122 bodies): 119054_4e1076ec → nodes_gt_20/
+  [2159/7048] NODES>20 (45 bodies): 119543_8a5f8113 → nodes_gt_20/
+  [2162/7048] NODES>20 (27 bodies): 119869_e8f0dd81 → nodes_gt_20/
+  [2178/7048] NODES>20 (91 bodies): 119926_df92c678 → nodes_gt_20/
+  [2180/7048] NODES>20 (180 bodies): 120069_0ebfe193 → nodes_gt_20/
+  [2200/7048] NODES>20 (31 bodies): 120791_c05891a9 → nodes_gt_20/
+  [2201/7048] NODES>20 (48 bodies): 120800_6ee246cf → nodes_gt_20/
+  [2207/7048] NODES>20 (66 bodies): 121170_a57becc5 → nodes_gt_20/
+  [2209/7048] NODES>20 (28 bodies): 121172_0ac63503 → nodes_gt_20/
+  [2211/7048] NODES>20 (22 bodies): 121289_16ee4335 → nodes_gt_20/
+  [2214/7048] NODES>20 (60 bodies): 121540_629c716f → nodes_gt_20/
+  [2216/7048] NODES>20 (34 bodies): 121692_d16f894d → nodes_gt_20/
+  [2221/7048] NODES>20 (27 bodies): 121932_cd75c391 → nodes_gt_20/
+  [2224/7048] NODES>20 (22 bodies): 122103_58a83e48 → nodes_gt_20/
+  [2235/7048] NODES>20 (96 bodies): 122500_e33660ad → nodes_gt_20/
+  [2236/7048] NODES>20 (39 bodies): 122515_758d8b70 → nodes_gt_20/
+  [2240/7048] NODES>20 (27 bodies): 122587_febb5971 → nodes_gt_20/
+  [2241/7048] NODES>20 (24 bodies): 122589_3e2e7b9f → nodes_gt_20/
+  [2247/7048] EDGES>60 (88 dir-edges): 122758_5f4efbf0 → edges_gt_60/
+  [2261/7048] NODES>20 (29 bodies): 123091_0fe1e797 → nodes_gt_20/
+  [2266/7048] NODES>20 (43 bodies): 123181_4e56fb4f → nodes_gt_20/
+  [2270/7048] NODES>20 (37 bodies): 123401_73b57b14 → nodes_gt_20/
+  [2273/7048] NODES>20 (47 bodies): 123415_92630c74 → nodes_gt_20/
+  [2275/7048] EDGES>60 (74 dir-edges): 123496_74cb10dc → edges_gt_60/
+  [2277/7048] NODES>20 (91 bodies): 123514_e7a4ef43 → nodes_gt_20/
+  [2286/7048] NODES>20 (28 bodies): 123689_ccbd39d6 → nodes_gt_20/
+  [2293/7048] NODES>20 (34 bodies): 123843_84980239 → nodes_gt_20/
+  [2295/7048] NODES>20 (112 bodies): 123865_f6dff61e → nodes_gt_20/
+  [2297/7048] EDGES>60 (72 dir-edges): 123940_74d90c60 → edges_gt_60/
+  [2301/7048] NODES>20 (31 bodies): 124013_29e69d5b → nodes_gt_20/
+  [2319/7048] NODES>20 (23 bodies): 124496_20e20439 → nodes_gt_20/
+  [2320/7048] NODES>20 (23 bodies): 124497_5c00f42d → nodes_gt_20/
+  [2332/7048] NODES>20 (33 bodies): 124903_21c797ac → nodes_gt_20/
+  [2333/7048] NODES>20 (118 bodies): 125006_9a46a400 → nodes_gt_20/
+  [2344/7048] NODES>20 (235 bodies): 125593_b7792871 → nodes_gt_20/
+  [2358/7048] NODES>20 (52 bodies): 126068_f94ff813 → nodes_gt_20/
+  [2359/7048] NODES>20 (29 bodies): 126086_35ea55a5 → nodes_gt_20/
+  [2360/7048] NODES>20 (57 bodies): 126172_e837ed2d → nodes_gt_20/
+  [2362/7048] NODES>20 (21 bodies): 126397_cc08a23d → nodes_gt_20/
+  [2364/7048] NODES>20 (42 bodies): 126413_4c85d641 → nodes_gt_20/
+  [2366/7048] NODES>20 (23 bodies): 126479_e3f1c0b2 → nodes_gt_20/
+  [2369/7048] NODES>20 (38 bodies): 126572_a2d6f794 → nodes_gt_20/
+  [2372/7048] NODES>20 (44 bodies): 126675_bc94813f → nodes_gt_20/
+  [2374/7048] NODES>20 (75 bodies): 126833_66a89b1d → nodes_gt_20/
+  [2376/7048] NODES>20 (31 bodies): 126838_a1d7ba12 → nodes_gt_20/
+  [2378/7048] NODES>20 (32 bodies): 126846_65f48c2f → nodes_gt_20/
+  [2388/7048] NODES>20 (31 bodies): 126930_7456843c → nodes_gt_20/
+  [2389/7048] NODES>20 (26 bodies): 126990_18260b3d → nodes_gt_20/
+  [2390/7048] NODES>20 (24 bodies): 126998_56154070 → nodes_gt_20/
+  [2399/7048] NODES>20 (108 bodies): 127202_42451722 → nodes_gt_20/
+  [2401/7048] NODES>20 (36 bodies): 127274_6484a80b → nodes_gt_20/
+  [2407/7048] NODES>20 (33 bodies): 127392_4b9c99cd → nodes_gt_20/
+  [2408/7048] NODES>20 (24 bodies): 127451_517d54f3 → nodes_gt_20/
+  [2418/7048] NODES>20 (24 bodies): 127734_395dcf7d → nodes_gt_20/
+  [2422/7048] NODES>20 (45 bodies): 127894_79d8e087 → nodes_gt_20/
+  [2433/7048] EDGES>60 (86 dir-edges): 128441_b3d88d7a → edges_gt_60/
+  [2435/7048] NODES>20 (90 bodies): 128507_0070553e → nodes_gt_20/
+  [2445/7048] NODES>20 (56 bodies): 129010_4bd46fcf → nodes_gt_20/
+  [2453/7048] NODES>20 (257 bodies): 129404_b44c37dc → nodes_gt_20/
+  [2461/7048] NODES>20 (22 bodies): 129421_483d2957 → nodes_gt_20/
+  [2462/7048] NODES>20 (115 bodies): 129428_edce5555 → nodes_gt_20/
+  [2472/7048] NODES>20 (171 bodies): 129845_8e93541e → nodes_gt_20/
+  [2473/7048] NODES>20 (24 bodies): 129926_76c8dd82 → nodes_gt_20/
+  [2477/7048] NODES>20 (37 bodies): 130021_3bc76f0f → nodes_gt_20/
+  [2478/7048] NODES>20 (153 bodies): 130093_18da9bca → nodes_gt_20/
+  [2481/7048] NODES>20 (21 bodies): 130273_bea3b1ca → nodes_gt_20/
+  [2486/7048] NODES>20 (29 bodies): 130365_d37d0b81 → nodes_gt_20/
+  [2487/7048] NODES>20 (72 bodies): 130417_2c7c5f27 → nodes_gt_20/
+  [2490/7048] NODES>20 (25 bodies): 130476_1dd5d4f7 → nodes_gt_20/
+  [2497/7048] NODES>20 (101 bodies): 130562_aa70849c → nodes_gt_20/
+  [2498/7048] NODES>20 (33 bodies): 130574_a9c03705 → nodes_gt_20/
+  Progress: 2500/7048 — nodes_mv: 467  edges_mv: 8
+  [2506/7048] NODES>20 (23 bodies): 130659_16f2db4c → nodes_gt_20/
+  [2514/7048] NODES>20 (21 bodies): 130731_93b4a812 → nodes_gt_20/
+  [2517/7048] NODES>20 (102 bodies): 130770_365b0246 → nodes_gt_20/
+  [2541/7048] NODES>20 (84 bodies): 131193_98f3ac52 → nodes_gt_20/
+  [2542/7048] NODES>20 (36 bodies): 131211_82f011c9 → nodes_gt_20/
+  [2544/7048] NODES>20 (103 bodies): 131237_d71722a8 → nodes_gt_20/
+  [2546/7048] NODES>20 (23 bodies): 131260_4f9f60b1 → nodes_gt_20/
+  [2548/7048] NODES>20 (81 bodies): 131350_bbdad30d → nodes_gt_20/
+  [2559/7048] NODES>20 (31 bodies): 131468_117edf36 → nodes_gt_20/
+  [2575/7048] NODES>20 (32 bodies): 131711_b6dd09f7 → nodes_gt_20/
+  [2583/7048] NODES>20 (22 bodies): 131863_d8b2c0a3 → nodes_gt_20/
+  [2584/7048] NODES>20 (28 bodies): 131879_86607613 → nodes_gt_20/
+  [2596/7048] NODES>20 (26 bodies): 131969_9e97c6e0 → nodes_gt_20/
+  [2597/7048] NODES>20 (146 bodies): 131998_287fefc5 → nodes_gt_20/
+  [2617/7048] NODES>20 (64 bodies): 132215_257c0f88 → nodes_gt_20/
+  [2665/7048] NODES>20 (46 bodies): 132529_cdcc5d1d → nodes_gt_20/
+  [2668/7048] NODES>20 (60 bodies): 132549_cf6511f7 → nodes_gt_20/
+  [2672/7048] NODES>20 (24 bodies): 132581_e683b2ae → nodes_gt_20/
+  [2676/7048] NODES>20 (22 bodies): 132605_8ae2ba54 → nodes_gt_20/
+  [2681/7048] NODES>20 (32 bodies): 132631_3d7aa818 → nodes_gt_20/
+  [2682/7048] NODES>20 (64 bodies): 132631_59f39d54 → nodes_gt_20/
+  [2683/7048] NODES>20 (41 bodies): 132631_822ab5c9 → nodes_gt_20/
+  [2684/7048] NODES>20 (41 bodies): 132631_b6f9d278 → nodes_gt_20/
+  [2685/7048] NODES>20 (41 bodies): 132631_b9b56c40 → nodes_gt_20/
+  [2688/7048] NODES>20 (22 bodies): 132676_b284ce53 → nodes_gt_20/
+  [2691/7048] NODES>20 (22 bodies): 132685_6ff62835 → nodes_gt_20/
+  [2700/7048] NODES>20 (25 bodies): 132720_0f5663a9 → nodes_gt_20/
+  [2706/7048] NODES>20 (33 bodies): 132827_87f90194 → nodes_gt_20/
+  [2714/7048] NODES>20 (25 bodies): 132901_7d205bb4 → nodes_gt_20/
+  [2715/7048] NODES>20 (32 bodies): 132914_55163a0e → nodes_gt_20/
+  [2716/7048] NODES>20 (22 bodies): 132916_f15f6b71 → nodes_gt_20/
+  [2725/7048] NODES>20 (45 bodies): 133080_b2b10214 → nodes_gt_20/
+  [2726/7048] NODES>20 (45 bodies): 133080_d01fe500 → nodes_gt_20/
+  [2730/7048] NODES>20 (143 bodies): 133129_0872b871 → nodes_gt_20/
+  [2731/7048] NODES>20 (200 bodies): 133129_48a91685 → nodes_gt_20/
+  [2732/7048] NODES>20 (244 bodies): 133129_83136137 → nodes_gt_20/
+  [2735/7048] NODES>20 (28 bodies): 133177_b5476b33 → nodes_gt_20/
+  [2752/7048] NODES>20 (41 bodies): 133411_f82e5b22 → nodes_gt_20/
+  [2758/7048] NODES>20 (22 bodies): 133479_25959b28 → nodes_gt_20/
+  [2760/7048] NODES>20 (45 bodies): 133523_6c1222d6 → nodes_gt_20/
+  [2763/7048] NODES>20 (166 bodies): 133564_b5340c41 → nodes_gt_20/
+  [2764/7048] NODES>20 (24 bodies): 133571_db59c0e3 → nodes_gt_20/
+  [2776/7048] NODES>20 (33 bodies): 133768_6787114d → nodes_gt_20/
+  [2778/7048] NODES>20 (53 bodies): 133819_20a3ea6c → nodes_gt_20/
+  [2787/7048] NODES>20 (26 bodies): 133969_87aef90a → nodes_gt_20/
+  [2790/7048] NODES>20 (29 bodies): 133985_2cffbc4f → nodes_gt_20/
+  [2791/7048] NODES>20 (72 bodies): 133989_1aa964b4 → nodes_gt_20/
+  [2792/7048] NODES>20 (68 bodies): 133989_b2a532b9 → nodes_gt_20/
+  [2797/7048] NODES>20 (22 bodies): 134018_4df544fd → nodes_gt_20/
+  [2802/7048] NODES>20 (29 bodies): 134057_9733029e → nodes_gt_20/
+  [2808/7048] NODES>20 (26 bodies): 134189_c08fdee5 → nodes_gt_20/
+  [2812/7048] NODES>20 (21 bodies): 134284_28ba41df → nodes_gt_20/
+  [2824/7048] NODES>20 (39 bodies): 134513_9d184eee → nodes_gt_20/
+  [2826/7048] NODES>20 (57 bodies): 134530_2333795d → nodes_gt_20/
+  [2828/7048] NODES>20 (28 bodies): 134582_7eb0e129 → nodes_gt_20/
+  [2832/7048] NODES>20 (24 bodies): 134636_b15ec34d → nodes_gt_20/
+  [2839/7048] NODES>20 (21 bodies): 134757_9af2a5c0 → nodes_gt_20/
+  [2841/7048] NODES>20 (23 bodies): 134811_63ed1489 → nodes_gt_20/
+  [2844/7048] NODES>20 (113 bodies): 134853_9caf9e3a → nodes_gt_20/
+  [2845/7048] NODES>20 (64 bodies): 134855_59332110 → nodes_gt_20/
+  [2858/7048] NODES>20 (105 bodies): 134979_7857b2e0 → nodes_gt_20/
+  [2861/7048] NODES>20 (26 bodies): 135021_52b9c2b3 → nodes_gt_20/
+  [2865/7048] NODES>20 (48 bodies): 135066_6988a2eb → nodes_gt_20/
+  [2873/7048] NODES>20 (154 bodies): 135142_8c7abb65 → nodes_gt_20/
+  [2877/7048] NODES>20 (23 bodies): 135261_aaa17ec7 → nodes_gt_20/
+  [2884/7048] NODES>20 (118 bodies): 135317_7cab68a2 → nodes_gt_20/
+  [2887/7048] NODES>20 (42 bodies): 135321_ca4ba401 → nodes_gt_20/
+  [2890/7048] NODES>20 (22 bodies): 135322_7f8268d2 → nodes_gt_20/
+  [2901/7048] NODES>20 (95 bodies): 135385_c8fedd05 → nodes_gt_20/
+  [2904/7048] NODES>20 (52 bodies): 135445_77b4ac77 → nodes_gt_20/
+  [2906/7048] NODES>20 (29 bodies): 135514_12de81ba → nodes_gt_20/
+  [2910/7048] NODES>20 (307 bodies): 135525_374a3c36 → nodes_gt_20/
+  [2911/7048] NODES>20 (87 bodies): 135530_5bb2fa59 → nodes_gt_20/
+  [2912/7048] NODES>20 (45 bodies): 135557_370b6b16 → nodes_gt_20/
+  [2913/7048] NODES>20 (46 bodies): 135557_c959c4d5 → nodes_gt_20/
+  [2917/7048] NODES>20 (25 bodies): 135643_3ad56ced → nodes_gt_20/
+  [2920/7048] NODES>20 (204 bodies): 135771_b030a25c → nodes_gt_20/
+  [2922/7048] NODES>20 (251 bodies): 135790_a27f9deb → nodes_gt_20/
+  [2925/7048] NODES>20 (133 bodies): 135842_03e5ca3f → nodes_gt_20/
+  [2927/7048] NODES>20 (21 bodies): 135867_fa1e195e → nodes_gt_20/
+  [2928/7048] NODES>20 (91 bodies): 135896_ecae901d → nodes_gt_20/
+  [2930/7048] NODES>20 (68 bodies): 135906_29d7b495 → nodes_gt_20/
+  [2932/7048] NODES>20 (95 bodies): 135906_88f334dc → nodes_gt_20/
+  [2938/7048] NODES>20 (23 bodies): 135949_06517574 → nodes_gt_20/
+  [2940/7048] NODES>20 (23 bodies): 136015_20ead420 → nodes_gt_20/
+  [2946/7048] NODES>20 (42 bodies): 136110_c2db3adb → nodes_gt_20/
+  [2948/7048] NODES>20 (32 bodies): 136131_75bd77f5 → nodes_gt_20/
+  [2959/7048] NODES>20 (21 bodies): 136318_130d6a06 → nodes_gt_20/
+  [2979/7048] NODES>20 (23 bodies): 136477_c46134fc → nodes_gt_20/
+  Progress: 3000/7048 — nodes_mv: 556  edges_mv: 8
+  [3009/7048] NODES>20 (39 bodies): 136708_713328ed → nodes_gt_20/
+  [3019/7048] NODES>20 (60 bodies): 136891_4af46e9c → nodes_gt_20/
+  [3025/7048] NODES>20 (26 bodies): 136936_b4f0c062 → nodes_gt_20/
+  [3031/7048] NODES>20 (26 bodies): 137008_280092b2 → nodes_gt_20/
+  [3038/7048] NODES>20 (37 bodies): 137090_3aac3aab → nodes_gt_20/
+  [3039/7048] NODES>20 (39 bodies): 137090_b1310e7d → nodes_gt_20/
+  [3046/7048] NODES>20 (22 bodies): 137118_4ff32ab1 → nodes_gt_20/
+  [3058/7048] NODES>20 (28 bodies): 137284_0cc53fb5 → nodes_gt_20/
+  [3071/7048] NODES>20 (128 bodies): 137416_0319a631 → nodes_gt_20/
+  [3099/7048] NODES>20 (26 bodies): 137785_67c3085b → nodes_gt_20/
+  [3105/7048] NODES>20 (124 bodies): 137837_9c9f163d → nodes_gt_20/
+  [3109/7048] NODES>20 (32 bodies): 137878_9c5480b1 → nodes_gt_20/
+  [3119/7048] NODES>20 (36 bodies): 138007_0453361b → nodes_gt_20/
+  [3122/7048] NODES>20 (34 bodies): 138037_767a4126 → nodes_gt_20/
+  [3125/7048] NODES>20 (26 bodies): 138072_8a1ea1e0 → nodes_gt_20/
+  [3156/7048] NODES>20 (32 bodies): 138210_482aa6e2 → nodes_gt_20/
+  [3162/7048] NODES>20 (22 bodies): 138242_d520d083 → nodes_gt_20/
+  [3166/7048] NODES>20 (75 bodies): 138258_55eacc48 → nodes_gt_20/
+  [3172/7048] NODES>20 (24 bodies): 138399_8f4638a4 → nodes_gt_20/
+  [3182/7048] NODES>20 (73 bodies): 138520_f4e0bc0b → nodes_gt_20/
+  [3183/7048] NODES>20 (30 bodies): 138521_4994239f → nodes_gt_20/
+  [3184/7048] NODES>20 (47 bodies): 138535_c0da19b3 → nodes_gt_20/
+  [3185/7048] NODES>20 (31 bodies): 138560_f9532628 → nodes_gt_20/
+  [3188/7048] NODES>20 (21 bodies): 138643_9fdbe752 → nodes_gt_20/
+  [3190/7048] EDGES>60 (62 dir-edges): 138741_d4087905 → edges_gt_60/
+  [3192/7048] NODES>20 (51 bodies): 138748_5721b4fa → nodes_gt_20/
+  [3193/7048] NODES>20 (51 bodies): 138748_a3e7a578 → nodes_gt_20/
+  [3195/7048] NODES>20 (138 bodies): 138768_feb565de → nodes_gt_20/
+  [3196/7048] NODES>20 (31 bodies): 138771_38afab8e → nodes_gt_20/
+  [3199/7048] NODES>20 (49 bodies): 138790_dbbff3f3 → nodes_gt_20/
+  [3201/7048] NODES>20 (37 bodies): 138810_64bb6324 → nodes_gt_20/
+  [3214/7048] NODES>20 (28 bodies): 138930_3c2d5769 → nodes_gt_20/
+  [3215/7048] EDGES>60 (82 dir-edges): 138946_b45b2c50 → edges_gt_60/
+  [3217/7048] NODES>20 (103 bodies): 139024_6622ce65 → nodes_gt_20/
+  [3219/7048] NODES>20 (28 bodies): 139037_72f118ef → nodes_gt_20/
+  [3227/7048] NODES>20 (48 bodies): 139191_329ac5ad → nodes_gt_20/
+  [3228/7048] NODES>20 (21 bodies): 139222_2c10ca9a → nodes_gt_20/
+  [3230/7048] NODES>20 (30 bodies): 139257_6c66375e → nodes_gt_20/
+  [3231/7048] NODES>20 (27 bodies): 139280_8874b1ab → nodes_gt_20/
+  [3238/7048] NODES>20 (70 bodies): 139341_dc122415 → nodes_gt_20/
+  [3247/7048] NODES>20 (36 bodies): 139416_446bba1a → nodes_gt_20/
+  [3249/7048] NODES>20 (51 bodies): 139434_124819ef → nodes_gt_20/
+  [3252/7048] NODES>20 (31 bodies): 139469_8e9175f6 → nodes_gt_20/
+  [3255/7048] NODES>20 (41 bodies): 139495_1af83143 → nodes_gt_20/
+  [3260/7048] NODES>20 (38 bodies): 139558_4bd1b380 → nodes_gt_20/
+  [3267/7048] NODES>20 (47 bodies): 139597_7005536c → nodes_gt_20/
+  [3268/7048] NODES>20 (48 bodies): 139616_43234ab8 → nodes_gt_20/
+  [3270/7048] NODES>20 (37 bodies): 139661_105bb47a → nodes_gt_20/
+  [3271/7048] NODES>20 (21 bodies): 139665_4e8aac7d → nodes_gt_20/
+  [3275/7048] NODES>20 (40 bodies): 139680_b1f65d1f → nodes_gt_20/
+  [3276/7048] NODES>20 (21 bodies): 139698_68f57fd8 → nodes_gt_20/
+  [3277/7048] NODES>20 (23 bodies): 139702_cd66b5cc → nodes_gt_20/
+  [3283/7048] NODES>20 (88 bodies): 139796_515f80a8 → nodes_gt_20/
+  [3285/7048] NODES>20 (103 bodies): 139801_97e2ca6a → nodes_gt_20/
+  [3287/7048] NODES>20 (27 bodies): 139815_284ee0d7 → nodes_gt_20/
+  [3291/7048] NODES>20 (25 bodies): 139853_d0680974 → nodes_gt_20/
+  [3292/7048] NODES>20 (260 bodies): 139866_1209934f → nodes_gt_20/
+  [3294/7048] NODES>20 (26 bodies): 140011_8c40a59c → nodes_gt_20/
+  [3303/7048] NODES>20 (171 bodies): 140294_f659b875 → nodes_gt_20/
+  [3305/7048] NODES>20 (32 bodies): 140326_ce96d7e5 → nodes_gt_20/
+  [3310/7048] NODES>20 (89 bodies): 140421_9286563d → nodes_gt_20/
+  [3311/7048] NODES>20 (44 bodies): 140443_c3449f3c → nodes_gt_20/
+  [3313/7048] NODES>20 (21 bodies): 140462_343115e7 → nodes_gt_20/
+  [3314/7048] NODES>20 (33 bodies): 140462_bb2c68e8 → nodes_gt_20/
+  [3319/7048] NODES>20 (26 bodies): 140499_419d5823 → nodes_gt_20/
+  [3324/7048] NODES>20 (77 bodies): 140600_a065e504 → nodes_gt_20/
+  [3326/7048] NODES>20 (48 bodies): 140609_9462c427 → nodes_gt_20/
+  [3333/7048] NODES>20 (32 bodies): 140769_9b324e26 → nodes_gt_20/
+  [3341/7048] EDGES>60 (64 dir-edges): 140900_fece9855 → edges_gt_60/
+  [3346/7048] NODES>20 (54 bodies): 140984_0596e640 → nodes_gt_20/
+  [3357/7048] NODES>20 (36 bodies): 141179_0522ecc2 → nodes_gt_20/
+  [3362/7048] NODES>20 (175 bodies): 141294_8b13a67d → nodes_gt_20/
+  [3363/7048] NODES>20 (47 bodies): 141300_06f19ac4 → nodes_gt_20/
+  [3364/7048] NODES>20 (54 bodies): 141333_3ba803f4 → nodes_gt_20/
+  [3365/7048] NODES>20 (32 bodies): 141333_e315d257 → nodes_gt_20/
+  [3379/7048] NODES>20 (107 bodies): 141638_a21f336f → nodes_gt_20/
+  [3382/7048] EDGES>60 (70 dir-edges): 141670_a30844e0 → edges_gt_60/
+  [3383/7048] NODES>20 (33 bodies): 141676_62045b05 → nodes_gt_20/
+  [3394/7048] NODES>20 (43 bodies): 141812_e03d53ba → nodes_gt_20/
+  [3401/7048] NODES>20 (46 bodies): 141889_ce1e9018 → nodes_gt_20/
+  [3402/7048] NODES>20 (47 bodies): 141893_d7795e2a → nodes_gt_20/
+  [3405/7048] NODES>20 (81 bodies): 141916_e6a44291 → nodes_gt_20/
+  [3406/7048] NODES>20 (87 bodies): 141956_16ac8fc2 → nodes_gt_20/
+  [3419/7048] NODES>20 (22 bodies): 142314_f5cc27a3 → nodes_gt_20/
+  [3422/7048] NODES>20 (41 bodies): 142332_8e1a3b5a → nodes_gt_20/
+  [3428/7048] NODES>20 (36 bodies): 142485_3fc1bcac → nodes_gt_20/
+  [3431/7048] NODES>20 (26 bodies): 142499_e7c99726 → nodes_gt_20/
+  [3432/7048] NODES>20 (23 bodies): 142503_1fd94cd7 → nodes_gt_20/
+  [3436/7048] NODES>20 (48 bodies): 142552_224d871b → nodes_gt_20/
+  [3437/7048] NODES>20 (51 bodies): 142552_5d229cee → nodes_gt_20/
+  [3444/7048] NODES>20 (106 bodies): 142659_3e42350b → nodes_gt_20/
+  [3450/7048] NODES>20 (24 bodies): 142773_b1469392 → nodes_gt_20/
+  [3452/7048] NODES>20 (47 bodies): 142848_001724ce → nodes_gt_20/
+  [3454/7048] NODES>20 (34 bodies): 142848_b5cf601e → nodes_gt_20/
+  [3461/7048] NODES>20 (91 bodies): 142999_171240b6 → nodes_gt_20/
+  [3462/7048] NODES>20 (38 bodies): 143015_4eca6f09 → nodes_gt_20/
+  [3463/7048] NODES>20 (52 bodies): 143017_21d96cc2 → nodes_gt_20/
+  [3465/7048] NODES>20 (42 bodies): 143019_54c55d14 → nodes_gt_20/
+  [3471/7048] NODES>20 (217 bodies): 143255_2c0d06f5 → nodes_gt_20/
+  [3485/7048] NODES>20 (125 bodies): 143471_543869e9 → nodes_gt_20/
+  [3488/7048] NODES>20 (25 bodies): 143533_986aa06c → nodes_gt_20/
+  Progress: 3500/7048 — nodes_mv: 653  edges_mv: 12
+  [3504/7048] NODES>20 (37 bodies): 143627_08f68135 → nodes_gt_20/
+  [3505/7048] NODES>20 (89 bodies): 143658_f856aac2 → nodes_gt_20/
+  [3510/7048] NODES>20 (60 bodies): 143786_f34f7c93 → nodes_gt_20/
+  [3513/7048] NODES>20 (34 bodies): 143838_ff41630a → nodes_gt_20/
+  [3518/7048] NODES>20 (88 bodies): 143926_6dc855cc → nodes_gt_20/
+  [3531/7048] NODES>20 (47 bodies): 144113_8f824d0a → nodes_gt_20/
+  [3532/7048] NODES>20 (31 bodies): 144117_83c980ca → nodes_gt_20/
+  [3557/7048] NODES>20 (154 bodies): 144436_b108c6db → nodes_gt_20/
+  [3563/7048] NODES>20 (23 bodies): 144534_3b4fdb09 → nodes_gt_20/
+  [3566/7048] NODES>20 (22 bodies): 144566_cdb1c642 → nodes_gt_20/
+  [3570/7048] NODES>20 (83 bodies): 144641_dec0dcb2 → nodes_gt_20/
+  [3575/7048] NODES>20 (67 bodies): 144698_994348e6 → nodes_gt_20/
+  [3578/7048] NODES>20 (92 bodies): 144711_ea9bd20b → nodes_gt_20/
+  [3591/7048] NODES>20 (36 bodies): 144848_5e9ec562 → nodes_gt_20/
+  [3601/7048] EDGES>60 (112 dir-edges): 144977_7fbc17b8 → edges_gt_60/
+  [3604/7048] NODES>20 (95 bodies): 145018_51446d36 → nodes_gt_20/
+  [3614/7048] NODES>20 (137 bodies): 145201_a104c55b → nodes_gt_20/
+  [3616/7048] NODES>20 (24 bodies): 145250_cde4d039 → nodes_gt_20/
+  [3618/7048] NODES>20 (84 bodies): 145274_9856ca8f → nodes_gt_20/
+  [3619/7048] NODES>20 (40 bodies): 145275_96d2b91c → nodes_gt_20/
+  [3625/7048] NODES>20 (29 bodies): 145410_ee6bf54b → nodes_gt_20/
+  [3628/7048] NODES>20 (22 bodies): 145419_d8132f92 → nodes_gt_20/
+  [3631/7048] NODES>20 (74 bodies): 145458_fe9e0820 → nodes_gt_20/
+  [3638/7048] NODES>20 (97 bodies): 145555_2b34da0f → nodes_gt_20/
+  [3640/7048] NODES>20 (63 bodies): 145603_0980a872 → nodes_gt_20/
+  [3653/7048] NODES>20 (269 bodies): 145802_9b4f36d2 → nodes_gt_20/
+  [3663/7048] NODES>20 (318 bodies): 145851_31817d8b → nodes_gt_20/
+  [3688/7048] NODES>20 (174 bodies): 146229_ebdbb944 → nodes_gt_20/
+  [3689/7048] NODES>20 (209 bodies): 146230_1fb4f765 → nodes_gt_20/
+  [3691/7048] NODES>20 (44 bodies): 146321_0dbae658 → nodes_gt_20/
+  [3702/7048] NODES>20 (41 bodies): 146498_a1bffd0b → nodes_gt_20/
+  [3703/7048] NODES>20 (35 bodies): 146518_0ab70b0c → nodes_gt_20/
+  [3708/7048] NODES>20 (199 bodies): 146553_a3c04a09 → nodes_gt_20/
+  [3715/7048] NODES>20 (65 bodies): 146602_ca469137 → nodes_gt_20/
+  [3717/7048] NODES>20 (92 bodies): 146618_b2f1a4f4 → nodes_gt_20/
+  [3719/7048] NODES>20 (38 bodies): 146646_f24f3c97 → nodes_gt_20/
+  [3723/7048] NODES>20 (27 bodies): 146667_fe438b5b → nodes_gt_20/
+  [3724/7048] NODES>20 (22 bodies): 146668_d1fbf7ee → nodes_gt_20/
+  [3729/7048] NODES>20 (22 bodies): 146826_88fb7575 → nodes_gt_20/
+  [3730/7048] NODES>20 (23 bodies): 146826_f7eaa526 → nodes_gt_20/
+  [3732/7048] NODES>20 (95 bodies): 146856_e3317cc7 → nodes_gt_20/
+  [3734/7048] NODES>20 (35 bodies): 146889_355637a1 → nodes_gt_20/
+  [3736/7048] NODES>20 (27 bodies): 146999_eea2e46a → nodes_gt_20/
+  [3746/7048] NODES>20 (105 bodies): 147411_87fc9381 → nodes_gt_20/
+  [3747/7048] NODES>20 (61 bodies): 147427_69f68da4 → nodes_gt_20/
+  [3748/7048] NODES>20 (75 bodies): 147546_ede0f31c → nodes_gt_20/
+  [3751/7048] NODES>20 (31 bodies): 147581_111d626e → nodes_gt_20/
+  [3752/7048] NODES>20 (22 bodies): 147602_1e910f4b → nodes_gt_20/
+  [3753/7048] NODES>20 (22 bodies): 147602_ea6956b1 → nodes_gt_20/
+  [3755/7048] NODES>20 (27 bodies): 147641_7198279f → nodes_gt_20/
+  [3757/7048] NODES>20 (57 bodies): 147651_d3c4281c → nodes_gt_20/
+  [3763/7048] NODES>20 (58 bodies): 147799_458b68b3 → nodes_gt_20/
+  [3766/7048] NODES>20 (67 bodies): 147926_c90e54e1 → nodes_gt_20/
+  [3771/7048] NODES>20 (28 bodies): 148024_0fa50126 → nodes_gt_20/
+  [3772/7048] NODES>20 (209 bodies): 148082_8b644daf → nodes_gt_20/
+  [3774/7048] NODES>20 (23 bodies): 148094_a1f8d3f5 → nodes_gt_20/
+  [3776/7048] NODES>20 (25 bodies): 148128_e1d30e8b → nodes_gt_20/
+  [3801/7048] NODES>20 (44 bodies): 21282_b2d83538 → nodes_gt_20/
+  [3808/7048] NODES>20 (39 bodies): 21859_35124f79 → nodes_gt_20/
+  [3809/7048] NODES>20 (28 bodies): 21941_1a683ec2 → nodes_gt_20/
+  [3811/7048] NODES>20 (64 bodies): 22334_677d00e0 → nodes_gt_20/
+  [3812/7048] NODES>20 (38 bodies): 22414_14ead4a3 → nodes_gt_20/
+  [3813/7048] NODES>20 (89 bodies): 22415_658c81dd → nodes_gt_20/
+  [3816/7048] NODES>20 (27 bodies): 22491_a33562ad → nodes_gt_20/
+  [3826/7048] NODES>20 (212 bodies): 23020_1d0d0f01 → nodes_gt_20/
+  [3827/7048] NODES>20 (65 bodies): 23083_fdb942ac → nodes_gt_20/
+  [3831/7048] NODES>20 (41 bodies): 23168_7fdf5427 → nodes_gt_20/
+  [3836/7048] NODES>20 (105 bodies): 23495_6366269c → nodes_gt_20/
+  [3838/7048] NODES>20 (32 bodies): 23668_d4fa89ff → nodes_gt_20/
+  [3840/7048] NODES>20 (51 bodies): 23767_baed788c → nodes_gt_20/
+  [3846/7048] NODES>20 (31 bodies): 24250_dd7e0408 → nodes_gt_20/
+  [3847/7048] NODES>20 (21 bodies): 24267_8a216138 → nodes_gt_20/
+  [3848/7048] NODES>20 (27 bodies): 24271_dbc0fd2d → nodes_gt_20/
+  [3850/7048] NODES>20 (50 bodies): 24333_037162e0 → nodes_gt_20/
+  [3862/7048] NODES>20 (23 bodies): 24735_384e3c90 → nodes_gt_20/
+  [3865/7048] NODES>20 (44 bodies): 24804_efad9dba → nodes_gt_20/
+  [3867/7048] NODES>20 (27 bodies): 24815_4f2a57e4 → nodes_gt_20/
+  [3869/7048] NODES>20 (25 bodies): 24886_ecf7fcaa → nodes_gt_20/
+  [3874/7048] NODES>20 (73 bodies): 25424_c1308e72 → nodes_gt_20/
+  [3881/7048] NODES>20 (26 bodies): 26156_cc023332 → nodes_gt_20/
+  [3885/7048] NODES>20 (113 bodies): 26375_9f81fc0d → nodes_gt_20/
+  [3886/7048] NODES>20 (128 bodies): 26377_7da65752 → nodes_gt_20/
+  [3888/7048] NODES>20 (82 bodies): 26400_3d7c50c4 → nodes_gt_20/
+  [3892/7048] NODES>20 (44 bodies): 26553_bc82229b → nodes_gt_20/
+  [3894/7048] NODES>20 (26 bodies): 26643_987faf85 → nodes_gt_20/
+  [3895/7048] NODES>20 (29 bodies): 26677_d8a200f0 → nodes_gt_20/
+  [3901/7048] NODES>20 (23 bodies): 26938_47d13587 → nodes_gt_20/
+  [3905/7048] NODES>20 (45 bodies): 27049_f4b9a4b3 → nodes_gt_20/
+  [3907/7048] NODES>20 (40 bodies): 27070_53448c4a → nodes_gt_20/
+  [3909/7048] NODES>20 (45 bodies): 27219_0db40571 → nodes_gt_20/
+  [3914/7048] NODES>20 (35 bodies): 27452_f37cb86c → nodes_gt_20/
+  [3915/7048] NODES>20 (42 bodies): 27577_8520e14a → nodes_gt_20/
+  [3918/7048] NODES>20 (187 bodies): 27717_5de88b4a → nodes_gt_20/
+  [3921/7048] NODES>20 (23 bodies): 27729_09d75da1 → nodes_gt_20/
+  [3924/7048] NODES>20 (26 bodies): 27847_d2436f7c → nodes_gt_20/
+  [3926/7048] EDGES>60 (68 dir-edges): 27935_d49f374d → edges_gt_60/
+  [3927/7048] NODES>20 (44 bodies): 27942_9324c166 → nodes_gt_20/
+  [3929/7048] NODES>20 (83 bodies): 27958_fee329eb → nodes_gt_20/
+  [3930/7048] NODES>20 (29 bodies): 28117_d2b445c3 → nodes_gt_20/
+  [3931/7048] NODES>20 (21 bodies): 28119_f4fb1c4c → nodes_gt_20/
+  [3933/7048] NODES>20 (24 bodies): 28213_40ba97c1 → nodes_gt_20/
+  [3937/7048] NODES>20 (23 bodies): 28280_212120bd → nodes_gt_20/
+  [3938/7048] NODES>20 (71 bodies): 28282_97002185 → nodes_gt_20/
+  [3943/7048] NODES>20 (49 bodies): 28379_7e292343 → nodes_gt_20/
+  [3953/7048] NODES>20 (21 bodies): 28870_da6bdb2e → nodes_gt_20/
+  [3960/7048] NODES>20 (31 bodies): 28928_ea3d1075 → nodes_gt_20/
+  [3971/7048] NODES>20 (113 bodies): 29184_9d7cf184 → nodes_gt_20/
+  [3978/7048] NODES>20 (67 bodies): 29516_f938fec3 → nodes_gt_20/
+  [3986/7048] NODES>20 (33 bodies): 29845_053c4c5b → nodes_gt_20/
+  [3994/7048] NODES>20 (21 bodies): 30256_da1d01b5 → nodes_gt_20/
+  [3995/7048] NODES>20 (274 bodies): 30270_84c53a15 → nodes_gt_20/
+  [3997/7048] NODES>20 (29 bodies): 30274_ca0d10b2 → nodes_gt_20/
+  [3999/7048] NODES>20 (79 bodies): 30297_fd93a92a → nodes_gt_20/
+  [4000/7048] NODES>20 (51 bodies): 30368_d7fd30ce → nodes_gt_20/
+  Progress: 4000/7048 — nodes_mv: 765  edges_mv: 14
+  [4003/7048] NODES>20 (34 bodies): 30377_e18ea3de → nodes_gt_20/
+  [4006/7048] NODES>20 (23 bodies): 30388_1161a669 → nodes_gt_20/
+  [4010/7048] EDGES>60 (62 dir-edges): 30418_de83ae84 → edges_gt_60/
+  [4011/7048] NODES>20 (22 bodies): 30442_4ff1d06c → nodes_gt_20/
+  [4014/7048] NODES>20 (45 bodies): 30643_be4a0dae → nodes_gt_20/
+  [4017/7048] NODES>20 (26 bodies): 30731_59735463 → nodes_gt_20/
+  [4034/7048] NODES>20 (46 bodies): 30905_511b96bf → nodes_gt_20/
+  [4035/7048] NODES>20 (86 bodies): 30910_38ea5a06 → nodes_gt_20/
+  [4036/7048] NODES>20 (49 bodies): 30980_d0535092 → nodes_gt_20/
+  [4038/7048] NODES>20 (22 bodies): 30996_10b0a412 → nodes_gt_20/
+  [4041/7048] EDGES>60 (66 dir-edges): 31011_7f51c882 → edges_gt_60/
+  [4043/7048] NODES>20 (217 bodies): 31015_7067f7e5 → nodes_gt_20/
+  [4046/7048] NODES>20 (23 bodies): 31099_481b30db → nodes_gt_20/
+  [4047/7048] NODES>20 (30 bodies): 31110_31a14dba → nodes_gt_20/
+  [4049/7048] NODES>20 (76 bodies): 31117_cd5cdbdb → nodes_gt_20/
+  [4051/7048] NODES>20 (40 bodies): 31129_c9db129b → nodes_gt_20/
+  [4053/7048] NODES>20 (32 bodies): 31213_185aca67 → nodes_gt_20/
+  [4056/7048] NODES>20 (168 bodies): 31264_8280e3cc → nodes_gt_20/
+  [4060/7048] NODES>20 (32 bodies): 31340_dd0bb0ea → nodes_gt_20/
+  [4062/7048] NODES>20 (110 bodies): 31351_19c807b4 → nodes_gt_20/
+  [4064/7048] NODES>20 (48 bodies): 31361_72aab333 → nodes_gt_20/
+  [4065/7048] NODES>20 (230 bodies): 31365_89ae3062 → nodes_gt_20/
+  [4066/7048] NODES>20 (240 bodies): 31377_d11ba9e5 → nodes_gt_20/
+  [4068/7048] NODES>20 (30 bodies): 31455_14e32e92 → nodes_gt_20/
+  [4070/7048] NODES>20 (36 bodies): 31458_dd80eda7 → nodes_gt_20/
+  [4071/7048] NODES>20 (27 bodies): 31459_1fd4998f → nodes_gt_20/
+  [4072/7048] NODES>20 (33 bodies): 31460_39fdfc6a → nodes_gt_20/
+  [4073/7048] NODES>20 (28 bodies): 31462_84375249 → nodes_gt_20/
+  [4075/7048] NODES>20 (48 bodies): 31469_a2a85e2b → nodes_gt_20/
+  [4081/7048] NODES>20 (186 bodies): 31527_577418c8 → nodes_gt_20/
+  [4082/7048] NODES>20 (76 bodies): 31589_ac31215d → nodes_gt_20/
+  [4083/7048] NODES>20 (33 bodies): 31590_157528f6 → nodes_gt_20/
+  [4085/7048] NODES>20 (80 bodies): 31597_99d5e14f → nodes_gt_20/
+  [4086/7048] NODES>20 (47 bodies): 31599_bad21c53 → nodes_gt_20/
+  [4087/7048] NODES>20 (189 bodies): 31600_4fbf9345 → nodes_gt_20/
+  [4088/7048] NODES>20 (32 bodies): 31601_ec207433 → nodes_gt_20/
+  [4090/7048] NODES>20 (214 bodies): 31605_440f6c4f → nodes_gt_20/
+  [4091/7048] NODES>20 (34 bodies): 31606_9745bbac → nodes_gt_20/
+  [4100/7048] NODES>20 (87 bodies): 31640_96c29ce2 → nodes_gt_20/
+  [4101/7048] NODES>20 (22 bodies): 31642_61133335 → nodes_gt_20/
+  [4102/7048] NODES>20 (54 bodies): 31645_11901b20 → nodes_gt_20/
+  [4103/7048] NODES>20 (30 bodies): 31647_ab9ad9dc → nodes_gt_20/
+  [4104/7048] NODES>20 (36 bodies): 31651_75411843 → nodes_gt_20/
+  [4105/7048] NODES>20 (21 bodies): 31655_baca05af → nodes_gt_20/
+  [4106/7048] NODES>20 (33 bodies): 31656_ff84c0aa → nodes_gt_20/
+  [4108/7048] NODES>20 (44 bodies): 31659_32b9ca3a → nodes_gt_20/
+  [4109/7048] NODES>20 (229 bodies): 31660_ac6474e1 → nodes_gt_20/
+  [4110/7048] NODES>20 (60 bodies): 31663_c1a12209 → nodes_gt_20/
+  [4111/7048] NODES>20 (32 bodies): 31664_1e85c690 → nodes_gt_20/
+  [4112/7048] NODES>20 (105 bodies): 31667_a38ff7b3 → nodes_gt_20/
+  [4113/7048] NODES>20 (24 bodies): 31669_21299c97 → nodes_gt_20/
+  [4117/7048] NODES>20 (24 bodies): 31739_19748ed4 → nodes_gt_20/
+  [4118/7048] NODES>20 (30 bodies): 31740_86dab66b → nodes_gt_20/
+  [4119/7048] NODES>20 (57 bodies): 31743_14844fbf → nodes_gt_20/
+  [4120/7048] NODES>20 (23 bodies): 31751_e37382e1 → nodes_gt_20/
+  [4122/7048] NODES>20 (60 bodies): 31760_86196b72 → nodes_gt_20/
+  [4123/7048] NODES>20 (63 bodies): 31761_8764396d → nodes_gt_20/
+  [4124/7048] NODES>20 (61 bodies): 31763_ccbee9ee → nodes_gt_20/
+  [4125/7048] NODES>20 (32 bodies): 31830_6b6967b5 → nodes_gt_20/
+  [4126/7048] NODES>20 (70 bodies): 31831_12689eab → nodes_gt_20/
+  [4129/7048] NODES>20 (71 bodies): 31930_fd018d7e → nodes_gt_20/
+  [4131/7048] NODES>20 (25 bodies): 31935_d3b86ff6 → nodes_gt_20/
+  [4134/7048] NODES>20 (32 bodies): 32049_632b3378 → nodes_gt_20/
+  [4136/7048] NODES>20 (40 bodies): 32082_035acfdb → nodes_gt_20/
+  [4141/7048] NODES>20 (70 bodies): 32160_661a301e → nodes_gt_20/
+  [4147/7048] NODES>20 (35 bodies): 32169_c6811fb2 → nodes_gt_20/
+  [4150/7048] NODES>20 (49 bodies): 32216_06401c17 → nodes_gt_20/
+  [4151/7048] NODES>20 (104 bodies): 32220_1fd19c5e → nodes_gt_20/
+  [4160/7048] NODES>20 (31 bodies): 32541_86f7df73 → nodes_gt_20/
+  [4162/7048] EDGES>60 (78 dir-edges): 32549_f90975a7 → edges_gt_60/
+  [4169/7048] NODES>20 (164 bodies): 32564_b487393e → nodes_gt_20/
+  [4170/7048] NODES>20 (35 bodies): 32566_7bfc936b → nodes_gt_20/
+  [4171/7048] NODES>20 (21 bodies): 32666_4baa4ef5 → nodes_gt_20/
+  [4172/7048] NODES>20 (77 bodies): 32678_7c9b2268 → nodes_gt_20/
+  [4179/7048] NODES>20 (38 bodies): 32960_0eaa1de8 → nodes_gt_20/
+  [4181/7048] NODES>20 (24 bodies): 32972_86e78aaf → nodes_gt_20/
+  [4187/7048] NODES>20 (29 bodies): 33051_709730fe → nodes_gt_20/
+  [4189/7048] NODES>20 (22 bodies): 33084_344fec27 → nodes_gt_20/
+  [4192/7048] NODES>20 (23 bodies): 33165_cec42ec5 → nodes_gt_20/
+  [4193/7048] NODES>20 (21 bodies): 33171_e4b4721e → nodes_gt_20/
+  [4194/7048] NODES>20 (43 bodies): 33177_c46f3a50 → nodes_gt_20/
+  [4196/7048] NODES>20 (21 bodies): 33304_88785332 → nodes_gt_20/
+  [4199/7048] NODES>20 (38 bodies): 33411_464f29d2 → nodes_gt_20/
+  [4200/7048] NODES>20 (70 bodies): 33413_060ce192 → nodes_gt_20/
+  [4202/7048] NODES>20 (69 bodies): 33418_c6d92d7c → nodes_gt_20/
+  [4204/7048] NODES>20 (48 bodies): 33429_6fdcdf68 → nodes_gt_20/
+  [4208/7048] NODES>20 (33 bodies): 33499_48ac4df4 → nodes_gt_20/
+  [4210/7048] NODES>20 (66 bodies): 33528_10e28c4c → nodes_gt_20/
+  [4211/7048] NODES>20 (30 bodies): 33529_756075a0 → nodes_gt_20/
+  [4215/7048] NODES>20 (35 bodies): 33612_7344159a → nodes_gt_20/
+  [4216/7048] NODES>20 (24 bodies): 33615_7bab1106 → nodes_gt_20/
+  [4217/7048] NODES>20 (32 bodies): 33616_953c1fc4 → nodes_gt_20/
+  [4218/7048] NODES>20 (31 bodies): 33619_4f145152 → nodes_gt_20/
+  [4221/7048] NODES>20 (36 bodies): 33631_c20a5d08 → nodes_gt_20/
+  [4222/7048] NODES>20 (39 bodies): 33632_da973faa → nodes_gt_20/
+  [4224/7048] NODES>20 (37 bodies): 33671_0e9c6ca3 → nodes_gt_20/
+  [4225/7048] NODES>20 (53 bodies): 33738_77d49563 → nodes_gt_20/
+  [4227/7048] NODES>20 (123 bodies): 33765_4d6288b9 → nodes_gt_20/
+  [4228/7048] NODES>20 (48 bodies): 33782_5c085bbe → nodes_gt_20/
+  [4229/7048] NODES>20 (66 bodies): 33783_72eb445d → nodes_gt_20/
+  [4231/7048] NODES>20 (33 bodies): 33849_5f23827e → nodes_gt_20/
+  [4232/7048] NODES>20 (39 bodies): 33859_abb6d914 → nodes_gt_20/
+  [4233/7048] NODES>20 (28 bodies): 33889_140afd21 → nodes_gt_20/
+  [4235/7048] NODES>20 (29 bodies): 33966_34da4534 → nodes_gt_20/
+  [4236/7048] NODES>20 (29 bodies): 33967_0741e236 → nodes_gt_20/
+  [4238/7048] NODES>20 (87 bodies): 33970_c040ca8f → nodes_gt_20/
+  [4239/7048] NODES>20 (34 bodies): 33971_46bb0373 → nodes_gt_20/
+  [4241/7048] NODES>20 (38 bodies): 33973_0bcf43ee → nodes_gt_20/
+  [4242/7048] NODES>20 (24 bodies): 33982_7068f714 → nodes_gt_20/
+  [4243/7048] NODES>20 (57 bodies): 33991_aaf84876 → nodes_gt_20/
+  [4244/7048] NODES>20 (31 bodies): 33995_18423507 → nodes_gt_20/
+  [4251/7048] NODES>20 (32 bodies): 34117_465887a0 → nodes_gt_20/
+  [4254/7048] NODES>20 (32 bodies): 34181_2996d1f6 → nodes_gt_20/
+  [4255/7048] NODES>20 (21 bodies): 34225_0bedc717 → nodes_gt_20/
+  [4257/7048] NODES>20 (23 bodies): 34225_69ae4861 → nodes_gt_20/
+  [4258/7048] NODES>20 (38 bodies): 34306_6882e0c0 → nodes_gt_20/
+  [4259/7048] NODES>20 (62 bodies): 34339_22189e94 → nodes_gt_20/
+  [4260/7048] NODES>20 (36 bodies): 34346_d3e86e1e → nodes_gt_20/
+  [4261/7048] NODES>20 (29 bodies): 34380_ecca2d9a → nodes_gt_20/
+  [4263/7048] NODES>20 (41 bodies): 34417_7ab86974 → nodes_gt_20/
+  [4265/7048] NODES>20 (72 bodies): 34432_69b3f153 → nodes_gt_20/
+  [4266/7048] EDGES>60 (62 dir-edges): 34434_f28da102 → edges_gt_60/
+  [4267/7048] NODES>20 (36 bodies): 34456_fac5e814 → nodes_gt_20/
+  [4268/7048] NODES>20 (21 bodies): 34520_035b5e9a → nodes_gt_20/
+  [4284/7048] EDGES>60 (62 dir-edges): 34558_68b270ad → edges_gt_60/
+  [4288/7048] NODES>20 (23 bodies): 34600_e2685d46 → nodes_gt_20/
+  [4289/7048] NODES>20 (107 bodies): 34668_8a753dee → nodes_gt_20/
+  [4290/7048] NODES>20 (22 bodies): 34669_0533549b → nodes_gt_20/
+  [4292/7048] NODES>20 (32 bodies): 34671_a5e8d4f9 → nodes_gt_20/
+  [4293/7048] NODES>20 (40 bodies): 34672_301d66e9 → nodes_gt_20/
+  [4294/7048] NODES>20 (28 bodies): 34673_5d261268 → nodes_gt_20/
+  [4295/7048] NODES>20 (26 bodies): 34675_769b3cf9 → nodes_gt_20/
+  [4298/7048] NODES>20 (24 bodies): 34690_e06f682f → nodes_gt_20/
+  [4300/7048] NODES>20 (30 bodies): 34770_6bba5bd4 → nodes_gt_20/
+  [4301/7048] NODES>20 (30 bodies): 34782_b461066c → nodes_gt_20/
+  [4305/7048] NODES>20 (53 bodies): 34893_ce1b0eec → nodes_gt_20/
+  [4307/7048] NODES>20 (70 bodies): 34907_e9a6ae90 → nodes_gt_20/
+  [4308/7048] NODES>20 (24 bodies): 34908_cb4ff86b → nodes_gt_20/
+  [4310/7048] NODES>20 (22 bodies): 34912_41656ab1 → nodes_gt_20/
+  [4311/7048] NODES>20 (37 bodies): 34914_8911676d → nodes_gt_20/
+  [4314/7048] NODES>20 (46 bodies): 34982_fd1e87ff → nodes_gt_20/
+  [4315/7048] NODES>20 (26 bodies): 35056_9ce25dc9 → nodes_gt_20/
+  [4319/7048] NODES>20 (21 bodies): 35147_bc9f2c5d → nodes_gt_20/
+  [4324/7048] NODES>20 (39 bodies): 35321_49c4ec2b → nodes_gt_20/
+  [4328/7048] NODES>20 (21 bodies): 35584_fb213b6b → nodes_gt_20/
+  [4330/7048] NODES>20 (94 bodies): 35866_d0233b36 → nodes_gt_20/
+  [4331/7048] NODES>20 (35 bodies): 35868_6a6fdf71 → nodes_gt_20/
+  [4333/7048] NODES>20 (34 bodies): 35941_9352b107 → nodes_gt_20/
+  [4334/7048] EDGES>60 (86 dir-edges): 35942_15af9085 → edges_gt_60/
+  [4336/7048] NODES>20 (24 bodies): 36016_ae2e6d8f → nodes_gt_20/
+  [4341/7048] NODES>20 (234 bodies): 36155_8d52bd75 → nodes_gt_20/
+  [4351/7048] NODES>20 (39 bodies): 36283_01a8e5e3 → nodes_gt_20/
+  [4353/7048] NODES>20 (26 bodies): 36307_6290776b → nodes_gt_20/
+  [4355/7048] NODES>20 (29 bodies): 36323_5a763909 → nodes_gt_20/
+  [4356/7048] NODES>20 (26 bodies): 36326_c5319e42 → nodes_gt_20/
+  [4357/7048] NODES>20 (39 bodies): 36327_2dad061c → nodes_gt_20/
+  [4365/7048] NODES>20 (30 bodies): 36440_1a838cec → nodes_gt_20/
+  [4367/7048] NODES>20 (38 bodies): 36510_4f8cf913 → nodes_gt_20/
+  [4374/7048] NODES>20 (103 bodies): 36671_e4a64b8c → nodes_gt_20/
+  [4376/7048] NODES>20 (26 bodies): 36735_f4ef1c35 → nodes_gt_20/
+  [4379/7048] NODES>20 (26 bodies): 37016_455093c1 → nodes_gt_20/
+  [4384/7048] NODES>20 (45 bodies): 37157_f673ed68 → nodes_gt_20/
+  [4385/7048] NODES>20 (22 bodies): 37220_fedc7162 → nodes_gt_20/
+  [4387/7048] NODES>20 (40 bodies): 37267_b2be4b50 → nodes_gt_20/
+  [4390/7048] NODES>20 (39 bodies): 37442_5d12f8ed → nodes_gt_20/
+  [4392/7048] NODES>20 (83 bodies): 37518_9f912ab9 → nodes_gt_20/
+  [4394/7048] NODES>20 (56 bodies): 37524_6004c446 → nodes_gt_20/
+  [4395/7048] NODES>20 (34 bodies): 37532_73fa71e7 → nodes_gt_20/
+  [4396/7048] NODES>20 (106 bodies): 37536_39dd6680 → nodes_gt_20/
+  [4397/7048] NODES>20 (54 bodies): 37592_5e6d1d3d → nodes_gt_20/
+  [4398/7048] NODES>20 (35 bodies): 37596_8efba003 → nodes_gt_20/
+  [4399/7048] NODES>20 (26 bodies): 37599_faf701a1 → nodes_gt_20/
+  [4401/7048] NODES>20 (29 bodies): 37621_750241ab → nodes_gt_20/
+  [4408/7048] NODES>20 (112 bodies): 37810_95f6762a → nodes_gt_20/
+  [4409/7048] NODES>20 (42 bodies): 37818_185485e6 → nodes_gt_20/
+  [4411/7048] NODES>20 (24 bodies): 37829_8ccb1aa5 → nodes_gt_20/
+  [4412/7048] NODES>20 (151 bodies): 37840_de7298de → nodes_gt_20/
+  [4413/7048] NODES>20 (56 bodies): 37844_7d246b91 → nodes_gt_20/
+  [4418/7048] NODES>20 (116 bodies): 38022_acf4492b → nodes_gt_20/
+  [4421/7048] NODES>20 (23 bodies): 38198_7c60c095 → nodes_gt_20/
+  [4426/7048] NODES>20 (24 bodies): 38360_ad61c9b2 → nodes_gt_20/
+  [4429/7048] NODES>20 (85 bodies): 38484_56f24230 → nodes_gt_20/
+  [4436/7048] NODES>20 (31 bodies): 38663_d63ead66 → nodes_gt_20/
+  [4439/7048] NODES>20 (67 bodies): 38676_1bd72a8a → nodes_gt_20/
+  [4441/7048] NODES>20 (35 bodies): 38740_c9ed5246 → nodes_gt_20/
+  [4443/7048] NODES>20 (48 bodies): 38744_d3ed94c6 → nodes_gt_20/
+  [4444/7048] NODES>20 (30 bodies): 38758_f52dac9f → nodes_gt_20/
+  [4449/7048] NODES>20 (40 bodies): 38832_5e2b4d14 → nodes_gt_20/
+  [4450/7048] NODES>20 (36 bodies): 38833_39063c82 → nodes_gt_20/
+  [4453/7048] NODES>20 (70 bodies): 38840_0e449caf → nodes_gt_20/
+  [4458/7048] NODES>20 (83 bodies): 38926_1eaf0b52 → nodes_gt_20/
+  [4462/7048] NODES>20 (31 bodies): 39113_64cc0020 → nodes_gt_20/
+  [4464/7048] NODES>20 (146 bodies): 39203_cf2b0f8f → nodes_gt_20/
+  [4467/7048] NODES>20 (69 bodies): 39389_d641313f → nodes_gt_20/
+  [4468/7048] NODES>20 (24 bodies): 39394_3e0555d8 → nodes_gt_20/
+  [4469/7048] NODES>20 (25 bodies): 39395_c95928c9 → nodes_gt_20/
+  [4471/7048] NODES>20 (21 bodies): 39640_1bef7c32 → nodes_gt_20/
+  [4472/7048] NODES>20 (37 bodies): 39703_f855a082 → nodes_gt_20/
+  [4473/7048] NODES>20 (23 bodies): 39792_60786b6c → nodes_gt_20/
+  [4476/7048] NODES>20 (28 bodies): 39821_c214010c → nodes_gt_20/
+  [4478/7048] NODES>20 (32 bodies): 39850_b2aa4f1e → nodes_gt_20/
+  [4483/7048] NODES>20 (39 bodies): 40061_d07e8764 → nodes_gt_20/
+  [4484/7048] NODES>20 (94 bodies): 40070_be9c502b → nodes_gt_20/
+  [4485/7048] NODES>20 (21 bodies): 40071_6d607628 → nodes_gt_20/
+  [4486/7048] NODES>20 (25 bodies): 40072_b44084ae → nodes_gt_20/
+  [4487/7048] NODES>20 (37 bodies): 40074_4615c9d1 → nodes_gt_20/
+  [4490/7048] NODES>20 (42 bodies): 40261_75fa011c → nodes_gt_20/
+  [4493/7048] NODES>20 (48 bodies): 40589_2673464e → nodes_gt_20/
+  [4495/7048] NODES>20 (57 bodies): 40621_c43e7dfa → nodes_gt_20/
+  [4500/7048] NODES>20 (23 bodies): 40800_7fa2d7a5 → nodes_gt_20/
+  Progress: 4500/7048 — nodes_mv: 969  edges_mv: 20
+  [4501/7048] NODES>20 (21 bodies): 40807_58058731 → nodes_gt_20/
+  [4506/7048] NODES>20 (24 bodies): 40939_0bedb1ea → nodes_gt_20/
+  [4508/7048] NODES>20 (22 bodies): 41026_295d1dc8 → nodes_gt_20/
+  [4510/7048] NODES>20 (112 bodies): 41098_88b2feb8 → nodes_gt_20/
+  [4511/7048] NODES>20 (22 bodies): 41100_ae7d898c → nodes_gt_20/
+  [4514/7048] NODES>20 (26 bodies): 41128_ee74f244 → nodes_gt_20/
+  [4517/7048] NODES>20 (25 bodies): 41229_16283ae1 → nodes_gt_20/
+  [4518/7048] NODES>20 (56 bodies): 41296_077056d6 → nodes_gt_20/
+  [4519/7048] NODES>20 (39 bodies): 41306_8f26e703 → nodes_gt_20/
+  [4522/7048] NODES>20 (65 bodies): 41384_5f42c436 → nodes_gt_20/
+  [4523/7048] NODES>20 (25 bodies): 41387_5f752e39 → nodes_gt_20/
+  [4525/7048] NODES>20 (32 bodies): 41392_a5c218c7 → nodes_gt_20/
+  [4530/7048] EDGES>60 (62 dir-edges): 41520_60018d18 → edges_gt_60/
+  [4533/7048] NODES>20 (79 bodies): 41624_a15f83c1 → nodes_gt_20/
+  [4534/7048] NODES>20 (50 bodies): 41634_4f5d0edb → nodes_gt_20/
+  [4536/7048] NODES>20 (23 bodies): 41677_be02acde → nodes_gt_20/
+  [4538/7048] NODES>20 (28 bodies): 41691_96d262e4 → nodes_gt_20/
+  [4540/7048] NODES>20 (22 bodies): 41718_fff89442 → nodes_gt_20/
+  [4542/7048] NODES>20 (28 bodies): 41723_2c638dff → nodes_gt_20/
+  [4544/7048] NODES>20 (32 bodies): 41733_1ec9b00c → nodes_gt_20/
+  [4545/7048] NODES>20 (21 bodies): 41753_9b4f8d8a → nodes_gt_20/
+  [4546/7048] NODES>20 (108 bodies): 41754_fb582b36 → nodes_gt_20/
+  [4548/7048] NODES>20 (76 bodies): 41774_88a7a483 → nodes_gt_20/
+  [4553/7048] NODES>20 (22 bodies): 41845_866e0992 → nodes_gt_20/
+  [4554/7048] NODES>20 (22 bodies): 41845_a5180a74 → nodes_gt_20/
+  [4560/7048] NODES>20 (25 bodies): 41901_55a5493d → nodes_gt_20/
+  [4561/7048] EDGES>60 (70 dir-edges): 41907_7bcecdb1 → edges_gt_60/
+  [4563/7048] NODES>20 (31 bodies): 41919_d2473a88 → nodes_gt_20/
+  [4565/7048] NODES>20 (204 bodies): 41948_c0d68e8c → nodes_gt_20/
+  [4569/7048] NODES>20 (22 bodies): 42002_469e29cb → nodes_gt_20/
+  [4571/7048] NODES>20 (22 bodies): 42015_efbcca8b → nodes_gt_20/
+  [4572/7048] NODES>20 (61 bodies): 42021_2a7183d7 → nodes_gt_20/
+  [4573/7048] NODES>20 (27 bodies): 42040_da506f9e → nodes_gt_20/
+  [4577/7048] NODES>20 (26 bodies): 42203_33083e24 → nodes_gt_20/
+  [4580/7048] NODES>20 (29 bodies): 42230_49452475 → nodes_gt_20/
+  [4582/7048] NODES>20 (25 bodies): 42230_8c0bec04 → nodes_gt_20/
+  [4585/7048] NODES>20 (24 bodies): 42246_ccdb18b0 → nodes_gt_20/
+  [4586/7048] NODES>20 (88 bodies): 42319_60ca52ad → nodes_gt_20/
+  [4587/7048] NODES>20 (48 bodies): 42333_53c85dac → nodes_gt_20/
+  [4600/7048] NODES>20 (92 bodies): 42603_87ddedfb → nodes_gt_20/
+  [4602/7048] NODES>20 (38 bodies): 42688_09be2738 → nodes_gt_20/
+  [4605/7048] NODES>20 (46 bodies): 42939_e27c4e52 → nodes_gt_20/
+  [4613/7048] NODES>20 (50 bodies): 43170_ac1697f0 → nodes_gt_20/
+  [4619/7048] NODES>20 (62 bodies): 43628_a95b7e66 → nodes_gt_20/
+  [4622/7048] NODES>20 (34 bodies): 43743_37ad760e → nodes_gt_20/
+  [4626/7048] NODES>20 (128 bodies): 43782_69b05579 → nodes_gt_20/
+  [4639/7048] NODES>20 (54 bodies): 44324_71da0009 → nodes_gt_20/
+  [4642/7048] NODES>20 (45 bodies): 44344_3e0b0b0c → nodes_gt_20/
+  [4652/7048] NODES>20 (70 bodies): 44373_0073c4fd → nodes_gt_20/
+  [4655/7048] NODES>20 (160 bodies): 44387_1618ffe6 → nodes_gt_20/
+  [4669/7048] NODES>20 (48 bodies): 44530_34f11745 → nodes_gt_20/
+  [4674/7048] NODES>20 (21 bodies): 44538_98cf7b48 → nodes_gt_20/
+  [4683/7048] NODES>20 (21 bodies): 45030_8789f090 → nodes_gt_20/
+  [4696/7048] NODES>20 (21 bodies): 45283_b9ce373a → nodes_gt_20/
+  [4697/7048] NODES>20 (222 bodies): 45286_cf5a5b2f → nodes_gt_20/
+  [4700/7048] NODES>20 (97 bodies): 45318_16a86ca2 → nodes_gt_20/
+  [4717/7048] NODES>20 (128 bodies): 45542_320c16fd → nodes_gt_20/
+  [4718/7048] NODES>20 (40 bodies): 45546_26041647 → nodes_gt_20/
+  [4720/7048] NODES>20 (26 bodies): 45552_e432f6a2 → nodes_gt_20/
+  [4724/7048] EDGES>60 (82 dir-edges): 45581_2408ef88 → edges_gt_60/
+  [4728/7048] NODES>20 (213 bodies): 45687_0213cc08 → nodes_gt_20/
+  [4732/7048] NODES>20 (108 bodies): 45789_d5126eab → nodes_gt_20/
+  [4737/7048] NODES>20 (23 bodies): 45840_cc6ce3ba → nodes_gt_20/
+  [4745/7048] NODES>20 (62 bodies): 46016_d699e580 → nodes_gt_20/
+  [4751/7048] NODES>20 (25 bodies): 47210_36226953 → nodes_gt_20/
+  [4752/7048] NODES>20 (34 bodies): 47449_bd161058 → nodes_gt_20/
+  [4758/7048] NODES>20 (22 bodies): 47789_2267195e → nodes_gt_20/
+  [4761/7048] NODES>20 (29 bodies): 47878_c1e282d3 → nodes_gt_20/
+  [4766/7048] NODES>20 (49 bodies): 47984_7b774ba1 → nodes_gt_20/
+  [4767/7048] NODES>20 (224 bodies): 48006_babdf4af → nodes_gt_20/
+  [4768/7048] NODES>20 (56 bodies): 48292_5ac1b984 → nodes_gt_20/
+  [4770/7048] NODES>20 (31 bodies): 48400_cd769ba9 → nodes_gt_20/
+  [4771/7048] NODES>20 (90 bodies): 48402_8c965495 → nodes_gt_20/
+  [4773/7048] NODES>20 (37 bodies): 48607_d57ee7ea → nodes_gt_20/
+  [4774/7048] NODES>20 (27 bodies): 48724_70685a9d → nodes_gt_20/
+  [4775/7048] NODES>20 (23 bodies): 48725_68e52fa9 → nodes_gt_20/
+  [4780/7048] NODES>20 (27 bodies): 49092_5f0f4173 → nodes_gt_20/
+  [4785/7048] NODES>20 (42 bodies): 49115_9a0faac3 → nodes_gt_20/
+  [4786/7048] NODES>20 (26 bodies): 49117_9b165eff → nodes_gt_20/
+  [4794/7048] NODES>20 (37 bodies): 49141_4dbe564e → nodes_gt_20/
+  [4797/7048] NODES>20 (30 bodies): 49222_cbe1959b → nodes_gt_20/
+  [4801/7048] NODES>20 (43 bodies): 49331_3bf3bb84 → nodes_gt_20/
+  [4802/7048] NODES>20 (126 bodies): 49396_98ab955d → nodes_gt_20/
+  [4806/7048] NODES>20 (26 bodies): 49406_100c707b → nodes_gt_20/
+  [4808/7048] NODES>20 (21 bodies): 49412_1f199584 → nodes_gt_20/
+  [4809/7048] NODES>20 (40 bodies): 49413_4e7d47f7 → nodes_gt_20/
+  [4812/7048] NODES>20 (114 bodies): 49488_dc0a61aa → nodes_gt_20/
+  [4817/7048] NODES>20 (47 bodies): 49613_1b97c07b → nodes_gt_20/
+  [4832/7048] NODES>20 (35 bodies): 49886_dd68dccb → nodes_gt_20/
+  [4833/7048] NODES>20 (25 bodies): 49896_6387ac02 → nodes_gt_20/
+  [4854/7048] NODES>20 (44 bodies): 50410_f8f03667 → nodes_gt_20/
+  [4855/7048] NODES>20 (37 bodies): 50585_06c574f3 → nodes_gt_20/
+  [4859/7048] NODES>20 (52 bodies): 50694_afd26bd5 → nodes_gt_20/
+  [4862/7048] NODES>20 (122 bodies): 50785_223bc784 → nodes_gt_20/
+  [4863/7048] NODES>20 (86 bodies): 50823_d1830e58 → nodes_gt_20/
+  [4864/7048] NODES>20 (42 bodies): 50833_d533dcbc → nodes_gt_20/
+  [4865/7048] NODES>20 (160 bodies): 50900_0326428a → nodes_gt_20/
+  [4869/7048] NODES>20 (36 bodies): 50914_57d3d851 → nodes_gt_20/
+  [4875/7048] EDGES>60 (76 dir-edges): 51026_4253e05b → edges_gt_60/
+  [4878/7048] NODES>20 (22 bodies): 51256_ed221095 → nodes_gt_20/
+  [4879/7048] NODES>20 (23 bodies): 51268_6e9ccb81 → nodes_gt_20/
+  [4880/7048] NODES>20 (21 bodies): 51269_a23d6f79 → nodes_gt_20/
+  [4881/7048] NODES>20 (169 bodies): 51270_115736c6 → nodes_gt_20/
+  [4882/7048] NODES>20 (24 bodies): 51274_813b3daa → nodes_gt_20/
+  [4883/7048] NODES>20 (23 bodies): 51336_33ff2eba → nodes_gt_20/
+  [4884/7048] NODES>20 (84 bodies): 51337_f8636fd9 → nodes_gt_20/
+  [4885/7048] NODES>20 (26 bodies): 51347_1fc6f329 → nodes_gt_20/
+  [4886/7048] NODES>20 (22 bodies): 51350_138f893a → nodes_gt_20/
+  [4889/7048] NODES>20 (150 bodies): 51355_27ef822c → nodes_gt_20/
+  [4890/7048] NODES>20 (150 bodies): 51355_7cf8ef47 → nodes_gt_20/
+  [4894/7048] NODES>20 (34 bodies): 51443_8bcb2ac6 → nodes_gt_20/
+  [4895/7048] NODES>20 (24 bodies): 51447_18cd850c → nodes_gt_20/
+  [4896/7048] NODES>20 (34 bodies): 51458_54240b70 → nodes_gt_20/
+  [4901/7048] NODES>20 (24 bodies): 51471_289b2a1d → nodes_gt_20/
+  [4903/7048] NODES>20 (40 bodies): 51536_a18dc325 → nodes_gt_20/
+  [4904/7048] NODES>20 (94 bodies): 51542_78281fea → nodes_gt_20/
+  [4911/7048] NODES>20 (34 bodies): 51578_939260cf → nodes_gt_20/
+  [4915/7048] NODES>20 (75 bodies): 51674_a70c1c6c → nodes_gt_20/
+  [4917/7048] NODES>20 (27 bodies): 51701_fedf9669 → nodes_gt_20/
+  [4918/7048] NODES>20 (68 bodies): 51703_fbb7107b → nodes_gt_20/
+  [4921/7048] NODES>20 (42 bodies): 51723_ab02be01 → nodes_gt_20/
+  [4923/7048] NODES>20 (25 bodies): 51741_78dd406b → nodes_gt_20/
+  [4926/7048] NODES>20 (25 bodies): 51859_6b2fd0f1 → nodes_gt_20/
+  [4927/7048] NODES>20 (27 bodies): 51877_0032e502 → nodes_gt_20/
+  [4928/7048] NODES>20 (30 bodies): 51892_6da749d8 → nodes_gt_20/
+  [4929/7048] NODES>20 (77 bodies): 51900_383124a3 → nodes_gt_20/
+  [4930/7048] NODES>20 (27 bodies): 51914_fb924efa → nodes_gt_20/
+  [4933/7048] NODES>20 (30 bodies): 51940_e06fee1b → nodes_gt_20/
+  [4934/7048] NODES>20 (99 bodies): 52011_3a3558b3 → nodes_gt_20/
+  [4935/7048] NODES>20 (22 bodies): 52027_790dbc09 → nodes_gt_20/
+  [4936/7048] NODES>20 (98 bodies): 52035_0244dcd2 → nodes_gt_20/
+  [4940/7048] NODES>20 (24 bodies): 52230_60438ea5 → nodes_gt_20/
+  [4944/7048] NODES>20 (22 bodies): 52365_274736ef → nodes_gt_20/
+  [4945/7048] NODES>20 (30 bodies): 52366_63042db4 → nodes_gt_20/
+  [4946/7048] NODES>20 (65 bodies): 52443_085efc00 → nodes_gt_20/
+  [4950/7048] NODES>20 (26 bodies): 52551_8098346a → nodes_gt_20/
+  [4951/7048] NODES>20 (34 bodies): 52556_1f3617b1 → nodes_gt_20/
+  [4957/7048] NODES>20 (29 bodies): 52766_019fd239 → nodes_gt_20/
+  [4966/7048] NODES>20 (25 bodies): 52890_7ae554d9 → nodes_gt_20/
+  [4969/7048] NODES>20 (44 bodies): 52890_e23bf00b → nodes_gt_20/
+  [4970/7048] NODES>20 (62 bodies): 52890_f69f01a8 → nodes_gt_20/
+  [4972/7048] NODES>20 (63 bodies): 52974_259cdd82 → nodes_gt_20/
+  [4974/7048] NODES>20 (26 bodies): 53078_b592f2bd → nodes_gt_20/
+  [4975/7048] NODES>20 (55 bodies): 53093_bd129e70 → nodes_gt_20/
+  [4979/7048] NODES>20 (131 bodies): 53115_7730777c → nodes_gt_20/
+  [4985/7048] NODES>20 (26 bodies): 53216_2857e8ac → nodes_gt_20/
+  [4986/7048] NODES>20 (62 bodies): 53220_aead56bc → nodes_gt_20/
+  [4990/7048] NODES>20 (31 bodies): 53232_f8760054 → nodes_gt_20/
+  [4994/7048] NODES>20 (25 bodies): 53365_153dc3a6 → nodes_gt_20/
+  [4995/7048] NODES>20 (32 bodies): 53366_d039e80d → nodes_gt_20/
+  [5000/7048] NODES>20 (31 bodies): 53448_2f7c767c → nodes_gt_20/
+  Progress: 5000/7048 — nodes_mv: 1116  edges_mv: 24
+  [5007/7048] NODES>20 (56 bodies): 53590_a324861b → nodes_gt_20/
+  [5012/7048] NODES>20 (32 bodies): 53627_7b1adb8e → nodes_gt_20/
+  [5021/7048] NODES>20 (64 bodies): 53730_62d1957d → nodes_gt_20/
+  [5022/7048] NODES>20 (23 bodies): 53744_eae4849e → nodes_gt_20/
+  [5025/7048] NODES>20 (52 bodies): 53945_70e250c0 → nodes_gt_20/
+  [5026/7048] NODES>20 (41 bodies): 53946_6c462dac → nodes_gt_20/
+  [5027/7048] NODES>20 (33 bodies): 54071_9817455b → nodes_gt_20/
+  [5028/7048] NODES>20 (46 bodies): 54073_7d8cdd04 → nodes_gt_20/
+  [5033/7048] EDGES>60 (62 dir-edges): 54178_c99c690b → edges_gt_60/
+  [5034/7048] NODES>20 (24 bodies): 54181_f02c9b19 → nodes_gt_20/
+  [5036/7048] NODES>20 (46 bodies): 54189_50a800f5 → nodes_gt_20/
+  [5037/7048] NODES>20 (101 bodies): 54273_21c2b38f → nodes_gt_20/
+  [5040/7048] NODES>20 (28 bodies): 54360_db08c779 → nodes_gt_20/
+  [5041/7048] NODES>20 (32 bodies): 54369_81c09cdb → nodes_gt_20/
+  [5048/7048] NODES>20 (21 bodies): 54491_bec60637 → nodes_gt_20/
+  [5056/7048] NODES>20 (73 bodies): 54516_ac9e2ef4 → nodes_gt_20/
+  [5064/7048] NODES>20 (50 bodies): 54617_7a802210 → nodes_gt_20/
+  [5067/7048] NODES>20 (32 bodies): 54626_d73ecd2f → nodes_gt_20/
+  [5071/7048] NODES>20 (30 bodies): 54635_359345b8 → nodes_gt_20/
+  [5073/7048] NODES>20 (27 bodies): 54652_d60ac3e0 → nodes_gt_20/
+  [5074/7048] NODES>20 (64 bodies): 54654_f19e7f7d → nodes_gt_20/
+  [5082/7048] NODES>20 (50 bodies): 54743_14b63c06 → nodes_gt_20/
+  [5083/7048] NODES>20 (111 bodies): 54747_8e62bef9 → nodes_gt_20/
+  [5089/7048] NODES>20 (53 bodies): 54759_5a7a83c9 → nodes_gt_20/
+  [5094/7048] NODES>20 (86 bodies): 54767_970a0e5a → nodes_gt_20/
+  [5097/7048] NODES>20 (73 bodies): 54771_baa4785c → nodes_gt_20/
+  [5112/7048] NODES>20 (23 bodies): 54799_f503a39a → nodes_gt_20/
+  [5119/7048] NODES>20 (75 bodies): 54811_79e68850 → nodes_gt_20/
+  [5124/7048] NODES>20 (180 bodies): 54818_59adf8c2 → nodes_gt_20/
+  [5134/7048] NODES>20 (26 bodies): 54839_9eb4a3cb → nodes_gt_20/
+  [5135/7048] NODES>20 (45 bodies): 54842_935d5db3 → nodes_gt_20/
+  [5138/7048] NODES>20 (41 bodies): 54846_b8019caa → nodes_gt_20/
+  [5139/7048] NODES>20 (26 bodies): 54847_9272ead5 → nodes_gt_20/
+  [5140/7048] NODES>20 (21 bodies): 54849_cbef2075 → nodes_gt_20/
+  [5141/7048] NODES>20 (84 bodies): 54856_bdcac75a → nodes_gt_20/
+  [5142/7048] NODES>20 (89 bodies): 54932_ea3b4df6 → nodes_gt_20/
+  [5154/7048] NODES>20 (39 bodies): 54979_6bd8ad31 → nodes_gt_20/
+  [5155/7048] NODES>20 (45 bodies): 54993_a90c7212 → nodes_gt_20/
+  [5160/7048] NODES>20 (27 bodies): 55013_3a53f521 → nodes_gt_20/
+  [5162/7048] NODES>20 (44 bodies): 55015_a79e0d2e → nodes_gt_20/
+  [5166/7048] NODES>20 (28 bodies): 55029_a712d5a7 → nodes_gt_20/
+  [5178/7048] NODES>20 (65 bodies): 55061_79458e43 → nodes_gt_20/
+  [5188/7048] NODES>20 (47 bodies): 55090_0666c821 → nodes_gt_20/
+  [5191/7048] NODES>20 (29 bodies): 55095_fa260d33 → nodes_gt_20/
+  [5192/7048] NODES>20 (31 bodies): 55096_93c251f9 → nodes_gt_20/
+  [5197/7048] NODES>20 (24 bodies): 55114_7bf17f6a → nodes_gt_20/
+  [5198/7048] NODES>20 (26 bodies): 55115_bc8ee065 → nodes_gt_20/
+  [5202/7048] NODES>20 (103 bodies): 55129_96245c46 → nodes_gt_20/
+  [5203/7048] NODES>20 (23 bodies): 55199_4d57661f → nodes_gt_20/
+  [5213/7048] NODES>20 (38 bodies): 55255_e0101aad → nodes_gt_20/
+  [5225/7048] NODES>20 (21 bodies): 55287_8a57a3db → nodes_gt_20/
+  [5227/7048] NODES>20 (51 bodies): 55293_d4676ea5 → nodes_gt_20/
+  [5254/7048] NODES>20 (41 bodies): 55364_806ff734 → nodes_gt_20/
+  [5264/7048] NODES>20 (26 bodies): 55398_2861c288 → nodes_gt_20/
+  [5272/7048] NODES>20 (92 bodies): 55421_d0af9f24 → nodes_gt_20/
+  [5276/7048] NODES>20 (29 bodies): 55442_9a2486a1 → nodes_gt_20/
+  [5277/7048] NODES>20 (288 bodies): 55448_79a7dfae → nodes_gt_20/
+  [5285/7048] NODES>20 (23 bodies): 55468_d5897822 → nodes_gt_20/
+  [5293/7048] NODES>20 (75 bodies): 55487_2d451f67 → nodes_gt_20/
+  [5318/7048] NODES>20 (26 bodies): 55587_221e9ffc → nodes_gt_20/
+  [5324/7048] NODES>20 (37 bodies): 55627_971fde61 → nodes_gt_20/
+  [5325/7048] NODES>20 (23 bodies): 55633_282eaae6 → nodes_gt_20/
+  [5327/7048] NODES>20 (22 bodies): 55715_525d1d3e → nodes_gt_20/
+  [5341/7048] NODES>20 (42 bodies): 55762_eb8a52ac → nodes_gt_20/
+  [5344/7048] NODES>20 (94 bodies): 55766_4e6a2d09 → nodes_gt_20/
+  [5351/7048] NODES>20 (194 bodies): 55781_b47f23b4 → nodes_gt_20/
+  [5355/7048] NODES>20 (106 bodies): 55801_72138780 → nodes_gt_20/
+  [5378/7048] NODES>20 (26 bodies): 55928_1ccd0821 → nodes_gt_20/
+  [5379/7048] NODES>20 (23 bodies): 55931_84bfa135 → nodes_gt_20/
+  [5386/7048] NODES>20 (24 bodies): 56040_9b1307eb → nodes_gt_20/
+  [5391/7048] NODES>20 (59 bodies): 56050_1aa7d815 → nodes_gt_20/
+  [5407/7048] NODES>20 (41 bodies): 56140_47eef7ec → nodes_gt_20/
+  [5408/7048] NODES>20 (39 bodies): 56151_408ea220 → nodes_gt_20/
+  [5409/7048] NODES>20 (24 bodies): 56165_ecd50749 → nodes_gt_20/
+  [5413/7048] NODES>20 (27 bodies): 56252_f65e7429 → nodes_gt_20/
+  [5414/7048] NODES>20 (62 bodies): 56265_cef153c8 → nodes_gt_20/
+  [5415/7048] NODES>20 (65 bodies): 56265_fbd2666a → nodes_gt_20/
+  [5418/7048] NODES>20 (36 bodies): 56344_3a89f085 → nodes_gt_20/
+  [5419/7048] NODES>20 (26 bodies): 56366_f2495266 → nodes_gt_20/
+  [5420/7048] NODES>20 (51 bodies): 56430_4f35ba2f → nodes_gt_20/
+  [5422/7048] NODES>20 (30 bodies): 56433_67c97ec6 → nodes_gt_20/
+  [5423/7048] NODES>20 (75 bodies): 56438_cab40da5 → nodes_gt_20/
+  [5424/7048] NODES>20 (85 bodies): 56441_ed350d93 → nodes_gt_20/
+  [5425/7048] NODES>20 (47 bodies): 56443_8cfaf376 → nodes_gt_20/
+  [5426/7048] EDGES>60 (62 dir-edges): 56449_ad00f9f1 → edges_gt_60/
+  [5427/7048] NODES>20 (43 bodies): 56461_9a5be0e9 → nodes_gt_20/
+  [5428/7048] NODES>20 (60 bodies): 56480_dcc89e9a → nodes_gt_20/
+  [5429/7048] NODES>20 (86 bodies): 56488_7a606724 → nodes_gt_20/
+  [5430/7048] NODES>20 (21 bodies): 56568_d3018fcb → nodes_gt_20/
+  [5432/7048] NODES>20 (28 bodies): 56572_05ede839 → nodes_gt_20/
+  [5440/7048] NODES>20 (102 bodies): 56696_d1a5a340 → nodes_gt_20/
+  [5444/7048] EDGES>60 (106 dir-edges): 56897_f778b517 → edges_gt_60/
+  [5466/7048] NODES>20 (103 bodies): 57222_33b428d7 → nodes_gt_20/
+  [5472/7048] NODES>20 (23 bodies): 57444_b45bc83a → nodes_gt_20/
+  [5474/7048] NODES>20 (42 bodies): 57532_a10c2515 → nodes_gt_20/
+  [5477/7048] NODES>20 (25 bodies): 57645_4ca54a08 → nodes_gt_20/
+  [5483/7048] NODES>20 (46 bodies): 57749_42e7f862 → nodes_gt_20/
+  [5488/7048] NODES>20 (115 bodies): 57859_f415d3a0 → nodes_gt_20/
+  [5492/7048] NODES>20 (30 bodies): 57892_71eac04f → nodes_gt_20/
+  [5500/7048] NODES>20 (21 bodies): 58532_d61a95e8 → nodes_gt_20/
+  Progress: 5500/7048 — nodes_mv: 1213  edges_mv: 27
+  [5501/7048] NODES>20 (42 bodies): 60148_b3e5b0c7 → nodes_gt_20/
+  [5528/7048] NODES>20 (44 bodies): 60733_af9b702b → nodes_gt_20/
+  [5529/7048] NODES>20 (34 bodies): 60738_365811c2 → nodes_gt_20/
+  [5536/7048] NODES>20 (43 bodies): 60859_be88090a → nodes_gt_20/
+  [5537/7048] NODES>20 (43 bodies): 60865_19bbdeb4 → nodes_gt_20/
+  [5541/7048] NODES>20 (47 bodies): 60887_1128c95d → nodes_gt_20/
+  [5542/7048] NODES>20 (49 bodies): 60887_e4f5eabb → nodes_gt_20/
+  [5544/7048] NODES>20 (26 bodies): 60905_b1ec1567 → nodes_gt_20/
+  [5556/7048] NODES>20 (25 bodies): 61283_284cbda0 → nodes_gt_20/
+  [5558/7048] NODES>20 (148 bodies): 61306_0fc4e645 → nodes_gt_20/
+  [5559/7048] NODES>20 (40 bodies): 61373_a3830622 → nodes_gt_20/
+  [5584/7048] NODES>20 (271 bodies): 62057_c02d1ddf → nodes_gt_20/
+  [5593/7048] NODES>20 (59 bodies): 62530_6de5acdf → nodes_gt_20/
+  [5597/7048] NODES>20 (43 bodies): 63053_ee879f45 → nodes_gt_20/
+  [5598/7048] NODES>20 (83 bodies): 63054_8b429cfe → nodes_gt_20/
+  [5599/7048] NODES>20 (45 bodies): 63055_6b907478 → nodes_gt_20/
+  [5600/7048] NODES>20 (27 bodies): 63061_b9be2a1d → nodes_gt_20/
+  [5602/7048] NODES>20 (34 bodies): 63132_330141d7 → nodes_gt_20/
+  [5603/7048] NODES>20 (46 bodies): 63328_85753146 → nodes_gt_20/
+  [5606/7048] NODES>20 (22 bodies): 63414_fc3968bb → nodes_gt_20/
+  [5614/7048] NODES>20 (52 bodies): 65120_cf449185 → nodes_gt_20/
+  [5629/7048] NODES>20 (77 bodies): 65375_674ff0b9 → nodes_gt_20/
+  [5632/7048] NODES>20 (48 bodies): 65385_dd7386e8 → nodes_gt_20/
+  [5639/7048] NODES>20 (21 bodies): 65693_44534e45 → nodes_gt_20/
+  [5640/7048] NODES>20 (244 bodies): 65709_d10c1613 → nodes_gt_20/
+  [5650/7048] NODES>20 (50 bodies): 65995_39157e78 → nodes_gt_20/
+  [5656/7048] NODES>20 (36 bodies): 66061_a0907bb0 → nodes_gt_20/
+  [5659/7048] NODES>20 (28 bodies): 66226_49fc804a → nodes_gt_20/
+  [5660/7048] NODES>20 (67 bodies): 66273_fa3dde7d → nodes_gt_20/
+  [5670/7048] NODES>20 (77 bodies): 66762_5098cf7d → nodes_gt_20/
+  [5680/7048] NODES>20 (50 bodies): 67057_de157fab → nodes_gt_20/
+  [5682/7048] NODES>20 (102 bodies): 67209_f399eb09 → nodes_gt_20/
+  [5693/7048] EDGES>60 (74 dir-edges): 67403_bb0225a8 → edges_gt_60/
+  [5697/7048] NODES>20 (33 bodies): 67483_09bea3c7 → nodes_gt_20/
+  [5700/7048] NODES>20 (40 bodies): 67572_05561813 → nodes_gt_20/
+  [5715/7048] NODES>20 (33 bodies): 68928_0d4e4a2e → nodes_gt_20/
+  [5719/7048] NODES>20 (21 bodies): 68956_6d7db5ec → nodes_gt_20/
+  [5721/7048] NODES>20 (21 bodies): 68956_753650aa → nodes_gt_20/
+  [5730/7048] NODES>20 (33 bodies): 69235_fe79a369 → nodes_gt_20/
+  [5747/7048] NODES>20 (66 bodies): 69808_7ff07f5f → nodes_gt_20/
+  [5751/7048] NODES>20 (162 bodies): 69942_5dc50019 → nodes_gt_20/
+  [5761/7048] NODES>20 (41 bodies): 70169_914780d4 → nodes_gt_20/
+  [5762/7048] NODES>20 (39 bodies): 70182_22dfea03 → nodes_gt_20/
+  [5769/7048] EDGES>60 (62 dir-edges): 70355_e5f58cd5 → edges_gt_60/
+  [5782/7048] NODES>20 (23 bodies): 70494_0df74680 → nodes_gt_20/
+  [5783/7048] NODES>20 (39 bodies): 70570_087c8b59 → nodes_gt_20/
+  [5784/7048] NODES>20 (95 bodies): 70571_938500e6 → nodes_gt_20/
+  [5787/7048] NODES>20 (25 bodies): 70639_fceccc4a → nodes_gt_20/
+  [5793/7048] NODES>20 (39 bodies): 71444_50b4c168 → nodes_gt_20/
+  [5796/7048] NODES>20 (24 bodies): 71504_6c2ae353 → nodes_gt_20/
+  [5800/7048] NODES>20 (46 bodies): 71606_e02b8f4b → nodes_gt_20/
+  [5803/7048] NODES>20 (27 bodies): 71674_ef2eb0bb → nodes_gt_20/
+  [5804/7048] NODES>20 (89 bodies): 71675_5093bfee → nodes_gt_20/
+  [5806/7048] NODES>20 (215 bodies): 71833_9b2c8d39 → nodes_gt_20/
+  [5807/7048] NODES>20 (24 bodies): 71847_be09fd09 → nodes_gt_20/
+  [5820/7048] NODES>20 (75 bodies): 72327_a434e91b → nodes_gt_20/
+  [5841/7048] NODES>20 (50 bodies): 73546_5bc13383 → nodes_gt_20/
+  [5845/7048] NODES>20 (83 bodies): 73652_23b21ef2 → nodes_gt_20/
+  [5850/7048] NODES>20 (58 bodies): 73759_8b7539e5 → nodes_gt_20/
+  [5855/7048] NODES>20 (31 bodies): 73800_784ca290 → nodes_gt_20/
+  [5857/7048] NODES>20 (107 bodies): 73901_7e772817 → nodes_gt_20/
+  [5867/7048] NODES>20 (39 bodies): 74064_cfb9aa88 → nodes_gt_20/
+  [5871/7048] NODES>20 (23 bodies): 74281_623219a4 → nodes_gt_20/
+  [5890/7048] NODES>20 (44 bodies): 75032_945d0803 → nodes_gt_20/
+  [5893/7048] NODES>20 (45 bodies): 75270_25a261ef → nodes_gt_20/
+  [5895/7048] NODES>20 (139 bodies): 75303_045fc848 → nodes_gt_20/
+  [5896/7048] NODES>20 (24 bodies): 75391_b627edbf → nodes_gt_20/
+  [5897/7048] NODES>20 (36 bodies): 75506_31b65030 → nodes_gt_20/
+  [5898/7048] NODES>20 (36 bodies): 75506_8c7c5f34 → nodes_gt_20/
+  [5899/7048] NODES>20 (36 bodies): 75506_f7862d5b → nodes_gt_20/
+  [5904/7048] NODES>20 (33 bodies): 75863_0ac4c02d → nodes_gt_20/
+  [5911/7048] NODES>20 (57 bodies): 75982_f8018303 → nodes_gt_20/
+  [5916/7048] NODES>20 (139 bodies): 76072_7c02a2b7 → nodes_gt_20/
+  [5923/7048] NODES>20 (54 bodies): 76298_af8ea172 → nodes_gt_20/
+  [5928/7048] NODES>20 (41 bodies): 76647_42842a1f → nodes_gt_20/
+  [5930/7048] NODES>20 (23 bodies): 76879_65a30a82 → nodes_gt_20/
+  [5931/7048] NODES>20 (24 bodies): 76880_9bb28e72 → nodes_gt_20/
+  [5932/7048] NODES>20 (74 bodies): 76890_d609775f → nodes_gt_20/
+  [5940/7048] EDGES>60 (88 dir-edges): 77556_8660cc46 → edges_gt_60/
+  [5941/7048] NODES>20 (32 bodies): 77557_9e74d2e6 → nodes_gt_20/
+  [5946/7048] NODES>20 (56 bodies): 77773_7dcea66d → nodes_gt_20/
+  [5947/7048] NODES>20 (56 bodies): 77773_ab657cae → nodes_gt_20/
+  [5954/7048] NODES>20 (24 bodies): 77978_032f0fea → nodes_gt_20/
+  [5957/7048] NODES>20 (61 bodies): 78097_552d7a32 → nodes_gt_20/
+  [5959/7048] NODES>20 (107 bodies): 78113_8d1cee7b → nodes_gt_20/
+  [5960/7048] NODES>20 (111 bodies): 78113_df39c641 → nodes_gt_20/
+  [5961/7048] NODES>20 (77 bodies): 78187_e4dcbbe8 → nodes_gt_20/
+  [5964/7048] NODES>20 (67 bodies): 78288_d264181d → nodes_gt_20/
+  [5966/7048] NODES>20 (231 bodies): 78302_6489d846 → nodes_gt_20/
+  [5968/7048] NODES>20 (45 bodies): 78407_09660833 → nodes_gt_20/
+  [5971/7048] NODES>20 (22 bodies): 78513_7ad0bd6a → nodes_gt_20/
+  [5982/7048] NODES>20 (21 bodies): 78993_bcd98f5f → nodes_gt_20/
+  [5983/7048] NODES>20 (41 bodies): 78994_100704f8 → nodes_gt_20/
+  [5987/7048] NODES>20 (21 bodies): 79107_9d58e39f → nodes_gt_20/
+  [5993/7048] NODES>20 (25 bodies): 79241_14f7881c → nodes_gt_20/
+  [5995/7048] NODES>20 (85 bodies): 79248_314ca891 → nodes_gt_20/
+  [5996/7048] NODES>20 (85 bodies): 79248_cf16bd68 → nodes_gt_20/
+  [5998/7048] NODES>20 (61 bodies): 79327_b79a4ce7 → nodes_gt_20/
+  Progress: 6000/7048 — nodes_mv: 1308  edges_mv: 30
+  [6003/7048] NODES>20 (48 bodies): 79440_597de7ee → nodes_gt_20/
+  [6020/7048] NODES>20 (21 bodies): 79699_052c41b7 → nodes_gt_20/
+  [6022/7048] NODES>20 (32 bodies): 79791_00f639ca → nodes_gt_20/
+  [6031/7048] NODES>20 (42 bodies): 79993_6087acd5 → nodes_gt_20/
+  [6038/7048] NODES>20 (184 bodies): 80183_3adc2070 → nodes_gt_20/
+  [6041/7048] NODES>20 (28 bodies): 80200_c18892ba → nodes_gt_20/
+  [6049/7048] NODES>20 (46 bodies): 80485_3e9129f1 → nodes_gt_20/
+  [6059/7048] NODES>20 (29 bodies): 80754_9c3b58fa → nodes_gt_20/
+  [6061/7048] NODES>20 (23 bodies): 80761_62bb3981 → nodes_gt_20/
+  [6065/7048] NODES>20 (50 bodies): 80769_6632d585 → nodes_gt_20/
+  [6071/7048] NODES>20 (178 bodies): 80809_5ed43311 → nodes_gt_20/
+  [6072/7048] NODES>20 (39 bodies): 80811_a8258f3b → nodes_gt_20/
+  [6079/7048] NODES>20 (32 bodies): 81136_5b86c723 → nodes_gt_20/
+  [6080/7048] NODES>20 (56 bodies): 81137_b0d6c8bf → nodes_gt_20/
+  [6084/7048] NODES>20 (33 bodies): 81149_5e80b3d6 → nodes_gt_20/
+  [6086/7048] NODES>20 (63 bodies): 81227_f2ce5bb7 → nodes_gt_20/
+  [6087/7048] NODES>20 (43 bodies): 81235_e4be96b6 → nodes_gt_20/
+  [6088/7048] NODES>20 (218 bodies): 81247_12bf465a → nodes_gt_20/
+  [6089/7048] NODES>20 (29 bodies): 81326_8c3a1378 → nodes_gt_20/
+  [6095/7048] NODES>20 (90 bodies): 81675_8d27fc68 → nodes_gt_20/
+  [6108/7048] NODES>20 (41 bodies): 81846_da2ec04b → nodes_gt_20/
+  [6111/7048] NODES>20 (59 bodies): 81935_9c8f4f6a → nodes_gt_20/
+  [6128/7048] NODES>20 (27 bodies): 82001_c694eb79 → nodes_gt_20/
+  [6129/7048] NODES>20 (33 bodies): 82002_ef2b4feb → nodes_gt_20/
+  [6130/7048] NODES>20 (29 bodies): 82006_ac7d3a0d → nodes_gt_20/
+  [6145/7048] NODES>20 (66 bodies): 82147_ce3b87f4 → nodes_gt_20/
+  [6148/7048] NODES>20 (23 bodies): 82166_d38439c3 → nodes_gt_20/
+  [6154/7048] NODES>20 (22 bodies): 82191_29cb4c44 → nodes_gt_20/
+  [6156/7048] NODES>20 (21 bodies): 82281_80cdf67c → nodes_gt_20/
+  [6157/7048] NODES>20 (42 bodies): 82285_e7a738e7 → nodes_gt_20/
+  [6158/7048] NODES>20 (71 bodies): 82397_9df31ee8 → nodes_gt_20/
+  [6160/7048] NODES>20 (52 bodies): 82485_d6d73980 → nodes_gt_20/
+  [6167/7048] NODES>20 (31 bodies): 82614_a8ef3280 → nodes_gt_20/
+  [6173/7048] EDGES>60 (62 dir-edges): 82772_39244219 → edges_gt_60/
+  [6174/7048] NODES>20 (38 bodies): 82798_c2345d59 → nodes_gt_20/
+  [6178/7048] NODES>20 (25 bodies): 82906_7b72e0e8 → nodes_gt_20/
+  [6179/7048] NODES>20 (67 bodies): 82996_b8dc67c9 → nodes_gt_20/
+  [6180/7048] NODES>20 (69 bodies): 82996_efb46df2 → nodes_gt_20/
+  [6184/7048] NODES>20 (163 bodies): 83083_147997f1 → nodes_gt_20/
+  [6185/7048] NODES>20 (81 bodies): 83090_7c3f8426 → nodes_gt_20/
+  [6193/7048] NODES>20 (22 bodies): 83248_233f96d2 → nodes_gt_20/
+  [6219/7048] NODES>20 (47 bodies): 83418_6638c32b → nodes_gt_20/
+  [6235/7048] EDGES>60 (82 dir-edges): 83776_174ee9ac → edges_gt_60/
+  [6243/7048] NODES>20 (28 bodies): 84129_211748cd → nodes_gt_20/
+  [6245/7048] NODES>20 (22 bodies): 84239_15bbb485 → nodes_gt_20/
+  [6247/7048] NODES>20 (22 bodies): 84256_4164b724 → nodes_gt_20/
+  [6254/7048] NODES>20 (58 bodies): 84697_fd17f314 → nodes_gt_20/
+  [6255/7048] NODES>20 (105 bodies): 85035_34eb0d22 → nodes_gt_20/
+  [6262/7048] NODES>20 (59 bodies): 85436_f6137d9b → nodes_gt_20/
+  [6273/7048] NODES>20 (82 bodies): 85711_f9d9ef0c → nodes_gt_20/
+  [6277/7048] NODES>20 (22 bodies): 85910_92450b4d → nodes_gt_20/
+  [6289/7048] NODES>20 (221 bodies): 86381_dcef1ea4 → nodes_gt_20/
+  [6290/7048] NODES>20 (40 bodies): 86382_d80c0d30 → nodes_gt_20/
+  [6292/7048] NODES>20 (24 bodies): 86393_b1693b75 → nodes_gt_20/
+  [6293/7048] NODES>20 (25 bodies): 86394_cab9796d → nodes_gt_20/
+  [6300/7048] NODES>20 (52 bodies): 86801_40091568 → nodes_gt_20/
+  [6304/7048] NODES>20 (196 bodies): 86906_78d912d7 → nodes_gt_20/
+  [6307/7048] NODES>20 (169 bodies): 87044_409f2ff1 → nodes_gt_20/
+  [6308/7048] NODES>20 (68 bodies): 87135_36d20b73 → nodes_gt_20/
+  [6309/7048] NODES>20 (37 bodies): 87177_d321707d → nodes_gt_20/
+  [6310/7048] NODES>20 (47 bodies): 87177_d74cfc93 → nodes_gt_20/
+  [6312/7048] NODES>20 (80 bodies): 87255_f2371fa4 → nodes_gt_20/
+  [6313/7048] NODES>20 (36 bodies): 87260_5f2a8b18 → nodes_gt_20/
+  [6319/7048] NODES>20 (149 bodies): 87478_52909520 → nodes_gt_20/
+  [6324/7048] NODES>20 (61 bodies): 87673_90690a79 → nodes_gt_20/
+  [6325/7048] NODES>20 (61 bodies): 87673_eb5d5528 → nodes_gt_20/
+  [6327/7048] NODES>20 (33 bodies): 87746_cd1788b9 → nodes_gt_20/
+  [6335/7048] NODES>20 (41 bodies): 88134_97474b52 → nodes_gt_20/
+  [6337/7048] NODES>20 (43 bodies): 88140_ab9e1aee → nodes_gt_20/
+  [6344/7048] NODES>20 (50 bodies): 88384_03fc670b → nodes_gt_20/
+  [6345/7048] EDGES>60 (72 dir-edges): 88389_69ff0403 → edges_gt_60/
+  [6351/7048] NODES>20 (39 bodies): 88399_52a30a5d → nodes_gt_20/
+  [6353/7048] NODES>20 (31 bodies): 88496_e9091f87 → nodes_gt_20/
+  [6359/7048] NODES>20 (21 bodies): 88850_a7ef0c56 → nodes_gt_20/
+  [6366/7048] NODES>20 (85 bodies): 89044_d66bbf44 → nodes_gt_20/
+  [6370/7048] NODES>20 (44 bodies): 89325_8435fdb8 → nodes_gt_20/
+  [6372/7048] NODES>20 (37 bodies): 89424_995a070d → nodes_gt_20/
+  [6375/7048] NODES>20 (25 bodies): 89505_044965c6 → nodes_gt_20/
+  [6376/7048] NODES>20 (43 bodies): 89527_b3bf425d → nodes_gt_20/
+  [6382/7048] NODES>20 (134 bodies): 89810_eb12c88b → nodes_gt_20/
+  [6383/7048] NODES>20 (24 bodies): 89816_cef36e57 → nodes_gt_20/
+  [6384/7048] NODES>20 (66 bodies): 89819_c09f7906 → nodes_gt_20/
+  [6391/7048] NODES>20 (38 bodies): 89956_9e544385 → nodes_gt_20/
+  [6392/7048] NODES>20 (95 bodies): 89987_a293d8b2 → nodes_gt_20/
+  [6422/7048] NODES>20 (21 bodies): 90590_8dec1547 → nodes_gt_20/
+  [6425/7048] NODES>20 (62 bodies): 90621_cb95685e → nodes_gt_20/
+  [6426/7048] NODES>20 (78 bodies): 90622_34efbbfa → nodes_gt_20/
+  [6429/7048] NODES>20 (28 bodies): 90628_b8795213 → nodes_gt_20/
+  [6433/7048] NODES>20 (29 bodies): 90716_6ecc7240 → nodes_gt_20/
+  [6443/7048] NODES>20 (38 bodies): 91089_e02eca20 → nodes_gt_20/
+  [6486/7048] NODES>20 (31 bodies): 91545_a7f91ae4 → nodes_gt_20/
+  [6487/7048] NODES>20 (22 bodies): 91547_9fbde779 → nodes_gt_20/
+  Progress: 6500/7048 — nodes_mv: 1397  edges_mv: 33
+  [6504/7048] NODES>20 (83 bodies): 91703_642cdf1a → nodes_gt_20/
+  [6514/7048] NODES>20 (42 bodies): 92055_78df0e52 → nodes_gt_20/
+  [6534/7048] NODES>20 (21 bodies): 93395_d6c6f957 → nodes_gt_20/
+  [6537/7048] NODES>20 (40 bodies): 93673_0ecfc82e → nodes_gt_20/
+  [6544/7048] NODES>20 (34 bodies): 94070_385ef197 → nodes_gt_20/
+  [6548/7048] NODES>20 (53 bodies): 94273_050f37a3 → nodes_gt_20/
+  [6550/7048] NODES>20 (77 bodies): 94365_99f70627 → nodes_gt_20/
+  [6552/7048] NODES>20 (47 bodies): 94410_d32e7520 → nodes_gt_20/
+  [6554/7048] NODES>20 (75 bodies): 94488_65dd96e3 → nodes_gt_20/
+  [6560/7048] NODES>20 (36 bodies): 94597_2b595bae → nodes_gt_20/
+  [6568/7048] NODES>20 (35 bodies): 95271_de3df8d5 → nodes_gt_20/
+  [6576/7048] NODES>20 (69 bodies): 95616_f50948cd → nodes_gt_20/
+  [6577/7048] NODES>20 (259 bodies): 95618_e90ce26d → nodes_gt_20/
+  [6578/7048] NODES>20 (33 bodies): 95620_940f6521 → nodes_gt_20/
+  [6579/7048] NODES>20 (23 bodies): 95621_178b5f66 → nodes_gt_20/
+  [6580/7048] NODES>20 (84 bodies): 95622_0a0787e4 → nodes_gt_20/
+  [6600/7048] NODES>20 (23 bodies): 96889_5337d024 → nodes_gt_20/
+  [6601/7048] NODES>20 (52 bodies): 96960_12c5489c → nodes_gt_20/
+  [6602/7048] NODES>20 (48 bodies): 96961_37c427cc → nodes_gt_20/
+  [6610/7048] NODES>20 (96 bodies): 97489_7df7917b → nodes_gt_20/
+  [6613/7048] NODES>20 (22 bodies): 97854_660ed612 → nodes_gt_20/
+  [6615/7048] NODES>20 (57 bodies): 98104_de5a280c → nodes_gt_20/
+  [6620/7048] NODES>20 (105 bodies): 98199_25784b7e → nodes_gt_20/
+  [6623/7048] NODES>20 (21 bodies): 98275_7aa9c558 → nodes_gt_20/
+  [6630/7048] NODES>20 (53 bodies): 98300_5afcf0f2 → nodes_gt_20/
+  [6633/7048] NODES>20 (70 bodies): 98413_f0baae49 → nodes_gt_20/
+  [6635/7048] NODES>20 (37 bodies): 98488_cfd034d6 → nodes_gt_20/
+  [6638/7048] NODES>20 (38 bodies): 98504_d5df51ba → nodes_gt_20/
+  [6641/7048] NODES>20 (46 bodies): 98519_73b0d9db → nodes_gt_20/
+  [6647/7048] NODES>20 (22 bodies): 98698_c4503cd8 → nodes_gt_20/
+  [6648/7048] NODES>20 (22 bodies): 98698_cf67126c → nodes_gt_20/
+  [6671/7048] NODES>20 (45 bodies): 99636_73c43ebd → nodes_gt_20/
+  [6683/7048] NODES>20 (63 bodies): 101831_2478d1ce → nodes_gt_20/
+  [6692/7048] NODES>20 (39 bodies): 113835_cf320425 → nodes_gt_20/
+  [6694/7048] NODES>20 (35 bodies): 114425_891ab08d → nodes_gt_20/
+  [6699/7048] NODES>20 (24 bodies): 121949_e10b5e85 → nodes_gt_20/
+  [6701/7048] NODES>20 (37 bodies): 123401_73b57b14 → nodes_gt_20/
+  [6709/7048] NODES>20 (153 bodies): 130093_18da9bca → nodes_gt_20/
+  [6710/7048] NODES>20 (29 bodies): 130365_d37d0b81 → nodes_gt_20/
+  [6715/7048] NODES>20 (32 bodies): 131711_b6dd09f7 → nodes_gt_20/
+  [6719/7048] NODES>20 (146 bodies): 131998_287fefc5 → nodes_gt_20/
+  [6728/7048] NODES>20 (48 bodies): 135066_6988a2eb → nodes_gt_20/
+  [6731/7048] NODES>20 (95 bodies): 135385_c8fedd05 → nodes_gt_20/
+  [6733/7048] NODES>20 (251 bodies): 135790_a27f9deb → nodes_gt_20/
+  [6744/7048] NODES>20 (21 bodies): 139665_4e8aac7d → nodes_gt_20/
+  [6746/7048] NODES>20 (88 bodies): 139796_515f80a8 → nodes_gt_20/
+  [6749/7048] NODES>20 (260 bodies): 139866_1209934f → nodes_gt_20/
+  [6750/7048] NODES>20 (26 bodies): 140011_8c40a59c → nodes_gt_20/
+  [6752/7048] NODES>20 (47 bodies): 141300_06f19ac4 → nodes_gt_20/
+  [6753/7048] NODES>20 (54 bodies): 141333_3ba803f4 → nodes_gt_20/
+  [6754/7048] NODES>20 (32 bodies): 141333_e315d257 → nodes_gt_20/
+  [6758/7048] NODES>20 (43 bodies): 141812_e03d53ba → nodes_gt_20/
+  [6781/7048] NODES>20 (35 bodies): 146518_0ab70b0c → nodes_gt_20/
+  [6784/7048] NODES>20 (27 bodies): 146999_eea2e46a → nodes_gt_20/
+  [6794/7048] NODES>20 (91 bodies): 20952_b8a54213 → nodes_gt_20/
+  [6795/7048] NODES>20 (31 bodies): 21028_d4d30a2e → nodes_gt_20/
+  [6796/7048] NODES>20 (26 bodies): 21164_de08f61e → nodes_gt_20/
+  [6802/7048] NODES>20 (60 bodies): 21647_6b6cca6f → nodes_gt_20/
+  [6803/7048] NODES>20 (37 bodies): 21656_964b0c84 → nodes_gt_20/
+  [6809/7048] NODES>20 (41 bodies): 22211_b1ee53f0 → nodes_gt_20/
+  [6811/7048] NODES>20 (22 bodies): 22266_078a1f68 → nodes_gt_20/
+  [6815/7048] NODES>20 (147 bodies): 22492_047b125b → nodes_gt_20/
+  [6825/7048] NODES>20 (23 bodies): 23132_1847c4ef → nodes_gt_20/
+  [6830/7048] NODES>20 (23 bodies): 23466_1cf60d09 → nodes_gt_20/
+  [6832/7048] NODES>20 (28 bodies): 23501_6c48b3c1 → nodes_gt_20/
+  [6838/7048] NODES>20 (29 bodies): 23923_611fa318 → nodes_gt_20/
+  [6839/7048] NODES>20 (23 bodies): 23960_48cc0f21 → nodes_gt_20/
+  [6847/7048] NODES>20 (32 bodies): 24232_f17edda3 → nodes_gt_20/
+  [6850/7048] NODES>20 (33 bodies): 24338_848cab42 → nodes_gt_20/
+  [6854/7048] NODES>20 (21 bodies): 24475_add72b6f → nodes_gt_20/
+  [6857/7048] NODES>20 (50 bodies): 24513_ab6abde4 → nodes_gt_20/
+  [6860/7048] NODES>20 (56 bodies): 24549_8a25a54c → nodes_gt_20/
+  [6861/7048] NODES>20 (43 bodies): 24580_1b8e8501 → nodes_gt_20/
+  [6862/7048] NODES>20 (29 bodies): 24584_a13ef50c → nodes_gt_20/
+  [6864/7048] NODES>20 (32 bodies): 24617_10a4171b → nodes_gt_20/
+  [6867/7048] NODES>20 (37 bodies): 24651_ac891091 → nodes_gt_20/
+  [6870/7048] NODES>20 (33 bodies): 24679_17a2a710 → nodes_gt_20/
+  [6871/7048] NODES>20 (48 bodies): 24682_77408ea9 → nodes_gt_20/
+  [6873/7048] NODES>20 (27 bodies): 24692_86ddfd16 → nodes_gt_20/
+  [6881/7048] NODES>20 (51 bodies): 24819_e29a6f5b → nodes_gt_20/
+  [6885/7048] NODES>20 (22 bodies): 24830_8328e407 → nodes_gt_20/
+  [6890/7048] NODES>20 (48 bodies): 24940_dc89bd52 → nodes_gt_20/
+  [6891/7048] NODES>20 (26 bodies): 24973_7bf7d030 → nodes_gt_20/
+  [6893/7048] NODES>20 (26 bodies): 25201_ae8d5a33 → nodes_gt_20/
+  [6894/7048] NODES>20 (26 bodies): 25201_e0d49b92 → nodes_gt_20/
+  [6896/7048] NODES>20 (25 bodies): 25308_4fdcc469 → nodes_gt_20/
+  [6900/7048] NODES>20 (77 bodies): 25399_687d00a3 → nodes_gt_20/
+  [6901/7048] NODES>20 (77 bodies): 25399_90513625 → nodes_gt_20/
+  [6902/7048] NODES>20 (23 bodies): 25399_93a1afcd → nodes_gt_20/
+  [6904/7048] NODES>20 (44 bodies): 25833_d85546aa → nodes_gt_20/
+  [6906/7048] NODES>20 (21 bodies): 25846_73c80990 → nodes_gt_20/
+  [6913/7048] NODES>20 (22 bodies): 27655_04ca3d07 → nodes_gt_20/
+  [6914/7048] NODES>20 (21 bodies): 30256_da1d01b5 → nodes_gt_20/
+  [6915/7048] NODES>20 (60 bodies): 30271_902f8ddc → nodes_gt_20/
+  [6924/7048] NODES>20 (27 bodies): 32879_49552f2f → nodes_gt_20/
+  [6926/7048] NODES>20 (30 bodies): 33529_756075a0 → nodes_gt_20/
+  [6929/7048] NODES>20 (31 bodies): 33968_1d605403 → nodes_gt_20/
+  [6930/7048] NODES>20 (49 bodies): 33988_54d851e3 → nodes_gt_20/
+  [6931/7048] NODES>20 (50 bodies): 33988_724280ed → nodes_gt_20/
+  [6937/7048] NODES>20 (94 bodies): 35866_d0233b36 → nodes_gt_20/
+  [6941/7048] NODES>20 (31 bodies): 38396_3b96876b → nodes_gt_20/
+  [6942/7048] NODES>20 (31 bodies): 38663_d63ead66 → nodes_gt_20/
+  [6945/7048] NODES>20 (38 bodies): 40417_b8d98f73 → nodes_gt_20/
+  [6947/7048] NODES>20 (26 bodies): 41128_ee74f244 → nodes_gt_20/
+  [6948/7048] NODES>20 (25 bodies): 41394_22076a40 → nodes_gt_20/
+  [6951/7048] NODES>20 (46 bodies): 41633_22f83177 → nodes_gt_20/
+  [6952/7048] NODES>20 (21 bodies): 41678_166426e9 → nodes_gt_20/
+  [6955/7048] NODES>20 (30 bodies): 41776_50aabc9d → nodes_gt_20/
+  [6961/7048] NODES>20 (81 bodies): 42329_df7f540f → nodes_gt_20/
+  [6965/7048] NODES>20 (81 bodies): 43529_4804941b → nodes_gt_20/
+  [6970/7048] NODES>20 (34 bodies): 44549_80871153 → nodes_gt_20/
+  [6974/7048] NODES>20 (90 bodies): 48402_8c965495 → nodes_gt_20/
+  [6975/7048] NODES>20 (37 bodies): 49141_4dbe564e → nodes_gt_20/
+  [6976/7048] NODES>20 (41 bodies): 50315_0f1419bf → nodes_gt_20/
+  [6983/7048] NODES>20 (42 bodies): 51723_ab02be01 → nodes_gt_20/
+  [6984/7048] NODES>20 (27 bodies): 51877_0032e502 → nodes_gt_20/
+  [6985/7048] NODES>20 (27 bodies): 51914_fb924efa → nodes_gt_20/
+  [6992/7048] NODES>20 (27 bodies): 53848_7c64ed9f → nodes_gt_20/
+  [6993/7048] EDGES>60 (68 dir-edges): 54172_eb723054 → edges_gt_60/
+  [6998/7048] NODES>20 (23 bodies): 56353_ad819cb6 → nodes_gt_20/
+  Progress: 7000/7048 — nodes_mv: 1516  edges_mv: 34
+  [7004/7048] NODES>20 (77 bodies): 65375_674ff0b9 → nodes_gt_20/
+  [7012/7048] EDGES>60 (74 dir-edges): 67403_bb0225a8 → edges_gt_60/
+  [7013/7048] NODES>20 (40 bodies): 67572_05561813 → nodes_gt_20/
+  [7017/7048] NODES>20 (24 bodies): 71847_be09fd09 → nodes_gt_20/
+  [7038/7048] NODES>20 (196 bodies): 86906_78d912d7 → nodes_gt_20/
+  [7046/7048] NODES>20 (99 bodies): 97342_27fcca0b → nodes_gt_20/
+  [7047/7048] NODES>20 (96 bodies): 97489_7df7917b → nodes_gt_20/
+  [7048/7048] NODES>20 (25 bodies): 98706_d4fc75d2 → nodes_gt_20/
+
+Phase 1 done: 1523 nodes_gt_20  35 edges_gt_60  5490 ok  0 errors
+
+--- Phase 2: gmsh-based filtering (182 STEP models) ---
+  [1/182] OK  Bearing Base.STEP [0.4s]
+  [2/182] OK  Bearing Bush second part.STEP [0.1s]
+  [3/182] OK  Bearing Bush.STEP [0.1s]
+  [4/182] OK  Bearing Cap.STEP [0.3s]
+  [5/182] OK  Wall Bearing.STEP [1.1s]
+  [6/182] OK  Spindle Bracket.step [2.6s]
+  [7/182] OK  Spindle Mounting Bracket 80mm.step [14.3s]
+  [8/182] NODES>20 (31): GUIDE ROLLER ASSEMBLY.STEP [0.3s] → nodes_gt_20/
+  [9/182] OK  1-4_20_nut.STEP [0.1s]
+  [10/182] OK  250_washer.STEP [0.1s]
+  [11/182] OK  bolt_250x1500.STEP [0.1s]
+  [12/182] OK  omar_clamp_block.STEP [0.1s]
+  [13/182] OK  omar_clamp_block_02.STEP [0.2s]
+  [14/182] OK  omar_offset_clamp_3in.STEP [0.2s]
+  [15/182] OK  omar_tandem_clip_01.STEP [0.1s]
+  [16/182] OK  omar_tandem_spacer.STEP [0.1s]
+  [17/182] OK  omar_tube_5x.STEP [0.1s]
+  [18/182] NODES>20 (33): Ass'y, Tramp Stamp with License Plate Bracket.stp [0.4s] → nodes_gt_20/
+  [19/182] EDGES>60 (116): License Plate Bracket Assembly.STEP [22.1s] → edges_gt_60/
+  [20/182] OK  SLOT SENSOR ASSEMBLY.STEP [1.2s]
+  [21/182] OK  Starlink Mobility Mount Adapter.stp [0.1s]
+  [22/182] OK  STOPPER ASSEMBLY.STEP [1.0s]
+  [23/182] OK  DN444M6.STEP [0.3s]
+  [24/182] OK  MouldOvenLocker.STEP [3.4s]
+  [25/182] OK  CLAMP U-BOLT MOUNTING HARDWARE.stp [0.5s]
+  [26/182] OK  Assembly.stp [0.9s]
+  [27/182] OK  Assembly_1.stp [0.9s]
+  [28/182] OK  Петля карточная 110х40.STEP [0.2s]
+  [29/182] OK  20x20 3D Print Hinge.STEP [0.1s]
+  [30/182] OK  3.5 INCH NO SQUEAK DOOR HINGE BUTT HINGE INTERIOR DOOR.stp [0.7s]
+  [31/182] OK  hinge.STEP [0.2s]
+  [32/182] OK  Basetech Hinge Width 60mm.step [0.2s]
+  [33/182] OK  70 x 50 hinge.step [0.2s]
+  [34/182] OK  Assembly - Hinge HL043.STEP [0.2s]
+  [35/182] OK  Assembly - Hl051-3.STEP [0.5s]
+  [36/182] OK  Engsel 3 inch tapi 90 degree.stp [0.2s]
+  [37/182] OK  Engsel 3 inch.stp [0.2s]
+  [38/182] OK  Engsel Female.stp [0.1s]
+  [39/182] OK  Engsel Male.stp [0.1s]
+  [40/182] OK  001 Engsel Shaft.stp [0.1s]
+  [41/182] OK  002 Right Side Engsel.stp [0.1s]
+  [42/182] OK  003 Left Side Engsel.stp [0.1s]
+  [43/182] OK  Assembly 90 sudut darjah.stp [0.2s]
+  [44/182] OK  Engsel Door.STEP [0.2s]
+  [45/182] OK  75mm (3in)-hinge.STEP [0.4s]
+  [46/182] OK  HINGE.stp [0.2s]
+  [47/182] OK  HL050-2.STEP [0.2s]
+  [48/182] OK  Hinge 38X300.step [0.3s]
+  [49/182] OK  Hinge SUS 304 91mm.STEP [0.3s]
+  [50/182] OK  Hinge.step [0.2s]
+  [51/182] OK  Hingebottom.STEP [0.1s]
+  [52/182] OK  Hingetop.STEP [0.1s]
+  [53/182] OK  NH N220-137 Gate Hinge.stp [1.3s]
+  [54/182] OK  PaumelleInox1.stp [0.2s]
+  [55/182] OK  PaumelleInox2.stp [0.2s]
+  [56/182] OK  PaumelleInox3.stp [0.3s]
+  [57/182] OK  PaumelleInox4.stp [0.3s]
+  [58/182] OK  PaumelleInox5.stp [0.3s]
+  [59/182] OK  SK2-041.stp [0.2s]
+  [60/182] OK  SK2-047S.stp [0.3s]
+  [61/182] OK  SK2-048.stp [0.1s]
+  [62/182] OK  SK2-049-1A.stp [0.2s]
+  [63/182] OK  SK2-078-1.stp [0.2s]
+  [64/182] OK  SK2-079.stp [0.2s]
+  [65/182] OK  SK2-111.stp [0.2s]
+  [66/182] OK  SK2-135.stp [0.2s]
+  [67/182] OK  SK2-172S-1.stp [0.2s]
+  [68/182] OK  SK2-1941.stp [0.2s]
+  [69/182] OK  SK2-234-1.stp [0.2s]
+  [70/182] OK  SK2-235.stp [0.2s]
+  [71/182] OK  SK2-236.STEP [0.7s]
+  [72/182] OK  SK2-335.stp [0.2s]
+  [73/182] OK  SK2-535-1.stp [0.2s]
+  [74/182] OK  SK2-729S.stp [0.2s]
+  [75/182] OK  SK2-735-1.stp [0.2s]
+  [76/182] OK  SK2-8064-1.stp [0.2s]
+  [77/182] OK  SK2-835-2.stp [0.2s]
+  [78/182] OK  Hinge Assembly.STEP [0.3s]
+  [79/182] OK  TORQUE HINGE RS-770-2983.stp [0.2s]
+  [80/182] OK  петля-комплект.stp [1.8s]
+  [81/182] OK  B-1-3.STEP [0.2s]
+  [82/182] NODES>20 (40): Ball Bearing Door Hinge.STEP [0.3s] → nodes_gt_20/
+  [83/182] OK  Fortress HX10075SS.STEP [0.5s]
+  [84/182] OK  BUTT HINGE.STEP [0.2s]
+  [85/182] OK  HINGE HALF A.STEP [0.1s]
+  [86/182] OK  HINGE HALF B.STEP [0.1s]
+  [87/182] OK  HINGE PIN.STEP [0.1s]
+  [88/182] OK  Butt Hinge 60 x 60mm.STEP [0.2s]
+  [89/182] OK  CH-CL-4050.stp [0.2s]
+  [90/182] OK  DHFM-40.STEP [0.3s]
+  [91/182] OK  DHIM 50_50 Hinges.step [0.1s]
+  [92/182] OK  DOBRADIÇA #1,5x76,2x48mm.STEP [0.2s]
+  [93/182] OK  CJ DOBRADIÇA - 22 - 50 - F-M5.STEP [0.2s]
+  [94/182] OK  DOBRADIÇA - 01.STEP [0.1s]
+  [95/182] OK  DOBRADIÇA - 02.STEP [0.1s]
+  [96/182] OK  DOBRADIÇA - 03.STEP [0.1s]
+  [97/182] OK  Dobradica Náutica.STEP [0.2s]
+  [98/182] OK  Assem hinge.STEP [0.2s]
+  [99/182] OK  assemblyPetlya.stp [1.1s]
+  [100/182] OK  ASS_door_hinge60.STEP [0.3s]
+  [101/182] OK  door hinge assembly angled.STEP [0.3s]
+  [102/182] OK  door hinge assembly.STEP [0.3s]
+  [103/182] OK  DOOR HINGE v1.step [4.4s]
+  [104/182] OK  Door hinge joint.step [1.1s]
+  [105/182] OK  Gate-House-Hinge-#0308970 v2.step [0.3s]
+  [106/182] OK  A-960-3.stp [0.9s]
+  [107/182] OK  BY183-2.stp [2.0s]
+  [108/182] OK  HHPSNA8-SET.stp [0.3s]
+  [109/182] OK  KFC-120(IV) FAN.stp [0.2s]
+  [110/182] OK  Butt Hinge.stp [0.2s]
+  [111/182] OK  ASS_HL051-1.3.stp [0.2s]
+  [112/182] OK  HL051-1.3 A.stp [0.2s]
+  [113/182] OK  HL051-1.3 B.stp [0.1s]
+  [114/182] OK  Parts.step [0.1s]
+  [115/182] OK  Untitled work v2.step [0.2s]
+  [116/182] OK  hinge.stp [0.3s]
+  [117/182] OK  Hinge_close.STEP [1.6s]
+  [118/182] OK  Hinge_open.STEP [1.7s]
+  [119/182] OK  Assemblage1.STEP [0.9s]
+  [120/182] OK  121.STEP [0.2s]
+  [121/182] OK  Hinge.stp [0.2s]
+  [122/182] OK  RS Pro_Hinge_726-4125 (50x50x2).stp [0.3s]
+  [123/182] OK  Dobradiça 850.step [0.2s]
+  [124/182] OK  HINGE-HENGZHU-50X50.STEP [0.2s]
+  [125/182] OK  Hinge for Extrusion UNEVEN 3030 and 2020.step [0.4s]
+  [126/182] OK  Hinge for Alu Profile 3030.step [0.2s]
+  [127/182] OK  HINGE-HENGZHU-40X40.STEP [0.2s]
+  [128/182] OK  Assembly1.stp [0.3s]
+  [129/182] OK  Hinge v1.step [0.2s]
+  [130/182] OK  Assembly4.stp [0.2s]
+  [131/182] OK  Hinge NH-42L.STEP [0.1s]
+  [132/182] OK  NABESEI Hinge stainless steel NH-42L.STEP [0.2s]
+  [133/182] OK  Hinge-W50x63x6T.step [0.3s]
+  [134/182] OK  Hinges 26x36.STEP [0.2s]
+  [135/182] OK  HINGE 1.STEP [0.1s]
+  [136/182] OK  HINGE 2.STEP [0.1s]
+  [137/182] OK  HINGE ASSY.STEP [0.2s]
+  [138/182] OK  engsel.stp [0.2s]
+[31;1m**** ERR StepFile : Undefined Parsing: Line 2: Incorrect syntax: unexpected TYPE, expecting STEP    ****[0m
+[31;1m**** ERR StepFile : Undefined Parsing: Line 2: Incorrect syntax: unexpected TYPE, expecting STEP    ****[0m
+  [139/182] OK  hood hinge_(yamaha).stp [0.2s]
+  [140/182] OK  KROM MENTEŞE MONTAJI.STEP [0.2s]
+  [141/182] OK  MILGRADE SS HINGE M5.STEP [0.2s]
+  [142/182] OK  Mortise-Mount Hinges with Holes.STEP [0.2s]
+  [143/182] OK  BH050105X4ZP.STEP [0.5s]
+  [144/182] OK  Plug-in Door Hinge.STEP [0.2s]
+  [145/182] OK  SFK-2A3S.STEP [0.5s]
+  [146/182] OK  Hinge.stp [1.9s]
+  [147/182] OK  Stainless Steel Hinge,DHS-5065-6.STEP [1.1s]
+  [148/182] OK  TH-31_X.STEP [0.2s]
+  [149/182] OK  10mm Nut.stp [0.2s]
+  [150/182] OK  12mm Nut.stp [0.3s]
+  [151/182] OK  Bolt.stp [0.6s]
+  [152/182] OK  Bush.stp [0.1s]
+  [153/182] OK  Caster wheel Assembly23.stp [19.1s]
+  [154/182] OK  Frame.stp [0.1s]
+  [155/182] OK  Pin.stp [0.3s]
+  [156/182] OK  Washer.stp [0.1s]
+  [157/182] OK  wheel.stp [0.1s]
+  [158/182] EDGES>60 (66): Plate_ASM11Plate_ASMPlate_Assembly A.1.stp [1.5s] → edges_gt_60/
+  [159/182] ERROR: circular pattern..STEP: Unable to open file '/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Source_3d_models/Plate_Bolt/circular-plate-assembly-1/circular pattern..STEP'
+  [160/182] ERROR: Guide Roller Assembly.STEP: Unable to open file '/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Source_3d_models/Plate_Bolt/guide-roller-assembly-solidworks-step-1/Guide Roller Assembly.STEP'
+  [161/182] ERROR: Ass'y, Tramp Stamp with License Plate Bracket.stp: Unable to open file '/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Source_3d_models/Plate_Bolt/jeep-wrangler-jk-tire-carrier-delete-plate-license-plate-bracket-led-license-plate-light-1/Ass'y, Tramp Stamp with License Plate Bracket.stp'
+  [162/182] ERROR: NEGATIVE BATTERY TERMINAL CLAMP.STEP: Unable to open file '/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Source_3d_models/Plate_Bolt/negative-battery-terminal-clamp-1/NEGATIVE BATTERY TERMINAL CLAMP.STEP'
+  [163/182] ERROR: ANSI B18.3.4M - M5 x 0.8 x 25(1).stp: Unable to open file '/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Source_3d_models/Plate_Bolt/openbuilds-v-slot-gantry-aluminium-plate-50-mm-1/ANSI B18.3.4M - M5 x 0.8 x 25(1).stp'
+  [164/182] ERROR: ASSY GANTRY 5050.stp: Unable to open file '/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Source_3d_models/Plate_Bolt/openbuilds-v-slot-gantry-aluminium-plate-50-mm-1/ASSY GANTRY 5050.stp'
+  [165/182] ERROR: Gantry Base 50mm.stp: Unable to open file '/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Source_3d_models/Plate_Bolt/openbuilds-v-slot-gantry-aluminium-plate-50-mm-1/Gantry Base 50mm.stp'
+  [166/182] ERROR: Nuts Gantry.stp: Unable to open file '/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Source_3d_models/Plate_Bolt/openbuilds-v-slot-gantry-aluminium-plate-50-mm-1/Nuts Gantry.stp'
+  [167/182] ERROR: Ruber Wheel.stp: Unable to open file '/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Source_3d_models/Plate_Bolt/openbuilds-v-slot-gantry-aluminium-plate-50-mm-1/Ruber Wheel.stp'
+  [168/182] ERROR: Washer ID 5 x 7.stp: Unable to open file '/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Source_3d_models/Plate_Bolt/openbuilds-v-slot-gantry-aluminium-plate-50-mm-1/Washer ID 5 x 7.stp'
+  [169/182] ERROR: 174391 SNCB-40 (PIVOT).STEP: Unable to open file '/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Source_3d_models/Plate_Bolt/pivot-19/174391 SNCB-40 (PIVOT).STEP'
+  [170/182] ERROR: plate assembly.stp: Unable to open file '/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Source_3d_models/Plate_Bolt/plate assembly/plate assembly.stp'
+  [171/182] ERROR: Assem1.STEP: Unable to open file '/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Source_3d_models/Plate_Bolt/plate assembly-2/Assem1.STEP'
+  [172/182] ERROR: POSITIVE BATTERY TERMINAL CLAMP.STEP: Unable to open file '/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Source_3d_models/Plate_Bolt/positive-battery-terminal-clamp-1/POSITIVE BATTERY TERMINAL CLAMP.STEP'
+  [173/182] OK  asm0002_asm.stp [0.7s]
+  [174/182] OK  bearing housing_IGS.step [2.3s]
+  [175/182] OK  Pedestal Bearing.stp [0.9s]
+  [176/182] OK  Pillow Block Bearing.STEP [1.4s]
+[32;1m*** ERR StepReaderData : Unresolved Reference : Fails Count : 1 ***[0m
+  [177/182] OK  plumber block.stp [0.3s]
+  [178/182] EDGES>60 (366): Asm7.stp [1.7s] → edges_gt_60/
+  [179/182] OK  Plummer Block.stp [0.7s]
+  [180/182] OK  Plummer Block.STEP [4.3s]
+  [181/182] OK  block.stp [2.8s]
+  [182/182] OK  plumber block_.step [54.8s]
+
+Phase 2 done: 1526 total-nodes_mv  38 total-edges_mv  0 timeout
+
+Report written → /Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Source_3d_models/skipped_models_report.json
+
+============================================================
+DONE — 1564 folders moved total
+  nodes_gt_20 : 1526
+  edges_gt_60 : 38
+  timeout     : 0
+  ok (kept)   : 5652
+  errors      : 14
+============================================================
+
