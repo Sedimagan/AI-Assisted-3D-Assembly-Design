@@ -28,3 +28,6 @@ Source_3d_models/
 
 # Trained model exports (large — keep locally, not in git)
 trained_models/*.pt
+
+# Large static gallery files (keep locally, not in git)
+Review_files/fusion360_all_categories.html
