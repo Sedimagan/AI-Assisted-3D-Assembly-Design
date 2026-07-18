@@ -1,12 +1,11 @@
 """
-infer.py — Inference on partial assemblies  (Phase 1)
-Predicts missing component connections in a partial CAD assembly.
+infer.py — Inference on partial assemblies
+Predicts missing component connections (Phase 1, LinkPredictor) and ranks
+candidate next-component types (Phase 2, NodeRanker) for a partial CAD assembly.
 
 Usage:
     python infer.py --checkpoint checkpoints/best.pt --step path/to/file.step
     python infer.py --checkpoint checkpoints/best.pt --demo
-
-Phase 2 (planned): next-component ranking via NodeRanker.
 """
 
 from __future__ import annotations
@@ -18,8 +17,9 @@ from typing import List, Tuple
 import torch
 import yaml
 
-from dataset import _parse_step, _synthetic_graph
+from dataset import _parse_step, _synthetic_graph, COMP_TYPES
 from model   import build_model
+from train_ranker import embed_prototypes
 
 
 # ── Load checkpoint ───────────────────────────────────────────────────────────
@@ -41,6 +41,27 @@ def load_checkpoint(ckpt_path: str):
     gnn.eval(); lp.eval()
     print(f"Loaded checkpoint (val AUC={ckpt['auc']:.4f}, epoch={ckpt['epoch']})")
     return gnn, lp, device, cfg
+
+
+def load_ranker(ranker_path: str, gnn, device):
+    """
+    Load NodeRanker weights and re-embed the type-prototype table fresh
+    through the already-loaded frozen encoder (never trust a cached
+    embedding table — it goes stale the moment the encoder is retrained).
+    Returns (nr, type_prototypes, comp_types, raw_ckpt).
+    """
+    from model import build_ranker
+
+    ckpt = torch.load(ranker_path, map_location="cpu", weights_only=False)
+    mc = ckpt["cfg"]["model"]
+    nr = build_ranker(out_dim=mc["out_dim"], device=device)
+    nr.load_state_dict(ckpt["nr"])
+    nr.eval()
+
+    type_prototypes = embed_prototypes(gnn, ckpt["type_prototypes_raw"], device)
+    print(f"Loaded NodeRanker (encoder_auc={ckpt['encoder_auc']:.4f}, "
+          f"trained_at={ckpt['trained_at']})")
+    return nr, type_prototypes, ckpt["comp_types"], ckpt
 
 
 # ── Missing component detection ───────────────────────────────────────────────
@@ -71,6 +92,29 @@ def predict_missing(
             for i in top_i.tolist()]
 
 
+# ── Next-component ranking (Phase 2, NodeRanker) ──────────────────────────────
+
+@torch.no_grad()
+def predict_next_component(
+    gnn, nr, type_prototypes, graph, device, top_k: int = len(COMP_TYPES)
+) -> List[Tuple[str, float]]:
+    """
+    Rank the fixed candidate component types by cosine similarity to the
+    partial assembly's context vector. Works even for single-node graphs
+    (unlike predict_missing, which needs >=2 nodes).
+    Each result: (type_name, cosine_similarity) sorted best-first.
+    """
+    g = graph.to(device)
+    z = gnn(g.x, g.edge_index, getattr(g, "edge_attr", None))
+    if z.size(0) == 0:
+        return []
+
+    scores = nr(z, type_prototypes).cpu()
+    top_i  = scores.topk(min(top_k, scores.size(0))).indices
+
+    return [(COMP_TYPES[i], round(scores[i].item(), 4)) for i in top_i.tolist()]
+
+
 # ── Pretty print ──────────────────────────────────────────────────────────────
 
 def _bar(score: float, width: int = 20) -> str:
@@ -87,6 +131,18 @@ def print_missing(results):
         return
     for rank, ((u, v), score) in enumerate(results, 1):
         print(f"  {rank}. node {u:2d} ↔ node {v:2d}  |{_bar(score)}| {score:.3f}")
+
+
+def print_next_component(results):
+    print(f"\n{'═'*52}")
+    print(" Next Component — Ranked Suggestions (NodeRanker)")
+    print(f"{'═'*52}")
+    if not results:
+        print("  (no ranking available)")
+        return
+    for rank, (type_name, score) in enumerate(results, 1):
+        pct = max(0.0, (score + 1) / 2)  # cosine sim [-1,1] -> bar [0,1]
+        print(f"  {rank}. {type_name:10s}  |{_bar(pct)}| {score:+.3f}")
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────

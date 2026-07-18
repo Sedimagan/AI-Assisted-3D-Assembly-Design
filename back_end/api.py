@@ -29,7 +29,7 @@ except ImportError:
 
 from model import build_model
 from dataset import _parse_step, _synthetic_graph, COMP_TYPES
-from infer import predict_missing
+from infer import predict_missing, load_ranker, predict_next_component
 from skills_agent import AssemblySkillsAgent
 from surface_analyzer import analyze_open_surfaces
 
@@ -56,9 +56,14 @@ _ckpt_serving  = Path(__file__).parent / "checkpoints" / "best_serving.pt"
 _ckpt_fallback = Path(__file__).parent / "checkpoints" / "best_overall.pt"
 _ckpt_path = _ckpt_serving if _ckpt_serving.exists() else _ckpt_fallback
 
+_nr = _type_prototypes = _nr_comp_types = None
+_ranker_loaded = False
+_ranker_path = Path(__file__).parent / "checkpoints" / "node_ranker.pt"
+
 @app.on_event("startup")
 def startup():
     global _gnn, _lp, _device, _agent
+    global _nr, _type_prototypes, _nr_comp_types, _ranker_loaded
 
     cfg_path = Path(__file__).parent / "config.yaml"
     with open(cfg_path) as f:
@@ -79,6 +84,18 @@ def startup():
         print(f"  ✓ Checkpoint loaded (val AUC={ckpt['auc']:.4f})")
     else:
         print("  ⚠  No checkpoint found — using untrained model.")
+
+    if _ranker_path.exists():
+        try:
+            _nr, _type_prototypes, _nr_comp_types, _ = load_ranker(
+                str(_ranker_path), _gnn, _device
+            )
+            _ranker_loaded = True
+            print("  ✓ NodeRanker loaded")
+        except Exception as e:
+            print(f"  ⚠  NodeRanker failed to load — {e}")
+    else:
+        print("  ⚠  No NodeRanker checkpoint found — run train_ranker.py to enable it.")
 
     _agent = AssemblySkillsAgent()
     print(f"  ✓ Skills AI agent ready ({_agent.status()})")
@@ -170,6 +187,7 @@ def health():
     return {
         "status":      "ok",
         "model_loaded": _ckpt_path.exists(),
+        "ranker_loaded": _ranker_loaded,
         "agent":        _agent.status() if _agent else None,
         "comp_types":   COMP_TYPES,
     }
@@ -186,6 +204,18 @@ def api_predict_missing(req: AssemblyGraph):
         {"src": u, "dst": v, "confidence": s} for (u, v), s in results
     ]}
 
+
+@app.post("/predict/next-component")
+def api_predict_next_component(req: AssemblyGraph):
+    """Rank candidate next-component types by cosine similarity to the
+    partial assembly's context vector (Phase 2, NodeRanker)."""
+    if _nr is None:
+        raise HTTPException(503, "NodeRanker not loaded — run train_ranker.py first")
+    graph = _to_pyg(req)
+    results = predict_next_component(_gnn, _nr, _type_prototypes, graph, _device)
+    return {"next_component_suggestions": [
+        {"type": t, "score": s} for t, s in results
+    ]}
 
 
 @app.post("/explain")
@@ -255,24 +285,33 @@ async def api_analyze_step(file: UploadFile = File(...)):
             surf_error = None
 
         missing_links = []
+        next_component_suggestions = []
         graph_info = None
         try:
             graph = _parse_step(str(tmp_path))
-            if graph is not None and graph.num_nodes >= 2:
+            if graph is not None and graph.num_nodes >= 1:
                 graph_info = {
                     "num_nodes": graph.num_nodes,
                     "num_edges": graph.edge_index.size(1),
                 }
-                if _gnn is not None and _lp is not None:
-                    results = predict_missing(
-                        _gnn, _lp, graph, _device, top_k=10,
+                if graph.num_nodes >= 2:
+                    if _gnn is not None and _lp is not None:
+                        results = predict_missing(
+                            _gnn, _lp, graph, _device, top_k=10,
+                        )
+                        missing_links = [
+                            {"src": u, "dst": v, "confidence": s}
+                            for (u, v), s in results
+                        ]
+                    else:
+                        graph_info["warning"] = "Model not loaded — no predictions"
+                if _ranker_loaded:
+                    nc_results = predict_next_component(
+                        _gnn, _nr, _type_prototypes, graph, _device, top_k=5,
                     )
-                    missing_links = [
-                        {"src": u, "dst": v, "confidence": s}
-                        for (u, v), s in results
+                    next_component_suggestions = [
+                        {"type": t, "score": s} for t, s in nc_results
                     ]
-                else:
-                    graph_info["warning"] = "Model not loaded — no predictions"
         except Exception as e:
             graph_info = {"error": str(e)}
 
@@ -281,6 +320,7 @@ async def api_analyze_step(file: UploadFile = File(...)):
             "open_surfaces": open_surfaces,
             "surf_error":    surf_error,
             "missing_links": missing_links,
+            "next_component_suggestions": next_component_suggestions,
             "graph":         graph_info,
         }
     finally:
@@ -296,11 +336,12 @@ async def api_analyze_step(file: UploadFile = File(...)):
 def docs_summary():
     return {
         "endpoints": {
-            "GET  /health":          "Service + model status",
-            "POST /predict/missing": "Missing component link prediction (JSON graph)",
-            "POST /analyze/step":    "Full STEP file analysis (GNN + open surfaces)",
-            "POST /explain":         "Gemini AI explanation of predictions",
-            "POST /identify":        "Component type identification from geometry",
+            "GET  /health":                 "Service + model status",
+            "POST /predict/missing":        "Missing component link prediction (JSON graph)",
+            "POST /predict/next-component": "Next-component type ranking (JSON graph, NodeRanker)",
+            "POST /analyze/step":           "Full STEP file analysis (GNN + ranker + open surfaces)",
+            "POST /explain":                "Gemini AI explanation of predictions",
+            "POST /identify":               "Component type identification from geometry",
         }
     }
 

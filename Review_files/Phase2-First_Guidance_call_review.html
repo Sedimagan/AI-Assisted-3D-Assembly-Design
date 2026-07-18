@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Phase 2 — First Guidance Call Review</title>
+<style>
+  :root {
+    --bg: #0a121f; --panel: #101c30; --card: #142338; --border: #24405f;
+    --text: #e6edf5; --muted: #8aa0b8; --accent: #5b9bd5; --accent2: #8b5cf6;
+    --good: #4caf82; --warn: #f0a83c; --bad: #ef5a5a;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--bg); color: var(--text);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .slide {
+    display: none; flex-direction: column; justify-content: center;
+    height: calc(100vh - 54px); width: 100%; padding: 40px 64px;
+  }
+  .slide.active { display: flex; }
+  .kicker { color: var(--accent); font-size: 0.85rem; font-weight: 700; letter-spacing: 0.08em;
+            text-transform: uppercase; margin-bottom: 8px; }
+  h1 { font-size: 2.3rem; margin: 0 0 6px; }
+  h2 { font-size: 1.7rem; margin: 0 0 18px; color: var(--text); }
+  .sub { color: var(--muted); font-size: 1rem; margin-bottom: 28px; }
+  .grid { display: grid; gap: 16px; }
+  .grid2 { grid-template-columns: 1fr 1fr; }
+  .grid3 { grid-template-columns: 1fr 1fr 1fr; }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 18px 20px;
+  }
+  .card h3 { margin: 0 0 10px; font-size: 1.02rem; color: var(--accent); }
+  .card h3.done { color: var(--good); }
+  .card h3.plan { color: var(--accent2); }
+  .card h3.risk { color: var(--warn); }
+  ul { margin: 0; padding-left: 20px; }
+  li { margin-bottom: 7px; font-size: 0.92rem; line-height: 1.45; color: #cfd9e6; }
+  li b, li strong { color: var(--text); }
+  .badge {
+    display: inline-block; background: rgba(91,155,213,0.15); color: var(--accent);
+    border: 1px solid var(--accent); border-radius: 4px; padding: 1px 8px;
+    font-size: 0.72rem; font-weight: 700; margin-left: 8px;
+  }
+  .badge.wip { background: rgba(240,168,60,0.15); color: var(--warn); border-color: var(--warn); }
+  .badge.done { background: rgba(76,175,130,0.15); color: var(--good); border-color: var(--good); }
+  .flow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 18px 0; }
+  .fbox {
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; font-size: 0.85rem; text-align: center; flex: 1; min-width: 140px;
+  }
+  .fbox.new { border-color: var(--accent2); background: rgba(139,92,246,0.10); }
+  .arrow { color: var(--muted); font-size: 1.1rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  th, td { padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; }
+  .metric-row td:nth-child(2) { color: var(--accent); font-weight: 700; }
+  .footer {
+    height: 54px; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; border-top: 1px solid var(--border); background: var(--panel);
+    font-size: 0.8rem; color: var(--muted);
+  }
+  .dots { display: flex; gap: 6px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: #2a4060; cursor: pointer; }
+  .dot.active { background: var(--accent); }
+  .navbtn {
+    background: var(--card); border: 1px solid var(--border); color: var(--text);
+    border-radius: 6px; padding: 6px 14px; cursor: pointer; font-size: 0.85rem;
+  }
+  .navbtn:hover { border-color: var(--accent); }
+  .center { display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100%; text-align: center; }
+  .qa-item { margin-bottom: 16px; }
+  .qa-item .q { color: var(--accent2); font-weight: 700; font-size: 0.95rem; margin-bottom: 4px; }
+  .qa-item .a { color: #cfd9e6; font-size: 0.88rem; }
+</style>
+</head>
+<body>
+
+<!-- Slide 1 — Title -->
+<div class="slide active" id="s1">
+  <div class="center">
+    <div class="kicker">Phase 2 · Node Ranker</div>
+    <h1 style="font-size:2.8rem;">First Guidance Call Review</h1>
+    <p class="sub" style="font-size:1.15rem;">AI-Assisted 3D Assembly Design</p>
+    <div style="margin-top:24px;color:#cfd9e6;">
+      <div><b>Presented by:</b> Parthasarathy Perumal &nbsp;·&nbsp; SRN PES2PGE24DS193</div>
+      <div style="margin-top:4px;"><b>Presented to:</b> Prof. Gaurav Siwal (Phase 2 Guide)</div>
+      <div style="margin-top:4px;color:var(--muted);">MTECH — Data Science &amp; AI, PES University Bengaluru</div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 2 — Agenda -->
+<div class="slide" id="s2">
+  <div class="kicker">Agenda</div>
+  <h2>What we'll cover today</h2>
+  <div class="grid grid2">
+    <div class="card">
+      <h3>Recap</h3>
+      <ul>
+        <li>Phase 1 outcome — what was built and what it achieves</li>
+        <li>Current serving model status (R28)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="plan">Phase 2 — Node Ranker</h3>
+      <ul>
+        <li>Why Node Ranker, and where it sits in the pipeline</li>
+        <li>Design decisions and current implementation status</li>
+        <li>Open risks and questions for your guidance</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 3 — Phase 1 recap -->
+<div class="slide" id="s3">
+  <div class="kicker">Recap</div>
+  <h2>Phase 1 — what's done <span class="badge done">Complete</span></h2>
+  <div class="grid grid2">
+    <div class="card">
+      <h3 class="done">Missing-component detection</h3>
+      <ul>
+        <li>STEP file → gmsh + OpenCASCADE + trimesh/SDF → 22-dim node / 6-dim edge assembly graph</li>
+        <li>3-layer GAT encoder (<code>AssemblyGNN</code>) + <code>LinkPredictor</code> MLP</li>
+        <li>5-fold cross-validated training, early stopping, checkpoint promotion gating</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="done">Supporting modules</h3>
+      <ul>
+        <li><b>AssemblyTemplateDB</b> — per-category component-type frequency templates</li>
+        <li><b>Octree open-surface detector</b> — flags where a component is likely missing on the 3D model</li>
+        <li><b>AIDA (Gemini Skills AI)</b> — explains predictions in engineering language</li>
+        <li>Streamlit dual-panel UI + FastAPI backend, both deployed and running</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 4 — Current model status -->
+<div class="slide" id="s4">
+  <div class="kicker">Recap</div>
+  <h2>Current serving model — R28</h2>
+  <table>
+    <tr><th>Metric</th><th>Value</th></tr>
+    <tr class="metric-row"><td>Mean AUC-ROC (5-fold CV)</td><td>0.546 ± 0.025</td></tr>
+    <tr class="metric-row"><td>Mean Average Precision</td><td>0.712 ± 0.014</td></tr>
+    <tr><td>Training corpus</td><td>695 graphs — Mechanical Engineering (very high nodes/edges)</td></tr>
+    <tr><td>Trend</td><td>R23 (0.460) → R27 (0.531) → R28 (0.546) — category-focused scaling improves AUC</td></tr>
+    <tr><td>Best historical AUC</td><td>R17 — 0.625 ± 0.017 on 1,760 diverse graphs (most stable so far)</td></tr>
+  </table>
+  <p class="sub" style="margin-top:18px;">
+    Phase 1 targets (AUC ≥ 0.85, AP ≥ 0.82) are not yet met on AUC — this is the honest baseline
+    Phase 2's Node Ranker inherits and builds on top of.
+  </p>
+</div>
+
+<!-- Slide 5 — What is Node Ranker -->
+<div class="slide" id="s5">
+  <div class="kicker">Phase 2</div>
+  <h2>What is the Node Ranker?</h2>
+  <p class="sub">Phase 1 answers "are these two parts connected?" (link prediction). Node Ranker answers a
+     different question: <b>"given this partial assembly, what type of component is most likely missing next?"</b></p>
+  <div class="flow">
+    <div class="fbox">Partial assembly graph</div>
+    <div class="arrow">→</div>
+    <div class="fbox">GAT encoder<br><span style="color:var(--muted);">(already trained, Phase 1)</span></div>
+    <div class="arrow">→</div>
+    <div class="fbox">Mean-pool → context vector</div>
+    <div class="arrow">→</div>
+    <div class="fbox new">Node Ranker<br><span style="color:var(--accent2);">cosine similarity</span></div>
+    <div class="arrow">→</div>
+    <div class="fbox new">Ranked list of 8 candidate component types</div>
+  </div>
+  <div class="card" style="margin-top:10px;">
+    <h3>Committed design (already written into the Phase 1 report)</h3>
+    <ul>
+      <li>Candidates: the 8 fixed component types — body, fastener, bearing, shaft, plate, housing, gear, other</li>
+      <li>Scoring: cosine similarity between context vector and candidate embeddings</li>
+      <li>Loss: <b>BPR</b> (Bayesian Personalized Ranking)</li>
+      <li>Metrics: <b>Hit@K, MRR, NDCG@K</b> (targets: Hit@5 ≥ 0.70, MRR ≥ 0.64)</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Slide 6 — Status -->
+<div class="slide" id="s6">
+  <div class="kicker">Phase 2 — Status</div>
+  <h2>Where we are right now <span class="badge wip">In progress</span></h2>
+  <div class="grid grid2">
+    <div class="card">
+      <h3 class="risk">Starting point</h3>
+      <ul>
+        <li><code>NodeRanker</code> class existed in <code>model.py</code> since Phase 1 planning, but was a
+            pure stub — never instantiated in training, inference, or the API</li>
+        <li>No trained weights existed anywhere for it</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="done">Being wired up this week</h3>
+      <ul>
+        <li>Leave-one-node-out training task + BPR loss (<code>train_ranker.py</code>)</li>
+        <li>Type-prototype embeddings computed via the frozen, already-trained Phase 1 encoder</li>
+        <li>Hit@K / MRR / NDCG@K evaluation added</li>
+        <li>Inference + FastAPI endpoint + Streamlit UI panel wired end-to-end</li>
+        <li>First training pass running now</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 7 — Design decisions -->
+<div class="slide" id="s7">
+  <div class="kicker">Phase 2 — Design</div>
+  <h2>Key design decisions</h2>
+  <div class="grid grid3">
+    <div class="card">
+      <h3>Reuse, don't retrain</h3>
+      <ul>
+        <li>Node Ranker trains only its own small projection layer</li>
+        <li>Phase 1's GAT encoder is loaded frozen — no risk to the tuned link-prediction model</li>
+        <li>Minutes, not the ~23 hours a full Phase 1 run takes</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Training task</h3>
+      <ul>
+        <li>Remove one real node from a training graph</li>
+        <li>Encode the remaining partial graph → context vector</li>
+        <li>BPR: true component type should score higher than the other 7</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Separate checkpoint</h3>
+      <ul>
+        <li>New file: <code>node_ranker.pt</code></li>
+        <li><code>best_serving.pt</code> (Phase 1) is never touched</li>
+        <li>Explicit dependency: re-run if Phase 1 is ever retrained</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 8 — Risks / questions -->
+<div class="slide" id="s8">
+  <div class="kicker">Discussion</div>
+  <h2>Open risks &amp; questions for your input</h2>
+  <div class="qa-item">
+    <div class="q">1. The encoder Node Ranker inherits is still weak (AUC ≈ 0.55)</div>
+    <div class="a">Since prototypes and context vectors both come from this encoder, Node Ranker's ceiling is
+      partly capped by Phase 1's own accuracy. Should we prioritize improving Phase 1 (e.g. the heterogeneous
+      GNN also planned for Phase 2) before pushing Node Ranker further?</div>
+  </div>
+  <div class="qa-item">
+    <div class="q">2. Hit@5 is a weak metric at only 8 candidate types</div>
+    <div class="a">Random guessing already gets 62.5% Hit@5, so the ≥0.70 target is only ~7.5 points above
+      chance. We're reporting Hit@1 / MRR / NDCG@5 alongside it and a majority-class baseline for honest
+      comparison — is that framing acceptable for the review board?</div>
+  </div>
+  <div class="qa-item">
+    <div class="q">3. Class imbalance in the training corpus</div>
+    <div class="a">Some component types (e.g. body, fastener) likely dominate the 695-graph corpus. There's a
+      real risk BPR training just learns the class prior rather than genuine context-awareness — we're
+      checking this directly against a majority-baseline comparison.</div>
+  </div>
+</div>
+
+<!-- Slide 9 — Next steps -->
+<div class="slide" id="s9">
+  <div class="kicker">Next Steps</div>
+  <h2>Plan going forward</h2>
+  <table>
+    <tr><th>Step</th><th>Status</th></tr>
+    <tr><td>Wire Node Ranker into training / inference / API / UI</td><td style="color:var(--good);">Done</td></tr>
+    <tr><td>First training run + Hit@K / MRR / NDCG@K results</td><td style="color:var(--warn);">In progress</td></tr>
+    <tr><td>Validate real, non-random output end-to-end in the Streamlit demo</td><td style="color:var(--muted);">Next</td></tr>
+    <tr><td>Heterogeneous GNN (typed node/edge message passing)</td><td style="color:var(--muted);">Planned</td></tr>
+    <tr><td>GNNExplainer integration for interpretability</td><td style="color:var(--muted);">Planned</td></tr>
+  </table>
+  <p class="sub" style="margin-top:24px;">Timeline: Phase 2 window is Jul – Sep 2026.</p>
+</div>
+
+<!-- Slide 10 — Thank you -->
+<div class="slide" id="s10">
+  <div class="center">
+    <h1>Thank you</h1>
+    <p class="sub" style="font-size:1.1rem;">Looking forward to your guidance on Phase 2 direction.</p>
+  </div>
+</div>
+
+<div class="footer">
+  <span id="slideLabel">1 / 10</span>
+  <div class="dots" id="dots"></div>
+  <div>
+    <button class="navbtn" onclick="prev()">&larr; Prev</button>
+    <button class="navbtn" onclick="next()">Next &rarr;</button>
+  </div>
+</div>
+
+<script>
+  const SLIDE_ORDER = ['s1','s2','s3','s4','s5','s6','s7','s8','s9','s10'];
+  const TOTAL = SLIDE_ORDER.length;
+  let cur = 1;
+
+  function renderDots() {
+    const dots = document.getElementById('dots');
+    dots.innerHTML = '';
+    for (let i = 1; i <= TOTAL; i++) {
+      const d = document.createElement('div');
+      d.className = 'dot' + (i === cur ? ' active' : '');
+      d.onclick = () => go(i);
+      dots.appendChild(d);
+    }
+  }
+
+  function go(n) {
+    if (n < 1 || n > TOTAL) return;
+    document.getElementById(SLIDE_ORDER[cur - 1]).classList.remove('active');
+    cur = n;
+    document.getElementById(SLIDE_ORDER[cur - 1]).classList.add('active');
+    document.getElementById('slideLabel').textContent = cur + ' / ' + TOTAL;
+    renderDots();
+  }
+  function next() { go(cur + 1); }
+  function prev() { go(cur - 1); }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') next();
+    if (e.key === 'ArrowLeft') prev();
+  });
+
+  renderDots();
+</script>
+
+</body>
+</html>

@@ -137,3 +137,9 @@ def build_model(
     total = sum(p.numel() for p in list(gnn.parameters()) + list(lp.parameters()))
     print(f"Model built on {device}  |  total params: {total:,}")
     return gnn, lp, device
+
+
+def build_ranker(out_dim: int = 64, device: torch.device | None = None) -> NodeRanker:
+    device = device or torch.device("cuda" if torch.cuda.is_available() else
+                                    "mps"  if torch.backends.mps.is_available() else "cpu")
+    return NodeRanker(out_dim).to(device)

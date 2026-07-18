@@ -1,15 +1,17 @@
 """
-evaluate.py — Evaluation metrics  (Phase 1)
-AUC-ROC · Average Precision for missing component detection.
-
-Phase 2 (planned): Hit@K · MRR · NDCG@K for next-component ranking.
+evaluate.py — Evaluation metrics
+AUC-ROC · Average Precision for missing component detection (Phase 1).
+Hit@K · MRR · NDCG@K for next-component ranking (Phase 2, NodeRanker).
 """
 
 from __future__ import annotations
 
+from collections import Counter
+from typing import List, Sequence
+
 import numpy as np
 import torch
-from sklearn.metrics import roc_auc_score, average_precision_score
+from sklearn.metrics import roc_auc_score, average_precision_score, ndcg_score
 
 
 def link_metrics(y_true: np.ndarray, y_score: np.ndarray) -> dict:
@@ -61,3 +63,51 @@ def evaluate(gnn, lp, loader, device) -> dict:
         all_score.append(scores)
 
     return link_metrics(np.concatenate(all_true), np.concatenate(all_score))
+
+
+# ── Phase 2: next-component ranking metrics ───────────────────────────────────
+
+def ranking_metrics(
+    true_idx: Sequence[int],
+    scores:   Sequence[np.ndarray],
+    k_list:   Sequence[int] = (1, 5),
+) -> dict:
+    """
+    true_idx: ground-truth COMP_TYPES index per validation sample.
+    scores:   one (n_candidates,) cosine-similarity array per sample.
+    Returns Hit@k for each k in k_list, MRR, and NDCG@5 aggregated over samples.
+    """
+    n = len(true_idx)
+    if n == 0:
+        return {f"hit@{k}": 0.0 for k in k_list} | {"mrr": 0.0, "ndcg@5": 0.0}
+
+    hits = {k: 0 for k in k_list}
+    reciprocal_ranks = []
+    ndcgs = []
+
+    for t, s in zip(true_idx, scores):
+        s = np.asarray(s)
+        order = np.argsort(-s)
+        rank = int(np.where(order == t)[0][0]) + 1  # 1-indexed
+        for k in k_list:
+            if rank <= k:
+                hits[k] += 1
+        reciprocal_ranks.append(1.0 / rank)
+
+        relevance = np.zeros(len(s))
+        relevance[t] = 1.0
+        k5 = min(5, len(s))
+        ndcgs.append(ndcg_score(relevance.reshape(1, -1), s.reshape(1, -1), k=k5))
+
+    result = {f"hit@{k}": hits[k] / n for k in k_list}
+    result["mrr"]    = float(np.mean(reciprocal_ranks))
+    result["ndcg@5"] = float(np.mean(ndcgs))
+    return result
+
+
+def majority_baseline_hit1(train_true_idx: Sequence[int], eval_true_idx: Sequence[int]) -> float:
+    """Hit@1 if we always predict the most frequent type seen in training."""
+    if not train_true_idx or not eval_true_idx:
+        return 0.0
+    majority = Counter(train_true_idx).most_common(1)[0][0]
+    return sum(1 for t in eval_true_idx if t == majority) / len(eval_true_idx)

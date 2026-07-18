@@ -15,6 +15,7 @@ _CKPT_FALLBACK = _PROJ_ROOT / "back_end" / "checkpoints" / "best_overall.pt"
 _CKPT_PATH  = _CKPT_SERVING if _CKPT_SERVING.exists() else _CKPT_FALLBACK
 _STEP_CACHE   = _PROJ_ROOT / ".logs" / "inference_input.step"
 _TMPL_DB_PATH = _PROJ_ROOT / "back_end" / "data" / "assembly_templates.json"
+_RANKER_PATH  = _PROJ_ROOT / "back_end" / "checkpoints" / "node_ranker.pt"
 
 if not os.environ.get("DISPLAY"):
     os.environ["DISPLAY"] = ":99"
@@ -247,10 +248,12 @@ def _run_inference(step_bytes: bytes,
 
     back_end = str(_PROJ_ROOT / "back_end")
     script = textwrap.dedent(f"""\
-        import sys, json, io, contextlib
+        import sys, os, json, io, contextlib, math
         sys.path.insert(0, {repr(back_end)})
+        import torch
+        from torch_geometric.data import Data
         from dataset import _parse_step
-        from infer import load_checkpoint, predict_missing
+        from infer import load_checkpoint, predict_missing, load_ranker, predict_next_component
 
         graph = _parse_step({repr(str(_STEP_CACHE))})
         n_bodies = graph.num_nodes if graph is not None else 0
@@ -318,6 +321,43 @@ def _run_inference(step_bytes: bytes,
             except Exception:
                 pass
 
+            # ── Next-component ranking (Phase 2, NodeRanker) ──────────────────
+            _next_comp_sb = []
+            if os.path.exists({repr(str(_RANKER_PATH))}):
+                try:
+                    _sb_bbox_max = max(_sv["dx"], _sv["dy"], _sv["dz"], 1e-9)
+                    _sb_ext = sorted([_sv["dx"], _sv["dy"], _sv["dz"]])
+                    _sb_elong = _sb_ext[2] / (_sb_ext[1] + 1e-9)
+                    _sb_flat  = _sb_ext[0] / (_sb_ext[2] + 1e-9)
+                    _sb_axy = _sv["dx"] / (_sv["dy"] + 1e-9)
+                    _sb_ayz = _sv["dy"] / (_sv["dz"] + 1e-9)
+                    _sb_spher = min(1.0, (math.pi ** (1/3))
+                                    * ((6 * _sv["vol"]) ** (2/3)) / (_sb_sa + 1e-9))
+                    _sb_sav = _sb_sa / (_sv["vol"] + 1e-9)
+                    _sb_oh = [0.0] * 8
+                    _sb_oh[_sb_tidx] = 1.0
+                    _sb_feat = _sb_oh + [
+                        min(13.8, math.log1p(max(0.0, _sv["vol"]))),
+                        min(11.5, math.log1p(max(0.0, _sb_sa))),
+                        _sv["dx"] / _sb_bbox_max, _sv["dy"] / _sb_bbox_max, _sv["dz"] / _sb_bbox_max,
+                        _sb_elong, _sb_flat, _sb_axy, _sb_ayz, _sb_spher,
+                        0.0, 0.0, _sb_sav, 0.0,
+                    ]
+                    _sb_graph = Data(
+                        x=torch.tensor([_sb_feat], dtype=torch.float),
+                        edge_index=torch.zeros(2, 0, dtype=torch.long),
+                        edge_attr=torch.zeros(0, 6, dtype=torch.float),
+                    )
+                    with contextlib.redirect_stdout(io.StringIO()):
+                        _gnn_sb, _lp_sb, _dev_sb, _ = load_checkpoint({repr(str(_CKPT_PATH))})
+                        _nr_sb, _protos_sb, _, _ = load_ranker({repr(str(_RANKER_PATH))}, _gnn_sb, _dev_sb)
+                    _next_comp_sb = [
+                        {{"type": t, "score": float(s)}}
+                        for t, s in predict_next_component(_gnn_sb, _nr_sb, _protos_sb, _sb_graph, _dev_sb, top_k=5)
+                    ]
+                except Exception:
+                    _next_comp_sb = []
+
             print(json.dumps({{
                 "n_nodes": 1, "n_edges": 0, "missing_links": [],
                 "centroids":   [_sv["centroid"]],
@@ -327,6 +367,7 @@ def _run_inference(step_bytes: bytes,
                 "assembly_match":       _tmpl_sb,
                 "template_missing":     _miss_sb,
                 "open_surfaces":        _open_surfs_sb,
+                "next_component_suggestions": _next_comp_sb,
                 "single_body_analysis": True,
             }}))
             sys.exit(0)
@@ -335,6 +376,19 @@ def _run_inference(step_bytes: bytes,
             gnn, lp, device, cfg = load_checkpoint({repr(str(_CKPT_PATH))})
 
         results = predict_missing(gnn, lp, graph, device, top_k=5)
+
+        # ── Next-component ranking (Phase 2, NodeRanker) ──────────────────────
+        _next_comp = []
+        if os.path.exists({repr(str(_RANKER_PATH))}):
+            try:
+                with contextlib.redirect_stdout(io.StringIO()):
+                    _nr, _protos, _, _ = load_ranker({repr(str(_RANKER_PATH))}, gnn, device)
+                _next_comp = [
+                    {{"type": t, "score": float(s)}}
+                    for t, s in predict_next_component(gnn, _nr, _protos, graph, device, top_k=5)
+                ]
+            except Exception:
+                _next_comp = []
 
         # One gmsh pass: centroids + names + area-thresholded contact degrees
         # A connection only counts when shared surface area >= 1 % of the smaller
@@ -584,6 +638,7 @@ def _run_inference(step_bytes: bytes,
             "assembly_match":       _tmpl_match,
             "template_missing":     _tmpl_missing,
             "open_surfaces":        _open_surfs,
+            "next_component_suggestions": _next_comp,
             "single_body_analysis": False,
         }}
         print(json.dumps(out))
@@ -624,6 +679,7 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
         tmpl_missing   = result.get("template_missing", [])
         single_body    = result.get("single_body_analysis", False)
         open_surfs     = result.get("open_surfaces", [])
+        next_comp      = result.get("next_component_suggestions", [])
 
         def _basename(s):
             if s and "/" in s:
@@ -791,6 +847,32 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
                     f'<span style="color:#14b8a6;font-size:0.78rem;">➕</span>'
                     f'<span style="color:#0d9488;font-weight:600;">'
                     f'{_mc_lbl}{_mc_sfx}</span>'
+                    f'</div>'
+                )
+
+        # ── Section 4b: AI-ranked next component (Phase 2, NodeRanker) ────────
+        if next_comp:
+            rows += (
+                '<p style="font-size:0.76rem;font-weight:700;color:#8b5cf6;'
+                'margin:8px 0 5px;">🧭 AI-Ranked Next Component (GNN)</p>'
+            )
+            for _nc in next_comp[:5]:
+                _nc_type  = str(_nc.get("type", "")).capitalize()
+                _nc_score = _nc.get("score", 0.0)
+                _nc_pct   = int(max(0.0, (_nc_score + 1) / 2) * 100)
+                _nc_col   = ("#4caf82" if _nc_score >= 0.5 else
+                             "#8b5cf6" if _nc_score >= 0.0 else "#999")
+                rows += (
+                    f'<div style="display:flex;align-items:center;gap:6px;'
+                    f'font-size:0.72rem;margin-bottom:4px;">'
+                    f'<span style="color:#5b21b6;font-weight:600;width:70px;'
+                    f'flex-shrink:0;">{_nc_type}</span>'
+                    f'<div style="flex:1;background:#eee;border-radius:3px;'
+                    f'height:8px;overflow:hidden;">'
+                    f'<div style="width:{_nc_pct}%;height:100%;background:{_nc_col};"></div>'
+                    f'</div>'
+                    f'<span style="color:#777;font-size:0.65rem;width:44px;'
+                    f'text-align:right;flex-shrink:0;">{_nc_score:+.3f}</span>'
                     f'</div>'
                 )
 

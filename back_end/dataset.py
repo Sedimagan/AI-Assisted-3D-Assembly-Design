@@ -799,12 +799,13 @@ class AssemblyDataset(InMemoryDataset):
 
 # ── Split helper ──────────────────────────────────────────────────────────────
 
-def get_splits(dataset: AssemblyDataset, cfg: dict, fold_idx: int = 0, n_folds: int = 5):
+def graph_level_indices(dataset: AssemblyDataset, cfg: dict, fold_idx: int = 0, n_folds: int = 5):
     """
-    Fixed test set (15%) + KFold cross-validation on the remaining 85%.
-
-    fold_idx selects which of the n_folds splits is used as validation;
-    the rest form the training set.  RandomLinkSplit is applied per-graph.
+    Seeded train/val/test graph-index partition — fixed 15% test set, then
+    KFold cross-validation on the remaining 85%. Exposed standalone (not just
+    via get_splits) so callers that need the raw, un-edge-masked graphs
+    (e.g. NodeRanker training) can index the dataset directly without going
+    through RandomLinkSplit.
     """
     n      = len(dataset)
     n_test = max(1, int(n * cfg["data"]["test_ratio"]))
@@ -819,6 +820,18 @@ def get_splits(dataset: AssemblyDataset, cfg: dict, fold_idx: int = 0, n_folds: 
     train_rel_idx, val_rel_idx = folds[fold_idx]
     train_idx = [train_val[i] for i in train_rel_idx]
     val_idx   = [train_val[i] for i in val_rel_idx]
+
+    return train_idx, val_idx, test_idx
+
+
+def get_splits(dataset: AssemblyDataset, cfg: dict, fold_idx: int = 0, n_folds: int = 5):
+    """
+    Fixed test set (15%) + KFold cross-validation on the remaining 85%.
+
+    fold_idx selects which of the n_folds splits is used as validation;
+    the rest form the training set.  RandomLinkSplit is applied per-graph.
+    """
+    train_idx, val_idx, test_idx = graph_level_indices(dataset, cfg, fold_idx, n_folds)
 
     splitter = RandomLinkSplit(
         num_val                    = 0.1,

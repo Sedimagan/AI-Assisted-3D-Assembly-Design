@@ -28,8 +28,14 @@ training:
   n_folds:      5             # K in K-fold cross-validation
 
 evaluation:
-  # Phase 1: AUC-ROC and Average Precision only (link prediction)
-  # Phase 2: top_k: [1, 3, 5, 10]  for next-component ranking
+  top_k: [1, 5]                # Phase 2: Hit@K for next-component ranking
+
+ranker:
+  epochs:       30
+  lr:           1.0e-3
+  weight_decay: 1.0e-5
+  n_per_graph:  5              # leave-one-node-out samples per graph per epoch
+  fold_idx:     0
 
 paths:
   checkpoints:    "checkpoints"

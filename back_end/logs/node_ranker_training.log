@@ -1,0 +1,21 @@
+[2026-07-18 09:22:34] Status: RUNNING (pid 33063, ~23min elapsed, 65% CPU). No per-epoch output visible yet — `python train_ranker.py 2>&1 | tail -100` block-buffers until process exit, so epoch metrics won't surface in the captured stdout until the run completes. No checkpoints/node_ranker.pt or results/ranker_test_metrics.json produced yet.
+[2026-07-18 09:27:05] Status: RUNNING (pid 33063, ~28min elapsed, 64% CPU). RSS grew 1.97GB -> 3.25GB over the last 5min — watching for a possible leak (per-sample Data object creation in the leave-one-out loop), not yet critical. Still no epoch output (tail buffering, see prior entry) and no checkpoints/node_ranker.pt or results/ranker_test_metrics.json yet.
+[2026-07-18 09:31:50] Status: RUNNING (pid 33063, ~32min elapsed, 68% CPU). RSS eased back to 2.96GB (was 3.25GB) — looks like normal GC fluctuation, not a runaway leak. Still no epoch output (tail buffering) and no checkpoints/node_ranker.pt or results/ranker_test_metrics.json yet.
+[2026-07-18 09:36:34] Status: RUNNING (pid 33063, ~37min elapsed, 97.5% CPU, RSS 1.93GB). Still no epoch output (tail buffering) and no checkpoints/node_ranker.pt or results/ranker_test_metrics.json yet.
+[2026-07-18 09:39:05] Status: COMPLETED (exit 0, ~40min total runtime).
+
+  Test Hit@1  = 0.6344   (majority-class baseline: 0.5474 — real lift, ~8.7pt / ~16% relative)
+  Test Hit@5  = 0.9981   (near-ceiling — expected at only 8 candidate types, random baseline 62.5%)
+  Test MRR    = 0.7594   (clears report target of >= 0.64)
+  Test NDCG@5 = 0.8181
+  Best val MRR at selection: 0.7490 (epoch 18)
+
+  Checkpoint: checkpoints/node_ranker.pt — verified keys present (nr, type_prototypes_raw (8,22),
+  comp_types, encoder_trained_at=2026-07-02T10:14:36, encoder_auc=0.5783).
+  Results: results/ranker_test_metrics.json saved.
+
+  Conclusion: NodeRanker did NOT just memorize the class prior — it beats the majority baseline by a
+  real margin on Hit@1/MRR/NDCG@5. Hit@5 saturating near 1.0 is expected given only 8 candidates and
+  is not a meaningful signal on its own; Hit@1/MRR/NDCG@5 carry the real evidence of learning.
+
+  Next: end-to-end verification via start_services.sh (API /health, /analyze/step, Streamlit UI panel).
