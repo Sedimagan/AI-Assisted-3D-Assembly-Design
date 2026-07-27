@@ -25,10 +25,23 @@ from evaluate import evaluate
 # ── Category sample weights ──────────────────────────────────────────────────
 
 CATEGORY_WEIGHTS = {
-    "Mechanical Engineering": 1.0,
-    "Machine design":         2.5,
-    "Tools":                  3.0,
-    "Automotive":             2.0,
+    # Weights are inverse-frequency (relative to the largest category,
+    # Mechanical Engineering=91 graphs), capped at 3.0. Real counts from
+    # R31's dataset build (484 graphs total, 2026-07-20) — see
+    # back_end/data/processed/processed/categories.json for the source of
+    # truth; re-derive if the corpus changes again. Names must match the
+    # directory names under Source_3d_models/Best_models_for_training/.
+    "Mechanical Engineering":  1.0,   # 91 graphs
+    "Bolt_Assembly":           1.1,   # 81 graphs
+    "Machine design":          1.2,   # 75 graphs
+    "Tools":                   1.2,   # 73 graphs
+    "Bench_vice":              1.7,   # 54 graphs
+    "Industrial_assembly":     2.3,   # 40 graphs
+    "Pipe_vice":               2.3,   # 39 graphs
+    "C_Clamps":                2.9,   # 31 graphs
+    "Flange_assembly":         3.0,   # 0 graphs, excluded from config.yaml categories
+    "Pneumatic_actuator":      3.0,   # 0 graphs, no longer present on disk
+    "U_Mounting_Brackets":     3.0,   # 0 graphs, no longer present on disk
 }
 
 
@@ -83,7 +96,13 @@ def link_loss(lp, z, batch, device, sample_weight=1.0):
 def train_epoch(gnn, lp, loader, opt, device):
     gnn.train(); lp.train()
     total_loss = 0.0
-    for batch in loader:
+    n_batches = len(loader)
+    for i, batch in enumerate(loader):
+        # Heartbeat print so train_monitor.sh's log-growth stall-detector
+        # doesn't false-trigger on a long-running-but-healthy epoch (it
+        # kills the process after 300s of zero new log output).
+        if i % 5 == 0:
+            print(f"    batch {i+1}/{n_batches}", flush=True)
         batch = batch.to(device)
         opt.zero_grad()
         z    = gnn(batch.x, batch.edge_index,

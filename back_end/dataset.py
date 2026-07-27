@@ -717,7 +717,7 @@ class AssemblyDataset(InMemoryDataset):
                   flush=True)
             for idx, sf in enumerate(sorted(step_files), 1):
                 label      = f"{sf.parent.name}/{sf.name}"
-                cache_path = graph_cache_dir / f"{sf.parent.name}.pt"
+                cache_path = graph_cache_dir / f"{sf.parent.name}__{sf.stem}.pt"
 
                 # ── Load from per-graph cache if available ────────────────
                 if cache_path.exists():

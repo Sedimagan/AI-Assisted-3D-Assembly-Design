@@ -47,10 +47,21 @@ start_training() {
     echo "[$(ts)] Starting training (attempt $((attempt+1))/$MAX_RETRIES, start_fold=$sf)"
     echo "=================================================================="
 
+    cd "$BACK_END"
+    # NOTE: python is launched directly in the background (not as the left side
+    # of a foreground pipe) so $! captures its real PID. `cmd | while ...read &`
+    # would instead give the PID of the `while read` subshell, making the
+    # stall-detector below check/kill the wrong process.
+    # PYTHONUNBUFFERED=1: without this, train.py's stdout can lag real progress
+    # by minutes even while genuinely training, which fools the stall-detector
+    # below into killing a healthy process (log-file growth stalls, but the
+    # process itself isn't stuck).
     if [ "$sf" -gt 0 ]; then
-        cd "$BACK_END" && "$PYTHON" train.py --config "$CONFIG" --start-fold "$sf" 2>&1 | while IFS= read -r line; do echo "[$(date '+%H:%M:%S')] $line"; done >> "$LOG_FILE" &
+        PYTHONUNBUFFERED=1 "$PYTHON" train.py --config "$CONFIG" --start-fold "$sf" \
+            > >(while IFS= read -r line; do echo "[$(date '+%H:%M:%S')] $line"; done >> "$LOG_FILE") 2>&1 &
     else
-        cd "$BACK_END" && "$PYTHON" train.py --config "$CONFIG" 2>&1 | while IFS= read -r line; do echo "[$(date '+%H:%M:%S')] $line"; done >> "$LOG_FILE" &
+        PYTHONUNBUFFERED=1 "$PYTHON" train.py --config "$CONFIG" \
+            > >(while IFS= read -r line; do echo "[$(date '+%H:%M:%S')] $line"; done >> "$LOG_FILE") 2>&1 &
     fi
     TRAINING_PID=$!
     echo "$TRAINING_PID" > "$PROJ_ROOT/logs/training_pid.txt"
