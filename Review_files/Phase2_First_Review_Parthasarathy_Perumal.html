@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Phase 2 — First Review</title>
+<style>
+  :root {
+    --bg: #0a121f; --panel: #101c30; --card: #142338; --border: #24405f;
+    --text: #e6edf5; --muted: #8aa0b8; --accent: #5b9bd5; --accent2: #8b5cf6;
+    --good: #4caf82; --warn: #f0a83c; --bad: #ef5a5a;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--bg); color: var(--text);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .slide {
+    display: none; flex-direction: column; justify-content: center;
+    height: calc(100vh - 54px); width: 100%; padding: 34px 64px; overflow-y: auto;
+  }
+  .slide.active { display: flex; }
+  .kicker { color: var(--accent); font-size: 0.85rem; font-weight: 700; letter-spacing: 0.08em;
+            text-transform: uppercase; margin-bottom: 8px; }
+  h1 { font-size: 2.3rem; margin: 0 0 6px; }
+  h2 { font-size: 1.65rem; margin: 0 0 16px; color: var(--text); }
+  .sub { color: var(--muted); font-size: 0.98rem; margin-bottom: 22px; }
+  .grid { display: grid; gap: 14px; }
+  .grid2 { grid-template-columns: 1fr 1fr; }
+  .grid3 { grid-template-columns: 1fr 1fr 1fr; }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .card h3 { margin: 0 0 10px; font-size: 1.0rem; color: var(--accent); }
+  .card h3.done { color: var(--good); }
+  .card h3.plan { color: var(--accent2); }
+  .card h3.risk { color: var(--warn); }
+  ul { margin: 0; padding-left: 20px; }
+  li { margin-bottom: 6px; font-size: 0.88rem; line-height: 1.42; color: #cfd9e6; }
+  li b, li strong { color: var(--text); }
+  code { background: rgba(255,255,255,0.06); padding: 1px 5px; border-radius: 4px; font-size: 0.85em; }
+  .badge {
+    display: inline-block; background: rgba(91,155,213,0.15); color: var(--accent);
+    border: 1px solid var(--accent); border-radius: 4px; padding: 1px 8px;
+    font-size: 0.72rem; font-weight: 700; margin-left: 8px;
+  }
+  .badge.wip { background: rgba(240,168,60,0.15); color: var(--warn); border-color: var(--warn); }
+  .badge.done { background: rgba(76,175,130,0.15); color: var(--good); border-color: var(--good); }
+  .badge.p3 { background: rgba(139,92,246,0.15); color: var(--accent2); border-color: var(--accent2); }
+  .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 14px 0; }
+  .fbox {
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 9px 12px; font-size: 0.82rem; text-align: center; flex: 1; min-width: 120px;
+  }
+  .fbox.new { border-color: var(--accent2); background: rgba(139,92,246,0.10); }
+  .fbox.p3 { border-color: var(--warn); background: rgba(240,168,60,0.08); border-style: dashed; }
+  .arrow { color: var(--muted); font-size: 1.05rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+  th, td { padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; font-size: 0.76rem; text-transform: uppercase; }
+  .metric-row td:nth-child(2) { color: var(--accent); font-weight: 700; }
+  .footer {
+    height: 54px; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; border-top: 1px solid var(--border); background: var(--panel);
+    font-size: 0.8rem; color: var(--muted); flex-shrink: 0;
+  }
+  .dots { display: flex; gap: 5px; flex-wrap: wrap; max-width: 50vw; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: #2a4060; cursor: pointer; }
+  .dot.active { background: var(--accent); }
+  .navbtn {
+    background: var(--card); border: 1px solid var(--border); color: var(--text);
+    border-radius: 6px; padding: 6px 14px; cursor: pointer; font-size: 0.85rem;
+  }
+  .navbtn:hover { border-color: var(--accent); }
+  .center { display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100%; text-align: center; }
+  .qa-item { margin-bottom: 14px; }
+  .qa-item .q { color: var(--accent2); font-weight: 700; font-size: 0.92rem; margin-bottom: 4px; }
+  .qa-item .a { color: #cfd9e6; font-size: 0.86rem; }
+  img.fig { max-width: 100%; border-radius: 8px; border: 1px solid var(--border); }
+  .path-col { display: flex; flex-direction: column; gap: 8px; }
+  .path-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 2px; }
+  .path-title.a { color: var(--accent); }
+  .path-title.b { color: var(--accent2); }
+  .timeline { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+  .trow { display: grid; grid-template-columns: 110px 1fr; gap: 12px; align-items: center; }
+  .tlabel { font-size: 0.78rem; color: var(--muted); text-align: right; }
+  .tbar-track { background: rgba(255,255,255,0.04); border-radius: 6px; height: 26px; position: relative; overflow: hidden; }
+  .tbar { position: absolute; top: 0; bottom: 0; border-radius: 6px; display: flex; align-items: center;
+          padding: 0 10px; font-size: 0.74rem; color: #071019; font-weight: 700; white-space: nowrap; }
+  .tbar.a { background: var(--accent); }
+  .tbar.b { background: var(--accent2); color: #f5f0ff; }
+  .tbar.both { background: linear-gradient(90deg, var(--accent), var(--accent2)); color: #fff; }
+  .abstract-box { background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--accent);
+                  border-radius: 8px; padding: 20px 24px; font-size: 0.94rem; line-height: 1.6; color: #dbe4ee; }
+</style>
+</head>
+<body>
+
+<!-- Slide 1 — Title -->
+<div class="slide active" id="s1">
+  <div class="center">
+    <div class="kicker">Phase 2 · Node Ranker &amp; Beyond</div>
+    <h1 style="font-size:2.7rem;">Phase 2 — First Review</h1>
+    <p class="sub" style="font-size:1.1rem;">AI-Assisted 3D Assembly Design</p>
+    <div style="margin-top:22px;color:#cfd9e6;">
+      <div><b>Presented by:</b> Parthasarathy Perumal &nbsp;·&nbsp; SRN PES2PGE24DS193</div>
+      <div style="margin-top:4px;"><b>Guide:</b> Prof. Gaurav Siwal (Phase 2)</div>
+      <div style="margin-top:4px;color:var(--muted);">MTECH — Data Science &amp; AI, PES University Bengaluru</div>
+      <div style="margin-top:10px;color:var(--muted);font-size:0.85rem;">25 July 2026</div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 2 — Agenda -->
+<div class="slide" id="s2">
+  <div class="kicker">Agenda</div>
+  <h2>What we'll cover today</h2>
+  <div class="grid grid2">
+    <div class="card">
+      <h3>Foundation</h3>
+      <ul>
+        <li>Phase 1 review summary</li>
+        <li>Novelty proposal</li>
+        <li>Title &amp; abstract</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="plan">Phase 2 &amp; beyond</h3>
+      <ul>
+        <li>Proposed system (Phase 2) and algorithms/techniques</li>
+        <li>Training history — R29 / R30 / R31</li>
+        <li>Guidance follow-up: cloud compute cost research (INR) &amp; scope decision</li>
+        <li>Guidance follow-up: 3D generative completion (Path A / Path B, Phase 3 scope)</li>
+        <li>Expected outcomes &amp; references</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 3 — Phase 1 review summary -->
+<div class="slide" id="s3">
+  <div class="kicker">1 · Recap</div>
+  <h2>Phase 1 review summary <span class="badge done">Complete</span></h2>
+  <div class="grid grid2">
+    <div class="card">
+      <h3 class="done">What was built</h3>
+      <ul>
+        <li>STEP file → gmsh + OpenCASCADE + trimesh/SDF → 22-dim node / 6-dim edge assembly graph</li>
+        <li>3-layer GAT encoder (<code>AssemblyGNN</code>) + <code>LinkPredictor</code> MLP for missing-component (link prediction) detection</li>
+        <li>5-fold cross-validated training, early stopping, checkpoint promotion gating</li>
+        <li><b>AssemblyTemplateDB</b> — per-category component-type frequency templates</li>
+        <li><b>Octree open-surface detector</b> — flags likely locations of missing parts on the 3D model</li>
+        <li><b>AIDA</b> (Gemini Skills AI) — explains predictions in engineering language</li>
+        <li>Streamlit dual-panel UI + FastAPI backend, both deployed and running</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Where Phase 1 ended</h3>
+      <table>
+        <tr><th>Metric</th><th>Value</th></tr>
+        <tr class="metric-row"><td>Best historical mean AUC-ROC</td><td>R17 — 0.625 ± 0.017 (1,760 graphs)</td></tr>
+        <tr><td>Serving model at Phase 1 close</td><td>R28 — 0.546 ± 0.025 AUC, 0.712 ± 0.014 AP</td></tr>
+        <tr><td>Targets</td><td>AUC ≥ 0.85, AP ≥ 0.82 — AP met on several runs, AUC not yet met</td></tr>
+      </table>
+      <p class="sub" style="margin:14px 0 0;">This is the honest baseline Phase 2 inherits and builds on top of.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 4 — Novelty proposal -->
+<div class="slide" id="s4">
+  <div class="kicker">2 · Novelty</div>
+  <h2>Novelty proposal</h2>
+  <div class="grid grid2">
+    <div class="card">
+      <h3>Phase 1 novelty (established)</h3>
+      <ul>
+        <li>Geometry-driven, affine-invariant node features (elongation, flatness, sphericity, SDF mean/var, SA/V, hole count) — not just bounding-box statistics</li>
+        <li>Octree-based free-surface clustering to localize <i>where</i> a component is missing, not just <i>that</i> one is missing</li>
+        <li>Natural-language explanation layer (AIDA) grounded in GNN output, not a generic LLM wrapper</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="plan">Phase 2 novelty (this review)</h3>
+      <ul>
+        <li><b>Heterogeneous relational encoder</b> (<code>RGATConv</code> + <code>TypedLinear</code>) — separate parameter sets per component type and per joint/mate relation, derived from existing feature schema with zero data-pipeline migration</li>
+        <li><b>Node Ranker</b> — reframes "what's missing" as "what type of component is most likely next," via a frozen-encoder + BPR-ranked prototype head — cheap to train, decoupled from Phase 1 retraining cost</li>
+        <li>Proposed extension (Prof. Gaurav Siwal): move from <i>predicting</i> a missing component's type/location to actually <i>synthesizing</i> its 3D geometry — discussed later as Phase 3 scope</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 5 — Title & Abstract -->
+<div class="slide" id="s5">
+  <div class="kicker">3 · Title &amp; Abstract</div>
+  <h2>Title &amp; abstract</h2>
+  <p class="sub" style="margin-bottom:10px;font-size:1.05rem;color:var(--text);font-weight:600;">
+    AI-Assisted 3D Assembly Design: Graph Neural Networks for Missing-Component Detection and Next-Component Ranking in CAD Assemblies
+  </p>
+  <div class="grid grid2">
+    <div class="abstract-box">
+      This project models CAD assemblies as graphs — components as nodes, mates/joints as edges — and applies
+      Graph Attention Networks to reason about assembly structure. Phase 1 addressed missing-component
+      <i>detection</i> via link prediction over STEP-derived geometry features, supported by a template-based
+      frequency prior and an Octree-based open-surface localizer, and delivered through a Gemini-backed
+      explanation agent and a Streamlit/FastAPI application. Phase 2 extends the encoder to a heterogeneous,
+      relation-aware architecture (<code>RGATConv</code> + <code>TypedLinear</code>) that gives each component type
+      and joint type its own parameters, and introduces a <b>Node Ranker</b> head that answers a forward-looking
+      question — given a partial assembly, which component type is most likely to complete it next — evaluated
+      via Hit@K, MRR, and NDCG@K. The work is evaluated on real-world STEP assemblies spanning multiple
+      mechanical-engineering categories, with an explicit, honestly-reported target of AUC ≥ 0.85 for link
+      prediction that remains an open research problem addressed through architecture and data-scale experiments
+      (R29–R31) discussed in this review.
+    </div>
+    <div class="card" style="padding:8px;display:flex;flex-direction:column;">
+      <img src="../docs/wheel%20missing.png" alt="GNN-predicted missing wheel component overlay on a bicycle CAD assembly"
+           class="fig" style="flex:1;min-height:0;object-fit:contain;background:#060c14;">
+      <p class="sub" style="margin:8px 0 0;text-align:center;font-size:0.8rem;">
+        The problem this abstract describes, in practice — a GNN-flagged missing wheel component on a bicycle assembly
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 6 — Proposed System (Phase 2) -->
+<div class="slide" id="s6">
+  <div class="kicker">4 · Proposed System</div>
+  <h2>Proposed system — Phase 2</h2>
+  <div class="flow">
+    <div class="fbox">STEP assembly</div>
+    <div class="arrow">→</div>
+    <div class="fbox">22-dim node / 6-dim edge graph<br><span style="color:var(--muted);">(dataset.py, unchanged)</span></div>
+    <div class="arrow">→</div>
+    <div class="fbox new">Heterogeneous encoder<br><span style="color:var(--accent2);">RGATConv + TypedLinear</span></div>
+    <div class="arrow">→</div>
+    <div class="fbox">LinkPredictor<br><span style="color:var(--muted);">missing-component detection</span></div>
+  </div>
+  <div class="flow">
+    <div class="fbox" style="flex:0.6;visibility:hidden;">.</div>
+    <div class="arrow" style="visibility:hidden;">→</div>
+    <div class="fbox" style="flex:0.6;visibility:hidden;">.</div>
+    <div class="arrow">↓</div>
+    <div class="fbox new">Node Ranker<br><span style="color:var(--accent2);">cosine sim + BPR</span></div>
+    <div class="arrow">→</div>
+    <div class="fbox">Ranked next-component type<br><span style="color:var(--muted);">Hit@K / MRR / NDCG@K</span></div>
+  </div>
+  <div class="card" style="margin-top:8px;">
+    <h3>Design principle carried through Phase 2</h3>
+    <ul>
+      <li>Node Ranker reuses the Phase 1/2 encoder <b>frozen</b> — only its own small projection layer is trained, so encoder retraining (R29 → R30 → R31) and ranker retraining stay independent, cheap, and clearly attributable</li>
+      <li>Both heads write to <b>separate checkpoints</b> (<code>best_serving.pt</code> vs <code>node_ranker.pt</code>) with an explicit staleness guard tying the ranker to the encoder it was trained against</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Slide 7 — Algorithm / Techniques -->
+<div class="slide" id="s7">
+  <div class="kicker">5 · Algorithm / Techniques</div>
+  <h2>Algorithm &amp; techniques</h2>
+  <div class="grid grid3">
+    <div class="card">
+      <h3>Heterogeneous encoder</h3>
+      <ul>
+        <li>Node type = <code>argmax</code> of the existing 8-way component one-hot</li>
+        <li>Edge type = <code>argmax</code> of the existing 4-way joint one-hot (rigid/revolute/slider/cylindrical)</li>
+        <li><code>TypedLinear</code>: per-type input/output projection (8 small Linear layers)</li>
+        <li><code>RGATConv</code> × 3 layers, replacing homogeneous <code>GATConv</code> — every layer now relation-aware, not just layer 1</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Node Ranker</h3>
+      <ul>
+        <li>Leave-one-node-out training task: remove a real node, encode the remainder, mean-pool → context vector</li>
+        <li>Candidates: 8 fixed component-type prototypes (mean raw feature vector per type, embedded frozen)</li>
+        <li>Loss: BPR (Bayesian Personalized Ranking) — true type ranked above the other 7</li>
+        <li>Metrics: Hit@K, MRR, NDCG@K</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Training infra</h3>
+      <ul>
+        <li>5-fold CV, early stopping (patience 20), <code>ReduceLROnPlateau</code></li>
+        <li>Category-weighted loss (<code>CATEGORY_WEIGHTS</code>) to offset per-category yield imbalance</li>
+        <li>Checkpoint promotion gate: new run only replaces <code>best_serving.pt</code> if it beats the incumbent on both AUC and AP</li>
+        <li><code>train_monitor.sh</code>: stall-detection + auto-resume watchdog for long unattended runs</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 8 — Training history -->
+<div class="slide" id="s8">
+  <div class="kicker">5 · Algorithm / Techniques — Training History</div>
+  <h2>Training history — R29 / R30 / R31</h2>
+  <img class="fig" src="../docs/phase2_training_history.png" alt="Mean AUC and AP bar chart for R29, R30, R31">
+  <table style="margin-top:14px;">
+    <tr><th>Run</th><th>Change</th><th>Mean AUC</th><th>Mean AP</th><th>Promoted?</th></tr>
+    <tr><td>R29</td><td>New 8-category real-world corpus, 248 graphs, homogeneous GAT</td><td>0.566 ± 0.121</td><td>0.843 ± 0.055</td><td style="color:var(--good);">Yes</td></tr>
+    <tr class="metric-row"><td>R30</td><td>Heterogeneous <code>RGATConv</code> + <code>TypedLinear</code> encoder, same corpus</td><td>0.599 ± 0.112</td><td>0.869 ± 0.047</td><td style="color:var(--good);">Yes — current serving</td></tr>
+    <tr><td>R31</td><td>Corpus expanded to 484 graphs (2 new categories); OOM/stall infra bugs found &amp; fixed mid-run</td><td>0.594 ± 0.034</td><td>0.762 ± 0.032</td><td style="color:var(--bad);">No — gate correctly declined</td></tr>
+  </table>
+</div>
+
+<div class="slide" id="s8b">
+  <div class="kicker">5 · Algorithm / Techniques — Training History</div>
+  <h2>Fold-level variance &amp; what R31 taught us</h2>
+  <img class="fig" src="../docs/phase2_fold_variance.png" alt="Per-fold AUC line chart for R29, R30, R31">
+  <div class="grid grid2" style="margin-top:14px;">
+    <div class="card">
+      <h3 class="done">Architecture lever confirmed real</h3>
+      <ul>
+        <li>R30's heterogeneous encoder beat R29 on <i>both</i> AUC (+5.8%) and AP (+3.1%) on the identical corpus — a genuine, isolated architecture win</li>
+        <li>Best single fold ever seen: 0.773 (R30, fold 4) / 0.771 (R29, fold 2) — the model <i>can</i> reach far higher AUC on favorable splits; the mean is dragged down by small-corpus variance, not a hard ceiling</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="risk">Data-scale lever did not pay off (yet)</h3>
+      <ul>
+        <li>R31 nearly doubled the corpus (248 → 484 graphs) but scored essentially flat on AUC and <i>worse</i> on AP than R30 — more data alone, without addressing per-category quality/yield, isn't sufficient</li>
+        <li>Along the way, found and fixed two real infra bugs: MPS OOM at <code>batch_size=32</code> on the larger/denser corpus (fixed → 16), and a training-loop stall-detector false-positive (fixed via heartbeat logging)</li>
+        <li>Promotion gate did its job — <code>best_serving.pt</code> stayed on R30, no regression shipped</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 9 — Node Ranker results -->
+<div class="slide" id="s9">
+  <div class="kicker">5 · Algorithm / Techniques — Node Ranker</div>
+  <h2>Node Ranker — first trained results <span class="badge wip">needs re-run vs. R30</span></h2>
+  <table>
+    <tr><th>Metric</th><th>Result</th><th>Note</th></tr>
+    <tr class="metric-row"><td>Hit@1</td><td>0.6344</td><td>vs. 0.5474 majority-class baseline — real lift</td></tr>
+    <tr class="metric-row"><td>MRR</td><td>0.7594</td><td>clears the report's ≥0.64 target</td></tr>
+    <tr class="metric-row"><td>NDCG@5</td><td>0.8181</td><td>—</td></tr>
+    <tr><td>Hit@5</td><td>0.9981</td><td>near-ceiling — expected with only 8 candidates (random baseline 62.5%)</td></tr>
+  </table>
+  <div class="card" style="margin-top:16px;">
+    <h3 class="risk">Open item before trusting this number again</h3>
+    <ul>
+      <li>These results were trained against the now-superseded R28/R29 encoder — <code>node_ranker.pt</code> must be re-run against R30's <code>best_serving.pt</code> (the current heterogeneous encoder) before the metrics above can be reported as current</li>
+      <li>Wired end-to-end regardless: <code>train_ranker.py</code>, <code>infer.py</code>, FastAPI <code>/predict/next-component</code>, and the Streamlit "AI-Ranked Next Component" panel</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Slide 9b — Cloud compute suggestion -->
+<div class="slide" id="s9b">
+  <div class="kicker">Guidance Follow-up</div>
+  <h2>Suggestion — move training to the cloud (M1 limitations)</h2>
+  <div class="grid grid2">
+    <div class="card">
+      <h3 class="plan">Why it came up</h3>
+      <ul>
+        <li>During the first guidance call, the suggestion was raised: if the MacBook M1's unified-memory ceiling is limiting training, evaluate cloud GPU compute as an alternative</li>
+        <li>Directly motivated by what R31 exposed on this hardware: repeated <code>MPS backend out of memory</code> crashes (~17 GiB / 20.13 GiB ceiling), individual epochs stretching to 8,073s under memory pressure, and full 5-fold CV runs already taking 11.5–19+ hours wall-clock even when nothing fails</li>
+        <li>A larger, higher-quality corpus (the next lever toward AUC ≥ 0.85 per the R31 lesson) will only make single-machine M1 runs slower and more fragile, not less</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>What we did</h3>
+      <ul>
+        <li>Researched cloud GPU rental providers directly comparable to this workload: <b>RunPod</b>, <b>Vast.ai</b>, <b>Lambda Labs</b></li>
+        <li>Priced both a cheap/spot tier and a reliable on-demand tier, since our own local runs already needed several manual recoveries from stalls/OOM — spot preemption would add a second, independent failure mode on top of that</li>
+        <li>Projected real cost in INR against the remaining Phase 2 workload — next slide</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 9c — Cost research table -->
+<div class="slide" id="s9c">
+  <div class="kicker">Guidance Follow-up — Cost Research</div>
+  <h2>Cloud GPU cost research — INR projection</h2>
+  <table>
+    <tr><th>Tier</th><th>Example providers / GPU</th><th>$/hr</th><th>5-week total (15+ runs × 24h+ = 360+ hrs)</th><th>≈ INR (@ ₹97/$1, Jul 2026)</th></tr>
+    <tr><td>Budget / spot</td><td>RunPod RTX 4090 on-demand, Vast.ai RTX 4090 spot</td><td>$0.35 – $0.75</td><td>$126 – $270</td><td>₹12,200 – ₹26,200</td></tr>
+    <tr class="metric-row"><td>Reliable on-demand</td><td>Lambda Labs A100 80GB ($2.06/hr), H100 SXM ($2.99/hr); RunPod H100 ($2.34/hr)</td><td>$2.00 – $3.00</td><td>$720 – $1,080</td><td>₹69,800 – ₹1,04,800</td></tr>
+  </table>
+  <div class="card" style="margin-top:16px;">
+    <h3 class="risk">Reading this honestly</h3>
+    <ul>
+      <li>The $2–3/hr tier is the realistic one for this project — spot pricing is cheaper but interruptible, and our own local training history shows this workload already needs babysitting through stalls/OOM without adding preemption risk on top</li>
+      <li>360 hours is a floor, not a ceiling — it assumes exactly 15 runs at exactly 24h each; several of our actual runs (R29 ~19h, R31 with retries much longer) already sit at or above that per-run estimate</li>
+      <li>Estimate excludes storage, data egress, and idle-VM billing during setup/data-upload — real spend would run higher in practice</li>
+      <li>₹70,000 – ₹1,05,000 over just 5 weeks, for an individual MTech project, against $0 marginal cost on already-owned M1 hardware</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Slide 9d — Decision -->
+<div class="slide" id="s9d">
+  <div class="kicker">Guidance Follow-up — Decision</div>
+  <h2>Decision — stay within the original Phase 1 scope</h2>
+  <div class="abstract-box" style="margin-bottom:16px;">
+    "The solution is implemented entirely in Python using PyTorch Geometric, without dependency on
+    proprietary CAD software APIs." — and the dataset curation for this project was explicitly
+    <b>"sized for M1 MacBook Pro training within individual project submission constraints."</b>
+    <div style="margin-top:8px;color:var(--muted);font-size:0.82rem;">— README.md, scope established with Prof. Sagarika Borah during Phase 1</div>
+  </div>
+  <div class="card">
+    <h3 class="done">Given the cost research above, staying on local M1 training</h3>
+    <ul>
+      <li>₹70,000–₹1,05,000 for 5 weeks of cloud compute is disproportionate for an individual, self-funded MTech project — the original scope was deliberately sized to run on personal hardware, not a recurring cloud budget</li>
+      <li>The real lesson from R29→R30→R31 wasn't "we need more compute" — it was "architecture changes help, raw data volume alone doesn't" — a lever we can keep pulling locally without added spend</li>
+      <li>Cloud compute stays a documented, costed option — not adopted now, but available if a future phase's scope explicitly requires it</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Slide 10 — Guidance suggestion intro -->
+<div class="slide" id="s10">
+  <div class="kicker">Guidance Follow-up</div>
+  <h2>Suggestion from Prof. Gaurav Siwal</h2>
+  <div class="card">
+    <h3 class="plan">From prediction to synthesis</h3>
+    <p style="color:#cfd9e6;font-size:0.95rem;line-height:1.55;margin:0 0 10px;">
+      During the Phase 2 guidance call, Prof. Siwal raised a natural extension of the current scope:
+      the system today predicts <i>that</i> a component is missing, <i>where</i> it likely belongs, and
+      <i>what type</i> it probably is — but stops short of producing the component itself. The suggestion
+      was to explore whether the project could also <b>generate an actual 3D model</b> of the missing
+      component, not just describe it.
+    </p>
+    <ul>
+      <li>Would close the loop: detect → localize → classify → <b>generate</b> → (eventually) insert into the assembly</li>
+      <li>A substantial scope increase — geometry synthesis is a different ML problem class (generative 3D modeling) from the graph classification/ranking done so far</li>
+      <li>We scoped two candidate technical approaches (Path A / Path B, next slides) and assessed both against the remaining Phase 2 timeline</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Slide 11 — Path A vs Path B architecture -->
+<div class="slide" id="s11">
+  <div class="kicker">Guidance Follow-up — Phase 3 Scope</div>
+  <h2>Path A vs Path B — architecture options</h2>
+  <div class="grid grid2">
+    <div class="path-col">
+      <div class="path-title a">Path A — Retrieval &amp; Parametric Fit</div>
+      <div class="flow" style="margin:4px 0;">
+        <div class="fbox">Node Ranker output<br><span style="color:var(--muted);">predicted type + context vector</span></div>
+      </div>
+      <div class="flow" style="margin:0;"><div class="arrow" style="margin:0 auto;">↓</div></div>
+      <div class="flow" style="margin:4px 0;">
+        <div class="fbox p3">Component library retrieval<br><span style="color:var(--warn);">nearest-neighbor match by type + shape descriptor</span></div>
+      </div>
+      <div class="flow" style="margin:0;"><div class="arrow" style="margin:0 auto;">↓</div></div>
+      <div class="flow" style="margin:4px 0;">
+        <div class="fbox p3">Parametric fit<br><span style="color:var(--warn);">scale/orient to bbox + mate-point regression</span></div>
+      </div>
+      <div class="flow" style="margin:0;"><div class="arrow" style="margin:0 auto;">↓</div></div>
+      <div class="flow" style="margin:4px 0;">
+        <div class="fbox p3">Fitted STEP/BREP geometry</div>
+      </div>
+      <div class="card" style="margin-top:4px;">
+        <ul>
+          <li>Lower risk — reuses existing template DB + real CAD geometry (always valid BREP, no mesh cleanup)</li>
+          <li>Ceiling capped by library coverage — novel/unusual components won't retrieve well</li>
+        </ul>
+      </div>
+    </div>
+    <div class="path-col">
+      <div class="path-title b">Path B — Generative 3D Synthesis</div>
+      <div class="flow" style="margin:4px 0;">
+        <div class="fbox">Node Ranker output<br><span style="color:var(--muted);">predicted type + context vector</span></div>
+      </div>
+      <div class="flow" style="margin:0;"><div class="arrow" style="margin:0 auto;">↓</div></div>
+      <div class="flow" style="margin:4px 0;">
+        <div class="fbox p3">Conditional generative model<br><span style="color:var(--warn);">SDF/voxel VAE or diffusion, conditioned on context vector</span></div>
+      </div>
+      <div class="flow" style="margin:0;"><div class="arrow" style="margin:0 auto;">↓</div></div>
+      <div class="flow" style="margin:4px 0;">
+        <div class="fbox p3">Implicit surface → mesh<br><span style="color:var(--warn);">marching cubes</span></div>
+      </div>
+      <div class="flow" style="margin:0;"><div class="arrow" style="margin:0 auto;">↓</div></div>
+      <div class="flow" style="margin:4px 0;">
+        <div class="fbox p3">Novel mesh geometry</div>
+      </div>
+      <div class="card" style="margin-top:4px;">
+        <ul>
+          <li>Can produce genuinely novel shapes, not limited to a fixed library</li>
+          <li>Higher risk — needs a component-level shape dataset, training compute, and mesh→BREP repair before it's usable in real CAD; open research problem on its own</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 12 — Path A/B timeline -->
+<div class="slide" id="s12">
+  <div class="kicker">Guidance Follow-up — Phase 3 Scope</div>
+  <h2>High-level timeline if pursued as Phase 3 <span class="badge p3">Not committed — illustrative</span></h2>
+  <div class="timeline">
+    <div class="trow"><div class="tlabel">Month 1</div><div class="tbar-track"><div class="tbar both" style="left:0%;width:100%;">Literature review + component-level shape dataset curation (both paths)</div></div></div>
+    <div class="trow"><div class="tlabel">Month 2</div><div class="tbar-track"><div class="tbar a" style="left:0%;width:60%;">Path A: retrieval + parametric fit prototype</div></div></div>
+    <div class="trow"><div class="tlabel">Month 3</div><div class="tbar-track"><div class="tbar a" style="left:0%;width:45%;">Path A: metric re-eval (Chamfer dist., retrieval precision, fit error)</div><div class="tbar b" style="left:50%;width:50%;">Path B: generative model — first training pass</div></div></div>
+    <div class="trow"><div class="tlabel">Month 4</div><div class="tbar-track"><div class="tbar b" style="left:0%;width:70%;">Path B: mesh→BREP repair + metric re-eval (IoU, Chamfer dist.)</div></div></div>
+    <div class="trow"><div class="tlabel">Month 5</div><div class="tbar-track"><div class="tbar both" style="left:0%;width:80%;">Integrate winning/complementary path(s) into Streamlit deployment</div></div></div>
+    <div class="trow"><div class="tlabel">Month 6</div><div class="tbar-track"><div class="tbar both" style="left:0%;width:55%;">Final evaluation + report</div></div></div>
+  </div>
+  <p class="sub" style="margin-top:16px;">
+    Path A alone fits within a focused window; Path B realistically needs its own dataset + compute budget.
+    Both together, done properly, span roughly a full additional phase — hence proposed as <b>Phase 3</b>,
+    not squeezed into the remaining Phase 2 window.
+  </p>
+</div>
+
+<!-- Slide 13 — Recommendation -->
+<div class="slide" id="s13">
+  <div class="kicker">Recommendation</div>
+  <h2>Recommendation for the remaining Phase 2 window</h2>
+  <div class="card">
+    <h3 class="done">Stay focused on what Phase 2 already committed to</h3>
+    <ul>
+      <li>Re-run <code>train_ranker.py</code> against R30's heterogeneous encoder — current Node Ranker metrics are stale (trained on a superseded encoder)</li>
+      <li>Keep iterating on encoder retraining (R32+) toward the AUC ≥ 0.85 target — the architecture lever (R29→R30) is proven real; the next lever to try is per-category data quality/yield, not just raw volume (R31's lesson)</li>
+      <li>Finish the two items already committed in the Phase 1 report but not yet started: heterogeneous edge-type ablation follow-ups and GNNExplainer integration for interpretability</li>
+      <li>Continue training locally on M1 — cloud GPU compute was costed (≈₹70,000–₹1,05,000 for 5 weeks) and consciously not adopted, staying within the scope defined with Prof. Sagarika Borah in Phase 1</li>
+    </ul>
+  </div>
+  <div class="card" style="margin-top:14px;">
+    <h3 class="p3" style="color:var(--warn);">Defer 3D generative completion to Phase 3</h3>
+    <ul>
+      <li>Path A / Path B are real, scoped options — but both require dataset work and evaluation infrastructure that would crowd out finishing Node Ranker and the AUC push if started now</li>
+      <li>Proposing this explicitly rather than silently dropping it, so it's on record as a deliberate sequencing decision, not an oversight</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Slide 14 — Expected Outcomes -->
+<div class="slide" id="s14">
+  <div class="kicker">6 · Expected Outcomes</div>
+  <h2>Expected outcomes — end of Phase 2</h2>
+  <table>
+    <tr><th>Deliverable</th><th>Status / Target</th></tr>
+    <tr><td>Heterogeneous encoder (<code>RGATConv</code> + <code>TypedLinear</code>)</td><td style="color:var(--good);">Done — R30 serving, AUC 0.599 ± 0.112</td></tr>
+    <tr><td>Node Ranker wired end-to-end (train/infer/API/UI)</td><td style="color:var(--good);">Done</td></tr>
+    <tr><td>Node Ranker re-trained against current (R30) encoder</td><td style="color:var(--warn);">Pending — next action</td></tr>
+    <tr><td>Encoder AUC ≥ 0.85 (Phase 1 target, carried forward)</td><td style="color:var(--muted);">Open — R29→R30→R31 trend informs next lever</td></tr>
+    <tr><td>Node Ranker Hit@1/MRR/NDCG@5 above baseline, re-verified</td><td style="color:var(--muted);">To re-confirm after re-training</td></tr>
+    <tr><td>GNNExplainer interpretability integration</td><td style="color:var(--muted);">Planned, not started</td></tr>
+    <tr><td>3D generative component completion (Path A/B)</td><td><span class="badge p3">Phase 3</span></td></tr>
+  </table>
+</div>
+
+<!-- Slide 15 — References -->
+<div class="slide" id="s15">
+  <div class="kicker">7 · References</div>
+  <h2>References</h2>
+  <div class="grid grid2">
+    <div class="card">
+      <h3>Core methods</h3>
+      <ul>
+        <li>Veličković et al., "Graph Attention Networks," ICLR 2018</li>
+        <li>Schlichtkrull et al., "Modeling Relational Data with Graph Convolutional Networks" (R-GCN), ESWC 2018</li>
+        <li>Rendle et al., "BPR: Bayesian Personalized Ranking from Implicit Feedback," UAI 2009</li>
+        <li>Ying et al., "GNNExplainer: Generating Explanations for Graph Neural Networks," NeurIPS 2019</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Tooling &amp; data</h3>
+      <ul>
+        <li>Fey &amp; Lenssen, "Fast Graph Representation Learning with PyTorch Geometric," ICLR-W 2019</li>
+        <li>Open CASCADE Technology (OCCT) — B-Rep CAD kernel used for STEP parsing</li>
+        <li>Willis et al., "Fusion 360 Gallery Dataset," 2021 — reference corpus for assembly-graph structure</li>
+        <li>Project-internal: Phase 1 report (<code>Review_files/ParthasarathyPerumal_PES2PGE24DS193_ProjectReport.pdf</code>)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 16 — Thank you -->
+<div class="slide" id="s16">
+  <div class="center">
+    <h1>Thank you</h1>
+    <p class="sub" style="font-size:1.05rem;">Looking forward to your guidance on Phase 2 direction and the Path A/B sequencing decision.</p>
+  </div>
+</div>
+
+<div class="footer">
+  <span id="slideLabel">1 / 1</span>
+  <div class="dots" id="dots"></div>
+  <div>
+    <button class="navbtn" onclick="prev()">&larr; Prev</button>
+    <button class="navbtn" onclick="next()">Next &rarr;</button>
+  </div>
+</div>
+
+<script>
+  const SLIDE_ORDER = ['s1','s2','s3','s4','s5','s6','s7','s8','s8b','s9','s9b','s9c','s9d','s10','s11','s12','s13','s14','s15','s16'];
+  const TOTAL = SLIDE_ORDER.length;
+  let cur = 1;
+
+  function renderDots() {
+    const dots = document.getElementById('dots');
+    dots.innerHTML = '';
+    for (let i = 1; i <= TOTAL; i++) {
+      const d = document.createElement('div');
+      d.className = 'dot' + (i === cur ? ' active' : '');
+      d.onclick = () => go(i);
+      dots.appendChild(d);
+    }
+  }
+
+  function go(n) {
+    if (n < 1 || n > TOTAL) return;
+    document.getElementById(SLIDE_ORDER[cur - 1]).classList.remove('active');
+    cur = n;
+    document.getElementById(SLIDE_ORDER[cur - 1]).classList.add('active');
+    document.getElementById('slideLabel').textContent = cur + ' / ' + TOTAL;
+    renderDots();
+  }
+  function next() { go(cur + 1); }
+  function prev() { go(cur - 1); }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') next();
+    if (e.key === 'ArrowLeft') prev();
+  });
+
+  document.getElementById('slideLabel').textContent = cur + ' / ' + TOTAL;
+  renderDots();
+</script>
+
+</body>
+</html>
