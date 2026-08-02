@@ -1,0 +1,337 @@
+"""
+train_shape_gen.py — Phase 3 ConditionalShapeVAE training.
+Leave-one-part-out training loop, mirrors train_ranker.py's structure:
+reuses the frozen Phase-1 encoder from a serving checkpoint (never touched),
+trains only shape_generator.ConditionalShapeVAE, saves checkpoints/shape_vae.pt
+with the same encoder-staleness guard as node_ranker.pt.
+
+Run:
+    cd back_end && python train_shape_gen.py
+    python train_shape_gen.py --config config.yaml --serving-ckpt checkpoints/best_serving.pt \
+        --fold-idx 0 --epochs 60 --n-per-graph 8
+
+Requires a part bank (data/part_bank/index.json) — built automatically on
+first run if missing (can take a while; reparses the corpus once).
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import random
+from datetime import datetime
+from pathlib import Path
+
+import numpy as np
+import torch
+import torch.nn.functional as F
+import yaml
+from torch_geometric.data import Data
+
+from dataset import AssemblyDataset, graph_level_indices, COMP_TYPES
+from model import build_model
+from part_bank import PartBank, build_part_bank, VOXEL_RES
+from shape_generator import ConditionalShapeVAE, vae_loss, build_conditioning_vector, COND_DIM
+
+
+# ── Leave-one-node-out sampling (mirrors train_ranker.py's remove_node) ─────────
+
+def remove_node(data: Data, idx: int) -> Data:
+    n = data.num_nodes
+    keep = torch.tensor([i for i in range(n) if i != idx], dtype=torch.long)
+    old_to_new = -torch.ones(n, dtype=torch.long)
+    old_to_new[keep] = torch.arange(keep.size(0))
+
+    src, dst = data.edge_index
+    edge_mask = (src != idx) & (dst != idx)
+    new_edge_index = torch.stack([
+        old_to_new[src[edge_mask]],
+        old_to_new[dst[edge_mask]],
+    ])
+    new_edge_attr = data.edge_attr[edge_mask] if data.edge_attr is not None else None
+
+    return Data(x=data.x[keep], edge_index=new_edge_index, edge_attr=new_edge_attr)
+
+
+def build_samples(graphs, sources, n_per_graph, part_bank: PartBank, rng: random.Random):
+    """For each graph with >=2 nodes, sample up to n_per_graph nodes that have
+    a matching part-bank entry (some bodies fail mesh extraction and have no
+    entry — skipped). Returns [(partial_graph, target_vox, comp_type_idx,
+    target_bbox_norm, source_assembly), ...]."""
+    samples = []
+    for g, src_path in zip(graphs, sources):
+        n = g.num_nodes
+        if n < 2:
+            continue
+        category = getattr(g, "category", "") or ""
+        assembly = Path(src_path).parent.name if src_path else ""
+        idxs = list(range(n))
+        rng.shuffle(idxs)
+        taken = 0
+        for i in idxs:
+            if taken >= n_per_graph:
+                break
+            entry = part_bank.find_by_source(category, assembly, i)
+            if entry is None:
+                continue
+            vox = part_bank.load_voxels(entry["part_id"]).astype(np.float32)
+            comp_type_idx = int(g.x[i, :len(COMP_TYPES)].argmax().item())
+            bbox = np.asarray(entry["bbox"], dtype=np.float32)
+            bbox_norm = bbox / (bbox.max() + 1e-9)
+            samples.append((remove_node(g, i), vox, comp_type_idx, bbox_norm, assembly))
+            taken += 1
+    return samples
+
+
+def augment_rotate(vox: np.ndarray, k: int, axes) -> np.ndarray:
+    return np.rot90(vox, k=k, axes=axes)
+
+
+# ── Conditioning + context ───────────────────────────────────────────────────────
+
+@torch.no_grad()
+def compute_ctx(gnn, partial: Data, device) -> torch.Tensor:
+    if partial.num_nodes == 0:
+        return torch.zeros(gnn.out_dim if hasattr(gnn, "out_dim") else 64, device=device)
+    z = gnn(partial.x.to(device), partial.edge_index.to(device),
+            partial.edge_attr.to(device) if partial.edge_attr is not None else None)
+    return z.mean(0)
+
+
+def neighbor_scale_from(partial: Data) -> np.ndarray:
+    if partial.num_nodes == 0:
+        return np.array([0.0, 0.0], dtype=np.float32)
+    log_vol = partial.x[:, 8].mean().item()
+    max_extent = partial.x[:, 10:13].max(dim=1).values.mean().item()
+    return np.array([log_vol, max_extent], dtype=np.float32)
+
+
+# ── Metrics ──────────────────────────────────────────────────────────────────────
+
+def voxel_iou(pred_prob: torch.Tensor, target: torch.Tensor, threshold: float = 0.5) -> float:
+    pred = (pred_prob > threshold)
+    tgt = (target > 0.5)
+    inter = (pred & tgt).sum().item()
+    union = (pred | tgt).sum().item()
+    return inter / union if union > 0 else 0.0
+
+
+def chamfer_from_voxels(pred_prob: torch.Tensor, target: torch.Tensor,
+                         threshold: float = 0.5, n_points: int = 300) -> float:
+    """Lightweight unit-normalized Chamfer distance between occupied-voxel
+    centroid clouds (cheap proxy — avoids a full marching-cubes + sampling
+    pass during training)."""
+    res = target.shape[-1]
+    pred_pts = torch.nonzero(pred_prob > threshold, as_tuple=False).float()
+    tgt_pts = torch.nonzero(target > 0.5, as_tuple=False).float()
+    if pred_pts.numel() == 0 or tgt_pts.numel() == 0:
+        return 1.0  # worst case, one side empty
+    if pred_pts.size(0) > n_points:
+        pred_pts = pred_pts[torch.randperm(pred_pts.size(0))[:n_points]]
+    if tgt_pts.size(0) > n_points:
+        tgt_pts = tgt_pts[torch.randperm(tgt_pts.size(0))[:n_points]]
+    pred_pts = pred_pts / res
+    tgt_pts = tgt_pts / res
+    d = torch.cdist(pred_pts, tgt_pts)
+    d1 = d.min(dim=1).values.mean().item()
+    d2 = d.min(dim=0).values.mean().item()
+    return 0.5 * (d1 + d2)
+
+
+# ── Epoch pass ─────────────────────────────────────────────────────────────────
+
+def epoch_pass(vae, gnn, samples, device, opt=None, augment=False, rng=None,
+               beta_kl=0.05, lambda_dice=0.5):
+    is_train = opt is not None
+    vae.train(is_train)
+
+    total_loss = 0.0
+    ious, chamfers = [], []
+    n_seen = 0
+
+    for partial, vox, comp_type_idx, bbox_norm, _assembly in samples:
+        if augment and rng is not None:
+            k = rng.randint(0, 3)
+            axes = rng.choice([(0, 1), (0, 2), (1, 2)])
+            vox = augment_rotate(vox, k, axes).copy()
+
+        ctx = compute_ctx(gnn, partial, device)
+        nbr = neighbor_scale_from(partial)
+        cond = build_conditioning_vector(ctx, comp_type_idx, bbox_norm, nbr).unsqueeze(0)
+        vox_t = torch.from_numpy(vox).float().unsqueeze(0).to(device)  # (1, res, res, res)
+
+        if is_train:
+            opt.zero_grad()
+            recon, mu, logvar = vae(vox_t.unsqueeze(1), cond)
+            loss, _parts = vae_loss(recon, vox_t, mu, logvar, beta_kl, lambda_dice)
+            loss.backward()
+            opt.step()
+            total_loss += loss.item()
+        else:
+            with torch.no_grad():
+                recon, mu, logvar = vae(vox_t.unsqueeze(1), cond)
+                loss, _parts = vae_loss(recon, vox_t, mu, logvar, beta_kl, lambda_dice)
+                total_loss += loss.item()
+                probs = torch.sigmoid(recon.squeeze(1).squeeze(0))
+                ious.append(voxel_iou(probs, vox_t.squeeze(0)))
+                chamfers.append(chamfer_from_voxels(probs, vox_t.squeeze(0)))
+        n_seen += 1
+
+    n_seen = max(1, n_seen)
+    if is_train:
+        return total_loss / n_seen
+    return {
+        "loss": total_loss / n_seen,
+        "iou": float(np.mean(ious)) if ious else 0.0,
+        "chamfer": float(np.mean(chamfers)) if chamfers else 1.0,
+    }
+
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", default="config.yaml")
+    parser.add_argument("--serving-ckpt", default="checkpoints/best_serving.pt")
+    parser.add_argument("--fold-idx", type=int, default=0)
+    parser.add_argument("--epochs", type=int, default=None)
+    parser.add_argument("--n-per-graph", type=int, default=None)
+    parser.add_argument("--lr", type=float, default=None)
+    args = parser.parse_args()
+
+    with open(args.config) as f:
+        cfg = yaml.safe_load(f)
+    sc = cfg.get("shape_gen", {})
+    epochs = args.epochs or sc.get("epochs", 60)
+    n_per_graph = args.n_per_graph or sc.get("n_per_graph", 8)
+    lr = args.lr or sc.get("lr", 1.0e-3)
+    beta_kl = sc.get("beta_kl", 0.05)
+    lambda_dice = sc.get("lambda_dice", 0.5)
+    part_bank_dir = sc.get("part_bank_dir", "data/part_bank")
+    latent_dim = sc.get("latent_dim", 128)
+    voxel_res = sc.get("voxel_res", VOXEL_RES)
+    fold_idx = args.fold_idx
+
+    print("\n[1/6] Loading dataset …")
+    dataset = AssemblyDataset(
+        source_dir=cfg["data"]["source_dir"],
+        processed_dir=cfg["data"]["processed_dir"],
+        categories=cfg["data"].get("categories") or None,
+    )
+    print(f"      {len(dataset)} graphs loaded.")
+
+    train_idx, val_idx, test_idx = graph_level_indices(dataset, cfg, fold_idx=fold_idx)
+    train_graphs = [dataset[i] for i in train_idx]
+    val_graphs = [dataset[i] for i in val_idx]
+    test_graphs = [dataset[i] for i in test_idx]
+    train_src = [dataset.graph_sources[i] for i in train_idx]
+    val_src = [dataset.graph_sources[i] for i in val_idx]
+    test_src = [dataset.graph_sources[i] for i in test_idx]
+    print(f"      train: {len(train_graphs)}  val: {len(val_graphs)}  test: {len(test_graphs)}")
+
+    print("\n[2/6] Loading frozen Phase-1 encoder …")
+    ckpt_path = Path(args.serving_ckpt)
+    ckpt = torch.load(ckpt_path, map_location="cpu", weights_only=False)
+    mc = ckpt["cfg"]["model"]
+    gnn, _lp, device = build_model(
+        in_dim=mc["in_dim"], out_dim=mc["out_dim"], hidden=mc["hidden_dim"],
+        heads=mc["heads"], dropout=mc["dropout"], edge_dim=mc["edge_dim"],
+    )
+    gnn.load_state_dict(ckpt["gnn"])
+    gnn.eval()
+    for p in gnn.parameters():
+        p.requires_grad_(False)
+    print(f"      Encoder frozen (val AUC={ckpt['auc']:.4f}, trained_at={ckpt.get('trained_at')})")
+
+    print("\n[3/6] Loading / building part bank …")
+    bank = PartBank(part_bank_dir)
+    if not (Path(part_bank_dir) / "index.json").exists():
+        print(f"      No part bank found at {part_bank_dir} — building it now "
+              f"(this reparses the corpus, can take a while) …")
+        build_part_bank(cfg["data"]["source_dir"], part_bank_dir,
+                         categories=cfg["data"].get("categories") or None)
+        bank = PartBank(part_bank_dir)
+    print(f"      Part bank: {len(bank)} parts")
+
+    print("\n[4/6] Building leave-one-out samples …")
+    rng = random.Random(42)
+    train_samples = build_samples(train_graphs, train_src, n_per_graph, bank, rng)
+    val_samples = build_samples(val_graphs, val_src, n_per_graph, bank, rng)
+    test_samples = build_samples(test_graphs, test_src, n_per_graph, bank, rng)
+    print(f"      Samples — train: {len(train_samples)}  val: {len(val_samples)}  "
+          f"test: {len(test_samples)}")
+    if not train_samples:
+        raise RuntimeError(
+            "No training samples with matching part-bank entries — check that "
+            "the part bank was built from the same corpus as the dataset cache."
+        )
+
+    print("\n[5/6] Building ConditionalShapeVAE …")
+    vae = ConditionalShapeVAE(res=voxel_res, latent_dim=latent_dim, cond_dim=COND_DIM).to(device)
+    opt = torch.optim.Adam(vae.parameters(), lr=lr, weight_decay=1.0e-5)
+    n_params = sum(p.numel() for p in vae.parameters())
+    print(f"      VAE params: {n_params:,}")
+
+    print(f"\n[6/6] Training ({epochs} epochs) …")
+    ckpt_dir = Path(cfg["paths"]["checkpoints"])
+    ckpt_dir.mkdir(parents=True, exist_ok=True)
+    res_dir = Path(cfg["paths"]["results"])
+    res_dir.mkdir(parents=True, exist_ok=True)
+
+    best_iou = -1.0
+    best_state = None
+    best_metrics = None
+
+    for epoch in range(1, epochs + 1):
+        rng.shuffle(train_samples)
+        train_loss = epoch_pass(vae, gnn, train_samples, device, opt=opt,
+                                 augment=True, rng=rng, beta_kl=beta_kl,
+                                 lambda_dice=lambda_dice)
+        val_metrics = epoch_pass(vae, gnn, val_samples, device, opt=None,
+                                  beta_kl=beta_kl, lambda_dice=lambda_dice)
+        print(f"  Ep {epoch:3d}/{epochs}  loss={train_loss:.4f}  "
+              f"val_loss={val_metrics['loss']:.4f}  IoU={val_metrics['iou']:.4f}  "
+              f"chamfer={val_metrics['chamfer']:.4f}", flush=True)
+        if val_metrics["iou"] > best_iou:
+            best_iou = val_metrics["iou"]
+            best_state = {k: v.clone() for k, v in vae.state_dict().items()}
+            best_metrics = val_metrics
+
+    vae.load_state_dict(best_state)
+    test_metrics = epoch_pass(vae, gnn, test_samples, device, opt=None,
+                               beta_kl=beta_kl, lambda_dice=lambda_dice)
+
+    print(f"\n{'='*55}")
+    print("  ConditionalShapeVAE — Test Results")
+    print(f"{'='*55}")
+    for k, v in test_metrics.items():
+        print(f"     {k:10s}: {v:.4f}")
+    print(f"  (best val IoU={best_iou:.4f} at selection time)")
+
+    with open(res_dir / "shape_gen_test_metrics.json", "w") as f:
+        json.dump({
+            "test_metrics": {k: round(v, 4) for k, v in test_metrics.items()},
+            "val_metrics": {k: round(v, 4) for k, v in best_metrics.items()},
+        }, f, indent=2)
+
+    torch.save({
+        "epoch": epochs,
+        "val_metrics": best_metrics,
+        "test_metrics": test_metrics,
+        "trained_at": datetime.now().isoformat(),
+        "encoder_ckpt": str(ckpt_path),
+        "encoder_trained_at": ckpt.get("trained_at"),
+        "encoder_auc": ckpt["auc"],
+        "vae": vae.state_dict(),
+        "res": voxel_res,
+        "latent_dim": latent_dim,
+        "cond_dim": COND_DIM,
+        "part_bank_dir": part_bank_dir,
+    }, ckpt_dir / "shape_vae.pt")
+
+    print(f"\n  Saved → {ckpt_dir / 'shape_vae.pt'}")
+    print(f"  Saved → {res_dir / 'shape_gen_test_metrics.json'}")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,12 @@
+{
+  "test_metrics": {
+    "loss": 0.3397,
+    "iou": 0.5002,
+    "chamfer": 0.0621
+  },
+  "val_metrics": {
+    "loss": 0.3595,
+    "iou": 0.5096,
+    "chamfer": 0.0616
+  }
+}

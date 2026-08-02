@@ -470,7 +470,7 @@ def _parse_step_worker(step_path: str, result_queue: "_mp.Queue") -> None:
         result_queue.put(("error", str(exc)))
 
 
-def _parse_step_with_timeout(step_path: str, timeout_secs: int = 120) -> tuple:
+def _parse_step_with_timeout(step_path: str, timeout_secs: int = 300) -> tuple:
     """
     Run _parse_step in a child process with a time limit.
 
@@ -666,6 +666,13 @@ class AssemblyDataset(InMemoryDataset):
         else:
             self.graph_categories = [''] * len(self)
 
+        sources_file = Path(self.processed_paths[0]).parent / "sources.json"
+        if sources_file.exists():
+            with open(sources_file) as f:
+                self.graph_sources = json.load(f)
+        else:
+            self.graph_sources = [''] * len(self)
+
     @property
     def raw_file_names(self): return []
 
@@ -689,7 +696,7 @@ class AssemblyDataset(InMemoryDataset):
             _cats_set = set(self.categories)
             step_files = [
                 p for p in step_files
-                if any(part in _cats_set for part in p.parts)
+                if p.relative_to(self.source_dir).parts[0] in _cats_set
             ]
             print(f"  Category filter: {self.categories}")
             print(f"  {len(step_files)} STEP files after category filter")
@@ -707,7 +714,7 @@ class AssemblyDataset(InMemoryDataset):
         n_timeouts = 0
         n_cached   = 0
 
-        _TIMEOUT = 120
+        _TIMEOUT = 300
         _category_dirs = {
             d.name for d in self.source_dir.iterdir() if d.is_dir()
         }

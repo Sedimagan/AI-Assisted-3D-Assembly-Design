@@ -64,6 +64,78 @@ def load_ranker(ranker_path: str, gnn, device):
     return nr, type_prototypes, ckpt["comp_types"], ckpt
 
 
+def load_shape_generator(bank_dir: str, vae_path: str, device, retrieval_tau: float = 0.6):
+    """
+    Load the Phase 3 hybrid shape generator. Returns None if the part bank or
+    VAE checkpoint is missing — callers degrade gracefully (same pattern as
+    NodeRanker: everything upstream still works without this).
+    """
+    from part_bank import PartBank
+    from shape_generator import ConditionalShapeVAE, ShapeRetriever, HybridShapeGenerator
+
+    bank = PartBank(bank_dir)
+    if len(bank) == 0:
+        print(f"No part bank found at {bank_dir} — shape generation disabled.")
+        return None
+    retriever = ShapeRetriever(bank)
+
+    vae = None
+    vae_path = Path(vae_path)
+    if vae_path.exists():
+        ckpt = torch.load(vae_path, map_location="cpu", weights_only=False)
+        vae = ConditionalShapeVAE(res=ckpt["res"], latent_dim=ckpt["latent_dim"],
+                                   cond_dim=ckpt["cond_dim"]).to(device)
+        vae.load_state_dict(ckpt["vae"])
+        vae.eval()
+        print(f"Loaded ConditionalShapeVAE (encoder_auc={ckpt['encoder_auc']:.4f}, "
+              f"trained_at={ckpt['trained_at']})")
+    else:
+        print(f"No shape_vae.pt at {vae_path} — retrieval-only mode (no VAE fallback).")
+
+    return HybridShapeGenerator(retriever, vae, device, retrieval_tau=retrieval_tau)
+
+
+@torch.no_grad()
+def generate_missing_shape(
+    hsg, gnn, graph, ranker_result, open_joint_extents=None,
+    open_joint_centroid=None, category: str | None = None, device=None,
+    mode: str = "auto",
+):
+    """
+    Produce a ShapeResult for the top-ranked missing-component type. Called
+    after predict_next_component() — its top-1 prediction feeds the condition.
+    Returns None if hsg is None (artifacts missing) or nothing could be
+    retrieved/generated.
+    """
+    if hsg is None or not ranker_result:
+        return None
+    from part_bank import PartBank
+    from shape_generator import build_conditioning_vector, estimate_target_bbox
+
+    comp_type, _score = ranker_result[0]
+    comp_type_idx = COMP_TYPES.index(comp_type)
+
+    g = graph.to(device) if device is not None else graph
+    z = gnn(g.x, g.edge_index, getattr(g, "edge_attr", None))
+    ctx = z.mean(0) if z.size(0) > 0 else torch.zeros(z.size(-1), device=z.device)
+
+    bank: PartBank = hsg.retriever.bank
+    target_bbox = estimate_target_bbox(open_joint_extents, bank, comp_type, category)
+    bbox_norm = target_bbox / (target_bbox.max() + 1e-9)
+
+    if g.num_nodes > 0:
+        log_vol = g.x[:, 8].mean().item()
+        max_extent = g.x[:, 10:13].max(dim=1).values.mean().item()
+    else:
+        log_vol, max_extent = 0.0, 0.0
+    neighbor_scale = [log_vol, max_extent]
+
+    cond_vec = build_conditioning_vector(ctx, comp_type_idx, bbox_norm, neighbor_scale)
+    centroid = open_joint_centroid if open_joint_centroid is not None else [0.0, 0.0, 0.0]
+
+    return hsg.generate(comp_type, category, target_bbox, cond_vec, centroid, mode=mode)
+
+
 # ── Missing component detection ───────────────────────────────────────────────
 
 @torch.no_grad()

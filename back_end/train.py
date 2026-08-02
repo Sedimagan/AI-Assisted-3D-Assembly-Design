@@ -26,22 +26,19 @@ from evaluate import evaluate
 
 CATEGORY_WEIGHTS = {
     # Weights are inverse-frequency (relative to the largest category,
-    # Mechanical Engineering=91 graphs), capped at 3.0. Real counts from
-    # R31's dataset build (484 graphs total, 2026-07-20) — see
-    # back_end/data/processed/processed/categories.json for the source of
-    # truth; re-derive if the corpus changes again. Names must match the
-    # directory names under Source_3d_models/Best_models_for_training/.
-    "Mechanical Engineering":  1.0,   # 91 graphs
-    "Bolt_Assembly":           1.1,   # 81 graphs
-    "Machine design":          1.2,   # 75 graphs
-    "Tools":                   1.2,   # 73 graphs
-    "Bench_vice":              1.7,   # 54 graphs
-    "Industrial_assembly":     2.3,   # 40 graphs
-    "Pipe_vice":               2.3,   # 39 graphs
-    "C_Clamps":                2.9,   # 31 graphs
-    "Flange_assembly":         3.0,   # 0 graphs, excluded from config.yaml categories
-    "Pneumatic_actuator":      3.0,   # 0 graphs, no longer present on disk
-    "U_Mounting_Brackets":     3.0,   # 0 graphs, no longer present on disk
+    # Bench_vice=54 graphs), capped at 3.0. Real counts from the R32
+    # corpus overhaul (193 folders total, 2026-07-31, after moving
+    # rejected/non_compatible_formats/slow_or_unstable folders out of
+    # Best_models_for_training) — re-derive if the corpus changes again.
+    # Names must match the directory names under
+    # Source_3d_models/Best_models_for_training/.
+    "Bench_vice":  1.0,   # 54 graphs
+    "Pipe_vice":   1.3,   # 42 graphs
+    "C_Clamps":    1.7,   # 31 graphs
+    "Gate_Valve":  2.6,   # 21 graphs
+    "Press_Tool":  2.6,   # 21 graphs
+    "Crane_hook":  3.0,   # 16 graphs (capped, uncapped 3.4)
+    "Tool_Post":   3.0,   # 8 graphs (capped, uncapped 6.75)
 }
 
 

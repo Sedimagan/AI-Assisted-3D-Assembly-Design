@@ -7,15 +7,12 @@ data:
   mask_ratio:  [0.20, 0.40]   # fraction of edges masked per graph for partial-graph training
   categories:
     - "Bench_vice"
-    - "Bolt_Assembly"
     - "C_Clamps"
-    - "Industrial_assembly"
-    - "Machine design"
-    - "Mechanical Engineering"
     - "Pipe_vice"
-    - "Pneumatic_actuator"
-    - "Tools"
-    - "U_Mounting_Brackets"
+    - "Gate_Valve"
+    - "Press_Tool"
+    - "Tool_Post"
+    - "Crane_hook"
 
 model:
   in_dim:     22              # node feature dimension (22-dim: 8 type + log-vol + log-SA + 3 bbox + 5 affine-invariant shape + SDF-mean + SDF-var + SA/V + log-holes)
@@ -45,6 +42,18 @@ ranker:
   weight_decay: 1.0e-5
   n_per_graph:  5              # leave-one-node-out samples per graph per epoch
   fold_idx:     0
+
+shape_gen:
+  voxel_res:      32
+  latent_dim:     128
+  cond_dim:       77
+  epochs:         60
+  lr:             1.0e-3
+  beta_kl:        0.05
+  lambda_dice:    0.5
+  n_per_graph:    8
+  retrieval_tau:  0.6        # below this fit_score, fall back to VAE
+  part_bank_dir:  "data/part_bank"
 
 paths:
   checkpoints:    "checkpoints"

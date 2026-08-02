@@ -3,20 +3,19 @@
     "category": "best_models_for_training",
     "label": "Best Models For Training",
     "component_counts": {
-      "body": 8,
+      "body": 10,
       "fastener": 4,
       "bearing": 1,
-      "plate": 2,
-      "housing": 1
+      "plate": 3
     },
-    "total_bodies": 15,
+    "total_bodies": 17,
     "examples": [
-      "Assem1.STEP",
-      "EXP3_Benchvice_Assembly v10.step",
-      "Assembly.STEP",
-      "Vise Assem.stp",
-      "Etau.STEP"
+      "Bench_Vice_02.STEP",
+      "Bench_Vice_03.step",
+      "Bench_Vice_04.STEP",
+      "Bench_Vice_06.stp",
+      "Bench_Vice_07.STEP"
     ],
-    "n_assemblies": 484
+    "n_assemblies": 193
   }
 ]

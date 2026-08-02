@@ -1,53 +1,7 @@
-[2026-07-20 10:47:07] ═══ Recovery Log ═══
-[2026-07-20 10:47:07] Training PID=7658 started (start_fold=0, attempt=1)
-[2026-07-20 18:48:29] Training process exited with code 143
-[2026-07-20 18:48:29] Found checkpoint up to fold 1. Resuming from fold 2.
-[2026-07-20 18:48:29] Training PID=26365 started (start_fold=2, attempt=2)
-[2026-07-20 20:27:59] Training process exited with code 1
-[2026-07-20 20:27:59] Python traceback detected in log
-[20:24:32]     batch 16/21
-[20:25:42]     batch 21/21
-[20:25:50]   Ep  10/200  loss=0.9889  AUC=0.6169  AP=0.7825  (418.0s)
-[20:25:50]     batch 1/21
-[20:27:03] Traceback (most recent call last):
-[20:27:03]   File "/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/back_end/train.py", line 430, in <module>
-[20:27:03]     main()
-[20:27:03]   File "/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/back_end/train.py", line 254, in main
-[20:27:03]     train_loss  = train_epoch(gnn, lp, train_loader, opt, device)
-[20:27:03]                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-[20:27:03]   File "/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/back_end/train.py", line 120, in train_epoch
-[20:27:03]     loss.backward()
-[20:27:03]   File "/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch/_tensor.py", line 631, in backward
-[20:27:03]     torch.autograd.backward(
-[20:27:03]   File "/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch/autograd/__init__.py", line 379, in backward
-[20:27:03]     _engine_run_backward(
-[20:27:03]   File "/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch/autograd/graph.py", line 882, in _engine_run_backward
-[20:27:03]     return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
-[20:27:03]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-[20:27:03] RuntimeError: MPS backend out of memory (MPS allocated: 17.48 GiB, other allocations: 291.22 MiB, max allowed: 20.13 GiB). Tried to allocate 3.97 GiB on shared pool. Use PYTORCH_MPS_HIGH_WATERMARK_RATIO=0.0 to disable upper limit for memory allocations (may cause system failure).
-[2026-07-20 20:27:59] Found checkpoint up to fold 2. Resuming from fold 3.
-[2026-07-20 20:27:59] Training PID=31486 started (start_fold=3, attempt=3)
-[2026-07-21 07:37:01] STALL detected: no output for 300s. Killing PID 31486.
-[2026-07-21 07:38:03] Training process exited with code 143
-[2026-07-21 07:38:03] Python traceback detected in log
-[07:16:34]   Early stopping at epoch 35.
-[07:17:23] 
-[07:17:23]   Fold 4 test — AUC=0.6716  AP=0.8257
-[07:17:23] 
-[07:17:23] =======================================================
-[07:17:23]   FOLD 5 / 5
-[07:17:23] =======================================================
-[07:17:24] /Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
-[07:17:24]   return self.forward(copy.copy(data))
-[07:17:24]   Fold 5/5 — train: 330  val: 82  test: 72
-[07:17:26] Model built on mps  |  total params: 2,441,745
-[07:17:26]     batch 1/21
-[07:20:58]     batch 6/21
-[07:23:10]     batch 11/21
-[07:24:49]     batch 16/21
-[07:26:33]     batch 21/21
-[07:27:52]   Ep   1/200  loss=1.2994  AUC=0.5164  AP=0.6967  (625.4s)
-[07:27:52]   ✓ Fold 5 new best AUC=0.5164  saved.
-[07:27:52]     batch 1/21
-[07:32:00]     batch 6/21
-[2026-07-21 07:38:03] FATAL: All 3 recovery attempts exhausted. Giving up.
+[2026-07-31 08:00:21] ═══ Recovery Log ═══
+[2026-07-31 08:00:21] Training PID=6118 started (start_fold=0, attempt=1)
+[2026-08-01 02:03:58] STALL detected: no output for 300s. Killing PID 6118.
+[2026-08-01 02:05:03] Training process exited with code 143
+[2026-08-01 02:05:03] Found checkpoint up to fold 4. Resuming from fold 5.
+[2026-08-01 02:05:03] Training PID=48626 started (start_fold=5, attempt=2)
+[2026-08-01 02:06:03] Training completed successfully in 1085m 42s
