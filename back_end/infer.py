@@ -97,22 +97,21 @@ def load_shape_generator(bank_dir: str, vae_path: str, device, retrieval_tau: fl
 
 @torch.no_grad()
 def generate_missing_shape(
-    hsg, gnn, graph, ranker_result, open_joint_extents=None,
+    hsg, gnn, graph, comp_type: str, open_joint_extents=None,
     open_joint_centroid=None, category: str | None = None, device=None,
     mode: str = "auto",
 ):
     """
-    Produce a ShapeResult for the top-ranked missing-component type. Called
-    after predict_next_component() — its top-1 prediction feeds the condition.
-    Returns None if hsg is None (artifacts missing) or nothing could be
-    retrieved/generated.
+    Produce a ShapeResult for an explicitly-given missing-component type
+    (e.g. from AssemblyTemplateDB.get_missing(), or a NodeRanker top-1 pick
+    the caller has already selected). Returns None if hsg is None (artifacts
+    missing), comp_type is falsy, or nothing could be retrieved/generated.
     """
-    if hsg is None or not ranker_result:
+    if hsg is None or not comp_type:
         return None
     from part_bank import PartBank
     from shape_generator import build_conditioning_vector, estimate_target_bbox
 
-    comp_type, _score = ranker_result[0]
     comp_type_idx = COMP_TYPES.index(comp_type)
 
     g = graph.to(device) if device is not None else graph

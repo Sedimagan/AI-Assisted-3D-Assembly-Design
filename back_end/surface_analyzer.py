@@ -26,7 +26,7 @@ Usage
   from surface_analyzer import analyze_open_surfaces
   records = analyze_open_surfaces("/path/to/assembly.step")
   # records: list of dicts with keys:
-  #   centroid, area, area_ratio, body_idx, vertices, triangles, normal_hint
+  #   centroid, area, area_ratio, body_idx, vertices, triangles, normal_hint, bbox
 """
 
 from __future__ import annotations
@@ -268,6 +268,7 @@ def analyze_open_surfaces(
       vertices     : [[x,y,z]…]  triangle mesh vertices
       triangles    : [[i,j,k]…]  triangle mesh faces
       normal_hint  : [nx, ny, nz] approximate surface normal direction
+      bbox         : [xmin,ymin,zmin,xmax,ymax,zmax] surface bounding box
     """
     import gmsh
 
@@ -403,6 +404,7 @@ def analyze_open_surfaces(
                 "vertices":    verts,
                 "triangles":   tris,
                 "normal_hint": rep["normal"],
+                "bbox":        rep["bbox"],
             })
 
         return results

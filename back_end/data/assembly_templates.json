@@ -1,14 +1,13 @@
 [
   {
-    "category": "best_models_for_training",
-    "label": "Best Models For Training",
+    "category": "bench_vice",
+    "label": "Bench Vice",
     "component_counts": {
-      "body": 10,
-      "fastener": 4,
-      "bearing": 1,
+      "body": 17,
+      "fastener": 5,
       "plate": 3
     },
-    "total_bodies": 17,
+    "total_bodies": 22,
     "examples": [
       "Bench_Vice_02.STEP",
       "Bench_Vice_03.step",
@@ -16,6 +15,115 @@
       "Bench_Vice_06.stp",
       "Bench_Vice_07.STEP"
     ],
-    "n_assemblies": 193
+    "n_assemblies": 54
+  },
+  {
+    "category": "c_clamps",
+    "label": "C Clamps",
+    "component_counts": {
+      "body": 4,
+      "fastener": 2,
+      "bearing": 1,
+      "plate": 1
+    },
+    "total_bodies": 7,
+    "examples": [
+      "C_Clamps_01.stp",
+      "C_Clamps_03.STEP",
+      "C_Clamps_04.stp",
+      "C_Clamps_05.STEP",
+      "C_Clamps_06.stp"
+    ],
+    "n_assemblies": 31
+  },
+  {
+    "category": "crane_hook",
+    "label": "Crane Hook",
+    "component_counts": {
+      "body": 26,
+      "fastener": 3,
+      "plate": 8
+    },
+    "total_bodies": 40,
+    "examples": [
+      "Crane_Hook_01.stp",
+      "Crane_Hook_02.STEP",
+      "Crane_Hook_04.STEP",
+      "Crane_Hook_05.STEP",
+      "Crane_Hook_06.step"
+    ],
+    "n_assemblies": 16
+  },
+  {
+    "category": "gate_valve",
+    "label": "Gate Valve",
+    "component_counts": {
+      "body": 35,
+      "fastener": 10,
+      "plate": 6
+    },
+    "total_bodies": 51,
+    "examples": [
+      "Gate_Valve_02.STEP",
+      "Gate_Valve_03.stp",
+      "Gate_Valve_04.stp",
+      "Gate_Valve_05.stp",
+      "Gate_Valve_06.stp"
+    ],
+    "n_assemblies": 21
+  },
+  {
+    "category": "pipe_vice",
+    "label": "Pipe Vice",
+    "component_counts": {
+      "body": 6,
+      "fastener": 2,
+      "plate": 1
+    },
+    "total_bodies": 8,
+    "examples": [
+      "Pipe_Vice_01.stp",
+      "Pipe_Vice_03.STEP",
+      "Pipe_Vice_04.stp",
+      "Pipe_Vice_07.STEP",
+      "Pipe_Vice_08.STEP"
+    ],
+    "n_assemblies": 42
+  },
+  {
+    "category": "press_tool",
+    "label": "Press Tool",
+    "component_counts": {
+      "body": 9,
+      "fastener": 4,
+      "plate": 5
+    },
+    "total_bodies": 14,
+    "examples": [
+      "Press_Tool_02.stp",
+      "Press_Tool_04.stp",
+      "Press_Tool_05.stp",
+      "Press_Tool_06.STEP",
+      "Press_Tool_07.stp"
+    ],
+    "n_assemblies": 21
+  },
+  {
+    "category": "tool_post",
+    "label": "Tool Post",
+    "component_counts": {
+      "body": 15,
+      "fastener": 10,
+      "plate": 4
+    },
+    "total_bodies": 30,
+    "examples": [
+      "Tool_Post_01.step",
+      "Tool_Post_02.stp",
+      "Tool_Post_05.STEP",
+      "Tool_Post_08.stp",
+      "Tool_Post_10.stp"
+    ],
+    "n_assemblies": 8
   }
 ]

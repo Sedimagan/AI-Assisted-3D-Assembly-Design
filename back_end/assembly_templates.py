@@ -54,19 +54,31 @@ _CATEGORY_LABELS: Dict[str, str] = {
 }
 
 
+_CONTAINER_DIRS = {
+    "source_3d_models", "source_3dmodels", "3dmodels",
+    "best_models_for_training",
+}
+
+
 def _category_from_path(source_path: str) -> str:
     """
-    Derive assembly category from the top-level subfolder name under
-    Source_3d_models/.  Normalises spaces/hyphens to underscores.
+    Derive assembly category from the folder immediately under the corpus
+    root.  Walks past known container directories (Source_3d_models/,
+    Best_models_for_training/) so it lands on the real category folder
+    regardless of nesting depth — e.g.
+    .../Source_3d_models/Best_models_for_training/Bench_vice/Bench_vice_01/...
+    → "bench_vice", not "best_models_for_training".
+    Normalises spaces/hyphens to underscores.
     """
     p = Path(source_path)
-    # Walk up until we find the folder directly inside Source_3d_models
-    for i, part in enumerate(p.parts):
-        if part.lower().replace(" ", "_") in (
-            "source_3d_models", "source_3dmodels", "3dmodels",
-        ):
-            if i + 1 < len(p.parts) - 1:
-                return p.parts[i + 1].lower().replace(" ", "_").replace("-", "_")
+    parts_norm = [part.lower().replace(" ", "_").replace("-", "_") for part in p.parts]
+    for i, norm in enumerate(parts_norm):
+        if norm in _CONTAINER_DIRS:
+            j = i + 1
+            while j < len(parts_norm) - 1 and parts_norm[j] in _CONTAINER_DIRS:
+                j += 1
+            if j < len(p.parts) - 1:
+                return parts_norm[j]
     # Fallback: immediate parent
     return p.parent.name.lower().replace(" ", "_").replace("-", "_")
 

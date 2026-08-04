@@ -16,6 +16,8 @@ _CKPT_PATH  = _CKPT_SERVING if _CKPT_SERVING.exists() else _CKPT_FALLBACK
 _STEP_CACHE   = _PROJ_ROOT / ".logs" / "inference_input.step"
 _TMPL_DB_PATH = _PROJ_ROOT / "back_end" / "data" / "assembly_templates.json"
 _RANKER_PATH  = _PROJ_ROOT / "back_end" / "checkpoints" / "node_ranker.pt"
+_SHAPE_VAE_PATH = _PROJ_ROOT / "back_end" / "checkpoints" / "shape_vae.pt"
+_PART_BANK_DIR  = _PROJ_ROOT / "back_end" / "data" / "part_bank"
 
 if not os.environ.get("DISPLAY"):
     os.environ["DISPLAY"] = ":99"
@@ -368,6 +370,7 @@ def _run_inference(step_bytes: bytes,
                 "template_missing":     _miss_sb,
                 "open_surfaces":        _open_surfs_sb,
                 "next_component_suggestions": _next_comp_sb,
+                "generated_parts":      [],
                 "single_body_analysis": True,
             }}))
             sys.exit(0)
@@ -624,6 +627,72 @@ def _run_inference(step_bytes: bytes,
         except Exception:
             pass
 
+        # ── Shape generation for missing components (Phase 3) ─────────────────
+        # Pairs each template-predicted missing type/count with the best-fitting
+        # open-joint location (by bbox-shape similarity, via PartBank.query's
+        # existing fit_score) and generates/retrieves a ghost-preview mesh.
+        _generated_parts = []
+        _svae_path = {repr(str(_SHAPE_VAE_PATH))}
+        _pbank_dir = {repr(str(_PART_BANK_DIR))}
+        if (_tmpl_missing and os.path.exists(_svae_path)
+                and os.path.exists(os.path.join(_pbank_dir, "index.json"))):
+            try:
+                from collections import Counter as _Counter
+                from infer import load_shape_generator, generate_missing_shape
+
+                with contextlib.redirect_stdout(io.StringIO()):
+                    _hsg = load_shape_generator(_pbank_dir, _svae_path, device)
+
+                if _hsg is not None:
+                    _bank = _hsg.retriever.bank
+                    _gen_category = _tmpl_match["category"] if _tmpl_match else None
+                    _type_bank_counts = _Counter(e["comp_type"] for e in _bank.index)
+                    _remaining = {{
+                        m["type"]: m["count"] for m in _tmpl_missing
+                        if _type_bank_counts.get(m["type"], 0) > 0
+                    }}
+                    _surfs_by_size = sorted(_open_surfs, key=lambda s: s.get("area_ratio", 0), reverse=True)
+
+                    for _surf in _surfs_by_size:
+                        _bbox = _surf.get("bbox")
+                        if not _bbox or not any(v > 0 for v in _remaining.values()):
+                            continue
+                        _extents = [_bbox[3] - _bbox[0], _bbox[4] - _bbox[1], _bbox[5] - _bbox[2]]
+
+                        _best_t, _best_score = None, -1.0
+                        for _t, _cnt in _remaining.items():
+                            if _cnt <= 0:
+                                continue
+                            _hits = _bank.query(_t, _gen_category, _extents, top_k=1)
+                            if _hits and _hits[0].fit_score > _best_score:
+                                _best_t, _best_score = _t, _hits[0].fit_score
+                        if _best_t is None:
+                            continue
+                        _remaining[_best_t] -= 1
+
+                        _sr = generate_missing_shape(
+                            _hsg, gnn, graph, _best_t,
+                            open_joint_extents=_extents,
+                            open_joint_centroid=_surf["centroid"],
+                            category=_gen_category, device=device,
+                        )
+                        if _sr is None:
+                            continue
+                        _verts = (_sr.mesh.vertices + _sr.placement).tolist()
+                        _faces = _sr.mesh.faces.tolist()
+                        _generated_parts.append({{
+                            "type":        _best_t,
+                            "fit_score":   round(float(_best_score), 3),
+                            "source":      _sr.source,
+                            "confidence":  round(float(_sr.confidence), 3),
+                            "part_id":     _sr.part_id,
+                            "vertices":    _verts,
+                            "triangles":   _faces,
+                            "surface_body_idx": _surf.get("body_idx", 0),
+                        }})
+            except Exception:
+                _generated_parts = []
+
         out = {{
             "n_nodes": int(graph.num_nodes),
             "n_edges": int(graph.edge_index.size(1)),
@@ -639,6 +708,7 @@ def _run_inference(step_bytes: bytes,
             "template_missing":     _tmpl_missing,
             "open_surfaces":        _open_surfs,
             "next_component_suggestions": _next_comp,
+            "generated_parts":      _generated_parts,
             "single_body_analysis": False,
         }}
         print(json.dumps(out))
@@ -680,6 +750,7 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
         single_body    = result.get("single_body_analysis", False)
         open_surfs     = result.get("open_surfaces", [])
         next_comp      = result.get("next_component_suggestions", [])
+        gen_parts      = result.get("generated_parts", [])
 
         def _basename(s):
             if s and "/" in s:
@@ -901,6 +972,38 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
                     f'{_os_pct}% of body area</span>'
                     f'<br><span style="color:#4d7c0f;font-size:0.67rem;">'
                     f'This area needs components to be assembled</span>'
+                    f'</div></div>'
+                )
+
+        # ── Section 5b: Suggested missing-part shapes (Phase 3, shape gen) ────
+        if gen_parts:
+            rows += (
+                '<p style="font-size:0.76rem;font-weight:700;color:#38bdf8;'
+                'margin:8px 0 2px;">🪄 Suggested Missing-Part Shapes</p>'
+                '<p style="font-size:0.65rem;color:#0284c7;margin:0 0 6px;">'
+                'Sky-blue ghost mesh in 3D viewer — best-effort shape + location, not verified</p>'
+            )
+            for _gp in gen_parts:
+                _gp_type = str(_gp.get("type", "component")).capitalize()
+                _gp_src  = _gp.get("source", "generated")
+                _gp_conf = _gp.get("confidence", 0.0)
+                _gp_fit  = _gp.get("fit_score", 0.0)
+                _gp_icon = "🔄" if _gp_src == "retrieved" else "✨"
+                _gp_badge_txt = "Retrieved from part bank" if _gp_src == "retrieved" else "AI-generated (VAE)"
+                _gp_pct = int(max(0.0, min(1.0, _gp_conf)) * 100)
+                rows += (
+                    f'<div style="display:flex;align-items:flex-start;gap:6px;'
+                    f'font-size:0.72rem;margin-bottom:6px;">'
+                    f'<span style="display:inline-block;width:10px;height:10px;'
+                    f'background:#38bdf8;border-radius:2px;margin-top:2px;flex-shrink:0;"></span>'
+                    f'<div>'
+                    f'<span style="color:#0369a1;font-weight:600;">'
+                    f'{_gp_icon} {_gp_type}</span>'
+                    f'<span style="background:#e0f2fe;color:#0369a1;font-size:0.63rem;'
+                    f'padding:1px 5px;border-radius:3px;margin-left:6px;">'
+                    f'{_gp_badge_txt}</span>'
+                    f'<br><span style="color:#0284c7;font-size:0.67rem;">'
+                    f'Location fit {_gp_fit:.0%} · shape confidence {_gp_pct}%</span>'
                     f'</div></div>'
                 )
 
@@ -1843,6 +1946,43 @@ with col_right:
                     lighting=dict(ambient=0.7, diffuse=0.6, specular=0.1,
                                   roughness=0.8, fresnel=0.1),
                     lightposition=dict(x=100, y=100, z=100),
+                ))
+
+            # ── Ghost overlay: AI-suggested missing-part shapes (Phase 3) ──────
+            # Sky-blue translucent mesh at the matched open-joint location —
+            # best-effort shape + placement, not a verified/exact fit.
+            _gen_parts_view = (st.session_state.inference_result or {}).get("generated_parts", [])
+            for _gp in _gen_parts_view:
+                _gpv = _gp.get("vertices", [])
+                _gpt = _gp.get("triangles", [])
+                if not _gpv or not _gpt:
+                    continue
+                _gpv_arr = np.array(_gpv)
+                _gpt_arr = np.array(_gpt)
+                if len(_gpv_arr) < 3 or len(_gpt_arr) < 1:
+                    continue
+                _gp_type = str(_gp.get("type", "component")).capitalize()
+                _gp_src  = _gp.get("source", "generated")
+                _gp_conf = _gp.get("confidence", 0.0)
+                _gp_fit  = _gp.get("fit_score", 0.0)
+                _gp_icon = "🔄" if _gp_src == "retrieved" else "✨"
+                fig.add_trace(go.Mesh3d(
+                    x=_gpv_arr[:, 0], y=_gpv_arr[:, 1], z=_gpv_arr[:, 2],
+                    i=_gpt_arr[:, 0], j=_gpt_arr[:, 1], k=_gpt_arr[:, 2],
+                    color="#38bdf8",
+                    opacity=0.40,
+                    flatshading=True,
+                    name=f"{_gp_icon} Suggested {_gp_type}",
+                    showlegend=True,
+                    hovertext=(
+                        f"AI-suggested {_gp_type.lower()}<br>"
+                        f"{'Retrieved from part bank' if _gp_src == 'retrieved' else 'AI-generated (VAE)'}"
+                        f" · location fit {_gp_fit:.0%} · shape confidence {_gp_conf:.0%}"
+                    ),
+                    hoverinfo="text",
+                    lighting=dict(ambient=0.9, diffuse=0.3, specular=0.6,
+                                  roughness=0.2, fresnel=0.6),
+                    lightposition=dict(x=150, y=200, z=300),
                 ))
 
             fig.update_layout(
