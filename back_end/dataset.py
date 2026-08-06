@@ -13,7 +13,9 @@ Pipeline per body
                          (approximates CGAL SDF via trimesh inward ray casting)
 
 Node feature vector: 22-dim
-  [0:8]  component-type one-hot  (geometry-driven, 8 classes)
+  [0:8]  component-type one-hot  (geometry-driven, 8 classes: long_shaft,
+         short_shaft, thick_plate, thin_plate, bolt, washer, nut, body —
+         see _classify_component_type())
   [8]    log1p(volume), clipped at 13.8
   [9]    log1p(surface_area), clipped at 11.5
   [10]   bbox Δx / bbox_max       (normalised width)
@@ -51,8 +53,12 @@ from sklearn.model_selection import KFold
 from torch_geometric.data import Data, InMemoryDataset
 from torch_geometric.transforms import RandomLinkSplit
 
-# 8-class component type vocabulary (index used for one-hot encoding)
-COMP_TYPES = ["body", "fastener", "bearing", "shaft", "plate", "housing", "gear", "other"]
+# 8-class component type vocabulary (index used for one-hot encoding).
+# Proposed taxonomy (multi-signal geometric classifier, replaces the older
+# body/fastener/bearing/shaft/plate/housing/gear/other SDF-rule scheme) —
+# see _classify_component_type() below.
+COMP_TYPES = ["long_shaft", "short_shaft", "thick_plate", "thin_plate",
+              "bolt", "washer", "nut", "body"]
 MATE_TYPES = ["coincident", "concentric", "parallel", "tangent", "fixed", "other"]
 
 # ── Trimesh / SDF helpers ─────────────────────────────────────────────────────
@@ -151,50 +157,155 @@ def _compute_sdf_stats(mesh: "trimesh.Trimesh",
     return float(dists.mean()), float(dists.var())
 
 
-def _infer_type_from_geometry(
-    vol:      float,
-    exact_sa: float,
-    bbox:     Tuple[float, float, float],
-    sdf_mean: float,
-    sdf_var:  float,
-) -> int:
-    """
-    Return a COMP_TYPES index using SDF statistics + bounding-box ratios.
+# ── Multi-signal component-type classifier (proposed taxonomy) ────────────────
+#
+# Ported from audit_component_types.classify_new() / its threshold dict `T` —
+# dataset.py is the canonical home now; audit_component_types.py imports these
+# back for its own threshold-tuning/regression reports. Thresholds are
+# unvalidated starting points (see docs/ discussion) — a full-corpus audit
+# (2026-07-31) showed ~39.5% of bodies as ambiguous (vote conflicts); revisit
+# via audit_component_types.py if classification quality looks off in practice.
+_TYPE_THRESHOLDS = {
+    "hull_hole":        0.80,   # V/V_hull below this → hole vote
+    "washer_flat":      0.20,   # s/l — washer must be flatter than this
+    "washer_plan":      0.75,   # m/l — washer plan must be near-round
+    "nut_elong":        1.80,   # l/m — nut must be compact
+    "nut_flat_min":     0.12,   # s/l — thinner than this + ring → washer, not nut
+    "round_min":        0.60,   # s/m — round cross-section gate (bolt/shaft)
+    "bolt_elong_min":   2.0,
+    "bolt_elong_max":   8.0,
+    "head_fill":        0.65,   # bounding-cylinder fill below this → head vote
+    "head_com":         0.06,   # |COM offset|/l above this → head vote
+    "head_faces":       8,      # B-Rep face count at/above this → head vote
+    "long_shaft_elong": 5.0,    # l/m at/above this → Long Shaft (else Short)
+    "thin_flat":        0.08,   # s/l — Thin vs Thick Plate split
+    "plate_flat":       0.30,   # s/l — Thick Plate upper bound
+    "plate_plan":       0.30,   # m/l — plates must not be strongly elongated in plan
+}
 
-    Rules (all comparisons are dimensionless ratios — unit-independent):
-      high mean, low var   → shaft (index 3)
-      small + elongated    → fastener (index 1)
-      very flat            → plate (index 4)
-      bimodal SDF (ring)   → bearing (index 2)
-      high variance        → housing (index 5)
-      default              → body (index 0)
+
+def _compute_shape_signals(
+    tm:          Optional["trimesh.Trimesh"],
+    vol:         float,
+    bbox:        Tuple[float, float, float],
+    center:      "np.ndarray",
+    com:         Optional["np.ndarray"],
+    face_count:  int,
+) -> dict:
+    """
+    Compute the richer per-body signal set consumed by
+    _classify_component_type(): OBB-aligned extents (AABB fallback), a
+    convex-hull volume ratio and a central-axis ray-cast (through-hole
+    votes), bounding-cylinder fill and COM offset along the long axis
+    (bolt-head votes), and face count.
+
+    `bbox` = (dx, dy, dz) AABB extents. `center` = AABB world-center [x,y,z]
+    (used as ray/COM-offset origin if OBB alignment fails or isn't available).
+    `com` = world center-of-mass, or None. `tm` may be None (AABB-only path).
     """
     dx, dy, dz = bbox
-    ext        = sorted([dx, dy, dz])          # [shortest, middle, longest]
-    elongation = ext[2] / (ext[1] + 1e-9)      # > 3.5 → shaft-like
-    flatness   = ext[0] / (ext[2] + 1e-9)      # < 0.12 → plate-like
+    ext    = sorted([dx, dy, dz])
+    center = np.asarray(center, dtype=float)
+    hull_ratio = None
+    ray_hits   = None
 
-    # Shaft: strongly elongated, uniform cross-section, thick walls
-    if elongation > 3.5 and flatness > 0.05 and sdf_mean > 0.05 * ext[2]:
-        return 3   # shaft
+    order  = np.argsort([dx, dy, dz])
+    eye    = np.eye(3)
+    axis_s = eye[order[0]]
+    axis_l = eye[order[2]]
 
-    # Fastener: elongated but thin  (bolt, screw, pin)
-    if elongation > 2.5 and sdf_mean < 0.08 * ext[2]:
-        return 1   # fastener
+    if tm is not None and len(tm.faces) >= 4:
+        try:
+            obb   = tm.bounding_box_oriented
+            e     = np.asarray(obb.primitive.extents, dtype=float)
+            R     = np.asarray(obb.primitive.transform)[:3, :3]
+            oorder = np.argsort(e)
+            ext    = [float(e[oorder[0]]), float(e[oorder[1]]), float(e[oorder[2]])]
+            axis_s = R[:, oorder[0]]
+            axis_l = R[:, oorder[2]]
+            center = np.asarray(obb.primitive.transform)[:3, 3]
+        except Exception:
+            pass
+        try:
+            hull_ratio = min(1.5, float(vol / (tm.convex_hull.volume + 1e-12)))
+        except Exception:
+            hull_ratio = None
+        try:
+            origin = center - axis_s * (ext[2] * 2.0)
+            locs, _, _ = tm.ray.intersects_location(
+                np.asarray([origin]), np.asarray([axis_s]))
+            ray_hits = int(len(locs))
+        except Exception:
+            ray_hits = None
 
-    # Plate: very flat geometry
-    if flatness < 0.12:
-        return 4   # plate
+    s_, m_, l_ = ext
+    cyl_fill = (float(vol / (math.pi * (m_ / 2.0) ** 2 * l_ + 1e-12))
+                if l_ > 0 else None)
+    com_offset = None
+    if com is not None:
+        com_offset = abs(float(np.dot(np.asarray(com) - center, axis_l))) / (l_ + 1e-9)
 
-    # Bearing: ring topology → bimodal SDF (std > 60 % of mean)
-    if sdf_mean > 1e-9 and sdf_var ** 0.5 > 0.6 * sdf_mean:
-        return 2   # bearing
+    return {
+        "ext": ext, "hull_ratio": hull_ratio, "ray_hits": ray_hits,
+        "cyl_fill": cyl_fill, "com_offset": com_offset, "face_count": face_count,
+    }
 
-    # Housing / gear: complex geometry → elevated variance
-    if sdf_mean > 1e-9 and sdf_var > 0.2 * sdf_mean ** 2:
-        return 5   # housing
 
-    return 0  # body (generic fallback)
+def _classify_component_type(signals: dict) -> Tuple[int, int, int, list]:
+    """
+    Multi-signal geometric classifier over the proposed 8-class taxonomy
+    (COMP_TYPES). Ported from audit_component_types.classify_new() — see
+    that module's docstring for the full signal rationale.
+
+    Returns (type_idx, hole_votes, head_votes, notes) — most callers only
+    need type_idx; audit_component_types.py uses the vote/notes detail for
+    its ambiguity reporting.
+    """
+    T = _TYPE_THRESHOLDS
+    eps = 1e-9
+    s, m, l = signals["ext"]
+    elong = l / (m + eps)
+    flat  = s / (l + eps)
+    rnd   = s / (m + eps)
+    plan  = m / (l + eps)
+    notes: list = []
+
+    hv = 0
+    if signals["hull_ratio"] is not None and signals["hull_ratio"] < T["hull_hole"]:
+        hv += 1
+    if signals["ray_hits"] == 0:
+        hv += 1
+    has_hole = hv >= 2
+    if hv == 1:
+        notes.append("hole-votes-split")
+
+    if has_hole and flat < T["washer_flat"] and plan > T["washer_plan"]:
+        return COMP_TYPES.index("washer"), hv, 0, notes
+    if has_hole and elong < T["nut_elong"] and flat >= T["nut_flat_min"]:
+        return COMP_TYPES.index("nut"), hv, 0, notes
+
+    headv = 0
+    if signals["cyl_fill"] is not None and signals["cyl_fill"] < T["head_fill"]:
+        headv += 1
+    if signals["com_offset"] is not None and signals["com_offset"] > T["head_com"]:
+        headv += 1
+    if signals["face_count"] >= T["head_faces"]:
+        headv += 1
+
+    if rnd > T["round_min"] and elong >= T["bolt_elong_min"]:
+        if elong <= T["bolt_elong_max"] and headv >= 2:
+            return COMP_TYPES.index("bolt"), hv, headv, notes
+        if headv == 1:
+            notes.append("head-votes-split")
+        if elong >= T["long_shaft_elong"]:
+            return COMP_TYPES.index("long_shaft"), hv, headv, notes
+        return COMP_TYPES.index("short_shaft"), hv, headv, notes
+
+    if flat < T["thin_flat"] and plan > T["plate_plan"]:
+        return COMP_TYPES.index("thin_plate"), hv, headv, notes
+    if flat < T["plate_flat"] and plan > T["plate_plan"]:
+        return COMP_TYPES.index("thick_plate"), hv, headv, notes
+    return COMP_TYPES.index("body"), hv, headv, notes
 
 
 # ── Log-normalisation helper ──────────────────────────────────────────────────
@@ -303,6 +414,8 @@ def _parse_step(step_path: str) -> Optional[Data]:
         raw_vols:   list = []
         bboxes:     list = []
         body_surfs: List[frozenset] = []
+        centers:    list = []
+        coms:       list = []
 
         for dim, tag in volumes:
             bbox = gmsh.model.occ.getBoundingBox(dim, tag)
@@ -312,31 +425,43 @@ def _parse_step(step_path: str) -> Optional[Data]:
             dz   = bbox[5] - bbox[2]
             raw_vols.append(vol)
             bboxes.append((dx, dy, dz))
+            centers.append(np.array([(bbox[0] + bbox[3]) / 2,
+                                     (bbox[1] + bbox[4]) / 2,
+                                     (bbox[2] + bbox[5]) / 2]))
+            try:
+                coms.append(np.asarray(gmsh.model.occ.getCenterOfMass(dim, tag)))
+            except Exception:
+                coms.append(None)
             bnd = gmsh.model.getBoundary([(dim, tag)], oriented=False, combined=True)
             body_surfs.append(frozenset(abs(s[1]) for s in bnd if s[0] == 2))
 
-        # ── Trimesh enrichment: exact SA + SDF per body ───────────────────
+        # ── Trimesh enrichment: exact SA + SDF + component type per body ───
         exact_sas: list = []
         sdf_means: list = []
         sdf_vars:  list = []
+        type_idxs: list = []
 
         for i, (dim, tag) in enumerate(volumes):
             dx, dy, dz = bboxes[i]
             bbox_sa = 2.0 * (dx * dy + dy * dz + dz * dx)   # fallback
 
-            if _trimesh_ok:
-                tm = _build_trimesh(list(body_surfs[i]))
-                if tm is not None and len(tm.faces) >= 4:
-                    exact_sa      = float(tm.area)
-                    sdf_m, sdf_v  = _compute_sdf_stats(tm)
-                else:
-                    exact_sa, sdf_m, sdf_v = bbox_sa, 0.0, 0.0
+            tm = _build_trimesh(list(body_surfs[i])) if _trimesh_ok else None
+            if tm is not None and len(tm.faces) >= 4:
+                exact_sa      = float(tm.area)
+                sdf_m, sdf_v  = _compute_sdf_stats(tm)
             else:
                 exact_sa, sdf_m, sdf_v = bbox_sa, 0.0, 0.0
 
             exact_sas.append(exact_sa)
             sdf_means.append(sdf_m)
             sdf_vars.append(sdf_v)
+
+            signals = _compute_shape_signals(
+                tm, raw_vols[i], bboxes[i], centers[i], coms[i],
+                face_count=len(body_surfs[i]),
+            )
+            type_idx, _hv, _headv, _notes = _classify_component_type(signals)
+            type_idxs.append(type_idx)
 
         # ── Normalisation constants ────────────────────────────────────────
         n         = len(volumes)
@@ -367,11 +492,8 @@ def _parse_step(step_path: str) -> Optional[Data]:
         for i in range(n):
             dx, dy, dz = bboxes[i]
             ext = sorted([dx, dy, dz])
-            type_idx = _infer_type_from_geometry(
-                raw_vols[i], exact_sas[i], bboxes[i], sdf_means[i], sdf_vars[i]
-            )
             type_oh      = [0.0] * 8
-            type_oh[type_idx] = 1.0
+            type_oh[type_idxs[i]] = 1.0
 
             sphericity = min(1.0, (math.pi ** (1 / 3))
                             * ((6 * raw_vols[i]) ** (2 / 3))
@@ -480,15 +602,36 @@ def _parse_step_with_timeout(step_path: str, timeout_secs: int = 300) -> tuple:
     q   = ctx.Queue()
     p   = ctx.Process(target=_parse_step_worker, args=(step_path, q), daemon=True)
     p.start()
-    p.join(timeout=timeout_secs)
+
+    # Poll in short increments against an explicit wall-clock deadline rather
+    # than one big p.join(timeout_secs) call. On this platform a *single*
+    # join() (even with a timeout argument) has been observed to block far
+    # past its requested timeout when the child is stuck deep in an
+    # uninterruptible OpenCASCADE/gmsh C-extension call — almost certainly
+    # macOS's crash-reporter/diagnostic subsystem intercepting the killed
+    # process (known to hold up reaping for large C++ processes), not a bug
+    # in our own logic. A short-increment loop means each individual join()
+    # call is small, so even if ONE of them ignores its bound, the outer
+    # time.time() check still regains control close to the intended budget.
+    t_start = time.time()
+    while time.time() - t_start < timeout_secs and p.is_alive():
+        p.join(1)
 
     if p.is_alive():
         p.terminate()
-        p.join(5)
+        t_term = time.time()
+        while time.time() - t_term < 5 and p.is_alive():
+            p.join(0.5)
         if p.is_alive():
             p.kill()
-            p.join()
-        print(f"    [skip] {Path(step_path).name}: timeout after {timeout_secs}s")
+            t_kill = time.time()
+            while time.time() - t_kill < 3 and p.is_alive():
+                p.join(0.5)
+        if p.is_alive():
+            print(f"    [skip] {Path(step_path).name}: timeout after {timeout_secs}s "
+                  f"(child unresponsive to SIGKILL — abandoning, daemon process)")
+        else:
+            print(f"    [skip] {Path(step_path).name}: timeout after {timeout_secs}s")
         return None, "timeout"
 
     if not q.empty():

@@ -1,14 +1,17 @@
 """
-audit_component_types.py — READ-ONLY corpus audit for the PROPOSED 8-class
-component taxonomy:
+audit_component_types.py — READ-ONLY corpus audit for the live 8-class
+component taxonomy (dataset.COMP_TYPES):
 
     Long Shaft · Short Shaft · Thick Plate · Thin Plate · Bolt · Washer · Nut · Body
 
 Classifies every solid body in Source_3d_models/Best_models_for_training using
-multi-signal voting (convex-hull ratio + central-axis ray probe for through-holes;
-bounding-cylinder fill + center-of-mass offset + B-Rep face count for bolt heads),
-side-by-side with the CURRENT pipeline taxonomy (dataset._infer_type_from_geometry)
-so threshold tuning can see exactly what moves where.
+the same multi-signal voting classifier the live pipeline uses
+(dataset._compute_shape_signals + dataset._classify_component_type: convex-hull
+ratio + central-axis ray probe for through-holes; bounding-cylinder fill +
+center-of-mass offset + B-Rep face count for bolt heads) — a standalone,
+full-corpus class-balance/ambiguity report and threshold-tuning sandbox
+(edit dataset._TYPE_THRESHOLDS, re-run, see what shifts) without needing a
+full training run.
 
 Touches nothing: no cache writes, no checkpoint reads, no dataset.py changes.
 
@@ -19,7 +22,7 @@ Usage:
 
 Outputs (written to the corpus root, next to gallery.html):
     audit_classification.json   — full per-body feature + vote + class dump
-    audit_classification.html   — visual report (thumbnails, class chips, crosstab)
+    audit_classification.html   — visual report (thumbnails, class chips)
 """
 
 from __future__ import annotations
@@ -27,7 +30,6 @@ from __future__ import annotations
 import argparse
 import html as html_lib
 import json
-import math
 import multiprocessing as _mp
 import sys
 import time
@@ -38,91 +40,29 @@ from urllib.parse import quote
 _HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(_HERE))
 
+from dataset import COMP_TYPES, _TYPE_THRESHOLDS  # noqa: E402
+
 CORPUS     = _HERE.parent / "Source_3d_models" / "Best_models_for_training"
 CATEGORIES = ["Bench_vice", "C_Clamps", "Pipe_vice", "Gate_Valve", "Press_Tool",
               "Tool_Post", "Crane_hook"]
-NEW_CLASSES = ["Long Shaft", "Short Shaft", "Thick Plate", "Thin Plate",
-               "Bolt", "Washer", "Nut", "Body"]
+# Human-readable display labels, in dataset.COMP_TYPES index order.
+NEW_CLASSES = [t.replace("_", " ").title() for t in COMP_TYPES]
 IMG_EXTS     = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tif", ".tiff"}
 TIMEOUT_SECS = 300
-
-# ── Tunable thresholds (dimensionless; starting points, calibrate via this audit) ──
-T = {
-    "hull_hole":       0.80,   # V/V_hull below this → hole vote
-    "washer_flat":     0.20,   # s/l — washer must be flatter than this
-    "washer_plan":     0.75,   # m/l — washer plan must be near-round
-    "nut_elong":       1.80,   # l/m — nut must be compact
-    "nut_flat_min":    0.12,   # s/l — thinner than this + ring → washer, not nut
-    "round_min":       0.60,   # s/m — round cross-section gate (bolt/shaft)
-    "bolt_elong_min":  2.0,
-    "bolt_elong_max":  8.0,
-    "head_fill":       0.65,   # bounding-cylinder fill below this → head vote
-    "head_com":        0.06,   # |COM offset|/l above this → head vote
-    "head_faces":      8,      # B-Rep face count at/above this → head vote
-    "long_shaft_elong": 5.0,   # l/m at/above this → Long Shaft (else Short)
-    "thin_flat":       0.08,   # s/l — Thin vs Thick Plate split
-    "plate_flat":      0.30,   # s/l — Thick Plate upper bound
-    "plate_plan":      0.30,   # m/l — plates must not be strongly elongated in plan
-}
-
-
-def classify_new(b: dict) -> tuple[str, int, int, list]:
-    """Proposed-taxonomy classifier. Returns (class, hole_votes, head_votes, notes)."""
-    eps = 1e-9
-    s, m, l = b["ext"]
-    elong = l / (m + eps)
-    flat  = s / (l + eps)
-    rnd   = s / (m + eps)
-    plan  = m / (l + eps)
-    notes: list = []
-
-    # Through-hole votes (weak spot 1: two independent signals, require agreement)
-    hv = 0
-    if b["hull_ratio"] is not None and b["hull_ratio"] < T["hull_hole"]:
-        hv += 1
-    if b["ray_hits"] == 0:
-        hv += 1
-    has_hole = hv >= 2
-    if hv == 1:
-        notes.append("hole-votes-split")
-
-    if has_hole and flat < T["washer_flat"] and plan > T["washer_plan"]:
-        return "Washer", hv, 0, notes
-    if has_hole and elong < T["nut_elong"] and flat >= T["nut_flat_min"]:
-        return "Nut", hv, 0, notes
-
-    # Head votes (weak spot 2: three independent signals, require 2)
-    headv = 0
-    if b["cyl_fill"] is not None and b["cyl_fill"] < T["head_fill"]:
-        headv += 1
-    if b["com_offset"] is not None and b["com_offset"] > T["head_com"]:
-        headv += 1
-    if b["face_count"] >= T["head_faces"]:
-        headv += 1
-
-    if rnd > T["round_min"] and elong >= T["bolt_elong_min"]:
-        if elong <= T["bolt_elong_max"] and headv >= 2:
-            return "Bolt", hv, headv, notes
-        if headv == 1:
-            notes.append("head-votes-split")
-        if elong >= T["long_shaft_elong"]:
-            return "Long Shaft", hv, headv, notes
-        return "Short Shaft", hv, headv, notes
-
-    if flat < T["thin_flat"] and plan > T["plate_plan"]:
-        return "Thin Plate", hv, headv, notes
-    if flat < T["plate_flat"] and plan > T["plate_plan"]:
-        return "Thick Plate", hv, headv, notes
-    return "Body", hv, headv, notes
-
+T = _TYPE_THRESHOLDS  # local alias — kept for quick inline threshold experiments
 
 # ── Per-file worker (child process, mirrors dataset._parse_step's gmsh flow) ─────
+#
+# Classification itself (_compute_shape_signals + _classify_component_type) now
+# lives in dataset.py — this worker only re-derives the raw per-body signals for
+# reporting/display and calls the shared classifier, so the audit always reflects
+# exactly what the live pipeline would produce.
 
 def _audit_parse(step_path: str) -> list:
     import gmsh
     import numpy as np
     from dataset import (_build_trimesh, _compute_sdf_stats,
-                         _infer_type_from_geometry, COMP_TYPES)
+                         _compute_shape_signals, _classify_component_type)
 
     gmsh.initialize()
     gmsh.option.setNumber("General.Terminal", 0)
@@ -160,70 +100,31 @@ def _audit_parse(step_path: str) -> list:
             surf_tags  = [abs(sf[1]) for sf in bnd if sf[0] == 2]
             face_count = len(surf_tags)
 
-            ext      = sorted([dx, dy, dz])          # AABB fallback
-            obb_used = False
-            axis_s = axis_l = None
-            hull_ratio = None
-            ray_hits   = None
-            exact_sa   = 2.0 * (dx * dy + dy * dz + dz * dx)
+            exact_sa = 2.0 * (dx * dy + dy * dz + dz * dx)  # AABB fallback
             sdf_m = sdf_v = 0.0
 
             tm = _build_trimesh(surf_tags) if mesh_ok else None
             if tm is not None and len(tm.faces) >= 4:
                 exact_sa = float(tm.area)
                 sdf_m, sdf_v = _compute_sdf_stats(tm)
-                try:  # oriented bbox → true extents/axes regardless of part rotation
-                    obb   = tm.bounding_box_oriented
-                    e     = np.asarray(obb.primitive.extents, dtype=float)
-                    R     = np.asarray(obb.primitive.transform)[:3, :3]
-                    order = np.argsort(e)
-                    ext    = [float(e[order[0]]), float(e[order[1]]), float(e[order[2]])]
-                    axis_s = R[:, order[0]]
-                    axis_l = R[:, order[2]]
-                    center = np.asarray(obb.primitive.transform)[:3, 3]
-                    obb_used = True
-                except Exception:
-                    pass
-                try:  # hole vote 1: hull fills the hole, solid parts don't lose volume
-                    hull_ratio = min(1.5, float(vol / (tm.convex_hull.volume + 1e-12)))
-                except Exception:
-                    hull_ratio = None
 
-            if axis_s is None:  # AABB fallback axes (world-aligned)
-                order  = np.argsort([dx, dy, dz])
-                eye    = np.eye(3)
-                axis_s = eye[order[0]]
-                axis_l = eye[order[2]]
-
-            if tm is not None and len(tm.faces) >= 4:
-                try:  # hole vote 2: ray along shortest axis through center → 0 hits = hole
-                    origin = center - axis_s * (ext[2] * 2.0)
-                    locs, _, _ = tm.ray.intersects_location(
-                        np.asarray([origin]), np.asarray([axis_s]))
-                    ray_hits = int(len(locs))
-                except Exception:
-                    ray_hits = None
-
-            s_, m_, l_ = ext
-            cyl_fill = (float(vol / (math.pi * (m_ / 2.0) ** 2 * l_ + 1e-12))
-                        if l_ > 0 else None)
-            com_offset = None
-            if com is not None:
-                com_offset = abs(float(np.dot(com - center, axis_l))) / (l_ + 1e-9)
-
-            old_idx = _infer_type_from_geometry(vol, exact_sa, (dx, dy, dz), sdf_m, sdf_v)
+            signals = _compute_shape_signals(
+                tm, vol, (dx, dy, dz), center, com, face_count)
+            type_idx, hv, headv, notes = _classify_component_type(signals)
+            s_, m_, l_ = signals["ext"]
 
             bodies.append({
                 "tag": int(tag), "vol": float(vol), "sa": float(exact_sa),
                 "ext": [round(s_, 4), round(m_, 4), round(l_, 4)],
-                "obb": obb_used,
-                "hull_ratio": None if hull_ratio is None else round(hull_ratio, 3),
-                "ray_hits": ray_hits,
-                "cyl_fill": None if cyl_fill is None else round(cyl_fill, 3),
-                "com_offset": None if com_offset is None else round(com_offset, 3),
+                "obb": tm is not None and len(tm.faces) >= 4,
+                "hull_ratio": signals["hull_ratio"] and round(signals["hull_ratio"], 3),
+                "ray_hits": signals["ray_hits"],
+                "cyl_fill": signals["cyl_fill"] and round(signals["cyl_fill"], 3),
+                "com_offset": signals["com_offset"] and round(signals["com_offset"], 3),
                 "face_count": face_count,
                 "sdf_mean": round(float(sdf_m), 5), "sdf_var": round(float(sdf_v), 6),
-                "old_class": COMP_TYPES[old_idx],
+                "new_class": NEW_CLASSES[type_idx],
+                "hole_votes": hv, "head_votes": headv, "notes": notes,
             })
     finally:
         gmsh.finalize()
@@ -287,7 +188,7 @@ def first_thumb(cat: str, folder: str) -> str | None:
 # ── HTML report ──────────────────────────────────────────────────────────────────
 
 def write_html(records: list, overall: Counter, per_cat: dict,
-               crosstab: Counter, n_ambiguous: int, elapsed: float) -> Path:
+               n_ambiguous: int, elapsed: float) -> Path:
     esc = html_lib.escape
     total_bodies = sum(overall.values())
 
@@ -295,14 +196,6 @@ def write_html(records: list, overall: Counter, per_cat: dict,
         f"<tr><td>{esc(c)}</td><td>{overall.get(c, 0)}</td>"
         f"<td>{100.0 * overall.get(c, 0) / max(1, total_bodies):.1f}%</td></tr>"
         for c in NEW_CLASSES)
-
-    old_classes = sorted({o for (o, _n) in crosstab})
-    xhead = "".join(f"<th>{esc(c)}</th>" for c in NEW_CLASSES)
-    xrows = ""
-    for oc in old_classes:
-        cells = "".join(f"<td>{crosstab.get((oc, nc), 0) or ''}</td>"
-                        for nc in NEW_CLASSES)
-        xrows += f"<tr><th>{esc(oc)}</th>{cells}</tr>"
 
     sections = ""
     for cat in CATEGORIES:
@@ -331,7 +224,6 @@ def write_html(records: list, overall: Counter, per_cat: dict,
                 rows = "".join(
                     f'<tr{" class=amb" if b["notes"] else ""}>'
                     f'<td>{b["tag"]}</td><td><b>{esc(b["new_class"])}</b></td>'
-                    f'<td>{esc(b["old_class"])}</td>'
                     f'<td>{b["ext"][0]:.1f} / {b["ext"][1]:.1f} / {b["ext"][2]:.1f}</td>'
                     f'<td>{b["ext"][2] / (b["ext"][1] + 1e-9):.2f}</td>'
                     f'<td>{b["ext"][0] / (b["ext"][2] + 1e-9):.2f}</td>'
@@ -344,7 +236,7 @@ def write_html(records: list, overall: Counter, per_cat: dict,
                     for b in r["bodies"])
                 detail = (
                     '<details><summary>bodies</summary><div class="tw"><table>'
-                    '<tr><th>tag</th><th>new</th><th>old</th><th>s/m/l</th>'
+                    '<tr><th>tag</th><th>class</th><th>s/m/l</th>'
                     '<th>elong</th><th>flat</th><th>hull</th><th>ray</th>'
                     '<th>fill</th><th>com</th><th>faces</th><th>notes</th></tr>'
                     f'{rows}</table></div></details>')
@@ -357,7 +249,7 @@ def write_html(records: list, overall: Counter, per_cat: dict,
 
     doc = f"""<!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8">
-<title>Component Type Audit — Proposed 8-Class Taxonomy</title>
+<title>Component Type Audit — 8-Class Taxonomy</title>
 <style>
 :root {{ --bg:#f5f7fa; --panel:#fff; --border:#dbe2ea; --text:#1c2733; --muted:#64748b;
         --accent:#3b82f6; --accent-bg:#eaf1fe; --warn:#b45309; --warn-bg:#fef3c7;
@@ -400,16 +292,14 @@ details summary {{ cursor:pointer; font-size:0.75rem; color:var(--muted); }}
 .tw {{ overflow-x:auto; max-width:100%; }}
 tr.amb td {{ background:var(--warn-bg); }}
 </style></head><body>
-<header><h1>Component Type Audit — proposed 8-class taxonomy</h1>
+<header><h1>Component Type Audit — 8-class taxonomy</h1>
 <div class="sub">{len(records)} folders · {total_bodies} bodies · {n_ambiguous} ambiguous
 (vote conflicts) · generated in {elapsed:.0f}s · thresholds in
-back_end/audit_component_types.py</div></header>
+back_end/dataset.py (_TYPE_THRESHOLDS)</div></header>
 <main>
 <div class="top">
-<div class="panel"><h2 style="margin-top:0;">Class balance (new taxonomy)</h2>
+<div class="panel"><h2 style="margin-top:0;">Class balance</h2>
 <table><tr><th>Class</th><th>Bodies</th><th>%</th></tr>{summary_rows}</table></div>
-<div class="panel"><h2 style="margin-top:0;">Old → New crosstab</h2>
-<div class="tw"><table><tr><th>old \\ new</th>{xhead}</tr>{xrows}</table></div></div>
 </div>
 {sections}
 </main></body></html>"""
@@ -435,7 +325,6 @@ def main() -> None:
     records = []
     overall  = Counter()
     per_cat  = {c: Counter() for c in CATEGORIES}
-    crosstab = Counter()
     n_ambiguous = 0
     t0 = time.time()
 
@@ -446,16 +335,12 @@ def main() -> None:
         rec = {"category": cat, "folder": folder, "status": status,
                "bodies": [], "n_bodies": 0}
         if status == "ok" and bodies:
+            # _audit_parse() already classified each body (new_class/hole_votes/
+            # head_votes/notes set) via dataset.py's shared classifier.
             for b in bodies:
-                cls, hv, headv, notes = classify_new(b)
-                b["new_class"]  = cls
-                b["hole_votes"] = hv
-                b["head_votes"] = headv
-                b["notes"]      = notes
-                overall[cls] += 1
-                per_cat[cat][cls] += 1
-                crosstab[(b["old_class"], cls)] += 1
-                if notes:
+                overall[b["new_class"]] += 1
+                per_cat[cat][b["new_class"]] += 1
+                if b["notes"]:
                     n_ambiguous += 1
             rec["bodies"]   = bodies
             rec["n_bodies"] = len(bodies)
@@ -480,11 +365,9 @@ def main() -> None:
         "n_ambiguous": n_ambiguous,
         "class_counts": dict(overall),
         "per_category": {c: dict(per_cat[c]) for c in CATEGORIES},
-        "crosstab":     {f"{o} -> {n}": v for (o, n), v in sorted(crosstab.items())},
         "folders":      records,
     }, indent=1))
-    out_html = write_html(records, overall, per_cat, crosstab,
-                          n_ambiguous, total_elapsed)
+    out_html = write_html(records, overall, per_cat, n_ambiguous, total_elapsed)
 
     print("\n" + "=" * 70, flush=True)
     print(f"TOTAL: {len(records)} folders, {total_bodies} bodies, "

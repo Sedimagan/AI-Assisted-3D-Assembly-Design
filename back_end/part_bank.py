@@ -27,7 +27,8 @@ import trimesh
 from dataset import (
     _build_trimesh,
     _compute_sdf_stats,
-    _infer_type_from_geometry,
+    _compute_shape_signals,
+    _classify_component_type,
     COMP_TYPES,
 )
 
@@ -66,6 +67,13 @@ def _extract_bodies_worker(step_path: str, result_queue: "_mp.Queue") -> None:
                     bbox = gmsh.model.occ.getBoundingBox(dim, tag)
                     vol = gmsh.model.occ.getMass(dim, tag)
                     dx, dy, dz = bbox[3] - bbox[0], bbox[4] - bbox[1], bbox[5] - bbox[2]
+                    center = np.array([(bbox[0] + bbox[3]) / 2,
+                                       (bbox[1] + bbox[4]) / 2,
+                                       (bbox[2] + bbox[5]) / 2])
+                    try:
+                        com = np.asarray(gmsh.model.occ.getCenterOfMass(dim, tag))
+                    except Exception:
+                        com = None
                     bnd = gmsh.model.getBoundary([(dim, tag)], oriented=False, combined=True)
                     surf_tags = [abs(s[1]) for s in bnd if s[0] == 2]
                     tm = _build_trimesh(surf_tags)
@@ -73,9 +81,11 @@ def _extract_bodies_worker(step_path: str, result_queue: "_mp.Queue") -> None:
                         continue
                     exact_sa = float(tm.area)
                     sdf_m, sdf_v = _compute_sdf_stats(tm)
-                    type_idx = _infer_type_from_geometry(
-                        vol, exact_sa, (dx, dy, dz), sdf_m, sdf_v
+                    signals = _compute_shape_signals(
+                        tm, vol, (dx, dy, dz), center, com,
+                        face_count=len(surf_tags),
                     )
+                    type_idx, _hv, _headv, _notes = _classify_component_type(signals)
                     bodies.append({
                         "vertices": np.asarray(tm.vertices, dtype=np.float32),
                         "faces": np.asarray(tm.faces, dtype=np.int64),
@@ -148,7 +158,12 @@ def extract_bodies_with_timeout(step_path: str, timeout_secs: int = 300) -> tupl
         p.join(5)
         if p.is_alive():
             p.kill()
-        p.join()
+            # Bounded, not unconditional: SIGKILL isn't always instant — a child
+            # stuck in a long uninterruptible OpenCASCADE/gmsh C-extension call
+            # can take minutes to actually die, and an unconditional join() here
+            # would silently re-inflate this "timeout" into a multi-minute hang
+            # (confirmed on a real corpus file via dataset.py's identical bug).
+            p.join(10)
         return [], "timeout"
 
     p.join()

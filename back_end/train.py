@@ -6,6 +6,7 @@ Run: python train.py [--config config.yaml] [--force-reload]
 from __future__ import annotations
 
 import argparse
+import gc
 import json
 import os
 import time
@@ -117,6 +118,41 @@ def train_epoch(gnn, lp, loader, opt, device):
         loss.backward()
         opt.step()
         total_loss += loss.item()
+        # Autograd graphs commonly contain reference cycles (a tensor's
+        # grad_fn holding saved tensors that, through the graph, end up
+        # referencing back to it) — CPython's refcounting alone can't free
+        # those, only the cyclic GC can, and it doesn't run on a fixed
+        # schedule tied to how fast MPS-backed tensors accumulate. Until
+        # gc.collect() actually runs, those tensors look "still referenced"
+        # from empty_cache()'s point of view and it has nothing to free.
+        # Drop our own references first so the cycle has nothing external
+        # keeping it alive either.
+        del z, loss, batch
+        # See below on why this is cleared this often — even with an
+        # end-of-epoch clear, swap pressure was still building within a
+        # single fold (observed 92%+ swap usage) because each batch's
+        # distinct shape can pin real memory until the *next* clear, and on
+        # an 8-batch epoch that's a long time to hold onto several
+        # multi-GB compiled graphs at once. Every 3 batches bounds how many
+        # distinct shapes are ever resident simultaneously, at the cost of
+        # some recompilation overhead — worth it given the alternative is
+        # the system running out of swap entirely.
+        if device.type == "mps" and (i + 1) % 3 == 0:
+            gc.collect()
+            torch.mps.empty_cache()
+    # MPS caches a compiled graph executable per distinct tensor shape it
+    # sees, with no automatic eviction. PyG batches variable-sized graphs
+    # and `shuffle=True` reshuffles batch composition every epoch, so on a
+    # corpus with wide graph-size variance (this one has assemblies from a
+    # few nodes up to 170+) nearly every batch triggers a new compiled
+    # shape — the cache then grows unbounded over a long run (observed:
+    # process RSS climbing from ~17GB to 33GB over ~28 epochs, unrelated to
+    # any Python-level tensor reference). Clearing it every epoch is cheap
+    # (next epoch just recompiles shapes it re-encounters) and bounds
+    # memory to what a single epoch's shape diversity actually needs.
+    if device.type == "mps":
+        gc.collect()
+        torch.mps.empty_cache()
     return total_loss / len(loader)
 
 
@@ -250,6 +286,13 @@ def main():
             t0          = time.time()
             train_loss  = train_epoch(gnn, lp, train_loader, opt, device)
             val_metrics = evaluate(gnn, lp, val_loader, device)
+            # evaluate()'s forward passes populate the same MPS compiled-
+            # shape cache as training (it's a per-shape cache regardless of
+            # grad state) — clear again here so the val set's shapes don't
+            # linger resident until the next epoch's train_epoch() call.
+            if device.type == "mps":
+                gc.collect()
+                torch.mps.empty_cache()
             sched.step(val_metrics["auc"])
 
             row = {"fold": fold, "epoch": epoch,
@@ -302,6 +345,18 @@ def main():
             torch.save(torch.load(fold_ckpt, map_location="cpu",
                                   weights_only=False),
                        ckpt_dir / "best_overall.pt")
+
+        # Per-epoch clearing (inside train_epoch) bounds memory *within* a
+        # fold, but each fold builds a brand-new gnn/lp/opt/sched — observed
+        # memory climbing to new session-highs specifically partway through
+        # fold 3 (after folds 1-2 completed cleanly) suggests something
+        # from the *previous* fold's model/optimizer/loaders wasn't fully
+        # released before the next fold's objects were built on top of it.
+        # Drop our references explicitly and collect before moving on.
+        del gnn, lp, opt, sched, train_loader, val_loader, test_loader, ckpt
+        if device.type == "mps":
+            gc.collect()
+            torch.mps.empty_cache()
 
     # ── CV summary ────────────────────────────────────────────────────────
     import statistics

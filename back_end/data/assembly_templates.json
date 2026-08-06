@@ -3,9 +3,14 @@
     "category": "bench_vice",
     "label": "Bench Vice",
     "component_counts": {
-      "body": 17,
-      "fastener": 5,
-      "plate": 3
+      "long_shaft": 2,
+      "short_shaft": 2,
+      "thick_plate": 2,
+      "thin_plate": 3,
+      "bolt": 2,
+      "washer": 2,
+      "nut": 4,
+      "body": 12
     },
     "total_bodies": 22,
     "examples": [
@@ -21,10 +26,14 @@
     "category": "c_clamps",
     "label": "C Clamps",
     "component_counts": {
-      "body": 4,
-      "fastener": 2,
-      "bearing": 1,
-      "plate": 1
+      "long_shaft": 1,
+      "short_shaft": 1,
+      "thick_plate": 2,
+      "thin_plate": 1,
+      "bolt": 1,
+      "washer": 1,
+      "nut": 2,
+      "body": 2
     },
     "total_bodies": 7,
     "examples": [
@@ -40,9 +49,14 @@
     "category": "crane_hook",
     "label": "Crane Hook",
     "component_counts": {
-      "body": 26,
-      "fastener": 3,
-      "plate": 8
+      "long_shaft": 2,
+      "short_shaft": 3,
+      "thick_plate": 6,
+      "thin_plate": 2,
+      "bolt": 1,
+      "washer": 7,
+      "nut": 12,
+      "body": 7
     },
     "total_bodies": 40,
     "examples": [
@@ -58,11 +72,16 @@
     "category": "gate_valve",
     "label": "Gate Valve",
     "component_counts": {
-      "body": 35,
-      "fastener": 10,
-      "plate": 6
+      "long_shaft": 2,
+      "short_shaft": 4,
+      "thick_plate": 2,
+      "thin_plate": 3,
+      "bolt": 4,
+      "washer": 3,
+      "nut": 18,
+      "body": 16
     },
-    "total_bodies": 51,
+    "total_bodies": 49,
     "examples": [
       "Gate_Valve_02.STEP",
       "Gate_Valve_03.stp",
@@ -70,15 +89,20 @@
       "Gate_Valve_05.stp",
       "Gate_Valve_06.stp"
     ],
-    "n_assemblies": 21
+    "n_assemblies": 20
   },
   {
     "category": "pipe_vice",
     "label": "Pipe Vice",
     "component_counts": {
-      "body": 6,
-      "fastener": 2,
-      "plate": 1
+      "long_shaft": 1,
+      "short_shaft": 2,
+      "thick_plate": 1,
+      "thin_plate": 2,
+      "bolt": 1,
+      "washer": 1,
+      "nut": 2,
+      "body": 4
     },
     "total_bodies": 8,
     "examples": [
@@ -88,17 +112,22 @@
       "Pipe_Vice_07.STEP",
       "Pipe_Vice_08.STEP"
     ],
-    "n_assemblies": 42
+    "n_assemblies": 39
   },
   {
     "category": "press_tool",
     "label": "Press Tool",
     "component_counts": {
-      "body": 9,
-      "fastener": 4,
-      "plate": 5
+      "long_shaft": 4,
+      "short_shaft": 4,
+      "thick_plate": 2,
+      "thin_plate": 5,
+      "bolt": 10,
+      "washer": 3,
+      "nut": 4,
+      "body": 5
     },
-    "total_bodies": 14,
+    "total_bodies": 12,
     "examples": [
       "Press_Tool_02.stp",
       "Press_Tool_04.stp",
@@ -106,15 +135,20 @@
       "Press_Tool_06.STEP",
       "Press_Tool_07.stp"
     ],
-    "n_assemblies": 21
+    "n_assemblies": 20
   },
   {
     "category": "tool_post",
     "label": "Tool Post",
     "component_counts": {
-      "body": 15,
-      "fastener": 10,
-      "plate": 4
+      "long_shaft": 2,
+      "short_shaft": 8,
+      "thick_plate": 2,
+      "thin_plate": 1,
+      "bolt": 8,
+      "washer": 1,
+      "nut": 3,
+      "body": 10
     },
     "total_bodies": 30,
     "examples": [

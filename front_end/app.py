@@ -262,15 +262,22 @@ def _run_inference(step_bytes: bytes,
         if n_bodies < 2:
             # ── Single-body (or empty) upload: geometry analysis + template match ──
             import gmsh as _sb_gmsh
+            from dataset import _build_trimesh, _compute_shape_signals, _classify_component_type, COMP_TYPES as _CT
             _sb_gmsh.initialize()
             _sb_gmsh.option.setNumber("General.Terminal", 0)
             _sb_gmsh.model.add("sb_analysis")
             _sb_vols_data = []
+            _sb_signals = None
             try:
                 _sb_gmsh.merge({repr(str(_STEP_CACHE))})
                 _sb_gmsh.model.occ.synchronize()
                 _sb_vols = _sb_gmsh.model.occ.getEntities(3)
-                for _sv_d, _sv_t in _sb_vols:
+                _sb_mesh_ok = True
+                try:
+                    _sb_gmsh.model.mesh.generate(2)
+                except Exception:
+                    _sb_mesh_ok = False
+                for _svi, (_sv_d, _sv_t) in enumerate(_sb_vols):
                     _sv_bb  = _sb_gmsh.model.occ.getBoundingBox(_sv_d, _sv_t)
                     _sv_vol = _sb_gmsh.model.occ.getMass(_sv_d, _sv_t)
                     _sv_dx  = _sv_bb[3] - _sv_bb[0]
@@ -284,6 +291,22 @@ def _run_inference(step_bytes: bytes,
                                      (_sv_bb[2]+_sv_bb[5])/2],
                         "name": _sv_nm.strip() if _sv_nm else "",
                     }})
+                    if _svi == 0:
+                        # Only the first body feeds classification/NodeRanker below.
+                        _sv_center = [(_sv_bb[0]+_sv_bb[3])/2,
+                                      (_sv_bb[1]+_sv_bb[4])/2,
+                                      (_sv_bb[2]+_sv_bb[5])/2]
+                        try:
+                            _sv_com = _sb_gmsh.model.occ.getCenterOfMass(_sv_d, _sv_t)
+                        except Exception:
+                            _sv_com = None
+                        _sv_bnd = _sb_gmsh.model.getBoundary([(_sv_d, _sv_t)], oriented=False, combined=True)
+                        _sv_surf_tags = [abs(_s[1]) for _s in _sv_bnd if _s[0] == 2]
+                        _sv_tm = _build_trimesh(_sv_surf_tags) if _sb_mesh_ok else None
+                        _sb_signals = _compute_shape_signals(
+                            _sv_tm, _sv_vol, (_sv_dx, _sv_dy, _sv_dz), _sv_center, _sv_com,
+                            face_count=len(_sv_surf_tags),
+                        )
             except Exception:
                 pass
             finally:
@@ -293,11 +316,12 @@ def _run_inference(step_bytes: bytes,
                 print(json.dumps({{"error": "No solid bodies found in the uploaded STEP file."}}))
                 sys.exit(0)
 
-            from dataset import _infer_type_from_geometry, COMP_TYPES as _CT
             _sv      = _sb_vols_data[0]
             _sb_sa   = 2.0 * (_sv["dx"]*_sv["dy"] + _sv["dy"]*_sv["dz"] + _sv["dz"]*_sv["dx"])
-            _sb_tidx = _infer_type_from_geometry(
-                _sv["vol"], _sb_sa, (_sv["dx"], _sv["dy"], _sv["dz"]), 0.0, 0.0)
+            if _sb_signals is not None:
+                _sb_tidx, _, _, _ = _classify_component_type(_sb_signals)
+            else:
+                _sb_tidx = _CT.index("body")  # geometry extraction failed — safe fallback
             _sb_type = _CT[_sb_tidx]
             _sb_name = _sv["name"] if _sv["name"] else "Part 1"
 

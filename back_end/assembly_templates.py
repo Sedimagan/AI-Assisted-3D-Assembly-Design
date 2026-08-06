@@ -28,20 +28,17 @@ from typing import Dict, List, Optional, Tuple
 
 import torch
 
-COMP_TYPES = [
-    "body", "fastener", "bearing", "shaft",
-    "plate", "housing", "gear", "other",
-]
+from dataset import COMP_TYPES  # single source of truth — see dataset.py
 
 TYPE_LABELS = {
-    "body":     "structural body",
-    "fastener": "fastener  (bolt / screw / nut)",
-    "bearing":  "bearing",
-    "shaft":    "shaft / spindle / pin",
-    "plate":    "plate  (hinge leaf / bracket / flange)",
-    "housing":  "housing / block",
-    "gear":     "gear",
-    "other":    "component",
+    "long_shaft":  "long shaft / spindle",
+    "short_shaft": "short shaft / pin",
+    "thick_plate": "thick plate  (bracket / flange)",
+    "thin_plate":  "thin plate  (leaf / gasket)",
+    "bolt":        "bolt / screw",
+    "washer":      "washer",
+    "nut":         "nut",
+    "body":        "structural body",
 }
 
 # Human-readable labels for source folder categories
