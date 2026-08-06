@@ -16,14 +16,14 @@
 
 ## What's New (August 2026 — Phase 2/3)
 
-- **Phase 3 shape generation implemented and trained** — `back_end/part_bank.py` (canonicalize/voxelize/devoxelize + multiprocessing part-extraction pipeline) built a 3,480-part bank from 193 assemblies; `back_end/shape_generator.py` (`ConditionalShapeVAE`, `ShapeRetriever`, `HybridShapeGenerator`) and `back_end/train_shape_gen.py` (leave-one-node-out training against the frozen R30 encoder) trained a 32³ conditional voxel VAE. **Test loss 0.3397, IoU 0.5002, chamfer 0.0621** (best val IoU 0.5096 @ epoch 36) — both beat the design targets (IoU ≥ 0.35, chamfer ≤ 0.08). Checkpoint: `checkpoints/shape_vae.pt`. Wired into `infer.py` via `load_shape_generator()` / `generate_missing_shape()` with the same graceful-degradation pattern as NodeRanker.
-- **NodeRanker re-trained against R30 (the actual serving encoder)** — Hit@5 0.8963, MRR 0.5327, NDCG@5 0.4541, **Hit@1 0.2519 (below the 0.5556 majority-class baseline)**. Reported honestly: strong ranking quality in aggregate (Hit@5/MRR) but the top-1 prediction currently underperforms simply guessing the most common next-component type — a concrete target for further tuning, not yet resolved.
-- **R32 retrain (5-fold CV, 193-folder corpus)** — Mean AUC 0.5067 ± 0.0524, Mean AP 0.7054 ± 0.0265; best fold (fold 4) val AUC 0.6670, final test AUC 0.4875 / AP 0.6873. **Did not beat R30** (mean AUC 0.5994/AP 0.8688) — promotion gate correctly kept R30 as `best_serving.pt`. NodeRanker and shape-gen above were therefore both trained against R30, not R32.
-- **Training corpus expanded to 7 categories / 193 usable folders** — added Gate_Valve, Press_Tool, Tool_Post, Crane_hook to the existing Bench_Vice/C_Clamps/Pipe_Vice set; a second parsability audit quarantined 22 TIMEOUT + 3 ERROR folders into a new `slow_or_unstable/` directory (mirroring `rejected/`/`non_compatible_formats/`). See *Datasets → Current training corpus* below.
-- **Two bug fixes found and fixed this round**:
-  - `dataset.py`'s category filter matched `any(part in categories for part in path.parts)`, which would have silently pulled 91 files from `rejected/`/`non_compatible_formats/`/`slow_or_unstable/` subfolders back into training (they mirror category names one level down). Fixed to check only `path.relative_to(source_dir).parts[0]`.
-  - `part_bank.py`'s multiprocessing worker had two related bugs: a queue-flush deadlock (parent called `p.join()` before draining the result queue — hangs on large mesh payloads) and a false-timeout race (checked `p.is_alive()` before trusting an already-received queue result, misreporting quick real errors as timeouts). Both fixed with a polling-based drain loop that trusts a received result first.
-- **Proposed 8-class component taxonomy + audit tool** — `back_end/audit_component_types.py` classifies every body with multi-signal voting (convex-hull ratio, axis ray probe, cylinder-fill, COM offset, face count) into Long/Short Shaft, Thick/Thin Plate, Bolt, Washer, Nut, Body — candidate replacement for the current SDF-rule taxonomy.
+- **Migrated to the 8-class component taxonomy** (Long/Short Shaft, Thick/Thin Plate, Bolt, Washer, Nut, Body) — previously a candidate/audit-only scheme, now the *live* classifier used everywhere (`dataset.py`, `part_bank.py`, `app.py`'s single-body path). Replaces the old single-signal SDF rules (`fastener`/`bearing`/`shaft`/`plate`/`housing`/`gear`) with multi-signal voting (convex-hull ratio + ray-cast for through-holes, cylinder-fill + COM-offset + face-count for bolt heads). Triggered by a real bug: the old taxonomy's "bearing" class (1 example in the whole corpus) polluted a category's expected-components template and produced a spurious "1 bearing missing" report in the UI. `dataset.py` is now the single source of truth for `COMP_TYPES` and the classifier; `part_bank.py`, `app.py`, and `audit_component_types.py` import from it instead of duplicating.
+- **R33 — full retrain under the new taxonomy** (5-fold CV, same 193-folder/7-category corpus) — Mean AUC 0.5306 ± 0.0314, Mean AP 0.7213 ± 0.0209. Manually promoted to `checkpoints/best_serving.pt` (R30 backed up to `archive_r30/`) since R30 and R33 encode node-feature type-slots under completely different taxonomies and aren't a valid apples-to-apples AUC comparison — the automatic promotion gate was deliberately overridden for this one case.
+- **NodeRanker re-trained against R33** — Hit@1 0.3869, now **beating** the majority-class baseline (0.3650) — Hit@5 0.8467, MRR 0.5723, NDCG@5 0.6225. This resolves the prior below-baseline Hit@1 finding (0.2519 vs. baseline 0.5556 under the old taxonomy/R30).
+- **Part bank rebuilt under the new taxonomy** — 3,221 parts from 284 assemblies (includes `rejected/`/`slow_or_unstable/` quarantine folders this pass), replacing the old 3,480-part/193-assembly bank built under the superseded taxonomy.
+- **Shape-gen VAE re-trained against R33 + the rebuilt part bank** — Test IoU 0.5192, chamfer 0.0424, loss 0.4177 (best val IoU 0.4930 @ epoch 31) — both still comfortably beat the design targets (IoU ≥ 0.35, chamfer ≤ 0.08). Checkpoint: `checkpoints/shape_vae.pt`.
+- **End-to-end verification on a real STEP file** — classification, `AssemblyTemplateDB` matching, and shape generation all confirmed producing new-taxonomy output (bolt/washer/nut/plate-style entries) with zero old-taxonomy categories remaining anywhere in the pipeline.
+- **`assembly_templates.py`'s `_category_from_path()` bug fix** — previously assumed a fixed one-level nesting under `Source_3d_models/`, so every one of the 193 training assemblies resolved to the same bogus "category" (`best_models_for_training`), collapsing all 7 real categories into one blended template. Fixed to walk past known container directories; confirmed via a real Bench_Vice upload going from 10.4 % → 96.2 % template-match confidence after the fix + template rebuild.
+- **Two multiprocessing timeout bugs fixed** in `dataset.py`/`part_bank.py`'s STEP-parsing timeout wrappers — an unconditional `p.join()` after `p.kill()` could block for minutes-to-tens-of-minutes when a child was stuck deep in an uninterruptible OpenCASCADE/gmsh C-extension call (SIGKILL doesn't guarantee instant death on macOS in that state); confirmed empirically via isolated testing. Fixed with bounded, wall-clock-deadline polling loops instead.
 
 ---
 
@@ -59,7 +59,7 @@ cd back_end && python train.py      # GNN training
 
 Engineering CAD assemblies consist of multiple interconnected components whose correct selection is time-consuming and expertise-dependent. This project trains a **Graph Attention Network (GAT)** on assembly graphs to detect **missing components** via link prediction — Phase 1. A **Gemini-powered Skills AI agent** (AIDA) explains predictions in engineering language. An **Assembly Completeness Model** (`AssemblyTemplateDB`) learns per-category component-type distributions from training data and identifies what is missing when a partial or single-component file is uploaded. An **Octree-based Open Surface Detector** (inspired by the spatial partitioning technique in Borah & Borah 2020) identifies the precise mesh surfaces where missing components should be assembled, highlighting them in **lime green** directly on the 3D model — each open joint gets its own interactive legend entry. The solution is implemented entirely in Python using PyTorch Geometric, without dependency on proprietary CAD software APIs.
 
-**Phase 2 (in progress):** heterogeneous relation-aware encoder (`RGATConv` + `TypedLinear`, deployed as R30) and next-component ranking via **NodeRanker** (cosine similarity, BPR loss, Hit@K / MRR / NDCG@K) — wired end-to-end into inference, API, and UI.
+**Phase 2 (in progress):** heterogeneous relation-aware encoder (`RGATConv` + `TypedLinear`, deployed as R33 under the new 8-class component taxonomy) and next-component ranking via **NodeRanker** (cosine similarity, BPR loss, Hit@K / MRR / NDCG@K) — wired end-to-end into inference, API, and UI.
 
 ---
 
@@ -181,18 +181,20 @@ The graph construction pipeline in `back_end/dataset.py` uses **gmsh + OpenCASCA
 
 **Dims [0–7] — Geometry-Driven Component Type One-Hot (8 classes)**
 
-Each body is now classified by its geometry (SDF statistics + bounding-box ratios) rather than being hardcoded to "body":
+As of the August 2026 taxonomy migration, each body is classified by `dataset._classify_component_type()` using **multi-signal voting** (convex-hull ratio + central-axis ray-cast for through-holes, cylinder-fill + COM-offset + face-count for bolt heads) rather than the older single-signal SDF/bbox rules:
 
-| Index | Class | SDF signature |
+| Index | Class | Discriminating signal |
 |---|---|---|
-| 0 | `body` | Generic fallback |
-| 1 | `fastener` | Elongated (>2.5×) · thin walls (SDF mean < 8 % of long axis) |
-| 2 | `bearing` | SDF std > 60 % of mean — bimodal ring topology |
-| 3 | `shaft` | Strongly elongated (>3.5×) · SDF mean > 5 % of long axis |
-| 4 | `plate` | Flatness ratio < 12 % (min bbox dim / max bbox dim) |
-| 5 | `housing` | SDF variance > 20 % of mean² — complex wall geometry |
-| 6 | `gear` | *(covered by housing rule for now; explicit gear rule Phase 2)* |
-| 7 | `other` | *(reserved)* |
+| 0 | `long_shaft` | Strong elongation (>5×), no through-hole |
+| 1 | `short_shaft` | Elongated but below the long-shaft threshold, no through-hole |
+| 2 | `thick_plate` | Flat (flatness ratio < 30 %), no through-hole, above thin-plate thickness cutoff |
+| 3 | `thin_plate` | Flat and below the thin-plate thickness cutoff (< 8 % of max extent) |
+| 4 | `bolt` | Elongated (2–8×) with hole vote + a distinct head (cylinder-fill/COM-offset/face-count vote) |
+| 5 | `washer` | Flat, near-planar, high hole-vote confidence |
+| 6 | `nut` | Compact, elongation < 1.8×, through-hole present, not flat |
+| 7 | `body` | Generic fallback — none of the above vote strongly |
+
+`_TYPE_THRESHOLDS` in `dataset.py` holds the exact cutoffs; a full-corpus audit (via `audit_component_types.py`) is the tool for re-tuning them against ground truth — the thresholds are carried over verbatim from the pre-migration candidate scheme and have **not** been re-validated post-migration (39.5 % of bodies showed vote conflicts in the last audit run).
 
 **Dim [8] — Normalised Volume**
 
@@ -322,7 +324,7 @@ AI-Assisted-3D-Assembly-Design/
 │   ├── shape_generator.py       ← Phase 3: ConditionalShapeVAE + ShapeRetriever + HybridShapeGenerator
 │   ├── train_shape_gen.py       ← Phase 3 VAE training (frozen encoder, leave-one-node-out, part-bank aligned)
 │   ├── train_monitor.sh         ← Unattended-training watchdog: stall detection + auto-resume
-│   ├── audit_component_types.py ← Read-only component-taxonomy audit (proposed 8-class scheme)
+│   ├── audit_component_types.py ← Read-only audit tool for the live 8-class taxonomy (threshold re-tuning aid)
 │   ├── evaluate.py              ← AUC-ROC · AP · Hit@K · MRR · NDCG@K
 │   ├── infer.py                 ← Inference on any STEP file or demo assembly (+ next-component ranking + shape generation)
 │   ├── skills_agent.py          ← Gemini AI orchestrator with engineering skills
@@ -358,7 +360,7 @@ AI-Assisted-3D-Assembly-Design/
 | `back_end/part_bank.py` | Phase 3 part bank builder: canonicalizes each body (center → OBB-align → unit-scale) → voxelizes to a 32³ occupancy grid (`skimage.measure.marching_cubes` for devoxelize); multiprocessing STEP extraction with a polling queue-drain (avoids the classic large-payload flush deadlock); `PartBank` class exposes `query()` (nearest-neighbour by type/category/bbox, with `exclude_assemblies` for leakage-safe eval) and `find_by_source()` (used by `train_shape_gen.py` to align part-bank entries to dataset graph nodes) |
 | `back_end/shape_generator.py` | `ConditionalShapeVAE` (32³ occupancy 3D-CNN, 128-dim latent, 77-dim condition = 64-dim frozen-encoder context + 8-dim type one-hot + 3-dim target bbox + 2-dim neighbor scale); `ShapeRetriever` (part-bank nearest-neighbour + bbox refit); `HybridShapeGenerator` (retrieval-first, VAE fallback below `retrieval_tau`) |
 | `back_end/train_shape_gen.py` | Phase 3 VAE training: leave-one-node-out samples aligned to part-bank entries via `find_by_source()`, 90°-rotation augmentation, BCE+soft-Dice+KL loss, voxel-IoU and voxel-centroid chamfer-proxy eval; saves `checkpoints/shape_vae.pt` |
-| `back_end/audit_component_types.py` | Read-only corpus audit for the proposed 8-class taxonomy (Long/Short Shaft, Thick/Thin Plate, Bolt, Washer, Nut, Body) via multi-signal voting; writes `audit_classification.{json,html}` to the corpus root |
+| `back_end/audit_component_types.py` | Read-only corpus audit for the live 8-class taxonomy (Long/Short Shaft, Thick/Thin Plate, Bolt, Washer, Nut, Body) — imports `COMP_TYPES`/classifier from `dataset.py` (single source of truth); writes `audit_classification.{json,html}` to the corpus root; useful for re-tuning `_TYPE_THRESHOLDS` against ground truth |
 | `back_end/infer.py` | `predict_missing()` scores all absent node pairs and returns top-K with confidence; `predict_next_component()` (Phase 2 ranking); `load_shape_generator()`/`generate_missing_shape()` (Phase 3 — dispatches `HybridShapeGenerator` off the top-ranked NodeRanker prediction); bar-chart CLI output |
 | `back_end/skills_agent.py` | `AssemblySkillsAgent` — loads skills YAML, builds Gemini system prompt, exposes `explain_prediction()`, `identify_component()`, `suggest_assembly_sequence()`, `answer()` |
 | `back_end/assembly_templates.py` | `AssemblyTemplateDB` — loads `data.pt` + `sources.json`, groups graphs by assembly category (top-level folder under `Source_3d_models/`), computes median component-type counts per category; `match()` returns best assembly type + confidence; `get_missing()` returns missing component list; handles single-body uploads |
@@ -590,9 +592,10 @@ python skills_agent.py
 After training completes a timestamped file is saved to `trained_models/`:
 
 ```
-trained_models/assembly_gnn_20260731_*_auc06670.pt        ← R32 (22+6-dim, heterogeneous RGATConv+TypedLinear, 193-folder 7-category corpus post category-filter bugfix, best fold val AUC 0.6670, mean AUC 0.5067±0.0524, mean AP 0.7054±0.0265, final test AUC 0.4875/AP 0.6873, 2026-07-31/08-01) — serving NOT promoted (R30 better on both)
-trained_models/assembly_gnn_20260721_103045_auc06368.pt   ← R31 (22+6-dim, heterogeneous RGATConv+TypedLinear, 484-graph expanded corpus, best fold val AUC 0.6368, mean AUC 0.5940, mean AP 0.7617, 2026-07-21) — serving NOT promoted (R30 better on both)
-trained_models/assembly_gnn_20260719_213012_auc07070.pt   ← R30 (22+6-dim, heterogeneous RGATConv+TypedLinear — first hetero run, 248 graphs, best fold val AUC 0.7070, mean AUC 0.599, mean AP 0.869, 2026-07-19) — serving promoted ★ CURRENT
+trained_models/assembly_gnn_20260806_104442_auc06367.pt   ← R33 (22+6-dim, new 8-class taxonomy — long/short shaft, thick/thin plate, bolt, washer, nut, body — heterogeneous RGATConv+TypedLinear, same 193-folder/7-category corpus re-parsed under new taxonomy, best fold val AUC 0.6367, mean AUC 0.5306±0.0314, mean AP 0.7213±0.0209, 2026-08-06) — serving promoted ★ CURRENT (manually overridden gate — R30/R33 taxonomies aren't AUC-comparable)
+trained_models/assembly_gnn_20260731_*_auc06670.pt        ← R32 (22+6-dim, heterogeneous RGATConv+TypedLinear, 193-folder 7-category corpus post category-filter bugfix, best fold val AUC 0.6670, mean AUC 0.5067±0.0524, mean AP 0.7054±0.0265, final test AUC 0.4875/AP 0.6873, 2026-07-31/08-01) — serving NOT promoted (R30 better on both, old taxonomy)
+trained_models/assembly_gnn_20260721_103045_auc06368.pt   ← R31 (22+6-dim, heterogeneous RGATConv+TypedLinear, 484-graph expanded corpus, best fold val AUC 0.6368, mean AUC 0.5940, mean AP 0.7617, 2026-07-21) — serving NOT promoted (R30 better on both, old taxonomy)
+trained_models/assembly_gnn_20260719_213012_auc07070.pt   ← R30 (22+6-dim, heterogeneous RGATConv+TypedLinear — first hetero run, 248 graphs, best fold val AUC 0.7070, mean AUC 0.599, mean AP 0.869, 2026-07-19) — superseded by R33 (old taxonomy); backed up at `checkpoints/archive_r30/`
 trained_models/assembly_gnn_20260719_065811_auc07041.pt   ← R29 (22+6-dim, homogeneous GAT, new 8-category corpus, 248 graphs, best fold val AUC 0.7041, mean AUC 0.566, mean AP 0.843, 2026-07-19) — serving promoted
 trained_models/assembly_gnn_20260702_101436_auc05783.pt   ← R28 (22+6-dim, MechEng-VeryHighNodes/Edges, Best_models_for_training, 1000 STEP → 695 graphs, best fold val AUC 0.5783, mean AUC 0.5455, mean AP 0.7124, 2026-07-02) — serving promoted
 trained_models/assembly_gnn_20260701_101409_auc06769.pt   ← R27 (22+6-dim, MechEng-HighNodes/Edges, Best_models_for_training, 992 STEP → 869 graphs, best fold val AUC 0.6769, mean AUC 0.531, mean AP 0.799, 2026-07-01) — serving promoted
@@ -621,37 +624,41 @@ Each export contains: epoch · best AUC · test metrics · `trained_at` timestam
 | AUC-ROC | ≥ 0.85 |
 | Average Precision | ≥ 0.82 |
 
-> Current status (Aug 2026): serving model is still R30 — mean AUC 0.599 ± 0.112, mean AP 0.869 ± 0.047.
-> R32 (expanded 7-category/193-folder corpus, mean AUC 0.5067 ± 0.0524, mean AP 0.7054 ± 0.0265)
-> did not beat it and was not promoted. AP target met; AUC target still open — corpus expansion
-> alone has not lifted AUC across R31/R32, echoing R31's earlier finding that scale isn't the
-> limiter (see Training History).
+> Current status (Aug 2026): serving model is **R33** — mean AUC 0.5306 ± 0.0314, mean AP 0.7213 ± 0.0209,
+> trained under the new 8-class taxonomy (see *What's New*). Manually promoted over the automatic
+> gate's verdict, since R30's incumbent numbers were fit under the old taxonomy and aren't a valid
+> comparison against R33. AP target still open; AUC target still open — this is a like-for-like
+> regression vs. R30's raw numbers (0.599/0.869), expected given the harder/more granular 8-class
+> problem and not yet threshold-tuned (see the taxonomy note above). Historical R30-era commentary
+> below is preserved for the training-history narrative but no longer describes the serving model.
 
 ### Phase 2 targets — Next-Component Ranking (NodeRanker)
 
-| Metric | Target | Current run (retrained vs. R30 encoder, Aug 2026) |
+| Metric | Target | Current run (retrained vs. R33 encoder, Aug 2026) |
 |---|---|---|
-| Hit@5 | ≥ 0.70 | **0.8963 ✓** |
-| MRR | ≥ 0.64 | 0.5327 |
-| Hit@1 | — | 0.2519 (majority-class baseline: **0.5556** — model underperforms baseline here) |
-| NDCG@5 | — | 0.4541 |
+| Hit@5 | ≥ 0.70 | **0.8467 ✓** |
+| MRR | ≥ 0.64 | 0.5723 |
+| Hit@1 | — | **0.3869** (majority-class baseline: 0.3650 — model now beats baseline) |
+| NDCG@5 | — | 0.6225 |
 
-> Reported honestly: Hit@5 comfortably clears target and MRR/NDCG@5 show real ranking signal,
-> but Hit@1 is below the trivial majority-class baseline — the top-1 prediction needs further
-> tuning before it's trustworthy standalone. NodeRanker must be re-trained (`python train_ranker.py`)
-> whenever `best_serving.pt` is re-promoted; this run is fit against R30 (current serving), not R32
-> (not promoted).
+> Retrained against R33 after the taxonomy migration (mandatory whenever `best_serving.pt` is
+> re-promoted). Hit@1 now beats the majority-class baseline, resolving the prior below-baseline
+> finding (Hit@1 0.2519 vs. baseline 0.5556 under the old taxonomy/R30) — the new taxonomy's
+> finer-grained fastener sub-types (bolt/washer/nut vs. one blended "fastener" class) appear to
+> give the ranker a less ambiguous signal to learn from, though this hasn't been rigorously
+> isolated as the cause.
 
 ### Phase 3 targets — Missing-Component Shape Generation
 
 | Metric | Target | Test result (Aug 2026) |
 |---|---|---|
-| Voxel IoU | ≥ 0.35 | **0.5002 ✓** (best val 0.5096 @ epoch 36) |
-| Chamfer (voxel-centroid proxy) | ≤ 0.08 | **0.0621 ✓** |
-| Loss (BCE + soft-Dice + KL) | — | 0.3397 |
+| Voxel IoU | ≥ 0.35 | **0.5192 ✓** (best val 0.4930 @ epoch 31) |
+| Chamfer (voxel-centroid proxy) | ≤ 0.08 | **0.0424 ✓** |
+| Loss (BCE + soft-Dice + KL) | — | 0.4177 |
 
-> `ConditionalShapeVAE` trained 60 epochs against the frozen R30 encoder and the 3,480-part
-> bank built by `part_bank.py`. Both design targets met on held-out test samples.
+> `ConditionalShapeVAE` retrained 60 epochs against the R33 encoder and the rebuilt 3,221-part
+> bank (284 assemblies, new taxonomy). Both design targets met on held-out test samples, and both
+> metrics improved slightly over the pre-migration R30-era run (IoU 0.5002, chamfer 0.0621).
 
 ---
 
@@ -917,7 +924,7 @@ May 10, 2026 ──────────────── Jul 10, 2026 ─�
 |---|---|---|
 | Phase 1 | GAT/GCN baseline; GCN vs. GAT vs. GraphSAGE comparison; **missing component detection** AUC ≥ 0.85 · AP ≥ 0.82 | Complete (AP met; AUC 0.599 best mean, target open) |
 | Phase 2 | **NodeRanker** next-component ranking; HetGNN typed embeddings; BPR ranking loss; Hit@5 ≥ 0.70 · MRR ≥ 0.64; GNNExplainer | NodeRanker + heterogeneous encoder done; Hit@5 0.8963 met, MRR 0.5327 not yet met, Hit@1 below baseline (needs tuning); GNNExplainer pending |
-| Phase 3 | Missing-component **shape generation** — part-bank retrieval + conditional voxel VAE (see `docs/phase3_shape_generation_design.md`) | Implemented and trained: `part_bank.py` (3,480-part bank) + `shape_generator.py` + `train_shape_gen.py`; test IoU 0.5002 (≥0.35 target ✓), chamfer 0.0621 (≤0.08 target ✓); wired into `infer.py` |
+| Phase 3 | Missing-component **shape generation** — part-bank retrieval + conditional voxel VAE (see `docs/phase3_shape_generation_design.md`) | Implemented and trained: `part_bank.py` (3,221-part bank, new taxonomy) + `shape_generator.py` + `train_shape_gen.py`; test IoU 0.5192 (≥0.35 target ✓), chamfer 0.0424 (≤0.08 target ✓); wired into `infer.py` |
 | Final | Streamlit demo (STEP upload → 3D view → GNN predictions → AI explanation); thesis; open-source repo (MIT) | Demo live; thesis in progress |
 
 ---
