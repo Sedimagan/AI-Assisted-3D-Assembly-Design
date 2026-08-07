@@ -1,0 +1,90 @@
+
+[1/6] Loading dataset …
+      193 graphs loaded.
+      train: 132  val: 33  test: 28
+
+[2/6] Loading frozen Phase-1 encoder …
+Model built on mps  |  total params: 2,441,745
+      Encoder frozen (val AUC=0.7070, trained_at=2026-07-19T21:30:12.373568)
+
+[3/6] Loading / building part bank …
+      Part bank: 3480 parts
+
+[4/6] Building leave-one-out samples …
+      Samples — train: 762  val: 160  test: 135
+
+[5/6] Building ConditionalShapeVAE …
+      VAE params: 6,457,665
+
+[6/6] Training (60 epochs) …
+  Ep   1/60  loss=0.5903  val_loss=0.5267  IoU=0.3020  chamfer=0.0919
+  Ep   2/60  loss=0.4339  val_loss=0.3946  IoU=0.4249  chamfer=0.0619
+  Ep   3/60  loss=0.3885  val_loss=0.3813  IoU=0.4628  chamfer=0.0495
+  Ep   4/60  loss=0.3627  val_loss=0.3926  IoU=0.4521  chamfer=0.0486
+  Ep   5/60  loss=0.3418  val_loss=0.3921  IoU=0.4376  chamfer=0.0545
+  Ep   6/60  loss=0.3310  val_loss=0.4537  IoU=0.3668  chamfer=0.1043
+  Ep   7/60  loss=0.3228  val_loss=0.3732  IoU=0.4842  chamfer=0.0469
+  Ep   8/60  loss=0.3099  val_loss=0.4152  IoU=0.4238  chamfer=0.0690
+  Ep   9/60  loss=0.3044  val_loss=0.3984  IoU=0.4449  chamfer=0.0555
+  Ep  10/60  loss=0.3013  val_loss=0.4298  IoU=0.3952  chamfer=0.0733
+  Ep  11/60  loss=0.2969  val_loss=0.4180  IoU=0.4094  chamfer=0.0750
+  Ep  12/60  loss=0.2919  val_loss=0.4362  IoU=0.3996  chamfer=0.0653
+  Ep  13/60  loss=0.2809  val_loss=0.3994  IoU=0.4322  chamfer=0.0517
+  Ep  14/60  loss=0.2796  val_loss=0.5532  IoU=0.2895  chamfer=0.0736
+  Ep  15/60  loss=0.2794  val_loss=0.4212  IoU=0.4449  chamfer=0.0791
+  Ep  16/60  loss=0.2718  val_loss=0.3973  IoU=0.4448  chamfer=0.0671
+  Ep  17/60  loss=0.2687  val_loss=0.4259  IoU=0.4272  chamfer=0.0760
+  Ep  18/60  loss=0.2649  val_loss=0.4928  IoU=0.4726  chamfer=0.0557
+  Ep  19/60  loss=0.2621  val_loss=0.4345  IoU=0.4261  chamfer=0.0599
+  Ep  20/60  loss=0.2593  val_loss=0.5059  IoU=0.3531  chamfer=0.1963
+  Ep  21/60  loss=0.2591  val_loss=0.4460  IoU=0.3876  chamfer=0.0846
+  Ep  22/60  loss=0.2551  val_loss=0.3901  IoU=0.4718  chamfer=0.0701
+  Ep  23/60  loss=0.2531  val_loss=0.4691  IoU=0.3816  chamfer=0.1896
+  Ep  24/60  loss=0.2482  val_loss=0.4067  IoU=0.4656  chamfer=0.0737
+  Ep  25/60  loss=0.2473  val_loss=0.3754  IoU=0.4856  chamfer=0.0480
+  Ep  26/60  loss=0.2449  val_loss=0.4389  IoU=0.4083  chamfer=0.1191
+  Ep  27/60  loss=0.2404  val_loss=0.3855  IoU=0.4514  chamfer=0.1015
+  Ep  28/60  loss=0.2441  val_loss=0.4546  IoU=0.3916  chamfer=0.1085
+  Ep  29/60  loss=0.2373  val_loss=0.4931  IoU=0.3602  chamfer=0.2584
+  Ep  30/60  loss=0.2361  val_loss=0.4349  IoU=0.4067  chamfer=0.1133
+  Ep  31/60  loss=0.2366  val_loss=0.5059  IoU=0.3613  chamfer=0.1299
+  Ep  32/60  loss=0.2358  val_loss=0.4158  IoU=0.4332  chamfer=0.1544
+  Ep  33/60  loss=0.2289  val_loss=0.4623  IoU=0.3781  chamfer=0.0908
+  Ep  34/60  loss=0.2297  val_loss=0.4145  IoU=0.4435  chamfer=0.1374
+  Ep  35/60  loss=0.2298  val_loss=0.3898  IoU=0.4635  chamfer=0.0864
+  Ep  36/60  loss=0.2264  val_loss=0.3595  IoU=0.5096  chamfer=0.0616
+  Ep  37/60  loss=0.2253  val_loss=0.4266  IoU=0.4145  chamfer=0.0808
+  Ep  38/60  loss=0.2240  val_loss=0.4785  IoU=0.3717  chamfer=0.1386
+  Ep  39/60  loss=0.2229  val_loss=0.5174  IoU=0.3467  chamfer=0.2101
+  Ep  40/60  loss=0.2245  val_loss=0.4413  IoU=0.4060  chamfer=0.1506
+  Ep  41/60  loss=0.2197  val_loss=0.3722  IoU=0.4948  chamfer=0.1131
+  Ep  42/60  loss=0.2204  val_loss=0.4283  IoU=0.4257  chamfer=0.1588
+  Ep  43/60  loss=0.2157  val_loss=0.4060  IoU=0.4383  chamfer=0.1824
+  Ep  44/60  loss=0.2125  val_loss=0.3981  IoU=0.4607  chamfer=0.1272
+  Ep  45/60  loss=0.2160  val_loss=0.4134  IoU=0.4504  chamfer=0.0790
+  Ep  46/60  loss=0.2132  val_loss=0.4396  IoU=0.4181  chamfer=0.1159
+  Ep  47/60  loss=0.2136  val_loss=0.4373  IoU=0.4268  chamfer=0.1913
+  Ep  48/60  loss=0.2102  val_loss=0.4289  IoU=0.4116  chamfer=0.1797
+  Ep  49/60  loss=0.2149  val_loss=0.4659  IoU=0.3989  chamfer=0.1823
+  Ep  50/60  loss=0.2097  val_loss=0.4700  IoU=0.4085  chamfer=0.1260
+  Ep  51/60  loss=0.2072  val_loss=0.4219  IoU=0.4210  chamfer=0.1304
+  Ep  52/60  loss=0.2067  val_loss=0.4051  IoU=0.4572  chamfer=0.1563
+  Ep  53/60  loss=0.2074  val_loss=0.4631  IoU=0.4027  chamfer=0.2547
+  Ep  54/60  loss=0.2051  val_loss=0.4828  IoU=0.3996  chamfer=0.1665
+  Ep  55/60  loss=0.2072  val_loss=0.4236  IoU=0.4303  chamfer=0.1782
+  Ep  56/60  loss=0.2078  val_loss=0.4483  IoU=0.4143  chamfer=0.1040
+  Ep  57/60  loss=0.2049  val_loss=0.4623  IoU=0.3963  chamfer=0.1548
+  Ep  58/60  loss=0.2031  val_loss=0.4517  IoU=0.4111  chamfer=0.1554
+  Ep  59/60  loss=0.2044  val_loss=0.4067  IoU=0.4789  chamfer=0.1275
+  Ep  60/60  loss=0.1998  val_loss=0.4610  IoU=0.4225  chamfer=0.2213
+
+=======================================================
+  ConditionalShapeVAE — Test Results
+=======================================================
+     loss      : 0.3397
+     iou       : 0.5002
+     chamfer   : 0.0621
+  (best val IoU=0.5096 at selection time)
+
+  Saved → checkpoints/shape_vae.pt
+  Saved → results/shape_gen_test_metrics.json

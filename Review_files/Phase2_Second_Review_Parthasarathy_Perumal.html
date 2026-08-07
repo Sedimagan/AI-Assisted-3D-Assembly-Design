@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Phase 2 — Second Review</title>
+<style>
+  :root {
+    --bg: #0a121f; --panel: #101c30; --card: #142338; --border: #24405f;
+    --text: #e6edf5; --muted: #8aa0b8; --accent: #5b9bd5; --accent2: #8b5cf6;
+    --good: #4caf82; --warn: #f0a83c; --bad: #ef5a5a;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--bg); color: var(--text);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .slide {
+    display: none; flex-direction: column; justify-content: center;
+    height: calc(100vh - 54px); width: 100%; padding: 34px 64px; overflow-y: auto;
+  }
+  .slide.active { display: flex; }
+  .kicker { color: var(--accent); font-size: 0.85rem; font-weight: 700; letter-spacing: 0.08em;
+            text-transform: uppercase; margin-bottom: 8px; }
+  h1 { font-size: 2.3rem; margin: 0 0 6px; }
+  h2 { font-size: 1.65rem; margin: 0 0 16px; color: var(--text); }
+  .sub { color: var(--muted); font-size: 0.98rem; margin-bottom: 22px; }
+  .grid { display: grid; gap: 14px; }
+  .grid2 { grid-template-columns: 1fr 1fr; }
+  .grid3 { grid-template-columns: 1fr 1fr 1fr; }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .card h3 { margin: 0 0 10px; font-size: 1.0rem; color: var(--accent); }
+  .card h3.done { color: var(--good); }
+  .card h3.plan { color: var(--accent2); }
+  .card h3.risk { color: var(--warn); }
+  ul { margin: 0; padding-left: 20px; }
+  li { margin-bottom: 6px; font-size: 0.88rem; line-height: 1.42; color: #cfd9e6; }
+  li b, li strong { color: var(--text); }
+  code { background: rgba(255,255,255,0.06); padding: 1px 5px; border-radius: 4px; font-size: 0.85em; }
+  .badge {
+    display: inline-block; background: rgba(91,155,213,0.15); color: var(--accent);
+    border: 1px solid var(--accent); border-radius: 4px; padding: 1px 8px;
+    font-size: 0.72rem; font-weight: 700; margin-left: 8px;
+  }
+  .badge.wip { background: rgba(240,168,60,0.15); color: var(--warn); border-color: var(--warn); }
+  .badge.done { background: rgba(76,175,130,0.15); color: var(--good); border-color: var(--good); }
+  .badge.p3 { background: rgba(139,92,246,0.15); color: var(--accent2); border-color: var(--accent2); }
+  .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 14px 0; }
+  .fbox {
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 9px 12px; font-size: 0.82rem; text-align: center; flex: 1; min-width: 120px;
+  }
+  .fbox.new { border-color: var(--accent2); background: rgba(139,92,246,0.10); }
+  .fbox.p3 { border-color: var(--warn); background: rgba(240,168,60,0.08); border-style: dashed; }
+  .arrow { color: var(--muted); font-size: 1.05rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+  th, td { padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; font-size: 0.76rem; text-transform: uppercase; }
+  .metric-row td:nth-child(2) { color: var(--accent); font-weight: 700; }
+  .footer {
+    height: 54px; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; border-top: 1px solid var(--border); background: var(--panel);
+    font-size: 0.8rem; color: var(--muted); flex-shrink: 0;
+  }
+  .dots { display: flex; gap: 5px; flex-wrap: wrap; max-width: 50vw; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: #2a4060; cursor: pointer; }
+  .dot.active { background: var(--accent); }
+  .navbtn {
+    background: var(--card); border: 1px solid var(--border); color: var(--text);
+    border-radius: 6px; padding: 6px 14px; cursor: pointer; font-size: 0.85rem;
+  }
+  .navbtn:hover { border-color: var(--accent); }
+  .center { display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100%; text-align: center; }
+  img.fig { max-width: 100%; border-radius: 8px; border: 1px solid var(--border); }
+  .abstract-box { background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--accent);
+                  border-radius: 8px; padding: 20px 24px; font-size: 0.94rem; line-height: 1.6; color: #dbe4ee; }
+  .pillrow { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0 4px; }
+  .pill { background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 999px;
+          padding: 4px 12px; font-size: 0.78rem; color: #cfd9e6; }
+  .pill b { color: var(--text); }
+</style>
+</head>
+<body>
+
+<!-- Slide 1 — Title -->
+<div class="slide active" id="s1">
+  <div class="center">
+    <div class="kicker">Phase 2 · Node Ranker &amp; Phase 3 · Shape Generation</div>
+    <h1 style="font-size:2.7rem;">Phase 2 — Second Review</h1>
+    <p class="sub" style="font-size:1.1rem;">AI-Assisted 3D Assembly Design</p>
+    <div style="margin-top:22px;color:#cfd9e6;">
+      <div><b>Presented by:</b> Parthasarathy Perumal &nbsp;·&nbsp; SRN PES2PGE24DS193</div>
+      <div style="margin-top:4px;"><b>Guide:</b> Prof. Gaurav Siwal (Phase 2)</div>
+      <div style="margin-top:4px;color:var(--muted);">MTECH — Data Science &amp; AI, PES University Bengaluru</div>
+      <div style="margin-top:10px;color:var(--muted);font-size:0.85rem;">8 August 2026</div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 2 — Agenda -->
+<div class="slide" id="s2">
+  <div class="kicker">Agenda</div>
+  <h2>What we'll cover today</h2>
+  <div class="grid grid2">
+    <div class="card">
+      <h3>Since the last review</h3>
+      <ul>
+        <li>Corpus curation &amp; taxonomy redesign (presented at the 1 Aug guidance call)</li>
+        <li>Phase 3 shape generation — designed <i>and</i> built</li>
+        <li>R32 → R33 retrain, taxonomy migration completed end-to-end</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="plan">Today's results</h3>
+      <ul>
+        <li>NodeRanker Hit@1 now beats the majority-class baseline</li>
+        <li>Shape-gen VAE meets both design targets, wired into the Streamlit UI</li>
+        <li>Bugs found and fixed along the way — reported honestly</li>
+        <li>Open items and what's next</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 3 — Recap -->
+<div class="slide" id="s3">
+  <div class="kicker">1 · Recap</div>
+  <h2>Where the Phase 2 First Review left off <span class="badge">25 Jul 2026</span></h2>
+  <div class="grid grid2">
+    <div class="card">
+      <h3 class="done">What was in place</h3>
+      <ul>
+        <li>R30 heterogeneous encoder (<code>RGATConv</code> + <code>TypedLinear</code>) serving — mean AUC 0.599 ± 0.112, mean AP 0.869 ± 0.047</li>
+        <li>Node Ranker wired end-to-end (train/infer/API/UI) but stale — trained against a superseded encoder</li>
+        <li>3D generative completion (Path A / Path B) proposed by Prof. Siwal, deliberately scoped out as <b>Phase 3</b> rather than squeezed into Phase 2</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="risk">Open items carried forward</h3>
+      <ul>
+        <li>Re-run <code>train_ranker.py</code> against R30, the actual serving encoder</li>
+        <li>Keep pushing AUC via architecture (proven lever) rather than raw data volume alone (R31's lesson)</li>
+        <li>Finish committed-but-not-started items: GNNExplainer interpretability</li>
+        <li>Stay on local M1 training — cloud GPU compute costed (~₹70,000–₹1,05,000 / 5 weeks) and consciously not adopted</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 4 — Since the last review, 4 workstreams -->
+<div class="slide" id="s4">
+  <div class="kicker">Since the last review</div>
+  <h2>Four workstreams, all landed</h2>
+  <div class="grid grid2">
+    <div class="card">
+      <h3 class="done">1 · Corpus curation &amp; cleanup <span class="badge done">Done</span></h3>
+      <ul>
+        <li>Manually reviewed, downloaded and quality-checked new models from GrabCAD</li>
+        <li>Standardized folder/file structure across all 7 categories</li>
+        <li>Full-corpus parsability audit — every model verified against the real training pipeline</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="done">2 · Taxonomy &amp; classification redesign <span class="badge done">Live</span></h3>
+      <ul>
+        <li>Identified that 4 of 8 old classes were effectively never used on this corpus</li>
+        <li>Designed a new, more mechanically meaningful 8-class taxonomy — audited first, <i>then</i> made the live classifier (not left as a candidate scheme)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="done">3 · Phase 3 — shape generation <span class="badge done">Built</span></h3>
+      <ul>
+        <li>Full design (<code>docs/phase3_shape_generation_design.md</code>), then fully implemented</li>
+        <li><code>part_bank.py</code>, <code>shape_generator.py</code>, <code>train_shape_gen.py</code> — trained and wired into the Streamlit UI</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="done">4 · R32 → R33 retrain <span class="badge done">Done</span></h3>
+      <ul>
+        <li>Phase 1 encoder retrained twice: once on the expanded 7-category corpus (R32), once again under the new taxonomy (R33)</li>
+        <li>Node Ranker and Shape VAE both re-trained against the current serving encoder</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 5 — Title & Abstract -->
+<div class="slide" id="s5">
+  <div class="kicker">2 · Title &amp; Abstract</div>
+  <h2>Title &amp; abstract</h2>
+  <p class="sub" style="margin-bottom:10px;font-size:1.05rem;color:var(--text);font-weight:600;">
+    AI-Assisted 3D Assembly Design: Graph Neural Networks for Missing-Component Detection, Next-Component Ranking, and Shape Generation in CAD Assemblies
+  </p>
+  <div class="grid grid2">
+    <div class="abstract-box">
+      This project models CAD assemblies as graphs — components as nodes, mates/joints as edges — and applies
+      Graph Attention Networks to reason about assembly structure. Phase 1 addressed missing-component
+      <i>detection</i> via link prediction over STEP-derived geometry features. Phase 2 extends the encoder to a
+      heterogeneous, relation-aware architecture (<code>RGATConv</code> + <code>TypedLinear</code>) and introduces a
+      <b>Node Ranker</b> head that answers a forward-looking question — given a partial assembly, which component
+      type is most likely to complete it next. This review adds a third head, built ahead of its originally proposed
+      Phase 3 schedule: a <b>hybrid shape generator</b> (part-bank retrieval + conditional voxel VAE) that produces
+      an actual 3D mesh of the missing component, not just its predicted type and location. Along the way, the
+      8-class component taxonomy was redesigned and audited against real corpus statistics, the training corpus
+      was manually curated and standardized to 193 usable assemblies across 7 categories, and the resulting
+      encoder (R33) was re-evaluated with all three downstream heads retrained against it.
+    </div>
+    <div class="card" style="padding:8px;display:flex;flex-direction:column;">
+      <img src="../docs/wheel%20missing.png" alt="GNN-predicted missing wheel component overlay on a bicycle CAD assembly"
+           class="fig" style="flex:1;min-height:0;object-fit:contain;background:#060c14;">
+      <p class="sub" style="margin:8px 0 0;text-align:center;font-size:0.8rem;">
+        Detection → ranking → and now, this review, generation of the missing component's actual shape
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 6 — Corpus curation & standardization -->
+<div class="slide" id="s6">
+  <div class="kicker">3 · Corpus Work</div>
+  <h2>Manual curation &amp; file-structure standardization</h2>
+  <div class="grid grid2">
+    <div class="card">
+      <h3>Manual curation workflow</h3>
+      <ul>
+        <li>Browse GrabCAD.com by category → download candidate model → open in FreeCAD</li>
+        <li>Manual quality check: genuine multi-body assembly (not a shrink-wrapped single solid)? Correctly labeled? Geometry matches the claimed component by eye?</li>
+        <li>Format check: real STEP assembly → keep · IGES only → re-export to STEP in FreeCAD · neither, or no solid volumes → <code>non_compatible_formats/</code></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>File-structure standardization</h3>
+      <ul>
+        <li>Sequential renaming — every folder <code>&lt;Category&gt;_NN</code>, STEP file renamed to match; mapping preserved in <code>rename_mapping.json</code></li>
+        <li>All reference images grouped under a per-assembly <code>Images/</code> subfolder — only the STEP file sits directly in the assembly folder</li>
+        <li>Format quarantine: <code>non_compatible_formats/</code>, <code>rejected/</code> (&lt;2 solid volumes), <code>slow_or_unstable/</code> (times out / crashes the parser)</li>
+        <li>Browsable thumbnail gallery (<code>gallery.html</code>) — 7 categories, 240+ folders, 455+ reference images, all links verified</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 7 — Parsability audit & final corpus -->
+<div class="slide" id="s7">
+  <div class="kicker">3 · Corpus Work</div>
+  <h2>Full-corpus parsability audit &amp; final corpus</h2>
+  <p class="sub" style="margin-bottom:10px;">Every model was actually run through <code>dataset.py</code>'s real STEP-parsing pipeline — not just visually reviewed — before being trusted for training.</p>
+  <div class="grid grid2">
+    <div class="card">
+      <h3>Parsability outcomes — 284 files checked</h3>
+      <table>
+        <tr><th>Outcome</th><th>Count</th><th>Meaning</th></tr>
+        <tr class="metric-row"><td>OK</td><td>193</td><td>Parses cleanly, ≥2 solid volumes — used for training</td></tr>
+        <tr><td>Rejected</td><td>66</td><td>Parses, but &lt;2 volumes — not a real assembly</td></tr>
+        <tr><td>Timeout</td><td>22</td><td>Exceeds 300s parse budget (some up to 5,000s+)</td></tr>
+        <tr><td>Error</td><td>3</td><td>Worker crash, no result</td></tr>
+      </table>
+      <p class="sub" style="margin:10px 0 0;">193 final usable assemblies — ~68% overall usable rate.</p>
+    </div>
+    <div class="card">
+      <h3>Final corpus — 7 categories, 193 assemblies</h3>
+      <table>
+        <tr><th>Category</th><th>Assemblies</th></tr>
+        <tr><td>Bench Vice</td><td>54</td></tr>
+        <tr><td>Pipe Vice</td><td>42</td></tr>
+        <tr><td>C-Clamps</td><td>31</td></tr>
+        <tr><td>Gate Valve</td><td>21</td></tr>
+        <tr><td>Press Tool</td><td>21</td></tr>
+        <tr><td>Crane Hook</td><td>16</td></tr>
+        <tr><td>Tool Post</td><td>8</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 8 — Taxonomy redesign, the problem -->
+<div class="slide" id="s8">
+  <div class="kicker">4 · Taxonomy Redesign</div>
+  <h2>Why the component taxonomy needed a redesign</h2>
+  <div class="grid grid2">
+    <div class="card">
+      <h3 class="risk">The problem, in real numbers</h3>
+      <p class="sub" style="margin:0 0 8px;">Old taxonomy: <code>body</code> / <code>fastener</code> / <code>bearing</code> / <code>shaft</code> / <code>plate</code> / <code>housing</code> / <code>gear</code> / <code>other</code>. Across 3,480 parts extracted with the old classifier:</p>
+      <div class="pillrow">
+        <div class="pill"><b>body</b> 58.8%</div>
+        <div class="pill"><b>fastener</b> 26.3%</div>
+        <div class="pill"><b>plate</b> 14.8%</div>
+        <div class="pill"><b>bearing</b> 0.03%</div>
+        <div class="pill">shaft / housing / gear / other — 0%</div>
+      </div>
+      <p class="sub" style="margin:10px 0 0;">4 of 8 classes effectively never used — the taxonomy didn't match what our assemblies actually contain.</p>
+    </div>
+    <div class="card">
+      <h3 class="bad" style="color:var(--bad);">The bug this caused in production</h3>
+      <ul>
+        <li>A single mislabeled <code>bearing</code> — 1 example in the whole corpus — polluted that category's expected-components template</li>
+        <li>Produced a spurious "1 bearing missing" report in the live Streamlit UI, for every assembly in that category</li>
+        <li>Not a modeling accuracy issue — a taxonomy-design issue that surfaced as a user-facing correctness bug</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 9 — Taxonomy redesign, new design & audit -->
+<div class="slide" id="s9">
+  <div class="kicker">4 · Taxonomy Redesign</div>
+  <h2>New 8-class taxonomy — multi-signal voting, now live</h2>
+  <div class="grid grid2">
+    <div class="card">
+      <h3 class="done">Design approach</h3>
+      <ul>
+        <li>New classes: <b>Long Shaft, Short Shaft, Thick Plate, Thin Plate, Bolt, Washer, Nut, Body</b> (honest catch-all)</li>
+        <li>Washer / Nut: convex-hull volume ratio + central-axis ray probe must both agree a through-hole exists</li>
+        <li>Bolt vs. plain shaft: bounding-cylinder fill ratio + COM axial offset + B-Rep face count — 2 of 3 must agree</li>
+        <li>Everything else: elongation / flatness ratios (Long/Short Shaft, Thick/Thin Plate)</li>
+        <li>Audited first as a read-only script (<code>audit_component_types.py</code>), thresholds calibrated <i>before</i> touching production — then promoted to be <code>dataset.py</code>'s single source of truth, replacing duplicated logic in <code>part_bank.py</code> / <code>app.py</code></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="done">Audit results — 5,167 bodies, 193 assemblies</h3>
+      <table>
+        <tr><th>Class</th><th>Share</th></tr>
+        <tr><td>Body</td><td>37.7%</td></tr>
+        <tr><td>Nut</td><td>13.0%</td></tr>
+        <tr><td>Thick Plate</td><td>11.3%</td></tr>
+        <tr><td>Bolt</td><td>11.2%</td></tr>
+        <tr><td>Thin Plate</td><td>7.8%</td></tr>
+        <tr><td>Long Shaft</td><td>7.5%</td></tr>
+        <tr><td>Short Shaft</td><td>6.1%</td></tr>
+        <tr><td>Washer</td><td>5.5%</td></tr>
+      </table>
+      <p class="sub" style="margin:10px 0 0;">All 8 classes now get real, non-trivial usage. 39.5% flagged ambiguous by the voting rules — reported as an honest signal for further threshold tuning, not hidden.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 10 — System architecture -->
+<div class="slide" id="s10">
+  <div class="kicker">5 · Architecture</div>
+  <h2>System architecture — Phase 1 + 2 + 3 combined</h2>
+  <div class="flow">
+    <div class="fbox">STEP assembly</div>
+    <div class="arrow">→</div>
+    <div class="fbox">22-dim node / 6-dim edge graph<br><span style="color:var(--muted);">dataset.py</span></div>
+    <div class="arrow">→</div>
+    <div class="fbox new">Frozen encoder — R33<br><span style="color:var(--accent2);">RGATConv + TypedLinear</span></div>
+    <div class="arrow">→</div>
+    <div class="fbox">Context vector<br><span style="color:var(--muted);">mean-pooled node embeddings</span></div>
+  </div>
+  <div class="flow">
+    <div class="fbox" style="flex:0.5;visibility:hidden;">.</div>
+    <div class="arrow" style="visibility:hidden;">→</div>
+    <div class="arrow">↓ splits into two parallel heads</div>
+    <div class="fbox" style="flex:0.5;visibility:hidden;">.</div>
+    <div class="arrow" style="visibility:hidden;">→</div>
+  </div>
+  <div class="flow">
+    <div class="fbox new">Node Ranker<br><span style="color:var(--accent2);">cosine sim vs. 8 type prototypes</span></div>
+    <div class="arrow">→</div>
+    <div class="fbox">Ranked missing-component type<br><span style="color:var(--muted);">Hit@K / MRR / NDCG@K</span></div>
+  </div>
+  <div class="flow">
+    <div class="fbox new">Hybrid Shape Generator <span class="badge p3">New this review</span><br><span style="color:var(--accent2);">ShapeRetriever (3,221-part bank) or ConditionalShapeVAE (32³, 77-dim cond.)</span></div>
+    <div class="arrow">→</div>
+    <div class="fbox">Generated 3D mesh<br><span style="color:var(--muted);">IoU / Chamfer → ghost-overlay preview in UI</span></div>
+  </div>
+  <div class="card" style="margin-top:8px;">
+    <h3>Design principle carried through all three phases</h3>
+    <ul>
+      <li>Both heads reuse the frozen encoder and <b>never touch</b> <code>best_serving.pt</code> — each writes to its own checkpoint (<code>node_ranker.pt</code>, <code>shape_vae.pt</code>) with an encoder-staleness guard, so encoder retraining and head retraining stay independent and cheap</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Slide 11 — Training status R32 -> R33 -->
+<div class="slide" id="s11">
+  <div class="kicker">6 · Training Status</div>
+  <h2>R32 → R33 — the taxonomy migration retrain</h2>
+  <div class="grid grid2">
+    <div class="card">
+      <h3>R32 — expanded corpus, old taxonomy</h3>
+      <ul>
+        <li>7-category / 193-folder corpus (+Gate Valve, Press Tool, Tool Post, Crane Hook) · category-filter bugfix · 5-fold CV</li>
+      </ul>
+      <table style="margin-top:8px;">
+        <tr><th>Metric</th><th>Value</th></tr>
+        <tr class="metric-row"><td>Mean AUC</td><td>0.5067 ± 0.0524</td></tr>
+        <tr class="metric-row"><td>Mean AP</td><td>0.7054 ± 0.0265</td></tr>
+        <tr><td>Best fold val AUC</td><td>0.6670</td></tr>
+      </table>
+      <p class="sub" style="margin:10px 0 0;color:var(--bad);">Not promoted — R30 still better on both metrics (old taxonomy, apples-to-apples).</p>
+    </div>
+    <div class="card">
+      <h3 class="done">R33 — same corpus, new taxonomy <span class="badge done">Serving</span></h3>
+      <ul>
+        <li>Full retrain after the taxonomy migration · same 193-folder / 7-category corpus, re-parsed under the new 8-class scheme</li>
+      </ul>
+      <table style="margin-top:8px;">
+        <tr><th>Metric</th><th>Value</th></tr>
+        <tr class="metric-row"><td>Mean AUC</td><td>0.5306 ± 0.0314</td></tr>
+        <tr class="metric-row"><td>Mean AP</td><td>0.7213 ± 0.0209</td></tr>
+        <tr><td>Best fold val AUC</td><td>0.6367</td></tr>
+      </table>
+      <p class="sub" style="margin:10px 0 0;color:var(--good);">Manually promoted to <code>best_serving.pt</code> (R30 backed up to <code>archive_r30/</code>) — R30 and R33 encode node-feature type-slots under completely different taxonomies, so they aren't a valid AUC comparison. The automatic promotion gate was deliberately overridden, and that override is documented, not silent.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 12 — NodeRanker results -->
+<div class="slide" id="s12">
+  <div class="kicker">7 · Node Ranker</div>
+  <h2>Node Ranker — re-trained against R33</h2>
+  <table>
+    <tr><th>Metric</th><th>Target</th><th>Result</th></tr>
+    <tr class="metric-row"><td>Hit@5</td><td>≥ 0.70</td><td>0.8467 <span style="color:var(--good);">✓</span></td></tr>
+    <tr><td>MRR</td><td>≥ 0.64</td><td>0.5723 <span style="color:var(--warn);">not yet met</span></td></tr>
+    <tr class="metric-row"><td>Hit@1</td><td>— (majority-class baseline 0.3650)</td><td>0.3869 <span style="color:var(--good);">now beats baseline</span></td></tr>
+    <tr><td>NDCG@5</td><td>—</td><td>0.6225</td></tr>
+  </table>
+  <div class="card" style="margin-top:16px;">
+    <h3 class="done">Resolves the open item from the last review</h3>
+    <ul>
+      <li>Previously, Hit@1 (0.2519) was <i>below</i> the majority-class baseline (0.5556) when re-trained against R30 — flagged honestly as an open issue at the time</li>
+      <li>After the taxonomy migration, both the baseline itself and the model shifted (new class distribution) — Hit@1 now clears its baseline (0.3869 vs. 0.3650)</li>
+      <li>The encoder-staleness guard meant this checkpoint had to be retrained <i>twice</i> this cycle: once against R30, then again against R33 — exactly the cost the guard is designed to make explicit rather than silent</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Slide 13 — Phase 3 design -->
+<div class="slide" id="s13">
+  <div class="kicker">8 · Phase 3 — Shape Generation</div>
+  <h2>Design — hybrid retrieval + generative fallback</h2>
+  <div class="flow">
+    <div class="fbox">Frozen encoder context vector<br><span style="color:var(--muted);">64-dim, shared with Node Ranker</span></div>
+    <div class="arrow">→</div>
+    <div class="fbox new">Conditioning vector<br><span style="color:var(--accent2);">ctx(64) ‖ type_onehot(8) ‖ target_bbox(3) ‖ neighbor_scale(2) = 77-dim</span></div>
+    <div class="arrow">→</div>
+    <div class="fbox new">HybridShapeGenerator<br><span style="color:var(--accent2);">retrieve if fit_score ≥ τ(0.6), else generate</span></div>
+    <div class="arrow">→</div>
+    <div class="fbox">Mesh, placed at open-joint centroid</div>
+  </div>
+  <div class="grid grid2" style="margin-top:8px;">
+    <div class="card">
+      <h3>Path A — ShapeRetriever</h3>
+      <ul>
+        <li>Nearest-neighbour query over the part bank by <code>comp_type</code> (+ category), ranked by bbox-aspect-ratio fit to the target open-joint region</li>
+        <li>Zero training required — real, always-valid CAD geometry</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Path B — ConditionalShapeVAE</h3>
+      <ul>
+        <li>3D-CNN encoder/decoder over 32³ occupancy grids, latent dim 128, ~6.46M params</li>
+        <li><code>marching_cubes</code> (skimage) converts the output occupancy grid back to a mesh</li>
+        <li>Trained leave-one-out (BCE + soft-Dice + KL loss), 90°-rotation augmentation</li>
+      </ul>
+    </div>
+  </div>
+  <p class="sub" style="margin-top:10px;">Retrieval was the key de-risking move — it needed zero training and delivered the first demoable milestone ("system proposes the missing part's shape"); the VAE upgrades unmatched cases from nothing to a generated shape.</p>
+</div>
+
+<!-- Slide 14 — Phase 3 results & UI -->
+<div class="slide" id="s14">
+  <div class="kicker">8 · Phase 3 — Shape Generation</div>
+  <h2>Results — both design targets met, wired into the UI</h2>
+  <div class="grid grid2">
+    <div class="card">
+      <h3 class="done">Shape-gen VAE, retrained against R33</h3>
+      <table>
+        <tr><th>Metric</th><th>Target</th><th>Result</th></tr>
+        <tr class="metric-row"><td>Voxel IoU (test)</td><td>≥ 0.35</td><td>0.5192 <span style="color:var(--good);">✓</span></td></tr>
+        <tr class="metric-row"><td>Chamfer (voxel-centroid proxy)</td><td>≤ 0.08</td><td>0.0424 <span style="color:var(--good);">✓</span></td></tr>
+        <tr><td>Best val IoU</td><td>—</td><td>0.4930 @ epoch 31</td></tr>
+      </table>
+      <p class="sub" style="margin:10px 0 0;">Part bank rebuilt under the new taxonomy: 3,221 parts from 284 assemblies. Both metrics improved slightly over the pre-migration run (IoU 0.5002, chamfer 0.0621).</p>
+    </div>
+    <div class="card">
+      <h3>Wired into the Streamlit UI</h3>
+      <ul>
+        <li>New "Suggested Missing-Part Shapes" panel section</li>
+        <li>Translucent sky-blue ghost <code>Mesh3d</code> overlay in the 3D viewer, reusing the existing open-joint overlay pattern</li>
+        <li>Each template missing-count entry is greedily matched to the best-fitting open-joint location by bbox-similarity <code>fit_score</code>, largest surface first</li>
+        <li>Skips component types with zero part-bank examples rather than guessing</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 15 — Bugs found and fixed -->
+<div class="slide" id="s15">
+  <div class="kicker">9 · Engineering Along the Way</div>
+  <h2>Bugs found and fixed this cycle</h2>
+  <div class="grid grid3">
+    <div class="card">
+      <h3 class="risk">Template category-path bug</h3>
+      <ul>
+        <li><code>_category_from_path()</code> assumed a fixed one-level nesting under <code>Source_3d_models/</code></li>
+        <li>Collapsed all 193 assemblies / 7 categories into one bogus blended template</li>
+        <li>Fixed to walk past known container directories; a real Bench Vice upload went from 10.4% → 96.2% template-match confidence</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="risk">Corpus filter leak</h3>
+      <ul>
+        <li><code>dataset.py</code>'s category filter matched on <i>any</i> path component</li>
+        <li>Silently pulled <code>rejected/</code> and <code>slow_or_unstable/</code> files back into training, since they mirror category names one level down</li>
+        <li>Fixed before it could quietly corrupt a training run</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="risk">Multiprocessing timeout/deadlock</h3>
+      <ul>
+        <li>Unconditional <code>p.join()</code> after <code>p.kill()</code> could block minutes-to-tens-of-minutes when a child was stuck in an uninterruptible OpenCASCADE/gmsh call</li>
+        <li>Plus a separate queue-flush deadlock / false-timeout race in <code>part_bank.py</code>'s worker</li>
+        <li>Fixed with bounded, wall-clock-deadline polling loops instead</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 16 — End-to-end verification & Option A/B resolved -->
+<div class="slide" id="s16">
+  <div class="kicker">10 · Verification</div>
+  <h2>End-to-end verification, and closing an open question</h2>
+  <div class="grid grid2">
+    <div class="card">
+      <h3 class="done">Verified against a real assembly</h3>
+      <ul>
+        <li>2 bolts programmatically removed from a real STEP file — system correctly detected "bolt × 2" and placed 2 correctly-shaped ghosts on the 2 largest open surfaces</li>
+        <li>Classification, template matching, and shape generation all confirmed producing new-taxonomy output end-to-end, with zero old-taxonomy categories remaining anywhere in the pipeline</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="done">Resolving the guidance-call open question</h3>
+      <p class="sub" style="margin:0 0 8px;">At the 1 Aug guidance call, we asked whether to prune the corpus (drop Gate Valve/Tool Post) or scope down to fasteners-only, to work around class imbalance and M1 memory/time limits.</p>
+      <ul>
+        <li>The taxonomy redesign fixed the underlying imbalance directly — all 8 classes now get real, non-trivial usage (slide 9)</li>
+        <li>So neither pruning nor narrowing scope was needed — the full 7-category, 193-assembly corpus was kept</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 17 — Expected outcomes -->
+<div class="slide" id="s17">
+  <div class="kicker">11 · Expected Outcomes</div>
+  <h2>Deliverables status</h2>
+  <table>
+    <tr><th>Deliverable</th><th>Status / Target</th></tr>
+    <tr><td>Heterogeneous encoder (<code>RGATConv</code> + <code>TypedLinear</code>)</td><td style="color:var(--good);">R33 serving — mean AUC 0.5306 ± 0.0314, mean AP 0.7213 ± 0.0209 (new taxonomy)</td></tr>
+    <tr><td>Node Ranker — Hit@5 ≥ 0.70, MRR ≥ 0.64</td><td>Hit@5 0.8467 <span style="color:var(--good);">met</span> · MRR 0.5723 <span style="color:var(--warn);">not yet met</span> · Hit@1 now beats baseline</td></tr>
+    <tr><td>Phase 3 shape generation — IoU ≥ 0.35, chamfer ≤ 0.08</td><td style="color:var(--good);">Both met (0.5192 / 0.0424), wired end-to-end into the UI</td></tr>
+    <tr><td>Corpus quality</td><td style="color:var(--good);">193 usable assemblies, 7 categories, fully parsability-audited, manually curated</td></tr>
+    <tr><td>GNNExplainer interpretability</td><td style="color:var(--muted);">Planned, not started</td></tr>
+    <tr><td>Encoder AUC ≥ 0.85 (Phase 1 target, carried forward)</td><td style="color:var(--muted);">Open — like-for-like regression vs. R30's raw numbers, expected given the harder 8-class problem and not yet threshold-tuned</td></tr>
+  </table>
+</div>
+
+<!-- Slide 18 — Open items / what's next -->
+<div class="slide" id="s18">
+  <div class="kicker">12 · Open Items</div>
+  <h2>What's next</h2>
+  <div class="grid grid2">
+    <div class="card">
+      <h3 class="plan">Near-term</h3>
+      <ul>
+        <li>GNNExplainer integration — still pending, carried over from the last review</li>
+        <li>Threshold re-tuning for the 39.5% of bodies the new taxonomy's voting rules flag as ambiguous</li>
+        <li>Keep pushing AUC/MRR via architecture and per-category data quality — R31's lesson stands: raw data volume alone doesn't move the needle, quality and design do</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="risk">Hardware constraint to plan around</h3>
+      <ul>
+        <li>No CUDA on the M1 — MPS is the only GPU backend, sharing one unified memory pool with the CPU</li>
+        <li>Running Node Ranker + Shape VAE training simultaneously pushed swap to 25.8 / 26.6 GB and stalled both jobs</li>
+        <li>Fix in place: run Phase 2 and Phase 3 training sequentially, not in parallel — needs to stay a standing constraint for future retrain cycles</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 19 — References -->
+<div class="slide" id="s19">
+  <div class="kicker">13 · References</div>
+  <h2>References</h2>
+  <div class="grid grid2">
+    <div class="card">
+      <h3>Core methods</h3>
+      <ul>
+        <li>Veličković et al., "Graph Attention Networks," ICLR 2018</li>
+        <li>Schlichtkrull et al., "Modeling Relational Data with Graph Convolutional Networks" (R-GCN), ESWC 2018</li>
+        <li>Rendle et al., "BPR: Bayesian Personalized Ranking from Implicit Feedback," UAI 2009</li>
+        <li>Ying et al., "GNNExplainer: Generating Explanations for Graph Neural Networks," NeurIPS 2019</li>
+        <li>Kingma &amp; Welling, "Auto-Encoding Variational Bayes" (VAE), ICLR 2014</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Tooling &amp; data</h3>
+      <ul>
+        <li>Fey &amp; Lenssen, "Fast Graph Representation Learning with PyTorch Geometric," ICLR-W 2019</li>
+        <li>Lorensen &amp; Cline, "Marching Cubes" — occupancy-grid → mesh, via <code>scikit-image</code></li>
+        <li>Open CASCADE Technology (OCCT) — B-Rep CAD kernel used for STEP parsing</li>
+        <li>Project-internal: <code>docs/phase3_shape_generation_design.md</code>, Phase 2 First Review deck</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 20 — Thank you -->
+<div class="slide" id="s20">
+  <div class="center">
+    <h1>Thank you</h1>
+    <p class="sub" style="font-size:1.05rem;">Looking forward to your guidance on GNNExplainer priority, MRR tuning, and next-corpus direction.</p>
+  </div>
+</div>
+
+<div class="footer">
+  <span id="slideLabel">1 / 1</span>
+  <div class="dots" id="dots"></div>
+  <div>
+    <button class="navbtn" onclick="prev()">&larr; Prev</button>
+    <button class="navbtn" onclick="next()">Next &rarr;</button>
+  </div>
+</div>
+
+<script>
+  const SLIDE_ORDER = ['s1','s2','s3','s4','s5','s6','s7','s8','s9','s10','s11','s12','s13','s14','s15','s16','s17','s18','s19','s20'];
+  const TOTAL = SLIDE_ORDER.length;
+  let cur = 1;
+
+  function renderDots() {
+    const dots = document.getElementById('dots');
+    dots.innerHTML = '';
+    for (let i = 1; i <= TOTAL; i++) {
+      const d = document.createElement('div');
+      d.className = 'dot' + (i === cur ? ' active' : '');
+      d.onclick = () => go(i);
+      dots.appendChild(d);
+    }
+  }
+
+  function go(n) {
+    if (n < 1 || n > TOTAL) return;
+    document.getElementById(SLIDE_ORDER[cur - 1]).classList.remove('active');
+    cur = n;
+    document.getElementById(SLIDE_ORDER[cur - 1]).classList.add('active');
+    document.getElementById('slideLabel').textContent = cur + ' / ' + TOTAL;
+    renderDots();
+  }
+  function next() { go(cur + 1); }
+  function prev() { go(cur - 1); }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') next();
+    if (e.key === 'ArrowLeft') prev();
+  });
+
+  document.getElementById('slideLabel').textContent = cur + ' / ' + TOTAL;
+  renderDots();
+</script>
+
+</body>
+</html>

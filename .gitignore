@@ -18,8 +18,12 @@ __pycache__/
 # Back-end generated
 back_end/data/processed/
 back_end/data/part_bank/
+back_end/data/part_bank_archive_old_taxonomy/
 back_end/checkpoints/best.pt
+back_end/checkpoints/archive_r30/
 back_end/checkpoints/archive_r31/
+back_end/checkpoints/archive_r32/
+back_end/checkpoints/archive_r33/
 back_end/results/
 
 # Jupyter
