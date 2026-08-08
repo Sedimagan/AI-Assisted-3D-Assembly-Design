@@ -153,7 +153,8 @@ st.markdown(
         </span>
         <span style="color:#a0b8cc;font-size:0.82rem;letter-spacing:0.2px;">
             <strong>Student:</strong> Parthasarathy Perumal &nbsp;·&nbsp;
-            <strong>Guide:</strong> Prof. Sagarika Borah &nbsp;·&nbsp;
+            <strong>Guide:</strong> Prof. Sagarika Borah (Phase 1) &nbsp;·&nbsp;
+            Prof. Gaurav Siwal (Phase 2) &nbsp;·&nbsp;
             M.Tech DS &amp; AI, Sem 4 &nbsp;·&nbsp;
             PES University, Electronic City, Bengaluru
         </span>
@@ -194,6 +195,18 @@ if "aida_explanation" not in st.session_state:
 if "aida_explain_for" not in st.session_state:
     st.session_state.aida_explain_for   = ""
 
+# Results-panel sections: each is independently collapsible/expandable.
+# Purely a text-panel display convenience — the 3D viewer's Original/Result
+# toggle is what controls whether overlays show, independent of these.
+# Default: all collapsed — user opts in to whichever section(s) they want.
+_PANEL_SECTION_KEYS = [
+    "assembly_type", "not_assembled", "potentially_missing",
+    "template_missing", "next_component", "open_joints", "suggested_shapes",
+]
+for _psk in _PANEL_SECTION_KEYS:
+    if f"exp_{_psk}" not in st.session_state:
+        st.session_state[f"exp_{_psk}"] = False
+
 # Initialise source_3d_dir from .env, falling back to the default folder
 if "source_3d_dir" not in st.session_state:
     _default_src = str(_PROJ_ROOT / "Source_3d_models")
@@ -231,7 +244,8 @@ def render_log(entries: list) -> str:
     )
     return (
         '<div style="background:#070e18;border-radius:6px;padding:0.5rem 0.6rem;'
-        'max-height:220px;overflow-y:auto;">' + rows + "</div>"
+        'height:calc(100vh - 420px);min-height:200px;overflow-y:auto;">'
+        + rows + "</div>"
     )
 
 # ── Inference helpers ─────────────────────────────────────────────────────────
@@ -752,8 +766,13 @@ def _run_inference(step_bytes: bytes,
     return {"error": (r.stderr.strip()[:300] or "Inference subprocess failed")}
 
 
-def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
-    """Return the HTML for the right viewer panel based on inference state."""
+def _placeholder_panel_html(result: dict | None, ckpt_exists: bool) -> str | None:
+    """HTML for panel placeholder states (error / no-model / idle).
+
+    Returns None when `result` is a valid, error-free inference result — the
+    caller should then render it as collapsible sections via
+    `_build_panel_sections()` instead of a single HTML blob.
+    """
     PANEL = (
         "border:1.5px solid #2a4060;border-radius:8px;height:400px;"
         "background:#f8f9fb;"
@@ -764,7 +783,46 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
     )
 
     if result and "error" not in result:
-        missing      = result.get("missing_links", [])
+        return None
+
+    if result and "error" in result:
+        return (
+            f'<div style="{PANEL}{CENTER}">'
+            f'<div style="font-size:1.8rem;">⚠️</div>'
+            f'<div style="font-size:0.8rem;color:#e05555;margin-top:0.4rem;">Inference error</div>'
+            f'<div style="font-size:0.68rem;color:#aaa;margin-top:0.3rem;max-width:180px;">'
+            f'{result["error"][:120]}</div></div>'
+        )
+
+    if not ckpt_exists:
+        return (
+            f'<div style="{PANEL}{CENTER}">'
+            f'<div style="font-size:2rem;">🧠</div>'
+            f'<div style="font-size:0.88rem;font-weight:600;color:#5b9bd5;margin-top:0.5rem;">'
+            f'No trained model yet</div>'
+            f'<div style="font-size:0.75rem;color:#999;margin-top:0.3rem;">'
+            f'Click "Train 3D Models" to begin</div></div>'
+        )
+
+    return (
+        f'<div style="{PANEL}{CENTER}">'
+        f'<div style="font-size:2rem;">🔍</div>'
+        f'<div style="font-size:0.88rem;font-weight:600;color:#5b9bd5;margin-top:0.5rem;">'
+        f'Upload a STEP file to predict</div>'
+        f'<div style="font-size:0.75rem;color:#999;margin-top:0.3rem;">'
+        f'Missing components will appear here</div></div>'
+    )
+
+
+def _build_panel_sections(result: dict) -> tuple[str, list[dict]]:
+    """Build the header line + a list of independent, collapsible sections
+    for a valid (error-free) inference result.
+
+    Each section dict has: key, icon, title, html. `key` matches the
+    `exp_<key>` session-state flag that the 3D viewer reads to decide
+    whether to draw the matching overlay (see the col_right viewer code).
+    """
+    if True:
         n_nodes      = result.get("n_nodes", 0)
         n_edges      = result.get("n_edges", 0)
         part_names   = result.get("part_names", [])
@@ -814,7 +872,7 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
                         if _d == 0:
                             not_assembled.append(_gi)
 
-        rows = ""
+        sections: list[dict] = []
 
         # ── Section 0: Assembly type identification ───────────────────────────
         if assembly_match:
@@ -822,28 +880,26 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
             _am_pct  = int(_am_conf * 100)
             _am_col  = "#4caf82" if _am_conf >= 0.6 else "#5b9bd5" if _am_conf >= 0.35 else "#999"
             _am_n    = assembly_match.get("n_assemblies", 0)
-            rows += (
-                '<p style="font-size:0.76rem;font-weight:700;color:#a78bfa;'
-                'margin:0 0 5px;">🔮 Assembly Type Identified</p>'
-                f'<div style="background:rgba(79,62,160,0.12);border:1px solid #4f3ea0;'
-                f'border-radius:5px;padding:5px 8px;margin-bottom:8px;">'
-                f'<span style="color:#000000;font-size:0.78rem;font-weight:600;">'
-                f'{assembly_match["label"]}</span>'
-                f'<span style="background:{_am_col};color:#fff;font-size:0.65rem;'
-                f'font-weight:700;padding:1px 6px;border-radius:3px;margin-left:8px;">'
-                f'{_am_pct}%</span>'
-                f'<span style="color:#777;font-size:0.66rem;margin-left:6px;">'
-                f'· {_am_n} training samples</span>'
-                f'</div>'
-            )
+            sections.append({
+                "key": "assembly_type", "icon": "🔮", "title": "Assembly Type Identified",
+                "html": (
+                    f'<div style="background:rgba(79,62,160,0.12);border:1px solid #4f3ea0;'
+                    f'border-radius:5px;padding:5px 8px;">'
+                    f'<span style="color:#000000;font-size:0.78rem;font-weight:600;">'
+                    f'{assembly_match["label"]}</span>'
+                    f'<span style="background:{_am_col};color:#fff;font-size:0.65rem;'
+                    f'font-weight:700;padding:1px 6px;border-radius:3px;margin-left:8px;">'
+                    f'{_am_pct}%</span>'
+                    f'<span style="color:#777;font-size:0.66rem;margin-left:6px;">'
+                    f'· {_am_n} training samples</span>'
+                    f'</div>'
+                ),
+            })
 
         # ── Section 1: not assembled / under-connected nodes ──────────────────
         all_flagged = not_assembled + under_connected
         if all_flagged:
-            rows += (
-                '<p style="font-size:0.76rem;font-weight:700;color:#ef4444;'
-                'margin:0 0 5px;">🔴 Not Assembled / Not Properly Mated</p>'
-            )
+            _sec_html = ""
             # Group by (name, label) so repeated instances show as one entry + count
             _seen_flagged: dict = {}
             for i in all_flagged:
@@ -857,7 +913,7 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
                     f'font-weight:700;padding:1px 5px;border-radius:3px;margin-left:4px;">'
                     f'×{_cnt}</span>' if _cnt > 1 else ""
                 )
-                rows += (
+                _sec_html += (
                     f'<div style="display:flex;align-items:center;gap:6px;'
                     f'font-size:0.72rem;margin-bottom:5px;">'
                     f'<span style="color:#ef4444;font-size:0.78rem;">⚠</span>'
@@ -866,57 +922,19 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
                     f'<span style="color:#888;font-size:0.68rem;">— {_lbl}</span>'
                     f'</div>'
                 )
-
-        # ── Section 2: GNN missing-link predictions ───────────────────────────
-        if missing and not single_body:
-            lbl = (
-                '<p style="font-size:0.76rem;font-weight:700;color:#5b9bd5;'
-                'margin:8px 0 5px;">🤖 AI Predicted Missing Links</p>'
-            )
-            # Group by (src_name, dst_name) keeping highest confidence per pair
-            _seen_links: dict = {}
-            for lk in missing:
-                u, v, s = lk["src"], lk["dst"], lk["confidence"]
-                _lk_key = (_pname(u), _pname(v))
-                if _lk_key not in _seen_links or s > _seen_links[_lk_key][0]:
-                    _seen_links[_lk_key] = (s, _seen_links.get(_lk_key, (0, 0))[1] + 1)
-                else:
-                    _seen_links[_lk_key] = (_seen_links[_lk_key][0],
-                                            _seen_links[_lk_key][1] + 1)
-            link_rows = ""
-            for (_pu, _pv), (_s, _lcnt) in _seen_links.items():
-                pct = int(_s * 100)
-                col = "#4caf82" if _s >= 0.8 else "#5b9bd5" if _s >= 0.5 else "#e08850"
-                _lk_badge = (
-                    f'<span style="background:#e8f0fe;color:#3b5bdb;font-size:0.62rem;'
-                    f'font-weight:700;padding:1px 5px;border-radius:3px;margin-left:4px;">'
-                    f'×{_lcnt}</span>' if _lcnt > 1 else ""
-                )
-                link_rows += (
-                    f'<div style="display:flex;align-items:center;gap:8px;'
-                    f'font-size:0.72rem;margin-bottom:6px;">'
-                    f'<span style="color:#333;white-space:nowrap;min-width:120px;font-weight:600;">'
-                    f'{_pu} ↔ {_pv}</span>'
-                    f'{_lk_badge}'
-                    f'<div style="flex:1;background:#dce8f0;border-radius:3px;height:7px;">'
-                    f'<div style="width:{pct}%;background:{col};border-radius:3px;height:7px;"></div>'
-                    f'</div>'
-                    f'<span style="color:{col};font-weight:700;min-width:36px;text-align:right;">'
-                    f'{_s:.3f}</span></div>'
-                )
-            rows += lbl + link_rows
+            sections.append({
+                "key": "not_assembled", "icon": "🔴",
+                "title": "Not Assembled / Not Properly Mated", "html": _sec_html,
+            })
 
         # ── Section 3: potentially missing components (auto reference match) ────
         pot_missing = result.get("potentially_missing", [])
         if pot_missing:
-            rows += (
-                '<p style="font-size:0.76rem;font-weight:700;color:#f97316;'
-                'margin:8px 0 5px;">🔍 Potentially Missing Components</p>'
-            )
+            _sec_html = ""
             for mc in pot_missing:
                 mn = mc["name"]
                 mn_s = (mn[:36] + "…") if len(mn) > 36 else mn
-                rows += (
+                _sec_html += (
                     f'<div style="display:flex;align-items:center;gap:6px;'
                     f'font-size:0.72rem;margin-bottom:5px;">'
                     f'<span style="color:#f97316;font-size:0.78rem;">❓</span>'
@@ -925,18 +943,19 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
                     f'— not found in assembly</span>'
                     f'</div>'
                 )
+            sections.append({
+                "key": "potentially_missing", "icon": "🔍",
+                "title": "Potentially Missing Components", "html": _sec_html,
+            })
 
         # ── Section 4: template-based missing components ──────────────────────
         if tmpl_missing:
-            rows += (
-                '<p style="font-size:0.76rem;font-weight:700;color:#14b8a6;'
-                'margin:8px 0 5px;">📋 Expected Components Missing</p>'
-            )
+            _sec_html = ""
             for _mc in tmpl_missing:
                 _mc_cnt = _mc.get("count", 1)
                 _mc_lbl = _mc.get("label", _mc.get("type", "component"))
                 _mc_sfx = f" ×{_mc_cnt}" if _mc_cnt > 1 else ""
-                rows += (
+                _sec_html += (
                     f'<div style="display:flex;align-items:center;gap:6px;'
                     f'font-size:0.72rem;margin-bottom:5px;">'
                     f'<span style="color:#14b8a6;font-size:0.78rem;">➕</span>'
@@ -944,20 +963,21 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
                     f'{_mc_lbl}{_mc_sfx}</span>'
                     f'</div>'
                 )
+            sections.append({
+                "key": "template_missing", "icon": "📋",
+                "title": "Expected Components Missing", "html": _sec_html,
+            })
 
         # ── Section 4b: AI-ranked next component (Phase 2, NodeRanker) ────────
         if next_comp:
-            rows += (
-                '<p style="font-size:0.76rem;font-weight:700;color:#8b5cf6;'
-                'margin:8px 0 5px;">🧭 AI-Ranked Next Component (GNN)</p>'
-            )
+            _sec_html = ""
             for _nc in next_comp[:5]:
                 _nc_type  = str(_nc.get("type", "")).capitalize()
                 _nc_score = _nc.get("score", 0.0)
                 _nc_pct   = int(max(0.0, (_nc_score + 1) / 2) * 100)
                 _nc_col   = ("#4caf82" if _nc_score >= 0.5 else
                              "#8b5cf6" if _nc_score >= 0.0 else "#999")
-                rows += (
+                _sec_html += (
                     f'<div style="display:flex;align-items:center;gap:6px;'
                     f'font-size:0.72rem;margin-bottom:4px;">'
                     f'<span style="color:#5b21b6;font-weight:600;width:70px;'
@@ -970,12 +990,14 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
                     f'text-align:right;flex-shrink:0;">{_nc_score:+.3f}</span>'
                     f'</div>'
                 )
+            sections.append({
+                "key": "next_component", "icon": "🧭",
+                "title": "AI-Ranked Next Component (GNN)", "html": _sec_html,
+            })
 
         # ── Section 5: Open surface joints (Octree spatial analysis) ─────────
         if open_surfs:
-            rows += (
-                '<p style="font-size:0.76rem;font-weight:700;color:#84cc16;'
-                'margin:8px 0 2px;">⬡ Open Assembly Joints Detected</p>'
+            _sec_html = (
                 '<p style="font-size:0.65rem;color:#65a30d;margin:0 0 6px;">'
                 'Lime green mesh in 3D viewer — click a legend entry to isolate each joint</p>'
             )
@@ -983,7 +1005,7 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
                 _os_bi  = _os.get("body_idx", 0)
                 _os_ar  = _os.get("area_ratio", 0)
                 _os_pct = int(_os_ar * 100)
-                rows += (
+                _sec_html += (
                     f'<div style="display:flex;align-items:flex-start;gap:6px;'
                     f'font-size:0.72rem;margin-bottom:6px;">'
                     f'<span style="display:inline-block;width:10px;height:10px;'
@@ -998,14 +1020,16 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
                     f'This area needs components to be assembled</span>'
                     f'</div></div>'
                 )
+            sections.append({
+                "key": "open_joints", "icon": "⬡",
+                "title": "Open Assembly Joints Detected", "html": _sec_html,
+            })
 
         # ── Section 5b: Suggested missing-part shapes (Phase 3, shape gen) ────
         if gen_parts:
-            rows += (
-                '<p style="font-size:0.76rem;font-weight:700;color:#38bdf8;'
-                'margin:8px 0 2px;">🪄 Suggested Missing-Part Shapes</p>'
+            _sec_html = (
                 '<p style="font-size:0.65rem;color:#0284c7;margin:0 0 6px;">'
-                'Sky-blue ghost mesh in 3D viewer — best-effort shape + location, not verified</p>'
+                'Red ghost mesh in 3D viewer — best-effort shape + location, not verified</p>'
             )
             for _gp in gen_parts:
                 _gp_type = str(_gp.get("type", "component")).capitalize()
@@ -1015,7 +1039,7 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
                 _gp_icon = "🔄" if _gp_src == "retrieved" else "✨"
                 _gp_badge_txt = "Retrieved from part bank" if _gp_src == "retrieved" else "AI-generated (VAE)"
                 _gp_pct = int(max(0.0, min(1.0, _gp_conf)) * 100)
-                rows += (
+                _sec_html += (
                     f'<div style="display:flex;align-items:flex-start;gap:6px;'
                     f'font-size:0.72rem;margin-bottom:6px;">'
                     f'<span style="display:inline-block;width:10px;height:10px;'
@@ -1030,45 +1054,13 @@ def _right_panel_html(result: dict | None, ckpt_exists: bool) -> str:
                     f'Location fit {_gp_fit:.0%} · shape confidence {_gp_pct}%</span>'
                     f'</div></div>'
                 )
+            sections.append({
+                "key": "suggested_shapes", "icon": "🪄",
+                "title": "Suggested Missing-Part Shapes", "html": _sec_html,
+            })
 
-        if (not all_flagged and not missing and not pot_missing
-                and not tmpl_missing and not assembly_match and not open_surfs):
-            rows = "<p style='color:#4caf82;font-size:0.78rem;'>✓ Assembly appears complete — no issues found.</p>"
-
-        return (
-            f'<div style="{PANEL}padding:14px;overflow-y:auto;max-height:400px;">'
-            f'<p style="font-size:0.72rem;color:#888;margin:0 0 6px;">'
-            f'{n_nodes} components · {n_edges} known connections</p>'
-            f'{rows}</div>'
-        )
-
-    if result and "error" in result:
-        return (
-            f'<div style="{PANEL}{CENTER}">'
-            f'<div style="font-size:1.8rem;">⚠️</div>'
-            f'<div style="font-size:0.8rem;color:#e05555;margin-top:0.4rem;">Inference error</div>'
-            f'<div style="font-size:0.68rem;color:#aaa;margin-top:0.3rem;max-width:180px;">'
-            f'{result["error"][:120]}</div></div>'
-        )
-
-    if not ckpt_exists:
-        return (
-            f'<div style="{PANEL}{CENTER}">'
-            f'<div style="font-size:2rem;">🧠</div>'
-            f'<div style="font-size:0.88rem;font-weight:600;color:#5b9bd5;margin-top:0.5rem;">'
-            f'No trained model yet</div>'
-            f'<div style="font-size:0.75rem;color:#999;margin-top:0.3rem;">'
-            f'Click "Train 3D Models" to begin</div></div>'
-        )
-
-    return (
-        f'<div style="{PANEL}{CENTER}">'
-        f'<div style="font-size:2rem;">🔍</div>'
-        f'<div style="font-size:0.88rem;font-weight:600;color:#5b9bd5;margin-top:0.5rem;">'
-        f'Upload a STEP file to predict</div>'
-        f'<div style="font-size:0.75rem;color:#999;margin-top:0.3rem;">'
-        f'Missing components will appear here</div></div>'
-    )
+        header = f'{n_nodes} components · {n_edges} known connections'
+        return header, sections
 
 
 # ── AIDA explanation helper ───────────────────────────────────────────────────
@@ -1094,7 +1086,7 @@ def _run_aida_explain(inference_result: dict) -> str:
             return short[:48] + "…" if len(short) > 48 else short
         return f"Part {i+1}"
 
-    # Category 1 — replicate the exact grouping logic from _right_panel_html
+    # Category 1 — replicate the exact grouping logic from _build_panel_sections
     _grp: dict = {}
     for _gi, _gn in enumerate(part_names):
         _key = _basename(_gn) if _gn else f"__solo_{_gi}"
@@ -1218,48 +1210,7 @@ def _run_aida_explain(inference_result: dict) -> str:
             or "AIDA explanation unavailable.")
 
 
-# ── Source folder helper ──────────────────────────────────────────────────────
-def _pick_source_folder() -> str | None:
-    """Open a native macOS folder-picker; return the chosen path or None.
-    Returns None on non-macOS platforms (cloud deployments)."""
-    import platform
-    if platform.system() != "Darwin":
-        return None
-    try:
-        result = subprocess.run(
-            ["osascript", "-e",
-             'set p to POSIX path of (choose folder with prompt '
-             '"Select the folder containing your 3D model files (.step / .stp)")'
-             ],
-            capture_output=True, text=True, timeout=120,
-        )
-        if result.returncode == 0:
-            return result.stdout.strip().rstrip("/") or None
-    except FileNotFoundError:
-        pass
-    return None
-
-
-def _save_source_dir(path: str) -> None:
-    """Persist the chosen folder to .env and back_end/config.yaml."""
-    # .env
-    env_path = _PROJ_ROOT / ".env"
-    if env_path.exists():
-        txt = env_path.read_text()
-        txt = re.sub(r"^SOURCE_3D_MODELS=.*$", f"SOURCE_3D_MODELS={path}",
-                     txt, flags=re.MULTILINE)
-        env_path.write_text(txt)
-    # config.yaml
-    cfg_path = _PROJ_ROOT / "back_end" / "config.yaml"
-    if cfg_path.exists():
-        txt = cfg_path.read_text()
-        txt = re.sub(r'^(\s*source_dir:\s*).*$', f'\\1"{path}"',
-                     txt, flags=re.MULTILINE)
-        cfg_path.write_text(txt)
-
-
 # ── Training helpers ──────────────────────────────────────────────────────────
-_TRAIN_SCRIPT = _PROJ_ROOT / "back_end" / "train.py"
 _TRAIN_LOG    = _PROJ_ROOT / ".logs" / "training.log"
 
 # Patterns that mark a training milestone worth showing in the activity log
@@ -1316,23 +1267,6 @@ def _is_training() -> bool:
         return True
     except OSError:
         return False
-
-
-def _start_training() -> None:
-    _TRAIN_LOG.parent.mkdir(parents=True, exist_ok=True)
-    lf = open(_TRAIN_LOG, "w")
-    _env = os.environ.copy()
-    _env["PYTHONUNBUFFERED"] = "1"      # force line-by-line flush to log file
-    proc = subprocess.Popen(
-        [sys.executable, "-u", str(_TRAIN_SCRIPT)],   # -u = unbuffered stdout/stderr
-        cwd=str(_TRAIN_SCRIPT.parent),
-        stdout=lf, stderr=lf,
-        env=_env,
-    )
-    lf.close()
-    st.session_state.training_pid     = proc.pid
-    st.session_state.training_log_pos = 0
-    log(f"🚀  Training started (PID {proc.pid})")
 
 
 def _poll_training() -> None:
@@ -1424,58 +1358,65 @@ with st.sidebar:
     view_preset = _col_cam.selectbox("Camera", ["Isometric", "Top", "Front", "Side"])
 
     st.markdown("---")
-    st.markdown(
-        "<p style='font-size:0.68rem;color:#3a5878;margin:0 0 0.15rem;'>"
-        "Locate source for training</p>",
-        unsafe_allow_html=True,
-    )
-    if st.button("📁 3D Files", use_container_width=True):
-        chosen = _pick_source_folder()
-        if chosen:
-            st.session_state.source_3d_dir = chosen
-            _save_source_dir(chosen)
-            log(f"📁  Source folder set: {Path(chosen).name}")
-            st.rerun()
 
-    # Show label + full path in tooltip
     st.markdown(
-        f"<p style='font-size:0.65rem;color:#2a4060;margin:0.05rem 0 0;"
-        f"overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
-        f"' title='{st.session_state.source_3d_dir}'>📂 If new 3D models added</p>",
+        "<p style='font-size:0.8rem;font-weight:600;margin:0 0 0.2rem;color:#444;'>"
+        "🤖 AI-Assisted 3D Assembly Design Viewer</p>",
         unsafe_allow_html=True,
     )
 
-    if st.session_state.uploaded_bytes is not None:
-        if st.button("🔄 Upload new file", use_container_width=True):
-            log("🔄  New file upload requested")
-            st.session_state.uploaded_bytes   = None
-            st.session_state.uploaded_name    = None
-            st.session_state.mesh_logged      = False
-            st.session_state.inference_result = None
-            st.session_state.inference_done_for = ""
-            st.session_state.pred_bytes         = None
-            st.session_state.pred_name          = None
-            st.session_state.aida_explanation   = None
-            st.session_state.aida_explain_for   = ""
-            st.rerun()
+    # ── Model metrics badge (persistent, reads from test_metrics.json) ──────
+    _metrics_file  = _PROJ_ROOT / "back_end" / "results" / "test_metrics.json"
+    if _CKPT_PATH.exists() and _metrics_file.exists():
+        try:
+            _m = json.loads(_metrics_file.read_text())
+            _m_auc = _m.get("auc", 0)
+            _m_ap  = _m.get("ap",  0)
 
-    # ── Train button ──────────────────────────────────────────────────────────
+            # Read val AUC from serving checkpoint (lightweight metadata only)
+            _srv_val_auc = None
+            try:
+                import torch as _torch
+                _srv_meta = _torch.load(str(_CKPT_SERVING), map_location="cpu", weights_only=False)
+                _srv_val_auc = _srv_meta.get("auc")
+            except Exception:
+                pass
+
+            # Primary badges: best-fold metrics (val AUC + test AUC/AP)
+            _auc_col = "#16a34a" if _m_auc >= 0.70 else ("#d97706" if _m_auc >= 0.55 else "#dc2626")
+            _ap_col  = "#16a34a" if _m_ap  >= 0.70 else ("#d97706" if _m_ap  >= 0.55 else "#dc2626")
+            _val_col = "#16a34a" if (_srv_val_auc or 0) >= 0.70 else ("#d97706" if (_srv_val_auc or 0) >= 0.55 else "#dc2626")
+            _val_badge = (
+                f'<span style="background:{_val_col};color:#fff;font-size:0.58rem;'
+                f'font-weight:700;padding:1px 5px;border-radius:10px;white-space:nowrap;">'
+                f'Val AUC {_srv_val_auc:.3f}</span>'
+            ) if _srv_val_auc is not None else ""
+            st.markdown(
+                '<div style="display:flex;gap:4px;align-items:center;'
+                'margin:0 0 4px;flex-wrap:nowrap;overflow-x:auto;">'
+                '<span style="font-size:0.58rem;color:#6b7280;white-space:nowrap;">Best model:</span>'
+                + _val_badge +
+                f'<span style="background:{_auc_col};color:#fff;font-size:0.58rem;'
+                f'font-weight:700;padding:1px 5px;border-radius:10px;white-space:nowrap;">'
+                f'Test AUC {_m_auc:.3f}</span>'
+                f'<span style="background:{_ap_col};color:#fff;font-size:0.58rem;'
+                f'font-weight:700;padding:1px 5px;border-radius:10px;white-space:nowrap;">'
+                f'Test AP {_m_ap:.3f}</span>'
+                '</div>',
+                unsafe_allow_html=True,
+            )
+        except Exception:
+            pass
+
+    st.markdown("---")
+
+    # Training can still run from the terminal (see CLAUDE.md); this keeps
+    # the activity log in sync with that log file even without the button.
     _poll_training()   # read any new log lines on every rerun
 
-    if _is_training():
-        st.markdown(
-            "<p style='font-size:0.72rem;color:#4caf82;margin:0.2rem 0;'>"
-            "⚙️ Training in progress…</p>",
-            unsafe_allow_html=True,
-        )
-        if st.button("🔄 Refresh status", use_container_width=True):
-            st.rerun()
-    else:
-        if st.button("🚀 Train 3D Models", use_container_width=True):
-            _start_training()
-            st.rerun()
-
-    # Activity Log — always visible, compact heading
+    # Activity Log — always visible, given the freed-up space below Viewer
+    # Settings now that the source-folder / upload-new-file / train buttons
+    # have been removed from this sidebar.
     st.markdown(
         "<p style='font-size:0.78rem;font-weight:600;margin:0.25rem 0 0.15rem;'>📋 Activity Log</p>",
         unsafe_allow_html=True,
@@ -1741,7 +1682,6 @@ if st.session_state.training_just_done and _CKPT_PATH.exists():
     )
 
 # ── Always-visible dual-panel layout ─────────────────────────────────────────
-st.markdown("### 3D Viewers")
 col_left, col_right = st.columns(2)
 
 CAMERAS = {
@@ -1756,31 +1696,38 @@ BG_MAP = {"white":"#ffffff","black":"#000000","grey":"#808080","lightgrey":"#d3d
 with col_right:
     st.markdown(
         "<p style='font-size:0.8rem;font-weight:600;margin:0 0 0.2rem;color:#444;'>"
-        "📁 3D Model Viewer</p>",
+        "Results</p>",
         unsafe_allow_html=True,
     )
 
     if st.session_state.uploaded_bytes is None:
-        raw = st.file_uploader(
-            "Upload a STEP / STP file", type=["step", "stp"],
-            help="Converted via gmsh then rendered interactively.",
+        st.markdown(
+            '<div style="text-align:center;padding:0.5rem 0 2rem;color:#aaa;height:260px;'
+            'display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:1.5rem;">'
+            '<div style="font-size:2.5rem;">📂</div>'
+            '<p style="font-size:0.85rem;margin-top:0.4rem;">Upload a STEP file in the '
+            'Input panel to view it here</p>'
+            '</div>',
+            unsafe_allow_html=True,
         )
-        if raw:
-            kb = len(raw.getvalue()) / 1024
-            log(f"📂  File received: {raw.name}  ({kb:.1f} KB)")
-            st.session_state.uploaded_bytes = raw.getvalue()
-            st.session_state.uploaded_name  = raw.name
-            st.rerun()
-        else:
-            st.markdown(
-                '<div style="text-align:center;padding:0.5rem 0 2rem;color:#aaa;height:260px;'
-                'display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:1.5rem;">'
-                '<div style="font-size:2.5rem;">📂</div>'
-                '<p style="font-size:0.85rem;margin-top:0.4rem;">Upload a STEP file to view</p>'
-                '</div>',
-                unsafe_allow_html=True,
-            )
     else:
+        # "Show parts" is now a native "🧩 Parts" legend group (click to
+        # toggle, same as Open Joints / Suggested Shapes / etc).
+        _vt_col1, _vt_col2 = st.columns([1, 1])
+        with _vt_col1:
+            _viewer_mode = st.segmented_control(
+                "View", options=["Original", "Result"], default="Result",
+                key="viewer_mode", label_visibility="collapsed",
+            ) or "Result"
+        with _vt_col2:
+            _highlight_choice = st.segmented_control(
+                "Highlight", options=["Highlight: On", "Highlight: Off"],
+                default="Highlight: On", key="highlight_mode",
+                label_visibility="collapsed",
+            ) or "Highlight: On"
+        _show_result = _viewer_mode == "Result"
+        _highlight_not_assembled = _highlight_choice == "Highlight: On"
+
         if not st.session_state.mesh_logged:
             log("⚙️  Starting STEP → STL conversion via gmsh…")
 
@@ -1805,9 +1752,11 @@ with col_right:
             fig = go.Figure()
             
             # Map GNN node centroids to viewer body centroids by minimum distance
+            # ("Original" mode skips this — plain mesh, no result-derived labels)
             body_to_gnn = {b["idx"]: [] for b in m["bodies"]}
             if (
-                st.session_state.inference_result 
+                _show_result
+                and st.session_state.inference_result
                 and "centroids" in st.session_state.inference_result
                 and len(st.session_state.inference_result["centroids"]) > 0
             ):
@@ -1832,7 +1781,8 @@ with col_right:
             # Fallback: GNN predictions when neither rule fires
             highlighted_gnn_nodes = set()
             if (
-                st.session_state.inference_result
+                _show_result
+                and st.session_state.inference_result
                 and st.session_state.inference_done_for == st.session_state.uploaded_name
             ):
                 _ir      = st.session_state.inference_result
@@ -1864,22 +1814,32 @@ with col_right:
                                 if _degrees[_gi] == 0:
                                     highlighted_gnn_nodes.add(_gi)
 
-                # Fallback to GNN predictions if nothing was flagged
-                if not highlighted_gnn_nodes:
-                    for lk in _ir.get("missing_links", []):
-                        highlighted_gnn_nodes.add(lk["src"])
-                        highlighted_gnn_nodes.add(lk["dst"])
+            # Trace indices per legend group, so the "Select all" buttons
+            # below can restyle a whole group visible again in one click
+            # without disturbing any other group's individually-toggled
+            # state (that state lives only in the browser's Plotly widget —
+            # Streamlit has no visibility into it, so this has to be a
+            # client-side restyle, not a rerun).
+            _group_trace_indices: dict = {
+                "not_assembled": [], "parts": [], "potentially_missing": [],
+                "open_joints": [], "suggested_shapes": [],
+            }
 
+            _first_not_assembled_legend = True
+            _first_parts_legend = True
             for b in m["bodies"]:
                 idx = b["idx"]
                 verts = np.array(b["verts"])
                 triangles = np.array(b["triangles"])
-                
+
                 if len(verts) == 0 or len(triangles) == 0:
                     continue
                 
                 mapped_gnn = body_to_gnn.get(idx, [])
-                is_highlighted = any(g in highlighted_gnn_nodes for g in mapped_gnn)
+                is_highlighted = (
+                    _highlight_not_assembled
+                    and any(g in highlighted_gnn_nodes for g in mapped_gnn)
+                )
 
                 _inf_pnames = (st.session_state.inference_result or {}).get("part_names", [])
                 def _vname(g):
@@ -1901,15 +1861,33 @@ with col_right:
                     return s[:cut].rstrip() + "<br>" + (rest[:width-1] + "…" if len(rest) > width else rest)
 
                 if is_highlighted:
-                    b_color  = "#ff4d4d"
+                    b_color  = "#f59e0b"
                     h_gnn    = [g for g in mapped_gnn if g in highlighted_gnn_nodes]
                     name     = ", ".join(_wrap(_short(_vname(g))) for g in h_gnn) + " ⚠"
                     show_leg = True
                 else:
                     b_color  = mesh_color
                     name     = (_short(_vname(mapped_gnn[0])) if mapped_gnn else f"Part {idx+1}")
-                    show_leg = False
-                    
+                    # Every part gets its own legend line (not just the
+                    # first) so each is individually selectable, matching
+                    # groupclick="toggleitem" below.
+                    show_leg = True
+
+                _legendgroup_kwargs = {}
+                if is_highlighted:
+                    _legendgroup_kwargs["legendgroup"] = "not_assembled"
+                    if _first_not_assembled_legend:
+                        _legendgroup_kwargs["legendgrouptitle"] = dict(text="🟠 Not Assembled")
+                        _first_not_assembled_legend = False
+                else:
+                    # Grouped under one "🧩 Parts" header, but each body still
+                    # gets its own legend line so it can be selected/hidden
+                    # individually (groupclick="toggleitem" below).
+                    _legendgroup_kwargs["legendgroup"] = "parts"
+                    if _first_parts_legend:
+                        _legendgroup_kwargs["legendgrouptitle"] = dict(text="🧩 Parts")
+                        _first_parts_legend = False
+
                 fig.add_trace(go.Mesh3d(
                     x=verts[:, 0], y=verts[:, 1], z=verts[:, 2],
                     i=triangles[:, 0], j=triangles[:, 1], k=triangles[:, 2],
@@ -1920,11 +1898,16 @@ with col_right:
                     lighting=dict(ambient=0.6, diffuse=0.9, specular=0.5,
                                    roughness=0.3, fresnel=0.4),
                     lightposition=dict(x=200, y=300, z=400),
+                    **_legendgroup_kwargs,
                 ))
+                _group_trace_indices["not_assembled" if is_highlighted else "parts"].append(
+                    len(fig.data) - 1
+                )
 
             # Orange cross markers at estimated locations of missing components
-            _pot = (st.session_state.inference_result or {}).get("potentially_missing", [])
-            for _mc in _pot:
+            _pot = ((st.session_state.inference_result or {}).get("potentially_missing", [])
+                    if _show_result else [])
+            for _pot_i, _mc in enumerate(_pot):
                 _cx, _cy, _cz = _mc["centroid"]
                 _mn = _mc["name"]
                 _ms = (_mn[:26] + "…") if len(_mn) > 26 else _mn
@@ -1935,14 +1918,18 @@ with col_right:
                                 line=dict(color="#ffffff", width=2)),
                     name=f"❓ {_ms}",
                     showlegend=True,
+                    legendgroup="potentially_missing",
+                    legendgrouptitle=(dict(text="❓ Potentially Missing") if _pot_i == 0 else None),
                     hovertext=f"Missing component:<br>{_mn}",
                     hoverinfo="text",
                 ))
+                _group_trace_indices["potentially_missing"].append(len(fig.data) - 1)
 
             # ── Amber mesh patches for open joints (Octree surface analysis) ──
             # Each amber surface = an open mating joint where a missing component
             # should be assembled (derived from Borah & Borah 2020 Octree concept).
-            _open_surfs_view = (st.session_state.inference_result or {}).get("open_surfaces", [])
+            _open_surfs_view = ((st.session_state.inference_result or {}).get("open_surfaces", [])
+                                if _show_result else [])
             for _osi, _os in enumerate(_open_surfs_view):
                 _ov = _os.get("vertices", [])
                 _ot = _os.get("triangles", [])
@@ -1962,6 +1949,8 @@ with col_right:
                     flatshading=True,
                     name=f"⬡ Body {_os_bi + 1}  ({int(_os_ar * 100)}%)",
                     showlegend=True,
+                    legendgroup="open_joints",
+                    legendgrouptitle=(dict(text="⬡ Open Joints") if _osi == 0 else None),
                     hovertext=(
                         f"This area needs components to be assembled<br>"
                         f"Body {_os_bi + 1} · {_os_ar:.0%} of body surface area"
@@ -1971,12 +1960,14 @@ with col_right:
                                   roughness=0.8, fresnel=0.1),
                     lightposition=dict(x=100, y=100, z=100),
                 ))
+                _group_trace_indices["open_joints"].append(len(fig.data) - 1)
 
             # ── Ghost overlay: AI-suggested missing-part shapes (Phase 3) ──────
-            # Sky-blue translucent mesh at the matched open-joint location —
+            # Red translucent mesh at the matched open-joint location —
             # best-effort shape + placement, not a verified/exact fit.
-            _gen_parts_view = (st.session_state.inference_result or {}).get("generated_parts", [])
-            for _gp in _gen_parts_view:
+            _gen_parts_view = ((st.session_state.inference_result or {}).get("generated_parts", [])
+                               if _show_result else [])
+            for _gp_i, _gp in enumerate(_gen_parts_view):
                 _gpv = _gp.get("vertices", [])
                 _gpt = _gp.get("triangles", [])
                 if not _gpv or not _gpt:
@@ -1993,11 +1984,13 @@ with col_right:
                 fig.add_trace(go.Mesh3d(
                     x=_gpv_arr[:, 0], y=_gpv_arr[:, 1], z=_gpv_arr[:, 2],
                     i=_gpt_arr[:, 0], j=_gpt_arr[:, 1], k=_gpt_arr[:, 2],
-                    color="#38bdf8",
+                    color="#ef4444",
                     opacity=0.40,
                     flatshading=True,
                     name=f"{_gp_icon} Suggested {_gp_type}",
                     showlegend=True,
+                    legendgroup="suggested_shapes",
+                    legendgrouptitle=(dict(text="🪄 Suggested Shapes") if _gp_i == 0 else None),
                     hovertext=(
                         f"AI-suggested {_gp_type.lower()}<br>"
                         f"{'Retrieved from part bank' if _gp_src == 'retrieved' else 'AI-generated (VAE)'}"
@@ -2008,6 +2001,31 @@ with col_right:
                                   roughness=0.2, fresnel=0.6),
                     lightposition=dict(x=150, y=200, z=300),
                 ))
+                _group_trace_indices["suggested_shapes"].append(len(fig.data) - 1)
+
+            # "Select all" buttons — one per group that actually has traces
+            # this run — client-side restyle (no Streamlit rerun) so they
+            # don't disturb whatever the user has individually toggled
+            # elsewhere in the legend.
+            _select_all_labels = {
+                "not_assembled": "🟠 All not-assembled",
+                "parts": "🧩 All parts",
+                "potentially_missing": "❓ All missing",
+                "open_joints": "⬡ All joints",
+                "suggested_shapes": "🪄 All suggested",
+            }
+            _select_all_buttons = [
+                dict(
+                    label=_select_all_labels[_grp_key],
+                    method="restyle",
+                    # args/args2 = toggle: first click selects all, next
+                    # click deselects all, alternating on each press.
+                    args=[{"visible": True}, _grp_indices],
+                    args2=[{"visible": False}, _grp_indices],
+                )
+                for _grp_key, _grp_indices in _group_trace_indices.items()
+                if _grp_indices
+            ]
 
             fig.update_layout(
                 scene=dict(
@@ -2017,9 +2035,10 @@ with col_right:
                     zaxis=dict(showgrid=show_grid, title="Z"),
                 ),
                 scene_camera=CAMERAS[view_preset],
-                margin=dict(l=0, r=0, b=0, t=0),
+                margin=dict(l=0, r=0, b=(28 if _select_all_buttons else 0), t=0),
                 paper_bgcolor="rgba(0,0,0,0)",
                 height=400,
+                showlegend=True,
                 legend=dict(
                     x=0.01, y=0.99,
                     xanchor="left", yanchor="top",
@@ -2028,9 +2047,34 @@ with col_right:
                     borderwidth=0,
                     font=dict(size=9, color="#000000"),
                     itemsizing="constant",
+                    # "toggleitem" so each entry can still be selected/hidden
+                    # individually — grouping is just visual organization
+                    # (headers), not a forced all-or-nothing click.
+                    groupclick="toggleitem",
+                    grouptitlefont=dict(size=9, color="#000000"),
+                ),
+                updatemenus=(
+                    [
+                        dict(
+                            type="buttons",
+                            direction="right",
+                            x=0.0, y=-0.06,
+                            xanchor="left", yanchor="top",
+                            showactive=False,
+                            bgcolor="rgba(255,255,255,0.9)",
+                            bordercolor="#2a4060",
+                            borderwidth=1,
+                            pad=dict(l=3, r=3, t=1, b=1),
+                            font=dict(size=8, color="#2a4060"),
+                            buttons=_select_all_buttons,
+                        )
+                    ]
+                    if _select_all_buttons else []
                 ),
             )
+
             st.plotly_chart(fig, use_container_width=True)
+
             b = m["bounds"]
             st.markdown(
                 f'<div style="font-size:0.7rem;color:#888;margin-top:-0.4rem;">'
@@ -2043,102 +2087,12 @@ with col_right:
 with col_left:
     st.markdown(
         "<p style='font-size:0.8rem;font-weight:600;margin:0 0 0.2rem;color:#444;'>"
-        "🤖 AI-Assisted 3D Assembly Design Viewer</p>",
+        "Input</p>",
         unsafe_allow_html=True,
     )
-
-    # ── Model metrics badge (persistent, reads from test_metrics.json) ──────
-    _metrics_file  = _PROJ_ROOT / "back_end" / "results" / "test_metrics.json"
-    _cv_file       = _PROJ_ROOT / "back_end" / "results" / "cv_summary.json"
-    if _CKPT_PATH.exists() and _metrics_file.exists():
-        try:
-            _m = json.loads(_metrics_file.read_text())
-            _m_auc = _m.get("auc", 0)
-            _m_ap  = _m.get("ap",  0)
-            # Load CV summary if available (prefer file over session state)
-            _cv = None
-            if _cv_file.exists():
-                _cv = json.loads(_cv_file.read_text())
-            elif st.session_state.last_cv_summary:
-                _cv = st.session_state.last_cv_summary
-
-            # Read val AUC from serving checkpoint (lightweight metadata only)
-            _srv_val_auc = None
-            try:
-                import torch as _torch
-                _srv_meta = _torch.load(str(_CKPT_SERVING), map_location="cpu", weights_only=False)
-                _srv_val_auc = _srv_meta.get("auc")
-            except Exception:
-                pass
-
-            # Primary badges: best-fold metrics (val AUC + test AUC/AP)
-            _auc_col = "#16a34a" if _m_auc >= 0.70 else ("#d97706" if _m_auc >= 0.55 else "#dc2626")
-            _ap_col  = "#16a34a" if _m_ap  >= 0.70 else ("#d97706" if _m_ap  >= 0.55 else "#dc2626")
-            _val_col = "#16a34a" if (_srv_val_auc or 0) >= 0.70 else ("#d97706" if (_srv_val_auc or 0) >= 0.55 else "#dc2626")
-            _val_badge = (
-                f'<span style="background:{_val_col};color:#fff;font-size:0.72rem;'
-                f'font-weight:700;padding:2px 8px;border-radius:12px;">'
-                f'Val AUC {_srv_val_auc:.4f}</span>'
-            ) if _srv_val_auc is not None else ""
-            st.markdown(
-                '<div style="display:flex;gap:8px;align-items:center;'
-                'margin:0 0 4px;flex-wrap:wrap;">'
-                '<span style="font-size:0.72rem;color:#6b7280;">Best model:</span>'
-                + _val_badge +
-                f'<span style="background:{_auc_col};color:#fff;font-size:0.72rem;'
-                f'font-weight:700;padding:2px 8px;border-radius:12px;">'
-                f'Test AUC {_m_auc:.4f}</span>'
-                f'<span style="background:{_ap_col};color:#fff;font-size:0.72rem;'
-                f'font-weight:700;padding:2px 8px;border-radius:12px;">'
-                f'Test AP {_m_ap:.4f}</span>'
-                '</div>',
-                unsafe_allow_html=True,
-            )
-
-            # CV breakdown in expander
-            if _cv and _cv.get("mean_auc"):
-                _b_auc = _cv["mean_auc"];  _b_std_auc = _cv.get("std_auc", 0)
-                _b_ap  = _cv["mean_ap"];   _b_std_ap  = _cv.get("std_ap",  0)
-                _n_folds = _cv.get("n_folds", len(_cv.get("fold_aucs", [])))
-                with st.expander(f"📊 {_n_folds}-Fold CV breakdown", expanded=False):
-                    _fold_aucs = _cv.get("fold_aucs", [])
-                    _fold_aps  = _cv.get("fold_aps",  [])
-                    _best_fold = _cv.get("best_fold", -1)
-                    _rows = []
-                    for _fi, (_fa, _fp) in enumerate(zip(_fold_aucs, _fold_aps)):
-                        _star = " ★" if _fi == _best_fold else ""
-                        _rows.append({"Fold": f"{_fi+1}{_star}", "AUC": f"{_fa:.4f}", "AP": f"{_fp:.4f}"})
-                    import pandas as _pd
-                    _df = _pd.DataFrame(_rows)
-                    st.dataframe(_df, hide_index=True, use_container_width=True)
-                    st.caption(
-                        f"★ best fold  ·  "
-                        f"CV mean AUC {_b_auc:.4f} ±{_b_std_auc:.4f}  "
-                        f"mean AP {_b_ap:.4f} ±{_b_std_ap:.4f}"
-                    )
-            else:
-                # No CV — show single-run badges
-                _auc_col = "#16a34a" if _m_auc >= 0.70 else ("#d97706" if _m_auc >= 0.55 else "#dc2626")
-                _ap_col  = "#16a34a" if _m_ap  >= 0.70 else ("#d97706" if _m_ap  >= 0.55 else "#dc2626")
-                st.markdown(
-                    '<div style="display:flex;gap:8px;align-items:center;'
-                    'margin:0 0 6px;flex-wrap:wrap;">'
-                    '<span style="font-size:0.72rem;color:#6b7280;">Model metrics:</span>'
-                    f'<span style="background:{_auc_col};color:#fff;font-size:0.72rem;'
-                    f'font-weight:700;padding:2px 8px;border-radius:12px;">'
-                    f'AUC-ROC {_m_auc:.4f}</span>'
-                    f'<span style="background:{_ap_col};color:#fff;font-size:0.72rem;'
-                    f'font-weight:700;padding:2px 8px;border-radius:12px;">'
-                    f'Avg Precision {_m_ap:.4f}</span>'
-                    '</div>',
-                    unsafe_allow_html=True,
-                )
-        except Exception:
-            pass
-
     if not _CKPT_PATH.exists():
         # Training not done yet
-        st.markdown(_right_panel_html(None, False), unsafe_allow_html=True)
+        st.markdown(_placeholder_panel_html(None, False), unsafe_allow_html=True)
 
     elif st.session_state.pred_bytes is None:
         # Trained model ready — show prediction uploader
@@ -2177,10 +2131,33 @@ with col_left:
                     log(f"⚠️  Inference: {_res.get('error','')[:80]}")
                 st.rerun()
 
-        st.markdown(
-            _right_panel_html(st.session_state.inference_result, True),
-            unsafe_allow_html=True,
-        )
+        _ph = _placeholder_panel_html(st.session_state.inference_result, True)
+        if _ph is not None:
+            st.markdown(_ph, unsafe_allow_html=True)
+        else:
+            _panel_header, _panel_sections = _build_panel_sections(
+                st.session_state.inference_result
+            )
+            with st.container(height=400, border=True):
+                st.markdown(
+                    f'<p style="font-size:0.72rem;color:#888;margin:0 0 4px;">'
+                    f'{_panel_header}</p>',
+                    unsafe_allow_html=True,
+                )
+                if _panel_sections:
+                    for _sec in _panel_sections:
+                        with st.expander(
+                            f'{_sec["icon"]} {_sec["title"]}',
+                            expanded=False,
+                            key=f'exp_{_sec["key"]}',
+                        ):
+                            st.markdown(_sec["html"], unsafe_allow_html=True)
+                else:
+                    st.markdown(
+                        "<p style='color:#4caf82;font-size:0.78rem;'>"
+                        "✓ Assembly appears complete — no issues found.</p>",
+                        unsafe_allow_html=True,
+                    )
         btn_col1, btn_col2 = st.columns(2)
         with btn_col1:
             if st.button("🔄 Predict another", key="reset_pred", use_container_width=True):
@@ -2299,7 +2276,7 @@ st.markdown(
 log("✅  3D viewer ready")
 
 # ── Final activity log render ─────────────────────────────────────────────────
-log_slot.markdown(render_log(st.session_state.activity_log[-12:]),
+log_slot.markdown(render_log(st.session_state.activity_log[-30:]),
                   unsafe_allow_html=True)
 
 # ── Auto-poll training log every 3 s while training is active ─────────────────
