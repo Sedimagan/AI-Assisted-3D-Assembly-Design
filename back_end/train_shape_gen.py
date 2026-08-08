@@ -31,7 +31,22 @@ from torch_geometric.data import Data
 from dataset import AssemblyDataset, graph_level_indices, COMP_TYPES
 from model import build_model
 from part_bank import PartBank, build_part_bank, VOXEL_RES
-from shape_generator import ConditionalShapeVAE, vae_loss, build_conditioning_vector, COND_DIM
+from shape_generator import (ConditionalShapeVAE, vae_loss, build_conditioning_vector,
+                              COND_DIM, FASTENER_TYPES)
+
+# 18 model folders with zero bolt/nut/washer bodies (from audit_classification.json),
+# concentrated in Press_Tool (8/21 folders) and C_Clamps (5/31) — excluded from
+# shape-gen training samples only, since generation is now fastener-scoped. Phase 1/2
+# training and config.yaml's categories/source_dir are untouched: they still need
+# every folder across all 8 component types.
+_FASTENER_TRAIN_EXCLUDE = {
+    "Bench_Vice_46",
+    "C_Clamps_08", "C_Clamps_15", "C_Clamps_28", "C_Clamps_37", "C_Clamps_40",
+    "Pipe_Vice_21",
+    "Press_Tool_06", "Press_Tool_13", "Press_Tool_14", "Press_Tool_15",
+    "Press_Tool_16", "Press_Tool_17", "Press_Tool_23", "Press_Tool_24",
+    "Crane_Hook_07", "Crane_Hook_13", "Crane_Hook_21",
+}
 
 
 # ── Leave-one-node-out sampling (mirrors train_ranker.py's remove_node) ─────────
@@ -53,11 +68,18 @@ def remove_node(data: Data, idx: int) -> Data:
     return Data(x=data.x[keep], edge_index=new_edge_index, edge_attr=new_edge_attr)
 
 
-def build_samples(graphs, sources, n_per_graph, part_bank: PartBank, rng: random.Random):
+def build_samples(graphs, sources, n_per_graph, part_bank: PartBank, rng: random.Random,
+                   fastener_only: bool = True, exclude_folders=_FASTENER_TRAIN_EXCLUDE):
     """For each graph with >=2 nodes, sample up to n_per_graph nodes that have
     a matching part-bank entry (some bodies fail mesh extraction and have no
     entry — skipped). Returns [(partial_graph, target_vox, comp_type_idx,
-    target_bbox_norm, source_assembly), ...]."""
+    target_bbox_norm, source_assembly), ...].
+
+    fastener_only restricts leave-one-out targets to bolt/nut/washer (shape
+    *generation* is now scoped to fasteners — detection of all 8 types is
+    unaffected, this only narrows what the VAE is trained to reconstruct) and
+    skips assemblies with zero fastener bodies entirely, so every remaining
+    graph can actually contribute up to n_per_graph fastener samples."""
     samples = []
     for g, src_path in zip(graphs, sources):
         n = g.num_nodes
@@ -65,17 +87,21 @@ def build_samples(graphs, sources, n_per_graph, part_bank: PartBank, rng: random
             continue
         category = getattr(g, "category", "") or ""
         assembly = Path(src_path).parent.name if src_path else ""
+        if fastener_only and assembly in exclude_folders:
+            continue
         idxs = list(range(n))
         rng.shuffle(idxs)
         taken = 0
         for i in idxs:
             if taken >= n_per_graph:
                 break
+            comp_type_idx = int(g.x[i, :len(COMP_TYPES)].argmax().item())
+            if fastener_only and COMP_TYPES[comp_type_idx] not in FASTENER_TYPES:
+                continue
             entry = part_bank.find_by_source(category, assembly, i)
             if entry is None:
                 continue
             vox = part_bank.load_voxels(entry["part_id"]).astype(np.float32)
-            comp_type_idx = int(g.x[i, :len(COMP_TYPES)].argmax().item())
             bbox = np.asarray(entry["bbox"], dtype=np.float32)
             bbox_norm = bbox / (bbox.max() + 1e-9)
             samples.append((remove_node(g, i), vox, comp_type_idx, bbox_norm, assembly))
@@ -83,8 +109,51 @@ def build_samples(graphs, sources, n_per_graph, part_bank: PartBank, rng: random
     return samples
 
 
-def augment_rotate(vox: np.ndarray, k: int, axes) -> np.ndarray:
-    return np.rot90(vox, k=k, axes=axes)
+def _center_crop_or_pad(vox: np.ndarray, target_res: int) -> np.ndarray:
+    """Center-crop or zero-pad a cubic voxel grid back to target_res along
+    every axis — needed after scale-jitter changes the array shape."""
+    out = vox
+    for axis in range(3):
+        cur = out.shape[axis]
+        if cur > target_res:
+            start = (cur - target_res) // 2
+            out = np.take(out, range(start, start + target_res), axis=axis)
+        elif cur < target_res:
+            pad_before = (target_res - cur) // 2
+            pad_after = target_res - cur - pad_before
+            pad_width = [(0, 0)] * 3
+            pad_width[axis] = (pad_before, pad_after)
+            out = np.pad(out, pad_width, mode="constant", constant_values=0.0)
+    return out
+
+
+def augment_voxel(vox: np.ndarray, rng: random.Random, max_angle: float = 20.0,
+                   scale_range=(0.92, 1.08), jitter_prob: float = 0.02) -> np.ndarray:
+    """Continuous-angle 3D rotation (composed over all three axis pairs, not
+    just 90-degree steps) plus mild scale and occupancy jitter on a fastener's
+    voxel grid. Widens the orientation/size variety the VAE trains on using
+    only geometry already in the corpus — pairs with the normal_hint-based
+    rotate_to_target_axis() fix at inference time, which now needs the model
+    to have seen more than four fixed orientations per part."""
+    from scipy.ndimage import rotate as ndi_rotate, zoom as ndi_zoom
+
+    res = vox.shape[-1]
+    out = vox.astype(np.float32)
+    for axes in ((0, 1), (0, 2), (1, 2)):
+        angle = rng.uniform(-max_angle, max_angle)
+        out = ndi_rotate(out, angle, axes=axes, reshape=False, order=1,
+                          mode="constant", cval=0.0)
+
+    scale = rng.uniform(*scale_range)
+    if abs(scale - 1.0) > 1e-3:
+        out = _center_crop_or_pad(ndi_zoom(out, scale, order=1, mode="constant", cval=0.0), res)
+
+    if jitter_prob > 0:
+        np_rng = np.random.default_rng(rng.randint(0, 2**31 - 1))
+        flip = np_rng.random(out.shape) < jitter_prob
+        out = np.where(flip, 1.0 - np.round(out), out)
+
+    return np.clip(out, 0.0, 1.0).astype(np.float32)
 
 
 # ── Conditioning + context ───────────────────────────────────────────────────────
@@ -151,9 +220,7 @@ def epoch_pass(vae, gnn, samples, device, opt=None, augment=False, rng=None,
 
     for partial, vox, comp_type_idx, bbox_norm, _assembly in samples:
         if augment and rng is not None:
-            k = rng.randint(0, 3)
-            axes = rng.choice([(0, 1), (0, 2), (1, 2)])
-            vox = augment_rotate(vox, k, axes).copy()
+            vox = augment_voxel(vox, rng)
 
         ctx = compute_ctx(gnn, partial, device)
         nbr = neighbor_scale_from(partial)

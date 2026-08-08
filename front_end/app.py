@@ -679,15 +679,22 @@ def _run_inference(step_bytes: bytes,
                 from infer import load_shape_generator, generate_missing_shape
 
                 with contextlib.redirect_stdout(io.StringIO()):
-                    _hsg = load_shape_generator(_pbank_dir, _svae_path, device)
+                    _hsg = load_shape_generator(_pbank_dir, _svae_path, device,
+                                                 retrieval_tau_fastener=0.4)
 
                 if _hsg is not None:
                     _bank = _hsg.retriever.bank
                     _gen_category = _tmpl_match["category"] if _tmpl_match else None
                     _type_bank_counts = _Counter(e["comp_type"] for e in _bank.index)
+                    # Shape *generation* is scoped to fasteners only — other
+                    # missing types still get detected/listed in the text-only
+                    # "Expected Components Missing" panel (_tmpl_missing,
+                    # unfiltered), just no ghost mesh is generated for them.
+                    _FASTENER_TYPES = {{"bolt", "washer", "nut"}}
                     _remaining = {{
                         m["type"]: m["count"] for m in _tmpl_missing
-                        if _type_bank_counts.get(m["type"], 0) > 0
+                        if m["type"] in _FASTENER_TYPES
+                        and _type_bank_counts.get(m["type"], 0) > 0
                     }}
                     _surfs_by_size = sorted(_open_surfs, key=lambda s: s.get("area_ratio", 0), reverse=True)
 
@@ -713,6 +720,7 @@ def _run_inference(step_bytes: bytes,
                             open_joint_extents=_extents,
                             open_joint_centroid=_surf["centroid"],
                             category=_gen_category, device=device,
+                            normal_hint=_surf.get("normal_hint"),
                         )
                         if _sr is None:
                             continue

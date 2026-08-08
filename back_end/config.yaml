@@ -53,6 +53,11 @@ shape_gen:
   lambda_dice:    0.5
   n_per_graph:    8
   retrieval_tau:  0.6        # below this fit_score, fall back to VAE
+  retrieval_tau_fastener: 0.4  # bolt/nut/washer only — accept a real part-bank
+                                # match more readily; the bank already has
+                                # hundreds of real fastener examples, and a
+                                # slightly-imperfect real one usually beats a
+                                # VAE hallucination for these standardized shapes
   part_bank_dir:  "data/part_bank"
 
 paths:

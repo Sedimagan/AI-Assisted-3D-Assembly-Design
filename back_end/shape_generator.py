@@ -167,6 +167,47 @@ def fit_to_bbox(mesh: trimesh.Trimesh, target_extents) -> trimesh.Trimesh:
     return mesh
 
 
+def rotate_to_target_axis(mesh: trimesh.Trimesh, normal_hint) -> trimesh.Trimesh:
+    """Rotate a canonically OBB-aligned part (see part_bank.canonicalize) so
+    it points along the real target joint's axis, instead of keeping
+    whatever orientation it was canonicalized in.
+
+    Bolts/nuts/shafts: align the mesh's longest extent axis (its "length")
+    with `normal_hint`. Washers (and other flat, disk-like parts): align the
+    shortest extent axis (the flat-face normal) instead, since a washer's
+    meaningful direction is through its face, not its longest in-plane
+    dimension. No-op if normal_hint is missing/degenerate.
+
+    Distinguishing a disk (washer: short, long, long) from a rod (bolt:
+    short, short, long) needs the *middle* extent, not just shortest-vs-
+    longest — both shapes can have the same shortest/longest ratio (e.g. a
+    5x5x20 bolt and a 5x20x20 washer are both 0.25), so comparing only the
+    extremes misclassifies rods as flat. A disk's middle extent sits close
+    to its longest; a rod's middle extent sits close to its shortest.
+    """
+    if normal_hint is None:
+        return mesh
+    target = np.asarray(normal_hint, dtype=np.float64)
+    norm = np.linalg.norm(target)
+    if norm < 1e-6:
+        return mesh
+    target = target / norm
+
+    extents = mesh.extents
+    order = np.argsort(extents)  # shortest .. longest axis indices
+    short, mid, long = extents[order[0]], extents[order[1]], extents[order[2]]
+    is_flat = (long - mid) < (mid - short)  # middle extent closer to longest => disk
+    align_axis_idx = order[0] if is_flat else order[-1]
+
+    source = np.zeros(3)
+    source[align_axis_idx] = 1.0
+
+    rot = trimesh.geometry.align_vectors(source, target)
+    mesh = mesh.copy()
+    mesh.apply_transform(rot)
+    return mesh
+
+
 # ── Conditioning vector ──────────────────────────────────────────────────────────
 
 def build_conditioning_vector(
@@ -215,13 +256,23 @@ class ShapeResult:
     placement: np.ndarray   # (3,) translation to open-joint centroid
 
 
+FASTENER_TYPES = {"bolt", "washer", "nut"}
+
+
 class HybridShapeGenerator:
     def __init__(self, retriever: ShapeRetriever, vae: Optional[ConditionalShapeVAE],
-                 device, retrieval_tau: float = 0.6):
+                 device, retrieval_tau: float = 0.6, retrieval_tau_fastener: Optional[float] = None):
         self.retriever = retriever
         self.vae = vae
         self.device = device
         self.retrieval_tau = retrieval_tau
+        # Fasteners are highly standardized shapes and the part bank already
+        # holds hundreds of real examples — accept a real (if imperfect)
+        # retrieval match more readily than a VAE hallucination for these
+        # types specifically. Falls back to the global tau if unset.
+        self.retrieval_tau_fastener = (
+            retrieval_tau_fastener if retrieval_tau_fastener is not None else retrieval_tau
+        )
 
     def generate(
         self,
@@ -231,12 +282,15 @@ class HybridShapeGenerator:
         cond_vec: Optional[torch.Tensor],
         placement_centroid,
         mode: str = "auto",
+        normal_hint=None,
     ) -> Optional[ShapeResult]:
         placement = np.asarray(placement_centroid, dtype=np.float32)
+        tau = self.retrieval_tau_fastener if comp_type in FASTENER_TYPES else self.retrieval_tau
 
         if mode in ("auto", "retrieve"):
             mesh, conf, part_id = self.retriever.retrieve(comp_type, category, target_extents)
-            if mesh is not None and (mode == "retrieve" or conf >= self.retrieval_tau):
+            if mesh is not None and (mode == "retrieve" or conf >= tau):
+                mesh = rotate_to_target_axis(mesh, normal_hint)
                 return ShapeResult(mesh, "retrieved", conf, part_id, placement)
 
         if mode == "retrieve":
@@ -251,5 +305,6 @@ class HybridShapeGenerator:
         if mesh is None:
             return None
         mesh = fit_to_bbox(mesh, target_extents)
+        mesh = rotate_to_target_axis(mesh, normal_hint)
         conf = float(occ.max().item())
         return ShapeResult(mesh, "generated", conf, None, placement)

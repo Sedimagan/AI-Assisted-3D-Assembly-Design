@@ -64,7 +64,8 @@ def load_ranker(ranker_path: str, gnn, device):
     return nr, type_prototypes, ckpt["comp_types"], ckpt
 
 
-def load_shape_generator(bank_dir: str, vae_path: str, device, retrieval_tau: float = 0.6):
+def load_shape_generator(bank_dir: str, vae_path: str, device, retrieval_tau: float = 0.6,
+                          retrieval_tau_fastener: float | None = None):
     """
     Load the Phase 3 hybrid shape generator. Returns None if the part bank or
     VAE checkpoint is missing — callers degrade gracefully (same pattern as
@@ -92,14 +93,15 @@ def load_shape_generator(bank_dir: str, vae_path: str, device, retrieval_tau: fl
     else:
         print(f"No shape_vae.pt at {vae_path} — retrieval-only mode (no VAE fallback).")
 
-    return HybridShapeGenerator(retriever, vae, device, retrieval_tau=retrieval_tau)
+    return HybridShapeGenerator(retriever, vae, device, retrieval_tau=retrieval_tau,
+                                 retrieval_tau_fastener=retrieval_tau_fastener)
 
 
 @torch.no_grad()
 def generate_missing_shape(
     hsg, gnn, graph, comp_type: str, open_joint_extents=None,
     open_joint_centroid=None, category: str | None = None, device=None,
-    mode: str = "auto",
+    mode: str = "auto", normal_hint=None,
 ):
     """
     Produce a ShapeResult for an explicitly-given missing-component type
@@ -132,7 +134,8 @@ def generate_missing_shape(
     cond_vec = build_conditioning_vector(ctx, comp_type_idx, bbox_norm, neighbor_scale)
     centroid = open_joint_centroid if open_joint_centroid is not None else [0.0, 0.0, 0.0]
 
-    return hsg.generate(comp_type, category, target_bbox, cond_vec, centroid, mode=mode)
+    return hsg.generate(comp_type, category, target_bbox, cond_vec, centroid, mode=mode,
+                         normal_hint=normal_hint)
 
 
 # ── Missing component detection ───────────────────────────────────────────────
