@@ -880,19 +880,21 @@ def _build_panel_sections(result: dict) -> tuple[str, list[dict]]:
             _am_pct  = int(_am_conf * 100)
             _am_col  = "#4caf82" if _am_conf >= 0.6 else "#5b9bd5" if _am_conf >= 0.35 else "#999"
             _am_n    = assembly_match.get("n_assemblies", 0)
+            # Was hardcoded black — invisible against a dark theme's near-black
+            # background. Follow Streamlit's actual active theme instead of
+            # guessing, so it stays correct regardless of how the user set it
+            # (system preference or the app's own ☰ > Settings theme picker).
+            _am_label_col = "#e5e7eb" if st.context.theme.type == "dark" else "#000000"
             sections.append({
                 "key": "assembly_type", "icon": "🔮", "title": "Assembly Type Identified",
                 "html": (
-                    f'<div style="background:rgba(79,62,160,0.12);border:1px solid #4f3ea0;'
-                    f'border-radius:5px;padding:5px 8px;">'
-                    f'<span style="color:#000000;font-size:0.78rem;font-weight:600;">'
+                    f'<span style="color:{_am_label_col};font-size:0.78rem;font-weight:600;">'
                     f'{assembly_match["label"]}</span>'
                     f'<span style="background:{_am_col};color:#fff;font-size:0.65rem;'
                     f'font-weight:700;padding:1px 6px;border-radius:3px;margin-left:8px;">'
                     f'{_am_pct}%</span>'
                     f'<span style="color:#777;font-size:0.66rem;margin-left:6px;">'
                     f'· {_am_n} training samples</span>'
-                    f'</div>'
                 ),
             })
 
@@ -1073,6 +1075,7 @@ def _run_aida_explain(inference_result: dict) -> str:
     part_names   = inference_result.get("part_names", [])
     node_degrees = inference_result.get("node_degrees", [])
     open_surfs   = inference_result.get("open_surfaces", [])
+    gen_parts    = inference_result.get("generated_parts", [])
     back_end     = str(_PROJ_ROOT / "back_end")
 
     def _basename(s):
@@ -1137,6 +1140,15 @@ def _run_aida_explain(inference_result: dict) -> str:
         for m in open_surfs
     ]
 
+    # Category 4 — Suggested Missing-Part Shapes (Phase 3, shape generation)
+    suggested_shapes = [
+        {"type": str(g.get("type", "component")).capitalize(),
+         "source": "retrieved from part bank" if g.get("source") == "retrieved" else "AI-generated (VAE)",
+         "confidence": round(g.get("confidence", 0.0), 3),
+         "fit_score": round(g.get("fit_score", 0.0), 3)}
+        for g in gen_parts
+    ]
+
     script = textwrap.dedent(f"""\
         import sys
         sys.path.insert(0, {repr(back_end)})
@@ -1147,6 +1159,7 @@ def _run_aida_explain(inference_result: dict) -> str:
             not_mated    = {repr(not_mated)}
             missing_lnks = {repr(missing_named)}
             open_joints  = {repr(open_joints)}
+            sugg_shapes  = {repr(suggested_shapes)}
             n_nodes      = {n_nodes}
             n_edges      = {n_edges}
 
@@ -1179,23 +1192,36 @@ def _run_aida_explain(inference_result: dict) -> str:
             else:
                 oj_lines = "  (none)"
 
+            # ── Category 4 text ───────────────────────────────────────────────
+            if sugg_shapes:
+                ss_lines = "\\n".join(
+                    f"  - {{s['type']}} — {{s['source']}}, location fit "
+                    f"{{s['fit_score']:.0%}}, shape confidence {{s['confidence']:.0%}}"
+                    for s in sugg_shapes
+                )
+            else:
+                ss_lines = "  (none)"
+
             prompt = (
                 "You are AIDA, an AI Design Assistant for 3D mechanical assembly analysis.\\n"
                 "Assembly: " + str(n_nodes) + " components, " + str(n_edges) + " known connections.\\n\\n"
                 "DATA:\\n"
                 "1. Not Assembled / Not Properly Mated: " + nm_lines + "\\n"
                 "2. AI Predicted Missing Links: " + ml_lines + "\\n"
-                "3. Open Assembly Joints (Octree): " + oj_lines + "\\n\\n"
+                "3. Open Assembly Joints (Octree): " + oj_lines + "\\n"
+                "4. Suggested Missing-Part Shapes: " + ss_lines + "\\n\\n"
                 "STRICT RULES — follow exactly:\\n"
-                "- Write ALL FOUR sections. Do NOT stop after section 1.\\n"
+                "- Write ALL FIVE sections. Do NOT stop after section 1.\\n"
                 "- Section 1: write EXACTLY 2 bullets — one for the 'no connections' group, one for the 'under-connected' group. Do NOT write a bullet per part name.\\n"
                 "- Section 2: write one bullet per predicted link (max 3 bullets total).\\n"
                 "- Section 3: write one bullet per open joint body (max 4 bullets total).\\n"
-                "- Section 4: write 2 sentences max.\\n"
+                "- Section 4: write one bullet per suggested shape (max 4 bullets total), noting whether it was retrieved from the part bank or AI-generated, and its confidence.\\n"
+                "- Section 5: write 2 sentences max.\\n"
                 "- Plain text bullets only. No markdown bold or italic.\\n\\n"
                 "=== 1. Not Assembled / Not Properly Mated ===\\n\\n"
                 "=== 2. AI Predicted Missing Links ===\\n\\n"
                 "=== 3. Open Assembly Joints Detected ===\\n\\n"
+                "=== 4. Suggested Missing-Part Shapes ===\\n\\n"
                 "=== Overall Recommendation ==="
             )
             print(agent._ask(prompt, max_tokens=2500))
