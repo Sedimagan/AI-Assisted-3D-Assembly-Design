@@ -144,11 +144,19 @@ def parse_with_timeout(step_path: str, timeout_secs: int = TIMEOUT_SECS):
     q   = ctx.Queue()
     p   = ctx.Process(target=_worker, args=(step_path, q), daemon=True)
     p.start()
-    p.join(timeout=timeout_secs)
+    t_start = time.time()
+    while time.time() - t_start < timeout_secs and p.is_alive():
+        p.join(1)
     if p.is_alive():
-        p.terminate(); p.join(5)
+        p.terminate()
+        t_term = time.time()
+        while time.time() - t_term < 5 and p.is_alive():
+            p.join(0.5)
         if p.is_alive():
-            p.kill(); p.join()
+            p.kill()
+            t_kill = time.time()
+            while time.time() - t_kill < 3 and p.is_alive():
+                p.join(0.5)
         return None, "timeout"
     if not q.empty():
         status, payload = q.get_nowait()

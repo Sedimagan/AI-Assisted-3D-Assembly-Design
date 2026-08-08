@@ -1,0 +1,227 @@
+Auditing 193 folders under /Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Source_3d_models/Best_models_for_training
+[1/193] Bench_vice/Bench_Vice_02: 26 bodies (5.4s) → 14×Body, 4×Bolt, 3×Thick Plate, 2×Long Shaft
+[2/193] Bench_vice/Bench_Vice_03: 18 bodies (4.6s) → 12×Body, 2×Bolt, 2×Long Shaft, 1×Thick Plate
+[3/193] Bench_vice/Bench_Vice_04: 47 bodies (5.7s) → 22×Body, 11×Bolt, 5×Nut, 3×Thin Plate
+[4/193] Bench_vice/Bench_Vice_06: 16 bodies (9.0s) → 8×Body, 4×Thick Plate, 2×Long Shaft, 1×Short Shaft
+[5/193] Bench_vice/Bench_Vice_07: 12 bodies (3.8s) → 4×Long Shaft, 3×Bolt, 2×Washer, 1×Body
+[6/193] Bench_vice/Bench_Vice_08: 55 bodies (28.5s) → 25×Body, 20×Thick Plate, 6×Bolt, 4×Thin Plate
+[7/193] Bench_vice/Bench_Vice_09: 22 bodies (4.0s) → 10×Body, 5×Short Shaft, 3×Bolt, 2×Long Shaft
+[8/193] Bench_vice/Bench_Vice_11: 20 bodies (5.2s) → 10×Body, 7×Bolt, 2×Long Shaft, 1×Thick Plate
+[9/193] Bench_vice/Bench_Vice_12: 31 bodies (6.4s) → 13×Body, 5×Nut, 4×Long Shaft, 4×Short Shaft
+[10/193] Bench_vice/Bench_Vice_13: 27 bodies (4.5s) → 16×Body, 4×Thin Plate, 3×Bolt, 2×Long Shaft
+[11/193] Bench_vice/Bench_Vice_14: 24 bodies (4.4s) → 15×Body, 3×Bolt, 2×Long Shaft, 2×Nut
+[12/193] Bench_vice/Bench_Vice_17: 25 bodies (4.9s) → 17×Body, 3×Bolt, 2×Long Shaft, 2×Washer
+[13/193] Bench_vice/Bench_Vice_18: 7 bodies (4.4s) → 3×Body, 2×Bolt, 1×Long Shaft, 1×Short Shaft
+[14/193] Bench_vice/Bench_Vice_20: 21 bodies (13.1s) → 17×Body, 2×Long Shaft, 1×Thick Plate, 1×Bolt
+[15/193] Bench_vice/Bench_Vice_21: 12 bodies (3.8s) → 6×Body, 2×Short Shaft, 2×Thick Plate, 1×Bolt
+[16/193] Bench_vice/Bench_Vice_22: 22 bodies (4.0s) → 14×Body, 4×Thin Plate, 2×Long Shaft, 1×Bolt
+[17/193] Bench_vice/Bench_Vice_23: 27 bodies (3.9s) → 13×Body, 5×Thick Plate, 4×Thin Plate, 2×Long Shaft
+[18/193] Bench_vice/Bench_Vice_26: 17 bodies (57.9s) → 11×Body, 2×Long Shaft, 2×Thick Plate, 1×Short Shaft
+[19/193] Bench_vice/Bench_Vice_27: 10 bodies (6.7s) → 3×Body, 2×Bolt, 2×Thin Plate, 1×Long Shaft
+[20/193] Bench_vice/Bench_Vice_28: 46 bodies (4.6s) → 16×Body, 12×Long Shaft, 5×Washer, 4×Nut
+[21/193] Bench_vice/Bench_Vice_31: 20 bodies (4.0s) → 14×Body, 3×Bolt, 2×Long Shaft, 1×Thick Plate
+[22/193] Bench_vice/Bench_Vice_34: 23 bodies (4.9s) → 15×Body, 4×Thin Plate, 2×Long Shaft, 1×Bolt
+[23/193] Bench_vice/Bench_Vice_38: 20 bodies (4.0s) → 10×Body, 5×Nut, 2×Thick Plate, 2×Long Shaft
+[24/193] Bench_vice/Bench_Vice_39: 14 bodies (5.2s) → 6×Body, 6×Bolt, 1×Nut, 1×Long Shaft
+[25/193] Bench_vice/Bench_Vice_41: 22 bodies (3.7s) → 10×Body, 5×Short Shaft, 3×Bolt, 2×Long Shaft
+[26/193] Bench_vice/Bench_Vice_42: 15 bodies (35.6s) → 8×Body, 4×Thick Plate, 2×Thin Plate, 1×Bolt
+[27/193] Bench_vice/Bench_Vice_43: 16 bodies (6.4s) → 6×Body, 5×Long Shaft, 3×Washer, 2×Bolt
+[28/193] Bench_vice/Bench_Vice_45: 25 bodies (11.9s) → 10×Body, 5×Nut, 4×Bolt, 3×Thick Plate
+[29/193] Bench_vice/Bench_Vice_46: 18 bodies (4.6s) → 15×Body, 2×Short Shaft, 1×Thick Plate
+[30/193] Bench_vice/Bench_Vice_47: 21 bodies (18.3s) → 6×Nut, 6×Body, 5×Bolt, 2×Thick Plate
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/trimesh/triangles.py:550: RuntimeWarning: divide by zero encountered in divide
+  inverse_denominator = 1.0 / (dot00 * dot11 - dot01 * dot01)
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/trimesh/triangles.py:555: RuntimeWarning: invalid value encountered in subtract
+  barycentric[:, 0] = 1 - barycentric[:, 1] - barycentric[:, 2]
+[31/193] Bench_vice/Bench_Vice_50: 31 bodies (85.3s) → 12×Bolt, 6×Body, 5×Thick Plate, 3×Short Shaft
+[32/193] Bench_vice/Bench_Vice_51: 13 bodies (4.0s) → 8×Body, 2×Thin Plate, 1×Long Shaft, 1×Thick Plate
+[33/193] Bench_vice/Bench_Vice_52: 57 bodies (69.9s) → 14×Body, 13×Bolt, 12×Long Shaft, 11×Short Shaft
+[34/193] Bench_vice/Bench_Vice_53: 27 bodies (5.2s) → 19×Body, 3×Nut, 2×Thick Plate, 2×Long Shaft
+[35/193] Bench_vice/Bench_Vice_58: 6 bodies (4.9s) → 3×Body, 2×Long Shaft, 1×Bolt
+[36/193] Bench_vice/Bench_Vice_59: 97 bodies (15.1s) → 27×Body, 20×Thick Plate, 19×Nut, 12×Bolt
+[37/193] Bench_vice/Bench_Vice_60: 24 bodies (16.4s) → 13×Body, 8×Bolt, 2×Thick Plate, 1×Long Shaft
+[38/193] Bench_vice/Bench_Vice_61: 48 bodies (4.6s) → 22×Body, 10×Bolt, 9×Short Shaft, 6×Thick Plate
+[39/193] Bench_vice/Bench_Vice_65: 28 bodies (4.5s) → 16×Body, 4×Long Shaft, 4×Thin Plate, 3×Bolt
+[40/193] Bench_vice/Bench_Vice_66: 26 bodies (10.1s) → 13×Body, 6×Nut, 4×Long Shaft, 2×Thick Plate
+[41/193] Bench_vice/Bench_Vice_67: 26 bodies (4.4s) → 14×Body, 5×Nut, 3×Thick Plate, 2×Bolt
+[42/193] Bench_vice/Bench_Vice_68: 24 bodies (5.8s) → 9×Body, 4×Short Shaft, 4×Long Shaft, 3×Thick Plate
+[43/193] Bench_vice/Bench_Vice_69: 22 bodies (4.4s) → 10×Body, 4×Thin Plate, 3×Bolt, 2×Long Shaft
+[44/193] Bench_vice/Bench_Vice_72: 25 bodies (4.1s) → 19×Body, 2×Long Shaft, 2×Nut, 1×Bolt
+[45/193] Bench_vice/Bench_Vice_73: 2 bodies (3.2s) → 1×Nut, 1×Bolt
+[46/193] Bench_vice/Bench_Vice_74: 15 bodies (5.0s) → 5×Body, 3×Thick Plate, 2×Thin Plate, 2×Long Shaft
+[47/193] Bench_vice/Bench_Vice_75: 33 bodies (15.2s) → 17×Body, 10×Nut, 2×Long Shaft, 2×Thin Plate
+[48/193] Bench_vice/Bench_Vice_76: 37 bodies (5.8s) → 14×Body, 10×Thin Plate, 6×Thick Plate, 3×Bolt
+[49/193] Bench_vice/Bench_Vice_77: 6 bodies (6.8s) → 3×Thick Plate, 2×Bolt, 1×Body
+[50/193] Bench_vice/Bench_Vice_78: 35 bodies (5.1s) → 13×Body, 7×Thick Plate, 4×Washer, 4×Short Shaft
+[51/193] Bench_vice/Bench_Vice_79: 19 bodies (79.1s) → 10×Body, 3×Thin Plate, 3×Thick Plate, 2×Long Shaft
+[52/193] Bench_vice/Bench_Vice_80: 16 bodies (5.2s) → 10×Body, 3×Bolt, 2×Long Shaft, 1×Thick Plate
+[53/193] Bench_vice/Bench_Vice_81: 36 bodies (5.7s) → 9×Body, 8×Short Shaft, 6×Nut, 4×Long Shaft
+[54/193] Bench_vice/Bench_Vice_82: 41 bodies (7.1s) → 19×Body, 8×Nut, 4×Washer, 4×Bolt
+[55/193] C_Clamps/C_Clamps_01: 8 bodies (22.5s) → 6×Body, 1×Short Shaft, 1×Bolt
+[56/193] C_Clamps/C_Clamps_03: 10 bodies (46.3s) → 6×Body, 2×Bolt, 2×Thick Plate
+[57/193] C_Clamps/C_Clamps_04: 10 bodies (4.8s) → 3×Nut, 3×Body, 2×Long Shaft, 1×Bolt
+[58/193] C_Clamps/C_Clamps_05: 5 bodies (3.5s) → 2×Thick Plate, 2×Body, 1×Bolt
+[59/193] C_Clamps/C_Clamps_06: 9 bodies (4.2s) → 3×Bolt, 2×Nut, 2×Short Shaft, 1×Body
+[60/193] C_Clamps/C_Clamps_07: 7 bodies (61.5s) → 3×Bolt, 2×Body, 1×Long Shaft, 1×Thick Plate
+[61/193] C_Clamps/C_Clamps_08: 2 bodies (4.2s) → 2×Thick Plate
+[62/193] C_Clamps/C_Clamps_09: 9 bodies (4.0s) → 3×Body, 2×Nut, 2×Bolt, 1×Long Shaft
+[63/193] C_Clamps/C_Clamps_10: 7 bodies (4.7s) → 2×Thick Plate, 2×Body, 1×Bolt, 1×Long Shaft
+[64/193] C_Clamps/C_Clamps_11: 2 bodies (113.3s) → 2×Nut
+[65/193] C_Clamps/C_Clamps_12: 5 bodies (32.2s) → 2×Body, 1×Nut, 1×Bolt, 1×Long Shaft
+[66/193] C_Clamps/C_Clamps_13: 6 bodies (100.2s) → 2×Body, 2×Nut, 1×Long Shaft, 1×Bolt
+[67/193] C_Clamps/C_Clamps_14: 4 bodies (79.5s) → 2×Long Shaft, 1×Body, 1×Nut
+[68/193] C_Clamps/C_Clamps_15: 4 bodies (3.9s) → 2×Long Shaft, 1×Thick Plate, 1×Body
+[69/193] C_Clamps/C_Clamps_16: 10 bodies (3.5s) → 4×Nut, 3×Body, 2×Long Shaft, 1×Bolt
+[70/193] C_Clamps/C_Clamps_18: 3 bodies (13.7s) → 1×Bolt, 1×Thick Plate, 1×Short Shaft
+[71/193] C_Clamps/C_Clamps_19: 6 bodies (3.2s) → 2×Body, 1×Washer, 1×Nut, 1×Bolt
+[72/193] C_Clamps/C_Clamps_20: 2 bodies (3.5s) → 2×Nut
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/trimesh/triangles.py:550: RuntimeWarning: divide by zero encountered in divide
+  inverse_denominator = 1.0 / (dot00 * dot11 - dot01 * dot01)
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/trimesh/triangles.py:555: RuntimeWarning: invalid value encountered in subtract
+  barycentric[:, 0] = 1 - barycentric[:, 1] - barycentric[:, 2]
+[73/193] C_Clamps/C_Clamps_21: 6 bodies (93.5s) → 3×Nut, 1×Bolt, 1×Body, 1×Long Shaft
+[74/193] C_Clamps/C_Clamps_22: 7 bodies (3.9s) → 2×Long Shaft, 2×Nut, 2×Short Shaft, 1×Body
+[75/193] C_Clamps/C_Clamps_23: 16 bodies (6.3s) → 7×Thin Plate, 4×Thick Plate, 2×Short Shaft, 2×Nut
+[76/193] C_Clamps/C_Clamps_26: 11 bodies (4.2s) → 4×Nut, 4×Body, 2×Washer, 1×Long Shaft
+[77/193] C_Clamps/C_Clamps_28: 10 bodies (49.4s) → 4×Body, 3×Thick Plate, 2×Long Shaft, 1×Thin Plate
+[78/193] C_Clamps/C_Clamps_29: 7 bodies (9.8s) → 3×Body, 1×Long Shaft, 1×Washer, 1×Nut
+[79/193] C_Clamps/C_Clamps_31: 6 bodies (8.4s) → 2×Nut, 2×Long Shaft, 1×Body, 1×Thick Plate
+[80/193] C_Clamps/C_Clamps_32: 10 bodies (3.7s) → 8×Body, 1×Bolt, 1×Long Shaft
+[81/193] C_Clamps/C_Clamps_33: 9 bodies (3.7s) → 3×Body, 2×Bolt, 2×Nut, 1×Long Shaft
+[82/193] C_Clamps/C_Clamps_36: 5 bodies (3.5s) → 1×Long Shaft, 1×Body, 1×Short Shaft, 1×Washer
+[83/193] C_Clamps/C_Clamps_37: 5 bodies (4.7s) → 2×Long Shaft, 1×Body, 1×Thick Plate, 1×Short Shaft
+[84/193] C_Clamps/C_Clamps_38: 8 bodies (8.4s) → 3×Body, 2×Nut, 1×Long Shaft, 1×Bolt
+[85/193] C_Clamps/C_Clamps_40: 4 bodies (17.4s) → 1×Thick Plate, 1×Long Shaft, 1×Body, 1×Thin Plate
+[86/193] Pipe_vice/Pipe_Vice_01: 10 bodies (4.2s) → 5×Body, 2×Bolt, 1×Thick Plate, 1×Short Shaft
+[87/193] Pipe_vice/Pipe_Vice_03: 6 bodies (3.5s) → 3×Body, 1×Thick Plate, 1×Bolt, 1×Long Shaft
+[88/193] Pipe_vice/Pipe_Vice_04: 6 bodies (3.4s) → 3×Body, 1×Thick Plate, 1×Bolt, 1×Long Shaft
+[89/193] Pipe_vice/Pipe_Vice_07: 20 bodies (70.5s) → 9×Body, 3×Bolt, 3×Thick Plate, 3×Long Shaft
+[90/193] Pipe_vice/Pipe_Vice_08: 5 bodies (4.3s) → 2×Thick Plate, 2×Washer, 1×Body
+[91/193] Pipe_vice/Pipe_Vice_09: 7 bodies (3.9s) → 3×Body, 1×Nut, 1×Bolt, 1×Thick Plate
+[92/193] Pipe_vice/Pipe_Vice_10: 11 bodies (4.3s) → 6×Body, 3×Bolt, 1×Thick Plate, 1×Long Shaft
+[93/193] Pipe_vice/Pipe_Vice_11: 36 bodies (69.1s) → 18×Thick Plate, 7×Body, 3×Thin Plate, 3×Bolt
+[94/193] Pipe_vice/Pipe_Vice_14: 10 bodies (4.1s) → 5×Body, 2×Bolt, 2×Thick Plate, 1×Long Shaft
+[95/193] Pipe_vice/Pipe_Vice_15: 6 bodies (3.5s) → 3×Body, 1×Thick Plate, 1×Long Shaft, 1×Bolt
+[96/193] Pipe_vice/Pipe_Vice_16: 21 bodies (18.6s) → 6×Body, 4×Long Shaft, 3×Bolt, 3×Short Shaft
+[97/193] Pipe_vice/Pipe_Vice_17: 16 bodies (12.4s) → 6×Body, 4×Long Shaft, 2×Bolt, 2×Thin Plate
+[98/193] Pipe_vice/Pipe_Vice_19: 16 bodies (3.8s) → 4×Nut, 4×Body, 4×Long Shaft, 3×Thick Plate
+[99/193] Pipe_vice/Pipe_Vice_20: 20 bodies (16.5s) → 8×Long Shaft, 4×Thick Plate, 2×Short Shaft, 2×Thin Plate
+[100/193] Pipe_vice/Pipe_Vice_21: 3 bodies (3.4s) → 2×Body, 1×Long Shaft
+[101/193] Pipe_vice/Pipe_Vice_22: 8 bodies (3.6s) → 5×Body, 1×Bolt, 1×Thick Plate, 1×Long Shaft
+[102/193] Pipe_vice/Pipe_Vice_23: 21 bodies (99.1s) → 13×Body, 4×Bolt, 3×Long Shaft, 1×Short Shaft
+[103/193] Pipe_vice/Pipe_Vice_24: 10 bodies (8.3s) → 5×Body, 3×Bolt, 1×Long Shaft, 1×Thick Plate
+[104/193] Pipe_vice/Pipe_Vice_25: 16 bodies (3.6s) → 4×Nut, 4×Body, 4×Long Shaft, 3×Thick Plate
+[105/193] Pipe_vice/Pipe_Vice_27: 17 bodies (4.6s) → 8×Body, 5×Long Shaft, 3×Bolt, 1×Short Shaft
+[106/193] Pipe_vice/Pipe_Vice_28: 7 bodies (3.6s) → 3×Body, 1×Thick Plate, 1×Bolt, 1×Long Shaft
+[107/193] Pipe_vice/Pipe_Vice_29: 6 bodies (3.5s) → 3×Body, 1×Bolt, 1×Thick Plate, 1×Long Shaft
+[108/193] Pipe_vice/Pipe_Vice_30: 6 bodies (3.7s) → 3×Body, 1×Bolt, 1×Thick Plate, 1×Long Shaft
+[109/193] Pipe_vice/Pipe_Vice_31: 7 bodies (22.3s) → 3×Body, 1×Bolt, 1×Long Shaft, 1×Thick Plate
+[110/193] Pipe_vice/Pipe_Vice_32: 9 bodies (8.3s) → 4×Body, 2×Long Shaft, 2×Bolt, 1×Nut
+[111/193] Pipe_vice/Pipe_Vice_33: 6 bodies (3.4s) → 2×Nut, 1×Body, 1×Bolt, 1×Thick Plate
+[112/193] Pipe_vice/Pipe_Vice_35: 10 bodies (3.4s) → 6×Body, 2×Thick Plate, 1×Bolt, 1×Thin Plate
+[113/193] Pipe_vice/Pipe_Vice_36: 7 bodies (3.6s) → 3×Body, 1×Bolt, 1×Thick Plate, 1×Long Shaft
+[114/193] Pipe_vice/Pipe_Vice_37: 8 bodies (3.5s) → 3×Body, 3×Thick Plate, 1×Bolt, 1×Long Shaft
+[115/193] Pipe_vice/Pipe_Vice_38: 10 bodies (7.2s) → 4×Thick Plate, 2×Bolt, 2×Body, 1×Washer
+[116/193] Pipe_vice/Pipe_Vice_40: 39 bodies (7.7s) → 22×Body, 6×Thick Plate, 5×Thin Plate, 5×Bolt
+[117/193] Pipe_vice/Pipe_Vice_41: 5 bodies (3.4s) → 4×Thick Plate, 1×Nut
+[118/193] Pipe_vice/Pipe_Vice_42: 6 bodies (3.5s) → 3×Body, 1×Thick Plate, 1×Bolt, 1×Long Shaft
+[119/193] Pipe_vice/Pipe_Vice_43: 15 bodies (3.6s) → 6×Body, 3×Bolt, 2×Thin Plate, 2×Nut
+[120/193] Pipe_vice/Pipe_Vice_44: 39 bodies (69.5s) → 20×Body, 9×Thin Plate, 5×Bolt, 2×Short Shaft
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/trimesh/triangles.py:302: RuntimeWarning: divide by zero encountered in divide
+  center_mass = integrated[1:4] / volume
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/trimesh/triangles.py:302: RuntimeWarning: invalid value encountered in divide
+  center_mass = integrated[1:4] / volume
+[121/193] Pipe_vice/Pipe_Vice_45: 30 bodies (112.3s) → 9×Body, 6×Thin Plate, 5×Bolt, 3×Long Shaft
+[122/193] Pipe_vice/Pipe_Vice_46: 6 bodies (4.6s) → 3×Body, 1×Bolt, 1×Thick Plate, 1×Long Shaft
+[123/193] Pipe_vice/Pipe_Vice_48: 8 bodies (7.2s) → 4×Body, 1×Long Shaft, 1×Thick Plate, 1×Washer
+[124/193] Pipe_vice/Pipe_Vice_49: 19 bodies (80.6s) → 9×Body, 4×Bolt, 3×Long Shaft, 2×Thick Plate
+[125/193] Pipe_vice/Pipe_Vice_50: 8 bodies (3.6s) → 4×Body, 1×Long Shaft, 1×Thick Plate, 1×Washer
+[126/193] Pipe_vice/Pipe_Vice_51: 6 bodies (5.3s) → 3×Body, 1×Thick Plate, 1×Bolt, 1×Long Shaft
+[127/193] Pipe_vice/Pipe_Vice_53: 5 bodies (4.7s) → 2×Nut, 2×Long Shaft, 1×Body
+[128/193] Gate_Valve/Gate_Valve_02: 4 bodies (5.4s) → 2×Nut, 1×Body, 1×Washer
+[129/193] Gate_Valve/Gate_Valve_03: 40 bodies (31.5s) → 10×Body, 10×Nut, 7×Bolt, 6×Thin Plate
+[130/193] Gate_Valve/Gate_Valve_04: 63 bodies (55.7s) → 23×Nut, 19×Body, 7×Thin Plate, 7×Long Shaft
+[131/193] Gate_Valve/Gate_Valve_05: 87 bodies (16.5s) → 30×Washer, 24×Nut, 17×Body, 10×Bolt
+[132/193] Gate_Valve/Gate_Valve_06: 41 bodies (32.5s) → 11×Nut, 10×Body, 7×Bolt, 6×Thin Plate
+[133/193] Gate_Valve/Gate_Valve_07: 69 bodies (56.7s) → 27×Nut, 21×Body, 7×Long Shaft, 6×Short Shaft
+[134/193] Gate_Valve/Gate_Valve_10: 61 bodies (55.4s) → 29×Nut, 15×Body, 9×Long Shaft, 4×Bolt
+[135/193] Gate_Valve/Gate_Valve_11: 47 bodies (158.2s) → 29×Body, 8×Thick Plate, 4×Short Shaft, 3×Thin Plate
+[136/193] Gate_Valve/Gate_Valve_12: error: no result (worker died) (275.6s)
+[137/193] Gate_Valve/Gate_Valve_14: 59 bodies (40.5s) → 21×Body, 18×Nut, 10×Short Shaft, 3×Bolt
+[138/193] Gate_Valve/Gate_Valve_15: 51 bodies (35.4s) → 18×Nut, 13×Body, 10×Short Shaft, 3×Bolt
+[139/193] Gate_Valve/Gate_Valve_23: 35 bodies (11.1s) → 20×Bolt, 10×Body, 4×Thick Plate, 1×Long Shaft
+[140/193] Gate_Valve/Gate_Valve_24: 81 bodies (40.6s) → 48×Body, 18×Thick Plate, 12×Thin Plate, 2×Long Shaft
+[141/193] Gate_Valve/Gate_Valve_25: 22 bodies (5.0s) → 10×Nut, 5×Washer, 3×Body, 2×Bolt
+[142/193] Gate_Valve/Gate_Valve_27: 5 bodies (6.1s) → 3×Body, 1×Thick Plate, 1×Washer
+[143/193] Gate_Valve/Gate_Valve_31: 4 bodies (32.6s) → 2×Nut, 1×Long Shaft, 1×Washer
+[144/193] Gate_Valve/Gate_Valve_34: 62 bodies (41.9s) → 23×Body, 19×Nut, 10×Short Shaft, 5×Washer
+[145/193] Gate_Valve/Gate_Valve_35: 43 bodies (102.5s) → 13×Bolt, 8×Nut, 5×Washer, 5×Long Shaft
+[146/193] Gate_Valve/Gate_Valve_36: 93 bodies (17.1s) → 50×Body, 19×Thin Plate, 11×Long Shaft, 11×Thick Plate
+[147/193] Gate_Valve/Gate_Valve_37: 2 bodies (5.5s) → 1×Bolt, 1×Body
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/trimesh/triangles.py:550: RuntimeWarning: divide by zero encountered in divide
+  inverse_denominator = 1.0 / (dot00 * dot11 - dot01 * dot01)
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/trimesh/triangles.py:555: RuntimeWarning: invalid value encountered in subtract
+  barycentric[:, 0] = 1 - barycentric[:, 1] - barycentric[:, 2]
+[148/193] Gate_Valve/Gate_Valve_38: 176 bodies (44.6s) → 56×Washer, 50×Nut, 22×Bolt, 19×Thick Plate
+[149/193] Press_Tool/Press_Tool_02: 10 bodies (5.0s) → 4×Nut, 2×Long Shaft, 2×Body, 2×Thick Plate
+[150/193] Press_Tool/Press_Tool_04: 98 bodies (8.9s) → 34×Body, 32×Bolt, 20×Short Shaft, 8×Nut
+[151/193] Press_Tool/Press_Tool_05: 14 bodies (4.0s) → 4×Body, 4×Nut, 4×Short Shaft, 1×Washer
+[152/193] Press_Tool/Press_Tool_06: 10 bodies (4.0s) → 4×Body, 4×Long Shaft, 2×Thick Plate
+[153/193] Press_Tool/Press_Tool_07: 170 bodies (7.2s) → 36×Body, 34×Thin Plate, 32×Short Shaft, 32×Nut
+[154/193] Press_Tool/Press_Tool_08: 178 bodies (143.3s) → 80×Body, 44×Thick Plate, 32×Thin Plate, 10×Short Shaft
+[155/193] Press_Tool/Press_Tool_09: 89 bodies (16.5s) → 35×Body, 20×Long Shaft, 12×Bolt, 11×Thick Plate
+[156/193] Press_Tool/Press_Tool_10: 145 bodies (65.5s) → 37×Body, 34×Thin Plate, 33×Thick Plate, 15×Nut
+[157/193] Press_Tool/Press_Tool_12: 198 bodies (36.0s) → 94×Body, 57×Thin Plate, 29×Thick Plate, 7×Short Shaft
+[158/193] Press_Tool/Press_Tool_13: 10 bodies (4.0s) → 5×Body, 4×Long Shaft, 1×Thick Plate
+[159/193] Press_Tool/Press_Tool_14: 10 bodies (3.9s) → 5×Body, 4×Long Shaft, 1×Thick Plate
+[160/193] Press_Tool/Press_Tool_15: 10 bodies (3.9s) → 5×Body, 4×Long Shaft, 1×Thick Plate
+[161/193] Press_Tool/Press_Tool_16: 10 bodies (3.9s) → 5×Body, 4×Long Shaft, 1×Thin Plate
+[162/193] Press_Tool/Press_Tool_17: 10 bodies (3.9s) → 5×Body, 4×Long Shaft, 1×Thick Plate
+[163/193] Press_Tool/Press_Tool_18: 8 bodies (7.4s) → 2×Thick Plate, 2×Long Shaft, 2×Body, 2×Washer
+[164/193] Press_Tool/Press_Tool_19: 37 bodies (13.3s) → 12×Body, 8×Thick Plate, 5×Thin Plate, 4×Short Shaft
+[165/193] Press_Tool/Press_Tool_21: 43 bodies (4.8s) → 15×Body, 11×Thick Plate, 10×Bolt, 6×Long Shaft
+[166/193] Press_Tool/Press_Tool_23: 10 bodies (4.3s) → 5×Body, 4×Long Shaft, 1×Thick Plate
+[167/193] Press_Tool/Press_Tool_24: 10 bodies (3.9s) → 5×Body, 4×Long Shaft, 1×Thick Plate
+[168/193] Press_Tool/Press_Tool_25: 14 bodies (3.9s) → 8×Nut, 4×Long Shaft, 1×Thick Plate, 1×Body
+[169/193] Press_Tool/Press_Tool_26: 16 bodies (18.5s) → 4×Nut, 4×Short Shaft, 3×Body, 3×Washer
+[170/193] Tool_Post/Tool_Post_01: 31 bodies (5.0s) → 16×Bolt, 8×Short Shaft, 5×Body, 2×Thick Plate
+[171/193] Tool_Post/Tool_Post_02: 28 bodies (94.7s) → 15×Body, 8×Bolt, 4×Thick Plate, 1×Long Shaft
+[172/193] Tool_Post/Tool_Post_05: 54 bodies (58.0s) → 33×Body, 8×Bolt, 4×Washer, 4×Thick Plate
+[173/193] Tool_Post/Tool_Post_08: 15 bodies (6.2s) → 8×Bolt, 2×Nut, 2×Long Shaft, 1×Thick Plate
+[174/193] Tool_Post/Tool_Post_10: 50 bodies (12.2s) → 31×Body, 8×Bolt, 5×Nut, 4×Washer
+[175/193] Tool_Post/Tool_Post_13: 27 bodies (4.6s) → 13×Body, 8×Bolt, 3×Nut, 2×Long Shaft
+[176/193] Tool_Post/Tool_Post_14: 24 bodies (5.0s) → 8×Bolt, 7×Body, 3×Nut, 2×Long Shaft
+[177/193] Tool_Post/Tool_Post_17: 31 bodies (20.9s) → 14×Short Shaft, 7×Body, 3×Bolt, 3×Nut
+[178/193] Crane_hook/Crane_Hook_01: 33 bodies (6.7s) → 12×Nut, 7×Washer, 7×Body, 4×Thick Plate
+[179/193] Crane_hook/Crane_Hook_02: 35 bodies (7.9s) → 12×Nut, 7×Body, 7×Washer, 4×Thick Plate
+[180/193] Crane_hook/Crane_Hook_04: 44 bodies (87.9s) → 14×Body, 8×Washer, 8×Nut, 7×Thick Plate
+[181/193] Crane_hook/Crane_Hook_05: 15 bodies (5.8s) → 7×Nut, 2×Thin Plate, 2×Body, 2×Washer
+[182/193] Crane_hook/Crane_Hook_06: 20 bodies (86.1s) → 9×Nut, 5×Washer, 2×Thin Plate, 1×Body
+[183/193] Crane_hook/Crane_Hook_07: 46 bodies (6.5s) → 32×Body, 8×Thick Plate, 3×Short Shaft, 2×Thin Plate
+[184/193] Crane_hook/Crane_Hook_09: 28 bodies (41.5s) → 16×Nut, 4×Body, 3×Short Shaft, 3×Thick Plate
+[185/193] Crane_hook/Crane_Hook_10: 46 bodies (6.1s) → 16×Nut, 12×Body, 7×Washer, 4×Short Shaft
+[186/193] Crane_hook/Crane_Hook_11: 19 bodies (4.6s) → 8×Nut, 6×Washer, 2×Thick Plate, 2×Body
+[187/193] Crane_hook/Crane_Hook_12: 53 bodies (6.0s) → 27×Nut, 14×Body, 7×Washer, 3×Short Shaft
+[188/193] Crane_hook/Crane_Hook_13: 28 bodies (4.3s) → 11×Thick Plate, 8×Thin Plate, 6×Body, 3×Short Shaft
+[189/193] Crane_hook/Crane_Hook_15: 86 bodies (9.8s) → 26×Washer, 20×Nut, 15×Thick Plate, 9×Bolt
+[190/193] Crane_hook/Crane_Hook_17: 49 bodies (6.2s) → 16×Nut, 8×Body, 8×Thin Plate, 7×Washer
+[191/193] Crane_hook/Crane_Hook_21: 57 bodies (5.8s) → 30×Body, 20×Thick Plate, 5×Short Shaft, 2×Thin Plate
+[192/193] Crane_hook/Crane_Hook_22: 66 bodies (214.5s) → 57×Body, 6×Thick Plate, 2×Bolt, 1×Thin Plate
+[193/193] Crane_hook/Crane_Hook_23: 24 bodies (78.4s) → 16×Thick Plate, 5×Body, 2×Thin Plate, 1×Bolt
+
+======================================================================
+TOTAL: 193 folders, 5167 bodies, 2039 ambiguous, 4320s
+
+Class balance (new taxonomy):
+  Long Shaft     385    7.5%
+  Short Shaft    310    6.0%
+  Thick Plate    584   11.3%
+  Thin Plate     404    7.8%
+  Bolt           582   11.3%
+  Washer         284    5.5%
+  Nut            671   13.0%
+  Body          1947   37.7%
+
+Wrote /Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Source_3d_models/Best_models_for_training/audit_classification.json
+Wrote /Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Source_3d_models/Best_models_for_training/audit_classification.html
+DONE
