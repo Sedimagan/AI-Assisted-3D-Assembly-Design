@@ -83,115 +83,56 @@
   .pill { background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 999px;
           padding: 4px 12px; font-size: 0.78rem; color: #cfd9e6; }
   .pill b { color: var(--text); }
+  /* Chart styles */
+  .chart-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+  .chart-card h3 { margin: 0 0 2px; font-size: 0.86rem; color: var(--accent); }
+  .chart-note { font-size: 0.68rem; color: var(--muted); margin-top: 4px; line-height: 1.35; }
+  .legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.66rem; color: #cfd9e6; margin: 2px 0 0; }
+  .legend-item { display: flex; align-items: center; gap: 4px; }
+  .legend-swatch { width: 10px; height: 3px; border-radius: 2px; display: inline-block; }
+  svg.chart { width: 100%; height: auto; display: block; }
+  .axis-label { fill: var(--muted); font-size: 7.5px; font-family: -apple-system, Arial, sans-serif; }
+  .chart-line { fill: none; stroke-width: 1.8; }
+  .chart-gridline { stroke: var(--border); stroke-width: 1; }
+  .chart-refline { stroke-dasharray: 4 3; stroke-width: 1.2; fill: none; }
+  .demo-link {
+    display: inline-block; margin-top: 22px; background: rgba(91,155,213,0.12);
+    border: 1px solid var(--accent); color: var(--accent); border-radius: 10px;
+    padding: 14px 28px; font-size: 1.15rem; font-weight: 700; text-decoration: none;
+  }
+  .demo-link:hover { background: rgba(91,155,213,0.22); }
 </style>
 </head>
 <body>
 
-<!-- Slide 1 — Title -->
-<div class="slide active" id="s1">
-  <div class="center">
-    <div class="kicker">Phase 2 · Node Ranker &amp; Phase 3 · Shape Generation</div>
-    <h1 style="font-size:2.7rem;">Phase 2 — Second Review</h1>
-    <p class="sub" style="font-size:1.1rem;">AI-Assisted 3D Assembly Design</p>
-    <div style="margin-top:22px;color:#cfd9e6;">
-      <div><b>Presented by:</b> Parthasarathy Perumal &nbsp;·&nbsp; SRN PES2PGE24DS193</div>
-      <div style="margin-top:4px;"><b>Guide:</b> Prof. Gaurav Siwal (Phase 2)</div>
-      <div style="margin-top:4px;color:var(--muted);">MTECH — Data Science &amp; AI, PES University Bengaluru</div>
-      <div style="margin-top:10px;color:var(--muted);font-size:0.85rem;">8 August 2026</div>
-    </div>
-  </div>
-</div>
-
-<!-- Slide 2 — Agenda -->
-<div class="slide" id="s2">
+<!-- Slide 0 — Agenda -->
+<div class="slide active" id="s0">
   <div class="kicker">Agenda</div>
   <h2>What we'll cover today</h2>
   <div class="grid grid2">
     <div class="card">
-      <h3>Since the last review</h3>
+      <h3>1–4 · Setting the scene</h3>
       <ul>
-        <li>Corpus curation &amp; taxonomy redesign (presented at the 1 Aug guidance call)</li>
-        <li>Phase 3 shape generation — designed <i>and</i> built</li>
-        <li>R32 → R33 retrain, taxonomy migration completed end-to-end</li>
+        <li>Title &amp; abstract</li>
+        <li>Modified algorithm design — what changed since the last review</li>
+        <li>Contribution of the candidate</li>
+        <li>Results obtained (intermediate)</li>
       </ul>
     </div>
     <div class="card">
-      <h3 class="plan">Today's results</h3>
+      <h3 class="plan">5–7 · Evidence &amp; wrap-up</h3>
       <ul>
-        <li>NodeRanker Hit@1 now beats the majority-class baseline</li>
-        <li>Shape-gen VAE meets both design targets, wired into the Streamlit UI</li>
-        <li>Bugs found and fixed along the way — reported honestly</li>
-        <li>Open items and what's next</li>
+        <li>R1 → R33 AUC/AP trend, the current serving model's per-epoch training curves, and other new metrics</li>
+        <li>References</li>
+        <li>Live local demo</li>
       </ul>
     </div>
   </div>
 </div>
 
-<!-- Slide 3 — Recap -->
-<div class="slide" id="s3">
-  <div class="kicker">1 · Recap</div>
-  <h2>Where the Phase 2 First Review left off <span class="badge">25 Jul 2026</span></h2>
-  <div class="grid grid2">
-    <div class="card">
-      <h3 class="done">What was in place</h3>
-      <ul>
-        <li>R30 heterogeneous encoder (<code>RGATConv</code> + <code>TypedLinear</code>) serving — mean AUC 0.599 ± 0.112, mean AP 0.869 ± 0.047</li>
-        <li>Node Ranker wired end-to-end (train/infer/API/UI) but stale — trained against a superseded encoder</li>
-        <li>3D generative completion (Path A / Path B) proposed by Prof. Siwal, deliberately scoped out as <b>Phase 3</b> rather than squeezed into Phase 2</li>
-      </ul>
-    </div>
-    <div class="card">
-      <h3 class="risk">Open items carried forward</h3>
-      <ul>
-        <li>Re-run <code>train_ranker.py</code> against R30, the actual serving encoder</li>
-        <li>Keep pushing AUC via architecture (proven lever) rather than raw data volume alone (R31's lesson)</li>
-        <li>Finish committed-but-not-started items: GNNExplainer interpretability</li>
-        <li>Stay on local M1 training — cloud GPU compute costed (~₹70,000–₹1,05,000 / 5 weeks) and consciously not adopted</li>
-      </ul>
-    </div>
-  </div>
-</div>
-
-<!-- Slide 4 — Since the last review, 4 workstreams -->
-<div class="slide" id="s4">
-  <div class="kicker">Since the last review</div>
-  <h2>Four workstreams, all landed</h2>
-  <div class="grid grid2">
-    <div class="card">
-      <h3 class="done">1 · Corpus curation &amp; cleanup <span class="badge done">Done</span></h3>
-      <ul>
-        <li>Manually reviewed, downloaded and quality-checked new models from GrabCAD</li>
-        <li>Standardized folder/file structure across all 7 categories</li>
-        <li>Full-corpus parsability audit — every model verified against the real training pipeline</li>
-      </ul>
-    </div>
-    <div class="card">
-      <h3 class="done">2 · Taxonomy &amp; classification redesign <span class="badge done">Live</span></h3>
-      <ul>
-        <li>Identified that 4 of 8 old classes were effectively never used on this corpus</li>
-        <li>Designed a new, more mechanically meaningful 8-class taxonomy — audited first, <i>then</i> made the live classifier (not left as a candidate scheme)</li>
-      </ul>
-    </div>
-    <div class="card">
-      <h3 class="done">3 · Phase 3 — shape generation <span class="badge done">Built</span></h3>
-      <ul>
-        <li>Full design (<code>docs/phase3_shape_generation_design.md</code>), then fully implemented</li>
-        <li><code>part_bank.py</code>, <code>shape_generator.py</code>, <code>train_shape_gen.py</code> — trained and wired into the Streamlit UI</li>
-      </ul>
-    </div>
-    <div class="card">
-      <h3 class="done">4 · R32 → R33 retrain <span class="badge done">Done</span></h3>
-      <ul>
-        <li>Phase 1 encoder retrained twice: once on the expanded 7-category corpus (R32), once again under the new taxonomy (R33)</li>
-        <li>Node Ranker and Shape VAE both re-trained against the current serving encoder</li>
-      </ul>
-    </div>
-  </div>
-</div>
-
-<!-- Slide 5 — Title & Abstract -->
-<div class="slide" id="s5">
-  <div class="kicker">2 · Title &amp; Abstract</div>
+<!-- Slide 1 — Title & Abstract -->
+<div class="slide" id="s1">
+  <div class="kicker">1 · Title &amp; Abstract</div>
   <h2>Title &amp; abstract</h2>
   <p class="sub" style="margin-bottom:10px;font-size:1.05rem;color:var(--text);font-weight:600;">
     AI-Assisted 3D Assembly Design: Graph Neural Networks for Missing-Component Detection, Next-Component Ranking, and Shape Generation in CAD Assemblies
@@ -220,375 +161,144 @@
   </div>
 </div>
 
-<!-- Slide 6 — Corpus curation & standardization -->
-<div class="slide" id="s6">
-  <div class="kicker">3 · Corpus Work</div>
-  <h2>Manual curation &amp; file-structure standardization</h2>
-  <div class="grid grid2">
-    <div class="card">
-      <h3>Manual curation workflow</h3>
-      <ul>
-        <li>Browse GrabCAD.com by category → download candidate model → open in FreeCAD</li>
-        <li>Manual quality check: genuine multi-body assembly (not a shrink-wrapped single solid)? Correctly labeled? Geometry matches the claimed component by eye?</li>
-        <li>Format check: real STEP assembly → keep · IGES only → re-export to STEP in FreeCAD · neither, or no solid volumes → <code>non_compatible_formats/</code></li>
-      </ul>
-    </div>
-    <div class="card">
-      <h3>File-structure standardization</h3>
-      <ul>
-        <li>Sequential renaming — every folder <code>&lt;Category&gt;_NN</code>, STEP file renamed to match; mapping preserved in <code>rename_mapping.json</code></li>
-        <li>All reference images grouped under a per-assembly <code>Images/</code> subfolder — only the STEP file sits directly in the assembly folder</li>
-        <li>Format quarantine: <code>non_compatible_formats/</code>, <code>rejected/</code> (&lt;2 solid volumes), <code>slow_or_unstable/</code> (times out / crashes the parser)</li>
-        <li>Browsable thumbnail gallery (<code>gallery.html</code>) — 7 categories, 240+ folders, 455+ reference images, all links verified</li>
-      </ul>
-    </div>
-  </div>
-</div>
-
-<!-- Slide 7 — Parsability audit & final corpus -->
-<div class="slide" id="s7">
-  <div class="kicker">3 · Corpus Work</div>
-  <h2>Full-corpus parsability audit &amp; final corpus</h2>
-  <p class="sub" style="margin-bottom:10px;">Every model was actually run through <code>dataset.py</code>'s real STEP-parsing pipeline — not just visually reviewed — before being trusted for training.</p>
-  <div class="grid grid2">
-    <div class="card">
-      <h3>Parsability outcomes — 284 files checked</h3>
-      <table>
-        <tr><th>Outcome</th><th>Count</th><th>Meaning</th></tr>
-        <tr class="metric-row"><td>OK</td><td>193</td><td>Parses cleanly, ≥2 solid volumes — used for training</td></tr>
-        <tr><td>Rejected</td><td>66</td><td>Parses, but &lt;2 volumes — not a real assembly</td></tr>
-        <tr><td>Timeout</td><td>22</td><td>Exceeds 300s parse budget (some up to 5,000s+)</td></tr>
-        <tr><td>Error</td><td>3</td><td>Worker crash, no result</td></tr>
-      </table>
-      <p class="sub" style="margin:10px 0 0;">193 final usable assemblies — ~68% overall usable rate.</p>
-    </div>
-    <div class="card">
-      <h3>Final corpus — 7 categories, 193 assemblies</h3>
-      <table>
-        <tr><th>Category</th><th>Assemblies</th></tr>
-        <tr><td>Bench Vice</td><td>54</td></tr>
-        <tr><td>Pipe Vice</td><td>42</td></tr>
-        <tr><td>C-Clamps</td><td>31</td></tr>
-        <tr><td>Gate Valve</td><td>21</td></tr>
-        <tr><td>Press Tool</td><td>21</td></tr>
-        <tr><td>Crane Hook</td><td>16</td></tr>
-        <tr><td>Tool Post</td><td>8</td></tr>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- Slide 8 — Taxonomy redesign, the problem -->
-<div class="slide" id="s8">
-  <div class="kicker">4 · Taxonomy Redesign</div>
-  <h2>Why the component taxonomy needed a redesign</h2>
-  <div class="grid grid2">
-    <div class="card">
-      <h3 class="risk">The problem, in real numbers</h3>
-      <p class="sub" style="margin:0 0 8px;">Old taxonomy: <code>body</code> / <code>fastener</code> / <code>bearing</code> / <code>shaft</code> / <code>plate</code> / <code>housing</code> / <code>gear</code> / <code>other</code>. Across 3,480 parts extracted with the old classifier:</p>
-      <div class="pillrow">
-        <div class="pill"><b>body</b> 58.8%</div>
-        <div class="pill"><b>fastener</b> 26.3%</div>
-        <div class="pill"><b>plate</b> 14.8%</div>
-        <div class="pill"><b>bearing</b> 0.03%</div>
-        <div class="pill">shaft / housing / gear / other — 0%</div>
-      </div>
-      <p class="sub" style="margin:10px 0 0;">4 of 8 classes effectively never used — the taxonomy didn't match what our assemblies actually contain.</p>
-    </div>
-    <div class="card">
-      <h3 class="bad" style="color:var(--bad);">The bug this caused in production</h3>
-      <ul>
-        <li>A single mislabeled <code>bearing</code> — 1 example in the whole corpus — polluted that category's expected-components template</li>
-        <li>Produced a spurious "1 bearing missing" report in the live Streamlit UI, for every assembly in that category</li>
-        <li>Not a modeling accuracy issue — a taxonomy-design issue that surfaced as a user-facing correctness bug</li>
-      </ul>
-    </div>
-  </div>
-</div>
-
-<!-- Slide 9 — Taxonomy redesign, new design & audit -->
-<div class="slide" id="s9">
-  <div class="kicker">4 · Taxonomy Redesign</div>
-  <h2>New 8-class taxonomy — multi-signal voting, now live</h2>
-  <div class="grid grid2">
-    <div class="card">
-      <h3 class="done">Design approach</h3>
-      <ul>
-        <li>New classes: <b>Long Shaft, Short Shaft, Thick Plate, Thin Plate, Bolt, Washer, Nut, Body</b> (honest catch-all)</li>
-        <li>Washer / Nut: convex-hull volume ratio + central-axis ray probe must both agree a through-hole exists</li>
-        <li>Bolt vs. plain shaft: bounding-cylinder fill ratio + COM axial offset + B-Rep face count — 2 of 3 must agree</li>
-        <li>Everything else: elongation / flatness ratios (Long/Short Shaft, Thick/Thin Plate)</li>
-        <li>Audited first as a read-only script (<code>audit_component_types.py</code>), thresholds calibrated <i>before</i> touching production — then promoted to be <code>dataset.py</code>'s single source of truth, replacing duplicated logic in <code>part_bank.py</code> / <code>app.py</code></li>
-      </ul>
-    </div>
-    <div class="card">
-      <h3 class="done">Audit results — 5,167 bodies, 193 assemblies</h3>
-      <table>
-        <tr><th>Class</th><th>Share</th></tr>
-        <tr><td>Body</td><td>37.7%</td></tr>
-        <tr><td>Nut</td><td>13.0%</td></tr>
-        <tr><td>Thick Plate</td><td>11.3%</td></tr>
-        <tr><td>Bolt</td><td>11.2%</td></tr>
-        <tr><td>Thin Plate</td><td>7.8%</td></tr>
-        <tr><td>Long Shaft</td><td>7.5%</td></tr>
-        <tr><td>Short Shaft</td><td>6.1%</td></tr>
-        <tr><td>Washer</td><td>5.5%</td></tr>
-      </table>
-      <p class="sub" style="margin:10px 0 0;">All 8 classes now get real, non-trivial usage. 39.5% flagged ambiguous by the voting rules — reported as an honest signal for further threshold tuning, not hidden.</p>
-    </div>
-  </div>
-</div>
-
-<!-- Slide 10 — System architecture -->
-<div class="slide" id="s10">
-  <div class="kicker">5 · Architecture</div>
-  <h2>System architecture — Phase 1 + 2 + 3 combined</h2>
+<!-- Slide 2 — Modified Algorithm Design -->
+<div class="slide" id="s2">
+  <div class="kicker">2 · Modified Algorithm Design</div>
+  <h2>What changed in the algorithm this cycle</h2>
   <div class="flow">
     <div class="fbox">STEP assembly</div>
     <div class="arrow">→</div>
-    <div class="fbox">22-dim node / 6-dim edge graph<br><span style="color:var(--muted);">dataset.py</span></div>
+    <div class="fbox new">Multi-signal voting classifier<br><span style="color:var(--accent2);">replaces single-signal SDF rules</span></div>
+    <div class="arrow">→</div>
+    <div class="fbox">22-dim node / 6-dim edge graph</div>
     <div class="arrow">→</div>
     <div class="fbox new">Frozen encoder — R33<br><span style="color:var(--accent2);">RGATConv + TypedLinear</span></div>
-    <div class="arrow">→</div>
-    <div class="fbox">Context vector<br><span style="color:var(--muted);">mean-pooled node embeddings</span></div>
   </div>
   <div class="flow">
-    <div class="fbox" style="flex:0.5;visibility:hidden;">.</div>
-    <div class="arrow" style="visibility:hidden;">→</div>
-    <div class="arrow">↓ splits into two parallel heads</div>
-    <div class="fbox" style="flex:0.5;visibility:hidden;">.</div>
-    <div class="arrow" style="visibility:hidden;">→</div>
-  </div>
-  <div class="flow">
-    <div class="fbox new">Node Ranker<br><span style="color:var(--accent2);">cosine sim vs. 8 type prototypes</span></div>
+    <div class="fbox new">Node Ranker<br><span style="color:var(--accent2);">cosine sim vs. 8 type prototypes, BPR loss</span></div>
     <div class="arrow">→</div>
-    <div class="fbox">Ranked missing-component type<br><span style="color:var(--muted);">Hit@K / MRR / NDCG@K</span></div>
+    <div class="fbox new">Hybrid Shape Generator <span class="badge p3">New this review</span><br><span style="color:var(--accent2);">retrieve if fit_score ≥ τ(0.6), else generate</span></div>
   </div>
-  <div class="flow">
-    <div class="fbox new">Hybrid Shape Generator <span class="badge p3">New this review</span><br><span style="color:var(--accent2);">ShapeRetriever (3,221-part bank) or ConditionalShapeVAE (32³, 77-dim cond.)</span></div>
-    <div class="arrow">→</div>
-    <div class="fbox">Generated 3D mesh<br><span style="color:var(--muted);">IoU / Chamfer → ghost-overlay preview in UI</span></div>
-  </div>
-  <div class="card" style="margin-top:8px;">
-    <h3>Design principle carried through all three phases</h3>
-    <ul>
-      <li>Both heads reuse the frozen encoder and <b>never touch</b> <code>best_serving.pt</code> — each writes to its own checkpoint (<code>node_ranker.pt</code>, <code>shape_vae.pt</code>) with an encoder-staleness guard, so encoder retraining and head retraining stay independent and cheap</li>
-    </ul>
+  <div class="grid grid3" style="margin-top:6px;">
+    <div class="card">
+      <h3>Classification algorithm — multi-signal voting</h3>
+      <ul>
+        <li>Old: single-signal SDF/bbox thresholds per class (elongation ratio → shaft, flatness → plate, …)</li>
+        <li>New: <b>2-of-3 signal agreement</b> — bolt head needs cylinder-fill + COM-offset + face-count to agree; washer/nut need convex-hull ratio <i>and</i> a central-axis ray probe to both confirm a through-hole</li>
+        <li>Thresholds calibrated by a read-only audit tool <i>before</i> becoming the live classifier</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Promotion-gate override — a modeled exception</h3>
+      <ul>
+        <li>Default policy: promote to <code>best_serving.pt</code> only if mean AUC+AP beats the incumbent</li>
+        <li>New rule added: when the incumbent and the candidate encode <i>different taxonomies</i>, the AUC comparison is not valid — override is manual, and the override itself is logged, not silent</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Shape generation dispatch rule</h3>
+      <ul>
+        <li><code>fit_score</code> = bbox-aspect-ratio similarity between a part-bank candidate and the target open-joint region</li>
+        <li><code>fit_score ≥ 0.6</code> → retrieve real geometry (zero training, always-valid CAD); else → <code>ConditionalShapeVAE</code> generates a novel mesh from a 77-dim condition vector</li>
+      </ul>
+    </div>
   </div>
 </div>
 
-<!-- Slide 11 — Training status R32 -> R33 -->
-<div class="slide" id="s11">
-  <div class="kicker">6 · Training Status</div>
-  <h2>R32 → R33 — the taxonomy migration retrain</h2>
+<!-- Slide 3 — Contribution of the candidate -->
+<div class="slide" id="s3">
+  <div class="kicker">3 · Contribution of the Candidate</div>
+  <h2>What I personally designed, built, and fixed this cycle</h2>
   <div class="grid grid2">
     <div class="card">
-      <h3>R32 — expanded corpus, old taxonomy</h3>
+      <h3 class="done">Design &amp; build</h3>
       <ul>
-        <li>7-category / 193-folder corpus (+Gate Valve, Press Tool, Tool Post, Crane Hook) · category-filter bugfix · 5-fold CV</li>
+        <li>Diagnosed a UI symptom ("1 bearing missing" on every assembly in a category) back to its taxonomy-design root cause — not a modeling bug</li>
+        <li>Designed the new 8-class multi-signal-voting taxonomy and its audit tool (<code>audit_component_types.py</code>) — calibrated on real corpus statistics before touching production</li>
+        <li>Designed <i>and</i> implemented the entire Phase 3 hybrid shape generator (retrieval + VAE) — proposed by my guide as future work; I brought it forward and built it this cycle</li>
+        <li>Manually curated and standardized the 193-assembly / 7-category training corpus, including a full parsability audit against the real parsing pipeline (not just visual review)</li>
       </ul>
-      <table style="margin-top:8px;">
-        <tr><th>Metric</th><th>Value</th></tr>
-        <tr class="metric-row"><td>Mean AUC</td><td>0.5067 ± 0.0524</td></tr>
-        <tr class="metric-row"><td>Mean AP</td><td>0.7054 ± 0.0265</td></tr>
-        <tr><td>Best fold val AUC</td><td>0.6670</td></tr>
-      </table>
-      <p class="sub" style="margin:10px 0 0;color:var(--bad);">Not promoted — R30 still better on both metrics (old taxonomy, apples-to-apples).</p>
     </div>
     <div class="card">
-      <h3 class="done">R33 — same corpus, new taxonomy <span class="badge done">Serving</span></h3>
+      <h3 class="done">Debugging &amp; engineering judgment</h3>
       <ul>
-        <li>Full retrain after the taxonomy migration · same 193-folder / 7-category corpus, re-parsed under the new 8-class scheme</li>
+        <li>Found and fixed 3 real production bugs through independent root-cause analysis: a template category-grouping bug, a corpus-filter data leak, and a multiprocessing deadlock/false-timeout race — the last confirmed via isolated empirical testing, not guesswork</li>
+        <li>Made and documented the judgment call to manually override the automatic promotion gate for R33, with the reasoning written down rather than left implicit</li>
+        <li>Diagnosed and fixed an MPS/Apple-Silicon memory leak across 4 escalating layers during the R33 retrain, verifying each fix with real workload testing before trusting it</li>
+        <li>Ran full end-to-end verification on a real STEP file (not just unit tests) before calling the migration done</li>
       </ul>
-      <table style="margin-top:8px;">
-        <tr><th>Metric</th><th>Value</th></tr>
-        <tr class="metric-row"><td>Mean AUC</td><td>0.5306 ± 0.0314</td></tr>
-        <tr class="metric-row"><td>Mean AP</td><td>0.7213 ± 0.0209</td></tr>
-        <tr><td>Best fold val AUC</td><td>0.6367</td></tr>
-      </table>
-      <p class="sub" style="margin:10px 0 0;color:var(--good);">Manually promoted to <code>best_serving.pt</code> (R30 backed up to <code>archive_r30/</code>) — R30 and R33 encode node-feature type-slots under completely different taxonomies, so they aren't a valid AUC comparison. The automatic promotion gate was deliberately overridden, and that override is documented, not silent.</p>
     </div>
   </div>
 </div>
 
-<!-- Slide 12 — NodeRanker results -->
-<div class="slide" id="s12">
-  <div class="kicker">7 · Node Ranker</div>
-  <h2>Node Ranker — re-trained against R33</h2>
+<!-- Slide 4 — Results obtained (Intermediate) -->
+<div class="slide" id="s4">
+  <div class="kicker">4 · Results Obtained (Intermediate)</div>
+  <h2>Headline results across all three phases</h2>
   <table>
-    <tr><th>Metric</th><th>Target</th><th>Result</th></tr>
-    <tr class="metric-row"><td>Hit@5</td><td>≥ 0.70</td><td>0.8467 <span style="color:var(--good);">✓</span></td></tr>
-    <tr><td>MRR</td><td>≥ 0.64</td><td>0.5723 <span style="color:var(--warn);">not yet met</span></td></tr>
-    <tr class="metric-row"><td>Hit@1</td><td>— (majority-class baseline 0.3650)</td><td>0.3869 <span style="color:var(--good);">now beats baseline</span></td></tr>
-    <tr><td>NDCG@5</td><td>—</td><td>0.6225</td></tr>
+    <tr><th>Phase / Head</th><th>Metric</th><th>Result</th></tr>
+    <tr class="metric-row"><td>Phase 1 — Encoder (R33)</td><td>Mean AUC / Mean AP</td><td>0.5306 ± 0.0314 / 0.7213 ± 0.0209</td></tr>
+    <tr class="metric-row"><td>Phase 2 — Node Ranker</td><td>Hit@5 / MRR / Hit@1</td><td>0.8467 / 0.5723 / <b>0.3869</b> (beats 0.3650 baseline)</td></tr>
+    <tr class="metric-row"><td>Phase 3 — Shape-gen VAE</td><td>Voxel IoU / Chamfer</td><td>0.5192 <span style="color:var(--good);">✓</span> / 0.0424 <span style="color:var(--good);">✓</span></td></tr>
+    <tr><td>Corpus</td><td>Usable assemblies</td><td>193, 7 categories, fully parsability-audited</td></tr>
+    <tr><td>Part bank</td><td>Parts extracted</td><td>3,221 parts from 284 assemblies (new taxonomy)</td></tr>
+    <tr><td>Production bugs</td><td>Found &amp; fixed</td><td>3 (template grouping, corpus filter leak, MP timeout/deadlock)</td></tr>
   </table>
-  <div class="card" style="margin-top:16px;">
-    <h3 class="done">Resolves the open item from the last review</h3>
-    <ul>
-      <li>Previously, Hit@1 (0.2519) was <i>below</i> the majority-class baseline (0.5556) when re-trained against R30 — flagged honestly as an open issue at the time</li>
-      <li>After the taxonomy migration, both the baseline itself and the model shifted (new class distribution) — Hit@1 now clears its baseline (0.3869 vs. 0.3650)</li>
-      <li>The encoder-staleness guard meant this checkpoint had to be retrained <i>twice</i> this cycle: once against R30, then again against R33 — exactly the cost the guard is designed to make explicit rather than silent</li>
-    </ul>
-  </div>
-</div>
-
-<!-- Slide 13 — Phase 3 design -->
-<div class="slide" id="s13">
-  <div class="kicker">8 · Phase 3 — Shape Generation</div>
-  <h2>Design — hybrid retrieval + generative fallback</h2>
-  <div class="flow">
-    <div class="fbox">Frozen encoder context vector<br><span style="color:var(--muted);">64-dim, shared with Node Ranker</span></div>
-    <div class="arrow">→</div>
-    <div class="fbox new">Conditioning vector<br><span style="color:var(--accent2);">ctx(64) ‖ type_onehot(8) ‖ target_bbox(3) ‖ neighbor_scale(2) = 77-dim</span></div>
-    <div class="arrow">→</div>
-    <div class="fbox new">HybridShapeGenerator<br><span style="color:var(--accent2);">retrieve if fit_score ≥ τ(0.6), else generate</span></div>
-    <div class="arrow">→</div>
-    <div class="fbox">Mesh, placed at open-joint centroid</div>
-  </div>
-  <div class="grid grid2" style="margin-top:8px;">
+  <div class="grid grid2" style="margin-top:16px;">
     <div class="card">
-      <h3>Path A — ShapeRetriever</h3>
+      <h3 class="done">What this means</h3>
       <ul>
-        <li>Nearest-neighbour query over the part bank by <code>comp_type</code> (+ category), ranked by bbox-aspect-ratio fit to the target open-joint region</li>
-        <li>Zero training required — real, always-valid CAD geometry</li>
+        <li>All three phases now have a working, retrained, and cross-verified head sitting on the same current encoder</li>
+        <li>Node Ranker's Hit@1 previously sat <i>below</i> its majority-class baseline — that's now resolved</li>
+        <li>Both Phase 3 design targets (IoU ≥ 0.35, chamfer ≤ 0.08) are met, with the feature wired into the live Streamlit UI</li>
       </ul>
     </div>
     <div class="card">
-      <h3>Path B — ConditionalShapeVAE</h3>
+      <h3 class="risk">Still open</h3>
       <ul>
-        <li>3D-CNN encoder/decoder over 32³ occupancy grids, latent dim 128, ~6.46M params</li>
-        <li><code>marching_cubes</code> (skimage) converts the output occupancy grid back to a mesh</li>
-        <li>Trained leave-one-out (BCE + soft-Dice + KL loss), 90°-rotation augmentation</li>
+        <li>Node Ranker MRR (0.5723) has not yet cleared its 0.64 target</li>
+        <li>Phase 1 AUC target (0.85) remains open — a like-for-like regression vs. R30's raw numbers is expected given the harder 8-class problem, not yet threshold-tuned</li>
+        <li>39.5% of bodies flagged ambiguous by the new taxonomy's voting rules — an honest signal for further calibration</li>
       </ul>
     </div>
   </div>
-  <p class="sub" style="margin-top:10px;">Retrieval was the key de-risking move — it needed zero training and delivered the first demoable milestone ("system proposes the missing part's shape"); the VAE upgrades unmatched cases from nothing to a generated shape.</p>
 </div>
 
-<!-- Slide 14 — Phase 3 results & UI -->
-<div class="slide" id="s14">
-  <div class="kicker">8 · Phase 3 — Shape Generation</div>
-  <h2>Results — both design targets met, wired into the UI</h2>
+<!-- Slide 5 — R1-R33 metrics, current model curves, and other new metrics -->
+<div class="slide" id="s5">
+  <div class="kicker">5 · Training History &amp; Current-Model Trends</div>
+  <h2>R1 → R33 AUC/AP, the current serving model's epoch curves, and other new metrics</h2>
   <div class="grid grid2">
-    <div class="card">
-      <h3 class="done">Shape-gen VAE, retrained against R33</h3>
-      <table>
-        <tr><th>Metric</th><th>Target</th><th>Result</th></tr>
-        <tr class="metric-row"><td>Voxel IoU (test)</td><td>≥ 0.35</td><td>0.5192 <span style="color:var(--good);">✓</span></td></tr>
-        <tr class="metric-row"><td>Chamfer (voxel-centroid proxy)</td><td>≤ 0.08</td><td>0.0424 <span style="color:var(--good);">✓</span></td></tr>
-        <tr><td>Best val IoU</td><td>—</td><td>0.4930 @ epoch 31</td></tr>
-      </table>
-      <p class="sub" style="margin:10px 0 0;">Part bank rebuilt under the new taxonomy: 3,221 parts from 284 assemblies. Both metrics improved slightly over the pre-migration run (IoU 0.5002, chamfer 0.0621).</p>
+    <div class="chart-card">
+      <h3>Mean AUC &amp; AP across tracked runs (R12 → R33)</h3>
+      <div id="chartRuns"></div>
+      <div class="legend" id="legendRuns"></div>
+      <p class="chart-note">Dashed lines: Phase 1 targets (AUC 0.85, AP 0.82). R1–R9 predate this repo's versioned checkpoint history; R10–R11 were single-split runs without fold variance and are excluded for comparability; R24–R26 are gaps in the tracked lineage. R33 (rightmost) is the current serving model, evaluated under a different, non-comparable taxonomy from every run before it.</p>
     </div>
-    <div class="card">
-      <h3>Wired into the Streamlit UI</h3>
-      <ul>
-        <li>New "Suggested Missing-Part Shapes" panel section</li>
-        <li>Translucent sky-blue ghost <code>Mesh3d</code> overlay in the 3D viewer, reusing the existing open-joint overlay pattern</li>
-        <li>Each template missing-count entry is greedily matched to the best-fitting open-joint location by bbox-similarity <code>fit_score</code>, largest surface first</li>
-        <li>Skips component types with zero part-bank examples rather than guessing</li>
-      </ul>
+    <div class="chart-card">
+      <h3>R33 (serving model) — val AUC vs. epoch, all 5 CV folds</h3>
+      <div id="chartR33Folds"></div>
+      <div class="legend" id="legendR33Folds"></div>
+      <p class="chart-note">Real per-epoch training log. Each fold early-stops independently (patience-based); Fold 2 (longest, 44 epochs) produced the promoted checkpoint — best val AUC 0.6367.</p>
     </div>
-  </div>
-</div>
-
-<!-- Slide 15 — Bugs found and fixed -->
-<div class="slide" id="s15">
-  <div class="kicker">9 · Engineering Along the Way</div>
-  <h2>Bugs found and fixed this cycle</h2>
-  <div class="grid grid3">
-    <div class="card">
-      <h3 class="risk">Template category-path bug</h3>
-      <ul>
-        <li><code>_category_from_path()</code> assumed a fixed one-level nesting under <code>Source_3d_models/</code></li>
-        <li>Collapsed all 193 assemblies / 7 categories into one bogus blended template</li>
-        <li>Fixed to walk past known container directories; a real Bench Vice upload went from 10.4% → 96.2% template-match confidence</li>
-      </ul>
+    <div class="chart-card">
+      <h3>Node Ranker — Hit@1 &amp; MRR vs. epoch (30 epochs)</h3>
+      <div id="chartRanker"></div>
+      <div class="legend" id="legendRanker"></div>
+      <p class="chart-note">Dashed line: majority-class Hit@1 baseline (0.3650). Test-set result (Hit@1 0.3869) exceeds it; training-curve Hit@1 fluctuates near/at the baseline epoch-to-epoch.</p>
     </div>
-    <div class="card">
-      <h3 class="risk">Corpus filter leak</h3>
-      <ul>
-        <li><code>dataset.py</code>'s category filter matched on <i>any</i> path component</li>
-        <li>Silently pulled <code>rejected/</code> and <code>slow_or_unstable/</code> files back into training, since they mirror category names one level down</li>
-        <li>Fixed before it could quietly corrupt a training run</li>
-      </ul>
-    </div>
-    <div class="card">
-      <h3 class="risk">Multiprocessing timeout/deadlock</h3>
-      <ul>
-        <li>Unconditional <code>p.join()</code> after <code>p.kill()</code> could block minutes-to-tens-of-minutes when a child was stuck in an uninterruptible OpenCASCADE/gmsh call</li>
-        <li>Plus a separate queue-flush deadlock / false-timeout race in <code>part_bank.py</code>'s worker</li>
-        <li>Fixed with bounded, wall-clock-deadline polling loops instead</li>
-      </ul>
+    <div class="chart-card">
+      <h3>Shape-gen VAE — IoU &amp; Chamfer vs. epoch (60 epochs)</h3>
+      <div id="chartShapeGen"></div>
+      <div class="legend" id="legendShapeGen"></div>
+      <p class="chart-note">IoU (left axis, higher better) and Chamfer (right axis, lower better). Best val IoU 0.4930 at epoch 31 (checkpoint selection point); test-set IoU 0.5192 / chamfer 0.0424.</p>
     </div>
   </div>
 </div>
 
-<!-- Slide 16 — End-to-end verification & Option A/B resolved -->
-<div class="slide" id="s16">
-  <div class="kicker">10 · Verification</div>
-  <h2>End-to-end verification, and closing an open question</h2>
-  <div class="grid grid2">
-    <div class="card">
-      <h3 class="done">Verified against a real assembly</h3>
-      <ul>
-        <li>2 bolts programmatically removed from a real STEP file — system correctly detected "bolt × 2" and placed 2 correctly-shaped ghosts on the 2 largest open surfaces</li>
-        <li>Classification, template matching, and shape generation all confirmed producing new-taxonomy output end-to-end, with zero old-taxonomy categories remaining anywhere in the pipeline</li>
-      </ul>
-    </div>
-    <div class="card">
-      <h3 class="done">Resolving the guidance-call open question</h3>
-      <p class="sub" style="margin:0 0 8px;">At the 1 Aug guidance call, we asked whether to prune the corpus (drop Gate Valve/Tool Post) or scope down to fasteners-only, to work around class imbalance and M1 memory/time limits.</p>
-      <ul>
-        <li>The taxonomy redesign fixed the underlying imbalance directly — all 8 classes now get real, non-trivial usage (slide 9)</li>
-        <li>So neither pruning nor narrowing scope was needed — the full 7-category, 193-assembly corpus was kept</li>
-      </ul>
-    </div>
-  </div>
-</div>
-
-<!-- Slide 17 — Expected outcomes -->
-<div class="slide" id="s17">
-  <div class="kicker">11 · Expected Outcomes</div>
-  <h2>Deliverables status</h2>
-  <table>
-    <tr><th>Deliverable</th><th>Status / Target</th></tr>
-    <tr><td>Heterogeneous encoder (<code>RGATConv</code> + <code>TypedLinear</code>)</td><td style="color:var(--good);">R33 serving — mean AUC 0.5306 ± 0.0314, mean AP 0.7213 ± 0.0209 (new taxonomy)</td></tr>
-    <tr><td>Node Ranker — Hit@5 ≥ 0.70, MRR ≥ 0.64</td><td>Hit@5 0.8467 <span style="color:var(--good);">met</span> · MRR 0.5723 <span style="color:var(--warn);">not yet met</span> · Hit@1 now beats baseline</td></tr>
-    <tr><td>Phase 3 shape generation — IoU ≥ 0.35, chamfer ≤ 0.08</td><td style="color:var(--good);">Both met (0.5192 / 0.0424), wired end-to-end into the UI</td></tr>
-    <tr><td>Corpus quality</td><td style="color:var(--good);">193 usable assemblies, 7 categories, fully parsability-audited, manually curated</td></tr>
-    <tr><td>GNNExplainer interpretability</td><td style="color:var(--muted);">Planned, not started</td></tr>
-    <tr><td>Encoder AUC ≥ 0.85 (Phase 1 target, carried forward)</td><td style="color:var(--muted);">Open — like-for-like regression vs. R30's raw numbers, expected given the harder 8-class problem and not yet threshold-tuned</td></tr>
-  </table>
-</div>
-
-<!-- Slide 18 — Open items / what's next -->
-<div class="slide" id="s18">
-  <div class="kicker">12 · Open Items</div>
-  <h2>What's next</h2>
-  <div class="grid grid2">
-    <div class="card">
-      <h3 class="plan">Near-term</h3>
-      <ul>
-        <li>GNNExplainer integration — still pending, carried over from the last review</li>
-        <li>Threshold re-tuning for the 39.5% of bodies the new taxonomy's voting rules flag as ambiguous</li>
-        <li>Keep pushing AUC/MRR via architecture and per-category data quality — R31's lesson stands: raw data volume alone doesn't move the needle, quality and design do</li>
-      </ul>
-    </div>
-    <div class="card">
-      <h3 class="risk">Hardware constraint to plan around</h3>
-      <ul>
-        <li>No CUDA on the M1 — MPS is the only GPU backend, sharing one unified memory pool with the CPU</li>
-        <li>Running Node Ranker + Shape VAE training simultaneously pushed swap to 25.8 / 26.6 GB and stalled both jobs</li>
-        <li>Fix in place: run Phase 2 and Phase 3 training sequentially, not in parallel — needs to stay a standing constraint for future retrain cycles</li>
-      </ul>
-    </div>
-  </div>
-</div>
-
-<!-- Slide 19 — References -->
-<div class="slide" id="s19">
-  <div class="kicker">13 · References</div>
+<!-- Slide 6 — References -->
+<div class="slide" id="s6">
+  <div class="kicker">6 · References</div>
   <h2>References</h2>
   <div class="grid grid2">
     <div class="card">
@@ -607,17 +317,25 @@
         <li>Fey &amp; Lenssen, "Fast Graph Representation Learning with PyTorch Geometric," ICLR-W 2019</li>
         <li>Lorensen &amp; Cline, "Marching Cubes" — occupancy-grid → mesh, via <code>scikit-image</code></li>
         <li>Open CASCADE Technology (OCCT) — B-Rep CAD kernel used for STEP parsing</li>
-        <li>Project-internal: <code>docs/phase3_shape_generation_design.md</code>, Phase 2 First Review deck</li>
+        <li>Project-internal: <code>docs/phase3_shape_generation_design.md</code>, Phase 2 First Review deck, <code>README.md</code> Training History</li>
       </ul>
     </div>
   </div>
 </div>
 
-<!-- Slide 20 — Thank you -->
-<div class="slide" id="s20">
+<!-- Slide 7 — Demo link -->
+<div class="slide" id="s7">
   <div class="center">
-    <h1>Thank you</h1>
-    <p class="sub" style="font-size:1.05rem;">Looking forward to your guidance on GNNExplainer priority, MRR tuning, and next-corpus direction.</p>
+    <div class="kicker">7 · Live Demo</div>
+    <h1>Try it live</h1>
+    <p class="sub" style="font-size:1.05rem;max-width:640px;">
+      The full pipeline — upload, detection, ranking, and shape generation — is running locally.
+      Start it with <code>bash start_services.sh</code> from the project root if it isn't already up.
+    </p>
+    <a class="demo-link" href="http://localhost:8501" target="_blank" rel="noopener">http://localhost:8501</a>
+    <p class="sub" style="margin-top:18px;font-size:0.85rem;">
+      Backend API docs (for interactive testing): <code>http://localhost:8000/docs</code>
+    </p>
   </div>
 </div>
 
@@ -631,7 +349,7 @@
 </div>
 
 <script>
-  const SLIDE_ORDER = ['s1','s2','s3','s4','s5','s6','s7','s8','s9','s10','s11','s12','s13','s14','s15','s16','s17','s18','s19','s20'];
+  const SLIDE_ORDER = ['s0','s1','s2','s3','s4','s5','s6','s7'];
   const TOTAL = SLIDE_ORDER.length;
   let cur = 1;
 
@@ -664,6 +382,127 @@
 
   document.getElementById('slideLabel').textContent = cur + ' / ' + TOTAL;
   renderDots();
+
+  // ───────────────────────── Charts (vanilla SVG, no external libs) ─────────────────────────
+
+  function drawChart(containerId, legendId, opts) {
+    const W = opts.width || 480, H = opts.height || 175;
+    const M = { l: 30, r: opts.yRightLabel ? 30 : 8, t: 8, b: opts.xTickLabels ? 20 : 16 };
+    const plotW = W - M.l - M.r, plotH = H - M.t - M.b;
+    const xN = opts.xMax;
+    const xPix = i => M.l + (xN <= 1 ? 0 : (i / (xN - 1)) * plotW);
+    const yPixL = v => M.t + plotH - ((v - opts.yLeftMin) / (opts.yLeftMax - opts.yLeftMin)) * plotH;
+    const yPixR = v => M.t + plotH - ((v - opts.yRightMin) / (opts.yRightMax - opts.yRightMin)) * plotH;
+
+    let svg = `<svg class="chart" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+
+    for (let g = 0; g <= 4; g++) {
+      const y = M.t + (plotH * g) / 4;
+      svg += `<line class="chart-gridline" x1="${M.l}" y1="${y}" x2="${W - M.r}" y2="${y}" />`;
+      const val = opts.yLeftMax - ((opts.yLeftMax - opts.yLeftMin) * g) / 4;
+      svg += `<text class="axis-label" x="${M.l - 3}" y="${y + 2.5}" text-anchor="end">${val.toFixed(2)}</text>`;
+      if (opts.yRightLabel) {
+        const valR = opts.yRightMax - ((opts.yRightMax - opts.yRightMin) * g) / 4;
+        svg += `<text class="axis-label" x="${W - M.r + 3}" y="${y + 2.5}" text-anchor="start">${valR.toFixed(2)}</text>`;
+      }
+    }
+
+    (opts.refLines || []).forEach(rl => {
+      const yf = rl.axis === 'right' ? yPixR : yPixL;
+      const y = yf(rl.value);
+      svg += `<line class="chart-refline" x1="${M.l}" y1="${y}" x2="${W - M.r}" y2="${y}" stroke="${rl.color}" />`;
+      svg += `<text class="axis-label" x="${W - M.r - 2}" y="${y - 2.5}" text-anchor="end" fill="${rl.color}">${rl.label}</text>`;
+    });
+
+    opts.series.forEach(s => {
+      const yf = s.axis === 'right' ? yPixR : yPixL;
+      const pts = s.data.map((v, i) => `${xPix(i).toFixed(1)},${yf(v).toFixed(1)}`).join(' ');
+      svg += `<polyline class="chart-line" points="${pts}" stroke="${s.color}" />`;
+      s.data.forEach((v, i) => {
+        svg += `<circle cx="${xPix(i).toFixed(1)}" cy="${yf(v).toFixed(1)}" r="1.4" fill="${s.color}" />`;
+      });
+    });
+
+    if (opts.xTickLabels) {
+      opts.xTickLabels.forEach((lbl, i) => {
+        svg += `<text class="axis-label" x="${xPix(i).toFixed(1)}" y="${H - 4}" text-anchor="middle">${lbl}</text>`;
+      });
+    } else if (opts.xLabel) {
+      svg += `<text class="axis-label" x="${M.l + plotW / 2}" y="${H - 4}" text-anchor="middle">${opts.xLabel}</text>`;
+    }
+
+    svg += `</svg>`;
+    document.getElementById(containerId).innerHTML = svg;
+
+    if (legendId) {
+      const leg = opts.series.map(s =>
+        `<span class="legend-item"><span class="legend-swatch" style="background:${s.color}"></span>${s.name}</span>`
+      ).join('');
+      document.getElementById(legendId).innerHTML = leg;
+    }
+  }
+
+  // ── Chart 1: R12 → R33 mean AUC / mean AP ──
+  const runLabels = ['R12','R13','R14','R15','R16','R17','R18','R19','R20','R21','R22','R23','R27','R28','R29','R30','R31','R32','R33'];
+  const runAUC    = [0.697,0.574,0.624,0.726,0.659,0.625,0.483,0.504,0.503,0.428,0.588,0.460,0.531,0.5455,0.566,0.599,0.594,0.5067,0.5306];
+  const runAP     = [0.827,0.650,0.734,0.917,0.894,0.878,0.833,0.835,0.749,0.799,0.767,0.682,0.799,0.7124,0.843,0.869,0.7617,0.7054,0.7213];
+  drawChart('chartRuns', 'legendRuns', {
+    width: 480, height: 175, xMax: runLabels.length,
+    yLeftMin: 0.3, yLeftMax: 1.0, xTickLabels: runLabels,
+    series: [
+      { name: 'Mean AUC', color: '#5b9bd5', data: runAUC },
+      { name: 'Mean AP',  color: '#8b5cf6', data: runAP  },
+    ],
+    refLines: [
+      { value: 0.85, axis: 'left', color: '#ef5a5a', label: 'AUC target 0.85' },
+      { value: 0.82, axis: 'left', color: '#f0a83c', label: 'AP target 0.82' },
+    ],
+  });
+
+  // ── Chart 2: R33 5-fold AUC vs epoch (real training log) ──
+  const fold1 = [0.5481,0.5360,0.5136,0.5297,0.5470,0.5699,0.6011,0.5813,0.5987,0.5932,0.6059,0.5667,0.5477,0.5374,0.5753,0.5559,0.5359,0.5482,0.5504,0.5494,0.5357,0.5332,0.5535,0.5492,0.5593,0.5697,0.5611,0.5611,0.5552,0.5565,0.5678];
+  const fold2 = [0.4982,0.5797,0.5553,0.5590,0.5713,0.5697,0.5753,0.5776,0.6078,0.5832,0.5711,0.5785,0.5967,0.6077,0.5982,0.5884,0.6016,0.6320,0.6232,0.5980,0.5805,0.6204,0.6303,0.6367,0.6257,0.6068,0.6322,0.6152,0.6148,0.6338,0.5987,0.5851,0.5992,0.6066,0.6096,0.6154,0.6122,0.5984,0.5977,0.6094,0.6095,0.6205,0.6089,0.6085];
+  const fold3 = [0.5585,0.5721,0.5441,0.5431,0.5816,0.6211,0.6008,0.5431,0.5718,0.5448,0.5900,0.6138,0.6324,0.6348,0.6246,0.5994,0.5865,0.6155,0.6296,0.6187,0.6068,0.5847,0.5854,0.5872,0.5854,0.5928,0.5889,0.5812,0.5854,0.6012,0.6211,0.6127,0.6057,0.6012];
+  const fold4 = [0.5265,0.5540,0.6283,0.5787,0.5756,0.5318,0.5395,0.5463,0.5776,0.5801,0.5767,0.5899,0.5858,0.5803,0.5783,0.5897,0.5923,0.5614,0.5548,0.5518,0.5691,0.5673,0.5647];
+  const fold5 = [0.5058,0.5296,0.5149,0.4775,0.4918,0.5022,0.5167,0.4960,0.4733,0.5234,0.5495,0.5238,0.5082,0.5201,0.5020,0.4886,0.4766,0.4561,0.4666,0.4817,0.4590,0.4563,0.4436,0.4463,0.4643,0.4650,0.4561,0.4488,0.4574,0.4726,0.4844];
+  drawChart('chartR33Folds', 'legendR33Folds', {
+    width: 480, height: 175, xMax: 44,
+    yLeftMin: 0.40, yLeftMax: 0.70, xLabel: 'epoch',
+    series: [
+      { name: 'Fold 1', color: '#5b9bd5', data: fold1 },
+      { name: 'Fold 2 (promoted)', color: '#8b5cf6', data: fold2 },
+      { name: 'Fold 3', color: '#4caf82', data: fold3 },
+      { name: 'Fold 4', color: '#f0a83c', data: fold4 },
+      { name: 'Fold 5', color: '#ef5a5a', data: fold5 },
+    ],
+  });
+
+  // ── Chart 3: Node Ranker Hit@1 & MRR vs epoch (real training log) ──
+  const rankerHit1 = [0.3185,0.3185,0.3121,0.3057,0.3121,0.2994,0.3121,0.3057,0.3057,0.3121,0.3185,0.3185,0.3121,0.3121,0.3248,0.2994,0.3121,0.3121,0.3057,0.3312,0.3121,0.3185,0.3057,0.3121,0.3057,0.3057,0.2994,0.2930,0.3312,0.3121];
+  const rankerMRR  = [0.5071,0.5167,0.5170,0.5127,0.5116,0.5099,0.5094,0.5164,0.5149,0.5193,0.5186,0.5233,0.5100,0.5032,0.5163,0.5053,0.5102,0.5092,0.5093,0.5198,0.5132,0.5134,0.5075,0.5181,0.5030,0.4980,0.4989,0.5020,0.5137,0.5025];
+  drawChart('chartRanker', 'legendRanker', {
+    width: 480, height: 175, xMax: 30,
+    yLeftMin: 0.25, yLeftMax: 0.55, xLabel: 'epoch',
+    series: [
+      { name: 'Hit@1', color: '#5b9bd5', data: rankerHit1 },
+      { name: 'MRR', color: '#8b5cf6', data: rankerMRR },
+    ],
+    refLines: [
+      { value: 0.3650, axis: 'left', color: '#f0a83c', label: 'majority baseline 0.365' },
+    ],
+  });
+
+  // ── Chart 4: Shape-gen VAE IoU & Chamfer vs epoch (real training log) ──
+  const vaeIoU = [0.1814,0.3839,0.4264,0.4681,0.4438,0.4015,0.3742,0.4301,0.4168,0.3924,0.3754,0.4156,0.4342,0.4011,0.4034,0.4113,0.4267,0.3647,0.4162,0.4526,0.4136,0.4551,0.3582,0.4059,0.4177,0.4268,0.3709,0.4519,0.4284,0.3401,0.4930,0.4402,0.4168,0.4327,0.3883,0.4120,0.4458,0.3710,0.3914,0.3199,0.4591,0.3670,0.3912,0.4501,0.4371,0.4081,0.4015,0.4805,0.3866,0.3936,0.4165,0.3579,0.3565,0.4481,0.4494,0.4283,0.3981,0.4451,0.3682,0.4170];
+  const vaeChamfer = [0.1180,0.0543,0.0510,0.0450,0.0462,0.0640,0.0540,0.0510,0.0527,0.0604,0.0592,0.0595,0.1188,0.0604,0.0501,0.0575,0.0638,0.0628,0.0557,0.0513,0.0487,0.0437,0.0769,0.0705,0.0808,0.1291,0.0962,0.0507,0.0599,0.1006,0.0421,0.0969,0.0566,0.0806,0.1160,0.1220,0.0774,0.1311,0.1164,0.0999,0.0624,0.1039,0.0811,0.0597,0.1036,0.1028,0.1184,0.0739,0.0949,0.0780,0.0923,0.0980,0.0766,0.0659,0.0840,0.0633,0.1612,0.0514,0.0857,0.0694];
+  drawChart('chartShapeGen', 'legendShapeGen', {
+    width: 480, height: 175, xMax: 60,
+    yLeftMin: 0.10, yLeftMax: 0.55, yRightMin: 0.0, yRightMax: 0.18, yRightLabel: true, xLabel: 'epoch',
+    series: [
+      { name: 'IoU (left)', color: '#4caf82', data: vaeIoU, axis: 'left' },
+      { name: 'Chamfer (right)', color: '#ef5a5a', data: vaeChamfer, axis: 'right' },
+    ],
+  });
 </script>
 
 </body>
