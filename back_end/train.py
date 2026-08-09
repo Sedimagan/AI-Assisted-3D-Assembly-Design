@@ -277,10 +277,18 @@ def main():
             patience=tc["lr_patience"],
         )
 
-        best_auc      = 0.0
-        patience_left = tc["patience"]
-        fold_ckpt     = ckpt_dir / f"best_fold{fold}.pt"
-        log_rows      = []
+        best_auc       = 0.0
+        patience_left  = tc["patience"]
+        fold_ckpt      = ckpt_dir / f"best_fold{fold}.pt"
+        log_rows       = []
+        # Raw single-epoch val AUC on a ~33-graph val set is noisy enough
+        # that early stopping can latch onto a lucky epoch (observed: R34
+        # fold 3 hit val AUC=0.7364 mid-training, saved that checkpoint, and
+        # its test AUC came back at 0.4899 — a 0.25 gap). Comparing/saving
+        # against a trailing-window average instead damps single-epoch
+        # noise without needing a bigger val set.
+        SMOOTH_WINDOW  = 3
+        val_auc_history: list = []
 
         for epoch in range(1, tc["epochs"] + 1):
             t0          = time.time()
@@ -293,10 +301,15 @@ def main():
             if device.type == "mps":
                 gc.collect()
                 torch.mps.empty_cache()
-            sched.step(val_metrics["auc"])
+
+            val_auc_history.append(val_metrics["auc"])
+            smoothed_auc = (sum(val_auc_history[-SMOOTH_WINDOW:])
+                             / len(val_auc_history[-SMOOTH_WINDOW:]))
+            sched.step(smoothed_auc)
 
             row = {"fold": fold, "epoch": epoch,
-                   "train_loss": round(train_loss, 4), **{
+                   "train_loss": round(train_loss, 4),
+                   "smoothed_auc": round(smoothed_auc, 4), **{
                        k: round(v, 4) for k, v in val_metrics.items()
                    }}
             log_rows.append(row)
@@ -306,10 +319,11 @@ def main():
                   f"loss={train_loss:.4f}  "
                   f"AUC={val_metrics['auc']:.4f}  "
                   f"AP={val_metrics['ap']:.4f}  "
+                  f"smoothAUC={smoothed_auc:.4f}  "
                   f"({elapsed:.1f}s)")
 
-            if val_metrics["auc"] > best_auc:
-                best_auc      = val_metrics["auc"]
+            if smoothed_auc > best_auc:
+                best_auc      = smoothed_auc
                 patience_left = tc["patience"]
                 torch.save({
                     "fold":  fold,
@@ -319,7 +333,7 @@ def main():
                     "lp":    lp.state_dict(),
                     "cfg":   cfg,
                 }, fold_ckpt)
-                print(f"  ✓ Fold {fold+1} new best AUC={best_auc:.4f}  saved.")
+                print(f"  ✓ Fold {fold+1} new best smoothed AUC={best_auc:.4f}  saved.")
             else:
                 patience_left -= 1
                 if patience_left == 0:

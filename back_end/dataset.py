@@ -49,7 +49,7 @@ from typing import List, Optional, Tuple
 
 import numpy as np
 import torch
-from sklearn.model_selection import KFold
+from sklearn.model_selection import KFold, StratifiedKFold
 from torch_geometric.data import Data, InMemoryDataset
 from torch_geometric.transforms import RandomLinkSplit
 
@@ -333,6 +333,128 @@ def _safe_log(x):
     return math.log1p(max(0.0, x))
 
 
+# ── Geometry-derived joint/mate/hole signals ──────────────────────────────────
+#
+# These replace an assembly.json sidecar lookup (body_hole_counts, pair_joint
+# below) that was the only source for edge dims [0:6] and node dim [21] — but
+# no assembly.json has ever existed anywhere in the real training corpus (it
+# was written for a Fusion360-exported metadata format that these STEP-only
+# folders don't have), so every edge's joint-type one-hot was silently always
+# [0,0,0,0] and mate-type always 0.0, and every node's hole-count was always
+# 0.0. That meant RGATConv's per-relation weight matrices for 3 of its 4
+# relations never received a training signal at all (edge_type always
+# resolves to index 0 — see AssemblyGNN._edge_type in model.py), making the
+# "heterogeneous" encoder functionally a plain GAT. The functions below
+# derive real, always-available values straight from contact-surface geometry
+# instead. assembly.json is still consulted first if present (e.g. a future
+# Fusion360-derived corpus), so this is additive, not a removal.
+
+JOINT_TYPE_MAP = {
+    "RigidJointType":       [1, 0, 0, 0],
+    "RevoluteJointType":    [0, 1, 0, 0],
+    "SliderJointType":      [0, 0, 1, 0],
+    "CylindricalJointType": [0, 0, 0, 1],
+}
+DEFAULT_JOINT = [0, 0, 0, 0]
+
+_GEOM_JOINT_MAP = {
+    "cylindrical": JOINT_TYPE_MAP["CylindricalJointType"],
+    "revolute":    JOINT_TYPE_MAP["RevoluteJointType"],
+    "rigid":       JOINT_TYPE_MAP["RigidJointType"],
+    "slider":      JOINT_TYPE_MAP["SliderJointType"],
+}
+# MATE_TYPES = ["coincident", "concentric", "parallel", "tangent", "fixed", "other"]
+_GEOM_MATE_IDX = {"concentric": 1, "coincident": 0, "other": 5}
+
+
+def _classify_joint_from_geometry(shared_tags) -> Tuple[list, float]:
+    """
+    Classify a mate joint's type from the geometric type(s) of its shared
+    contact surface(s) (gmsh.model.getType on each shared face tag) —
+    real, always-available substitute for the never-present assembly.json
+    joint-type lookup:
+      - shared faces are cylinder(s) only, no planar face  -> revolute
+        (pure shaft-in-bore fit — free rotation, e.g. a shaft in a bearing bore)
+      - shared faces include both a cylinder and a plane    -> cylindrical
+        (bore + shoulder — e.g. a bolt shank seated against a counterbore face)
+      - shared faces are planar only                        -> rigid
+        (flat mating face — most bolted/welded/stacked-plate contacts)
+      - anything else (cone/sphere/torus/spline, or no
+        resolvable face types)                               -> slider
+        (catch-all — no strong rigid/rotational evidence either way)
+    Returns (joint_one_hot, mate_type_normalised).
+    """
+    import gmsh
+    types = []
+    for tag in shared_tags:
+        try:
+            types.append(gmsh.model.getType(2, tag))
+        except Exception:
+            pass
+    if not types:
+        return DEFAULT_JOINT, _GEOM_MATE_IDX["other"] / (len(MATE_TYPES) - 1)
+
+    has_plane = any(t == "Plane" for t in types)
+    has_cyl   = any(t == "Cylinder" for t in types)
+
+    if has_cyl and has_plane:
+        joint_key, mate_key = "cylindrical", "concentric"
+    elif has_cyl:
+        joint_key, mate_key = "revolute", "concentric"
+    elif has_plane:
+        joint_key, mate_key = "rigid", "coincident"
+    else:
+        joint_key, mate_key = "slider", "other"
+
+    mate_norm = _GEOM_MATE_IDX[mate_key] / (len(MATE_TYPES) - 1)
+    return _GEOM_JOINT_MAP[joint_key], mate_norm
+
+
+# Plausible bolt/screw hole diameter floor (mm) and minimum face depth (mm) —
+# same calibration rationale as surface_analyzer.py's HOLE_DIAM_MIN/
+# HOLE_MIN_DEPTH: without an absolute floor, tiny cylindrical B-Rep faces
+# from thread-relief grooves, fillets, or chamfer facets get counted as
+# "holes" purely because they're small relative to the body (observed:
+# uncapped, a single nut's thread relief inflated its count to 30+).
+_HOLE_DIAM_FLOOR = 1.0
+_HOLE_MIN_DEPTH  = 0.5
+
+
+def _count_body_holes_from_geometry(body_surf_tags, ext: list) -> int:
+    """
+    Count boundary faces on this body that look like through-holes: cylindrical
+    faces whose diameter is small relative to the body's own mid bounding-box
+    extent (distinguishes a bore/hole from the body's own round exterior —
+    e.g. a shaft's outer surface, whose "diameter" is comparable to the
+    body's own mid extent, not much smaller than it), while excluding
+    sub-millimetre slivers (thread-relief grooves, fillet/chamfer facets)
+    via an absolute diameter/depth floor. Real, always-available substitute
+    for the never-present assembly.json hole list — mirrors the diameter/
+    depth split used by surface_analyzer.py's per-hole detector for
+    consistency, but duplicated locally rather than cross-imported (dataset.py
+    is meant to stay import-independent of the inference-side modules that
+    already import classifier logic *from* it).
+    """
+    import gmsh
+    _, m, _ = ext  # sorted [small, mid, long] body extents
+    if m <= 0:
+        return 0
+    count = 0
+    for tag in body_surf_tags:
+        try:
+            if gmsh.model.getType(2, tag) != "Cylinder":
+                continue
+            bb = gmsh.model.occ.getBoundingBox(2, tag)
+        except Exception:
+            continue
+        dims = sorted([bb[3] - bb[0], bb[4] - bb[1], bb[5] - bb[2]])
+        diameter = dims[1]   # 2 of 3 face-bbox extents bound a cylinder's diameter
+        depth = dims[0] if (dims[1] - dims[0]) > (dims[2] - dims[1]) else dims[2]
+        if _HOLE_DIAM_FLOOR <= diameter < 0.6 * m and depth >= _HOLE_MIN_DEPTH:
+            count += 1
+    return count
+
+
 # ── STEP file parser ──────────────────────────────────────────────────────────
 
 def _parse_step(step_path: str) -> Optional[Data]:
@@ -368,29 +490,26 @@ def _parse_step(step_path: str) -> Optional[Data]:
         with open(json_path) as f:
             meta = json.load(f)
 
-    # ── P4: Extract per-body hole counts from assembly.json ──────────────────
+    # ── P4: Extract per-body hole counts from assembly.json, if present ──────
+    # (never present in the real corpus — see the geometry-derived fallback
+    # used below, _count_body_holes_from_geometry)
     holes = meta.get("holes", {}) or {}
     if not isinstance(holes, dict):
         holes = {}
-    body_hole_counts = {}
+    json_body_hole_counts = {}
     for hole_id, hole_data in holes.items():
         if isinstance(hole_data, dict):
             bid = hole_data.get("body") or hole_data.get("body_id", "")
             if bid:
-                body_hole_counts[bid] = body_hole_counts.get(bid, 0) + 1
+                json_body_hole_counts[bid] = json_body_hole_counts.get(bid, 0) + 1
 
-    # ── P6: Extract joint type per body-pair from assembly.json ──────────────
+    # ── P6: Extract joint type per body-pair from assembly.json, if present ──
+    # (never present in the real corpus — see the geometry-derived fallback
+    # used below, _classify_joint_from_geometry)
     joints_raw = meta.get("joints", {}) or {}
     if not isinstance(joints_raw, dict):
         joints_raw = {}
-    JOINT_TYPE_MAP = {
-        "RigidJointType":       [1, 0, 0, 0],
-        "RevoluteJointType":    [0, 1, 0, 0],
-        "SliderJointType":      [0, 0, 1, 0],
-        "CylindricalJointType": [0, 0, 0, 1],
-    }
-    DEFAULT_JOINT = [0, 0, 0, 0]
-    pair_joint = {}
+    json_pair_joint = {}
     for jid, jdata in joints_raw.items():
         if isinstance(jdata, dict):
             jtype = jdata.get("jointType", jdata.get("type", ""))
@@ -398,7 +517,7 @@ def _parse_step(step_path: str) -> Optional[Data]:
             b2 = jdata.get("body2", jdata.get("occurrenceTwo", ""))
             if b1 and b2:
                 pkey = tuple(sorted([str(b1), str(b2)]))
-                pair_joint[pkey] = JOINT_TYPE_MAP.get(jtype, DEFAULT_JOINT)
+                json_pair_joint[pkey] = JOINT_TYPE_MAP.get(jtype, DEFAULT_JOINT)
 
     import gmsh
 
@@ -458,6 +577,7 @@ def _parse_step(step_path: str) -> Optional[Data]:
         sdf_means: list = []
         sdf_vars:  list = []
         type_idxs: list = []
+        ext_list:  list = []   # per-body sorted [small, mid, long] extents, reused for hole counting
 
         for i, (dim, tag) in enumerate(volumes):
             dx, dy, dz = bboxes[i]
@@ -480,6 +600,7 @@ def _parse_step(step_path: str) -> Optional[Data]:
             )
             type_idx, _hv, _headv, _notes = _classify_component_type(signals)
             type_idxs.append(type_idx)
+            ext_list.append(signals["ext"])
 
         # ── Normalisation constants ────────────────────────────────────────
         n         = len(volumes)
@@ -517,9 +638,14 @@ def _parse_step(step_path: str) -> Optional[Data]:
                             * ((6 * raw_vols[i]) ** (2 / 3))
                             / (exact_sas[i] + 1e-9))
 
-            # P4: hole count for this body
+            # P4: hole count for this body — assembly.json if present (never
+            # is, in practice), else geometry-derived (see module docstring
+            # above _classify_joint_from_geometry for why this exists)
             vtag_str = str(volumes[i][1])
-            n_holes = body_hole_counts.get(vtag_str, 0)
+            if vtag_str in json_body_hole_counts:
+                n_holes = json_body_hole_counts[vtag_str]
+            else:
+                n_holes = _count_body_holes_from_geometry(body_surfs[i], ext_list[i])
 
             feat = (
                 type_oh                                                     # [0:8]
@@ -558,14 +684,19 @@ def _parse_step(step_path: str) -> Optional[Data]:
         if len(deduped_edges) < len(raw_edges):
             print(f"    [dedup] {Path(step_path).name}: {len(raw_edges)} contacts → {len(deduped_edges)} part-pairs")
 
-        # P6: Build bidirectional edges with joint type features
+        # P6: Build bidirectional edges with joint type features — assembly.json
+        # pair lookup if present (never is, in practice), else geometry-derived
+        # from the actual shared contact surface(s) between u and v.
         src, dst, eattr = [], [], []
         for u, v in deduped_edges:
             vtag_u = str(volumes[u][1])
             vtag_v = str(volumes[v][1])
             pkey = tuple(sorted([vtag_u, vtag_v]))
-            joint_oh = pair_joint.get(pkey, DEFAULT_JOINT)
-            ea = [0.0, 1.0] + joint_oh   # 6-dim: mate + weight + joint type
+            if pkey in json_pair_joint:
+                joint_oh, mate_norm = json_pair_joint[pkey], 0.0
+            else:
+                joint_oh, mate_norm = _classify_joint_from_geometry(body_surfs[u] & body_surfs[v])
+            ea = [mate_norm, 1.0] + joint_oh   # 6-dim: mate + weight + joint type
             src += [u, v]; dst += [v, u]
             eattr += [ea, ea]
 
@@ -576,7 +707,7 @@ def _parse_step(step_path: str) -> Optional[Data]:
                         vtag_i = str(volumes[i][1])
                         vtag_j = str(volumes[j][1])
                         pkey = tuple(sorted([vtag_i, vtag_j]))
-                        joint_oh = pair_joint.get(pkey, DEFAULT_JOINT)
+                        joint_oh = json_pair_joint.get(pkey, DEFAULT_JOINT)
                         src.append(i); dst.append(j)
                         eattr.append([1.0, 1.0] + joint_oh)
 
@@ -970,21 +1101,54 @@ class AssemblyDataset(InMemoryDataset):
 def graph_level_indices(dataset: AssemblyDataset, cfg: dict, fold_idx: int = 0, n_folds: int = 5):
     """
     Seeded train/val/test graph-index partition — fixed 15% test set, then
-    KFold cross-validation on the remaining 85%. Exposed standalone (not just
-    via get_splits) so callers that need the raw, un-edge-masked graphs
-    (e.g. NodeRanker training) can index the dataset directly without going
-    through RandomLinkSplit.
+    KFold cross-validation on the remaining 85%. Both the test carve-out and
+    the CV folds are stratified by category (dataset.graph_categories):
+    corpus categories range from Bench_vice (54 graphs) down to Tool_Post
+    (8 graphs), and a plain unstratified randperm/KFold can leave a fold
+    with zero examples of a small category — a real, confirmed contributor
+    to the large per-fold AUC variance seen across R28-R34 training runs.
+    Exposed standalone (not just via get_splits) so callers that need the
+    raw, un-edge-masked graphs (e.g. NodeRanker training) can index the
+    dataset directly without going through RandomLinkSplit.
     """
     n      = len(dataset)
-    n_test = max(1, int(n * cfg["data"]["test_ratio"]))
+    n_test_target = max(1, int(n * cfg["data"]["test_ratio"]))
+    cats = (dataset.graph_categories if len(dataset.graph_categories) == n
+            else [''] * n)
 
-    torch.manual_seed(42)
-    perm     = torch.randperm(n).tolist()
-    test_idx = perm[:n_test]
-    train_val = perm[n_test:]
+    by_cat: dict = {}
+    for i, c in enumerate(cats):
+        by_cat.setdefault(c, []).append(i)
 
-    kf    = KFold(n_splits=n_folds, shuffle=True, random_state=42)
-    folds = list(kf.split(train_val))
+    rng = random.Random(42)
+    test_idx:  List[int] = []
+    train_val: List[int] = []
+    for c in sorted(by_cat):
+        idxs = by_cat[c][:]
+        rng.shuffle(idxs)
+        n_c_test = round(len(idxs) * cfg["data"]["test_ratio"])
+        if len(idxs) > 1:
+            n_c_test = min(len(idxs) - 1, n_c_test)   # keep >=1 graph in train_val
+        else:
+            n_c_test = 0                              # a singleton category can't spare a test example
+        test_idx.extend(idxs[:n_c_test])
+        train_val.extend(idxs[n_c_test:])
+    test_idx  = sorted(test_idx)
+    train_val = sorted(train_val)
+    if abs(len(test_idx) - n_test_target) > max(2, n_test_target // 4):
+        print(f"  [split] stratified test carve-out is {len(test_idx)} graphs "
+              f"(target ~{n_test_target}) — category balance was prioritised "
+              f"over hitting the exact ratio")
+
+    tv_cats = [cats[i] for i in train_val]
+    try:
+        skf   = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=42)
+        folds = list(skf.split(train_val, tv_cats))
+    except ValueError as e:
+        print(f"  [split] StratifiedKFold failed ({e}) — falling back to plain KFold")
+        kf    = KFold(n_splits=n_folds, shuffle=True, random_state=42)
+        folds = list(kf.split(train_val))
+
     train_rel_idx, val_rel_idx = folds[fold_idx]
     train_idx = [train_val[i] for i in train_rel_idx]
     val_idx   = [train_val[i] for i in val_rel_idx]
@@ -1007,6 +1171,15 @@ def get_splits(dataset: AssemblyDataset, cfg: dict, fold_idx: int = 0, n_folds: 
         is_undirected              = True,
         add_negative_train_samples = True,
         neg_sampling_ratio         = cfg["training"]["neg_ratio"],
+        # Without this, PyG defaults to 0.0 — meaning train supervision
+        # edges are identical to train message-passing edges, so during
+        # training the model scores edges it can already see in its own
+        # attention/aggregation. At val/test time scored edges are held out
+        # of message passing entirely (a genuinely inductive task), so the
+        # default silently trains on an easier task than it's evaluated on.
+        # 0.25 carves out a quarter of each graph's training edges to be
+        # supervision-only, closing most of that train/eval task mismatch.
+        disjoint_train_ratio       = 0.25,
     )
 
     def _transform(indices: list, split_idx: int) -> List[Data]:
