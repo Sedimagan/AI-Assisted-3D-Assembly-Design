@@ -1,0 +1,339 @@
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+
+[1/4] Loading dataset …
+      192 graphs loaded.
+      Dataset: 192 graphs | mean nodes=26.9 | mean edges=81.1 | categories: Bench_vice=54 C_Clamps=31 Crane_hook=16 Gate_Valve=20 Pipe_vice=42 Press_Tool=21 Tool_Post=8
+
+[2/4] Building model …  (5-fold CV)
+
+[3/4] Training (5 folds) …
+
+=======================================================
+  FOLD 1 / 5
+=======================================================
+  Fold 1/5 — train: 131  val: 33  test: 28
+Model built on mps  |  total params: 2,441,745
+    batch 1/9
+    batch 6/9
+  Ep   1/200  loss=1.5968  AUC=0.4923  AP=0.6902  (68.5s)
+  ✓ Fold 1 new best AUC=0.4923  saved.
+    batch 1/9
+    batch 6/9
+  Ep   2/200  loss=1.5304  AUC=0.5312  AP=0.7144  (68.7s)
+  ✓ Fold 1 new best AUC=0.5312  saved.
+    batch 1/9
+    batch 6/9
+  Ep   3/200  loss=1.4651  AUC=0.4730  AP=0.6691  (106.4s)
+    batch 1/9
+    batch 6/9
+  Ep   4/200  loss=1.4508  AUC=0.5161  AP=0.7092  (74.0s)
+    batch 1/9
+    batch 6/9
+  Ep   5/200  loss=1.3698  AUC=0.5773  AP=0.7367  (84.4s)
+  ✓ Fold 1 new best AUC=0.5773  saved.
+    batch 1/9
+    batch 6/9
+  Ep   6/200  loss=1.3338  AUC=0.5870  AP=0.7686  (105.6s)
+  ✓ Fold 1 new best AUC=0.5870  saved.
+    batch 1/9
+    batch 6/9
+  Ep   7/200  loss=1.2975  AUC=0.5793  AP=0.7361  (93.2s)
+    batch 1/9
+    batch 6/9
+  Ep   8/200  loss=1.3254  AUC=0.5935  AP=0.7637  (65.3s)
+  ✓ Fold 1 new best AUC=0.5935  saved.
+    batch 1/9
+    batch 6/9
+  Ep   9/200  loss=1.2024  AUC=0.5629  AP=0.7368  (81.7s)
+    batch 1/9
+    batch 6/9
+  Ep  10/200  loss=1.1915  AUC=0.5602  AP=0.7268  (124.3s)
+    batch 1/9
+    batch 6/9
+  Ep  11/200  loss=1.2401  AUC=0.5334  AP=0.6925  (75.0s)
+    batch 1/9
+    batch 6/9
+  Ep  12/200  loss=1.2133  AUC=0.5158  AP=0.6820  (84.4s)
+    batch 1/9
+    batch 6/9
+  Ep  13/200  loss=1.2766  AUC=0.5384  AP=0.7123  (89.9s)
+    batch 1/9
+    batch 6/9
+  Ep  14/200  loss=1.2655  AUC=0.5144  AP=0.7071  (98.5s)
+    batch 1/9
+    batch 6/9
+  Ep  15/200  loss=1.2976  AUC=0.5342  AP=0.7268  (115.0s)
+    batch 1/9
+    batch 6/9
+  Ep  16/200  loss=1.1913  AUC=0.5425  AP=0.7286  (81.8s)
+    batch 1/9
+    batch 6/9
+  Ep  17/200  loss=1.1731  AUC=0.5316  AP=0.7076  (72.9s)
+    batch 1/9
+    batch 6/9
+  Ep  18/200  loss=1.0797  AUC=0.5296  AP=0.7057  (94.6s)
+    batch 1/9
+    batch 6/9
+  Ep  19/200  loss=1.0940  AUC=0.5366  AP=0.7186  (105.0s)
+    batch 1/9
+    batch 6/9
+  Ep  20/200  loss=1.0312  AUC=0.5291  AP=0.7167  (87.5s)
+    batch 1/9
+    batch 6/9
+  Ep  21/200  loss=1.0081  AUC=0.5217  AP=0.7098  (78.1s)
+    batch 1/9
+    batch 6/9
+  Ep  22/200  loss=1.0240  AUC=0.5227  AP=0.7112  (82.8s)
+    batch 1/9
+    batch 6/9
+  Ep  23/200  loss=1.0389  AUC=0.5369  AP=0.7183  (76.6s)
+    batch 1/9
+    batch 6/9
+  Ep  24/200  loss=1.0089  AUC=0.5470  AP=0.7225  (83.5s)
+    batch 1/9
+    batch 6/9
+  Ep  25/200  loss=0.9866  AUC=0.5472  AP=0.7225  (101.5s)
+    batch 1/9
+    batch 6/9
+  Ep  26/200  loss=0.9674  AUC=0.5571  AP=0.7332  (95.2s)
+    batch 1/9
+    batch 6/9
+  Ep  27/200  loss=1.0168  AUC=0.5589  AP=0.7317  (113.3s)
+    batch 1/9
+    batch 6/9
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+  Ep  28/200  loss=1.0400  AUC=0.5662  AP=0.7341  (98.3s)
+
+  Early stopping at epoch 28.
+
+  Fold 1 test — AUC=0.6323  AP=0.7975
+
+=======================================================
+  FOLD 2 / 5
+=======================================================
+  Fold 2/5 — train: 131  val: 33  test: 28
+Model built on mps  |  total params: 2,441,745
+    batch 1/9
+    batch 6/9
+  Ep   1/200  loss=1.5098  AUC=0.5678  AP=0.7287  (97.8s)
+  ✓ Fold 2 new best AUC=0.5678  saved.
+    batch 1/9
+    batch 6/9
+  Ep   2/200  loss=1.4557  AUC=0.5700  AP=0.7586  (111.5s)
+  ✓ Fold 2 new best AUC=0.5700  saved.
+    batch 1/9
+    batch 6/9
+  Ep   3/200  loss=1.4276  AUC=0.5151  AP=0.7313  (111.4s)
+    batch 1/9
+    batch 6/9
+  Ep   4/200  loss=1.3593  AUC=0.4720  AP=0.7056  (98.5s)
+    batch 1/9
+    batch 6/9
+  Ep   5/200  loss=1.4110  AUC=0.4699  AP=0.6867  (86.9s)
+    batch 1/9
+    batch 6/9
+  Ep   6/200  loss=1.4266  AUC=0.4585  AP=0.6719  (104.5s)
+    batch 1/9
+    batch 6/9
+  Ep   7/200  loss=1.2969  AUC=0.4588  AP=0.6849  (80.8s)
+    batch 1/9
+    batch 6/9
+  Ep   8/200  loss=1.3169  AUC=0.4676  AP=0.7019  (100.4s)
+    batch 1/9
+    batch 6/9
+  Ep   9/200  loss=1.3064  AUC=0.4874  AP=0.7031  (96.4s)
+    batch 1/9
+    batch 6/9
+  Ep  10/200  loss=1.2256  AUC=0.4784  AP=0.7040  (86.9s)
+    batch 1/9
+    batch 6/9
+  Ep  11/200  loss=1.3342  AUC=0.4963  AP=0.7028  (101.2s)
+    batch 1/9
+    batch 6/9
+  Ep  12/200  loss=1.1844  AUC=0.5220  AP=0.7107  (98.9s)
+    batch 1/9
+    batch 6/9
+  Ep  13/200  loss=1.1792  AUC=0.5369  AP=0.7066  (179.8s)
+    batch 1/9
+    batch 6/9
+  Ep  14/200  loss=1.1855  AUC=0.5380  AP=0.7011  (119.6s)
+    batch 1/9
+    batch 6/9
+  Ep  15/200  loss=1.1544  AUC=0.5047  AP=0.6817  (99.3s)
+    batch 1/9
+    batch 6/9
+  Ep  16/200  loss=1.1204  AUC=0.4946  AP=0.6865  (124.3s)
+    batch 1/9
+    batch 6/9
+  Ep  17/200  loss=1.1936  AUC=0.4917  AP=0.6802  (262.0s)
+    batch 1/9
+    batch 6/9
+  Ep  18/200  loss=1.1449  AUC=0.4967  AP=0.6800  (95.4s)
+    batch 1/9
+    batch 6/9
+  Ep  19/200  loss=1.1732  AUC=0.5190  AP=0.6960  (104.5s)
+    batch 1/9
+    batch 6/9
+  Ep  20/200  loss=1.1010  AUC=0.5184  AP=0.7147  (225.1s)
+    batch 1/9
+    batch 6/9
+  Ep  21/200  loss=1.0937  AUC=0.5136  AP=0.7136  (306.9s)
+    batch 1/9
+    batch 6/9
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+  Ep  22/200  loss=1.1383  AUC=0.5042  AP=0.6945  (405.4s)
+
+  Early stopping at epoch 22.
+
+  Fold 2 test — AUC=0.5280  AP=0.6996
+
+=======================================================
+  FOLD 3 / 5
+=======================================================
+  Fold 3/5 — train: 131  val: 33  test: 28
+Model built on mps  |  total params: 2,441,745
+    batch 1/9
+    batch 6/9
+  Ep   1/200  loss=1.5575  AUC=0.6104  AP=0.7935  (131.4s)
+  ✓ Fold 3 new best AUC=0.6104  saved.
+    batch 1/9
+    batch 6/9
+  Ep   2/200  loss=1.5696  AUC=0.5622  AP=0.7618  (128.1s)
+    batch 1/9
+    batch 6/9
+  Ep   3/200  loss=1.5494  AUC=0.5718  AP=0.7478  (147.3s)
+    batch 1/9
+    batch 6/9
+  Ep   4/200  loss=1.4293  AUC=0.5283  AP=0.7176  (138.2s)
+    batch 1/9
+    batch 6/9
+  Ep   5/200  loss=1.3920  AUC=0.5502  AP=0.7325  (124.3s)
+    batch 1/9
+    batch 6/9
+  Ep   6/200  loss=1.4473  AUC=0.5857  AP=0.7488  (123.0s)
+    batch 1/9
+    batch 6/9
+  Ep   7/200  loss=1.3762  AUC=0.6280  AP=0.7985  (155.8s)
+  ✓ Fold 3 new best AUC=0.6280  saved.
+    batch 1/9
+    batch 6/9
+  Ep   8/200  loss=1.3626  AUC=0.6499  AP=0.8047  (172.3s)
+  ✓ Fold 3 new best AUC=0.6499  saved.
+    batch 1/9
+    batch 6/9
+  Ep   9/200  loss=1.3033  AUC=0.6455  AP=0.7982  (188.9s)
+    batch 1/9
+    batch 6/9
+  Ep  10/200  loss=1.2496  AUC=0.6435  AP=0.7911  (152.6s)
+    batch 1/9
+    batch 6/9
+  Ep  11/200  loss=1.3631  AUC=0.6348  AP=0.8009  (151.8s)
+    batch 1/9
+    batch 6/9
+  Ep  12/200  loss=1.2292  AUC=0.6423  AP=0.8051  (136.2s)
+    batch 1/9
+    batch 6/9
+  Ep  13/200  loss=1.2383  AUC=0.6527  AP=0.8112  (141.6s)
+  ✓ Fold 3 new best AUC=0.6527  saved.
+    batch 1/9
+    batch 6/9
+  Ep  14/200  loss=1.2535  AUC=0.6567  AP=0.8162  (177.5s)
+  ✓ Fold 3 new best AUC=0.6567  saved.
+    batch 1/9
+    batch 6/9
+  Ep  15/200  loss=1.1985  AUC=0.6240  AP=0.7966  (170.6s)
+    batch 1/9
+    batch 6/9
+  Ep  16/200  loss=1.2088  AUC=0.6531  AP=0.8121  (131.8s)
+    batch 1/9
+    batch 6/9
+  Ep  17/200  loss=1.1268  AUC=0.6659  AP=0.8148  (157.2s)
+  ✓ Fold 3 new best AUC=0.6659  saved.
+    batch 1/9
+    batch 6/9
+  Ep  18/200  loss=1.2204  AUC=0.6627  AP=0.8214  (206.5s)
+    batch 1/9
+    batch 6/9
+  Ep  19/200  loss=1.1760  AUC=0.6703  AP=0.8465  (136.5s)
+  ✓ Fold 3 new best AUC=0.6703  saved.
+    batch 1/9
+    batch 6/9
+  Ep  20/200  loss=1.1204  AUC=0.7364  AP=0.8732  (147.6s)
+  ✓ Fold 3 new best AUC=0.7364  saved.
+    batch 1/9
+    batch 6/9
+  Ep  21/200  loss=1.0913  AUC=0.7089  AP=0.8487  (168.0s)
+    batch 1/9
+    batch 6/9
+  Ep  22/200  loss=1.1733  AUC=0.6575  AP=0.8299  (174.4s)
+    batch 1/9
+    batch 6/9
+  Ep  23/200  loss=1.1224  AUC=0.6651  AP=0.8386  (157.3s)
+    batch 1/9
+    batch 6/9
+  Ep  24/200  loss=1.0607  AUC=0.6758  AP=0.8511  (179.9s)
+    batch 1/9
+    batch 6/9
+  Ep  25/200  loss=1.0312  AUC=0.6882  AP=0.8272  (180.2s)
+    batch 1/9
+    batch 6/9
+  Ep  26/200  loss=1.0459  AUC=0.6738  AP=0.8397  (140.8s)
+    batch 1/9
+    batch 6/9
+  Ep  27/200  loss=1.0812  AUC=0.6762  AP=0.8436  (168.4s)
+    batch 1/9
+    batch 6/9
+  Ep  28/200  loss=1.1121  AUC=0.6587  AP=0.8327  (146.2s)
+    batch 1/9
+    batch 6/9
+  Ep  29/200  loss=1.0110  AUC=0.6607  AP=0.8416  (153.2s)
+    batch 1/9
+    batch 6/9
+  Ep  30/200  loss=1.0509  AUC=0.6822  AP=0.8547  (140.8s)
+    batch 1/9
+    batch 6/9
+  Ep  31/200  loss=1.0511  AUC=0.6858  AP=0.8588  (146.4s)
+    batch 1/9
+    batch 6/9
+  Ep  32/200  loss=1.0161  AUC=0.6978  AP=0.8613  (170.3s)
+    batch 1/9
+    batch 6/9
+  Ep  33/200  loss=0.9650  AUC=0.6954  AP=0.8548  (150.6s)
+    batch 1/9
+    batch 6/9
+  Ep  34/200  loss=1.0215  AUC=0.6974  AP=0.8501  (168.0s)
+    batch 1/9
+    batch 6/9
+  Ep  35/200  loss=1.0492  AUC=0.6922  AP=0.8459  (194.6s)
+    batch 1/9
+    batch 6/9
+  Ep  36/200  loss=0.9462  AUC=0.6746  AP=0.8393  (516.0s)
+    batch 1/9
+    batch 6/9
+  Ep  37/200  loss=0.9201  AUC=0.6579  AP=0.8297  (173.8s)
+    batch 1/9
+    batch 6/9
+  Ep  38/200  loss=0.9594  AUC=0.6683  AP=0.8295  (669.7s)
+    batch 1/9
+    batch 6/9
+  Ep  39/200  loss=0.9479  AUC=0.6643  AP=0.8294  (729.5s)
+    batch 1/9
+    batch 6/9
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+  Ep  40/200  loss=0.9711  AUC=0.6683  AP=0.8320  (1093.0s)
+
+  Early stopping at epoch 40.
+
+  Fold 3 test — AUC=0.4899  AP=0.6773
+
+=======================================================
+  FOLD 4 / 5
+=======================================================
+  Fold 4/5 — train: 131  val: 33  test: 28
+Model built on mps  |  total params: 2,441,745
+    batch 1/9
+    batch 6/9

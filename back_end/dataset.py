@@ -181,6 +181,17 @@ _TYPE_THRESHOLDS = {
     "thin_flat":        0.08,   # s/l — Thin vs Thick Plate split
     "plate_flat":       0.30,   # s/l — Thick Plate upper bound
     "plate_plan":       0.30,   # m/l — plates must not be strongly elongated in plan
+    "max_fastener_extent": 100.0,  # mm — longest extent (l) cap for washer/nut
+                                    # branches. Relative shape ratios alone can't
+                                    # tell a small hex nut from a large multi-hole
+                                    # plate (both can be "not elongated, flat,
+                                    # has holes") — this absolute-size gate stops
+                                    # a 150mm plate from landing on "nut". Set
+                                    # generously above the largest real fastener
+                                    # observed in this corpus (a 62mm clamping
+                                    # nut) — revisit via audit_component_types.py
+                                    # if a legitimately larger nut/washer starts
+                                    # getting excluded.
 }
 
 
@@ -279,9 +290,16 @@ def _classify_component_type(signals: dict) -> Tuple[int, int, int, list]:
     if hv == 1:
         notes.append("hole-votes-split")
 
-    if has_hole and flat < T["washer_flat"] and plan > T["washer_plan"]:
+    is_fastener_scale = l < T["max_fastener_extent"]
+    if not is_fastener_scale and (
+        (flat < T["washer_flat"] and plan > T["washer_plan"])
+        or (elong < T["nut_elong"] and flat >= T["nut_flat_min"])
+    ):
+        notes.append("oversized-for-washer-or-nut")
+
+    if has_hole and is_fastener_scale and flat < T["washer_flat"] and plan > T["washer_plan"]:
         return COMP_TYPES.index("washer"), hv, 0, notes
-    if has_hole and elong < T["nut_elong"] and flat >= T["nut_flat_min"]:
+    if has_hole and is_fastener_scale and elong < T["nut_elong"] and flat >= T["nut_flat_min"]:
         return COMP_TYPES.index("nut"), hv, 0, notes
 
     headv = 0

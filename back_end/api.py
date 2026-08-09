@@ -277,6 +277,8 @@ async def api_analyze_step(file: UploadFile = File(...)):
                     "vertices":    s.get("vertices", []),
                     "triangles":   s.get("triangles", []),
                     "normal_hint": s.get("normal_hint", [0, 0, 1]),
+                    "bbox":        s.get("bbox"),
+                    "is_hole":     s.get("is_hole", False),
                 })
         except Exception as e:
             open_surfaces = []

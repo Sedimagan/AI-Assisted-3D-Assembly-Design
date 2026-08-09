@@ -237,38 +237,110 @@ def _synthetic_surface_mesh(
 
 # ── Main analysis function ────────────────────────────────────────────────────
 
+# ── Fastener-hole detection tuning ───────────────────────────────────────────
+# Plausible bolt/screw hole diameter range (mm) — generous: covers small screws
+# up to a large clamping-nut-scale bore, calibrated against real corpus parts
+# (a 62mm hex clamping nut, ~6-30mm bolt-hole diameters observed in practice).
+HOLE_DIAM_MIN = 2.0
+HOLE_DIAM_MAX = 50.0
+# Faces thinner than this (mm) along the bore axis are witness-mark / fragment
+# slivers, not real functional holes (observed: 0.1mm-deep artifact faces with
+# a "plausible" diameter that would otherwise false-positive).
+HOLE_MIN_DEPTH = 1.0
+# A real fastener-hole pattern repeats (a bolt circle, a 4-corner pattern, …).
+# A one-off cylindrical bore of a "plausible" diameter (e.g. a central tool
+# bore or shaft bore) is a single unmatched instance — excluded by requiring
+# at least this many same-diameter, same-body candidates before trusting any
+# of them as a fastener hole.
+HOLE_MIN_PATTERN_COUNT = 2
+# Coaxial holes (e.g. a counterbore + its narrower clearance bore) round-trip
+# through this many mm of XY(-perpendicular) position tolerance to be merged
+# into one hole candidate instead of double-counting the same physical hole.
+HOLE_MERGE_TOLERANCE = 3.0
+
+
+def _hole_diameter_depth(dims: List[float]) -> Tuple[float, float]:
+    """Given a cylindrical face's 3 bbox extents, split into (diameter, depth).
+    Two of the three extents are ~equal (the circular cross-section); the odd
+    one out is the depth along the bore axis. Robust to depth being either
+    larger (a deep through-hole) or smaller (a shallow counterbore) than the
+    diameter — picks whichever extreme is farther from the middle value."""
+    d = sorted(dims)
+    diameter = d[1]
+    depth = d[0] if (d[1] - d[0]) > (d[2] - d[1]) else d[2]
+    return diameter, depth
+
+
+def _hole_axis(tag: int) -> List[float]:
+    """Derive a cylindrical face's true bore axis via two parametric point
+    samples (constant u, differing v) — robust for shallow/wide holes where
+    the bbox-thinness heuristic used for whole-face normal_hint breaks down.
+    Sign-normalized so the largest-magnitude component is positive, matching
+    the existing normal_hint convention."""
+    import gmsh
+    urange, vrange = gmsh.model.getParametrizationBounds(2, tag)
+    p0 = gmsh.model.getValue(2, tag, [urange[0], vrange[0]])
+    p1 = gmsh.model.getValue(2, tag, [urange[0], vrange[1]])
+    axis = [p1[i] - p0[i] for i in range(3)]
+    norm = sum(a * a for a in axis) ** 0.5
+    if norm < 1e-9:
+        return [0.0, 0.0, 1.0]
+    axis = [a / norm for a in axis]
+    dom = max(range(3), key=lambda i: abs(axis[i]))
+    if axis[dom] < 0:
+        axis = [-a for a in axis]
+    return axis
+
+
 def analyze_open_surfaces(
     step_path: str,
     area_ratio_threshold: float = 0.04,
     max_surfaces: int = 4,
+    max_hole_surfaces: int = 64,
 ) -> List[Dict]:
     """
-    Identify open (unmated) surfaces in a STEP file and cluster them into
-    spatial regions using an Octree — adapting the block-based regional
-    approach from Borah & Borah (2020) for assembly completeness analysis.
+    Identify open (unmated) surfaces in a STEP file: both whole-face regions
+    (clustered via an Octree — adapting the block-based regional approach
+    from Borah & Borah 2020) and individual fastener-hole candidates.
 
     After boolean fragment(), surfaces shared by ≥2 solid bodies are internal
     mating joints.  Remaining free surfaces that form a significant fraction
-    of their parent body's area are flagged as potential open assembly joints:
-    locations where a missing component should be placed.
+    of their parent body's area are flagged as potential open assembly joints
+    (whole-face regions) — locations where a missing non-fastener component
+    should be placed.
+
+    Separately, every free *cylindrical* face is checked as an individual
+    bolt/screw-hole candidate — these are collected independently of the
+    whole-face path because a single hole's wall area is almost always far
+    below area_ratio_threshold (calibrated for "big face vs. fillet noise",
+    not "small hole vs. big body"), and because an octree keeping only one
+    representative per spatial leaf would otherwise collapse an 8-hole bolt
+    pattern down to 1. Hole candidates are filtered by plausible diameter/
+    depth and by requiring the diameter to repeat elsewhere on the same body
+    (real fastener patterns repeat; one-off functional bores like a central
+    tool/shaft bore don't) — see HOLE_* constants above.
 
     Parameters
     ----------
     step_path            : absolute path to the STEP / STP file
-    area_ratio_threshold : min (surface_area / body_total_SA) to consider
-    max_surfaces         : maximum number of regions returned
+    area_ratio_threshold : min (surface_area / body_total_SA) for whole-face candidates
+    max_surfaces         : maximum number of whole-face regions returned
+    max_hole_surfaces    : safety cap on returned per-hole candidates (not a
+                            normal-case limit — real bolt patterns are far below this)
 
     Returns
     -------
-    List[dict] — one entry per detected open-joint region:
+    List[dict] — one entry per detected open-joint region (whole-face regions
+    followed by individual hole candidates):
       centroid     : [x, y, z]   centre of the surface bounding box
       area         : float        surface area (gmsh units)
       area_ratio   : float        fraction of parent body's total SA
       body_idx     : int          0-based index of the parent solid body
       vertices     : [[x,y,z]…]  triangle mesh vertices
       triangles    : [[i,j,k]…]  triangle mesh faces
-      normal_hint  : [nx, ny, nz] approximate surface normal direction
+      normal_hint  : [nx, ny, nz] approximate surface normal / bore-axis direction
       bbox         : [xmin,ymin,zmin,xmax,ymax,zmax] surface bounding box
+      is_hole      : bool         True for individual fastener-hole candidates
     """
     import gmsh
 
@@ -311,8 +383,9 @@ def analyze_open_surfaces(
                     pass
             body_total_sa[idx] = total or 1.0
 
-        # ── Identify free surfaces above area threshold ───────────────────────
-        candidates: List[Dict] = []
+        # ── Identify free surfaces: whole-face candidates + hole candidates ────
+        candidates: List[Dict] = []    # whole-face (existing octree/cap path)
+        hole_raw:   List[Dict] = []    # individual fastener-hole candidates
         for st, body_idxs in surf_to_body_idxs.items():
             if len(body_idxs) != 1:
                 continue                   # shared (mated) — skip
@@ -323,13 +396,36 @@ def analyze_open_surfaces(
                 cx   = (bb[0] + bb[3]) / 2
                 cy   = (bb[1] + bb[4]) / 2
                 cz   = (bb[2] + bb[5]) / 2
+                dims = [bb[3] - bb[0], bb[4] - bb[1], bb[5] - bb[2]]
                 area_ratio = area / body_total_sa[body_idx]
 
+                # ── Individual fastener-hole candidate (cylindrical faces) ────
+                # Independent of area_ratio_threshold — a hole wall's own area
+                # is almost never a significant fraction of the whole body's
+                # surface area, so that threshold (calibrated for whole faces)
+                # would always reject real holes.
+                try:
+                    is_cylinder = gmsh.model.getType(2, st) == "Cylinder"
+                except Exception:
+                    is_cylinder = False
+                if is_cylinder:
+                    diameter, depth = _hole_diameter_depth(dims)
+                    if HOLE_DIAM_MIN <= diameter <= HOLE_DIAM_MAX and depth >= HOLE_MIN_DEPTH:
+                        hole_raw.append({
+                            "stag":       st,
+                            "body_idx":   body_idx,
+                            "centroid":   [cx, cy, cz],
+                            "area":       area,
+                            "area_ratio": area_ratio,
+                            "bbox":       list(bb),
+                            "diameter":   diameter,
+                        })
+
+                # ── Whole-face candidate (unchanged) ───────────────────────────
                 if area_ratio < area_ratio_threshold:
                     continue              # fillet / chamfer — ignore
 
                 # Approximate surface normal: direction of thinnest bbox dim
-                dims = [bb[3] - bb[0], bb[4] - bb[1], bb[5] - bb[2]]
                 min_ax = dims.index(min(dims))
                 normal = [0.0, 0.0, 0.0]
                 normal[min_ax] = 1.0
@@ -346,47 +442,97 @@ def analyze_open_surfaces(
             except Exception:
                 pass
 
-        if not candidates:
-            return []
-
-        # ── Octree spatial grouping ───────────────────────────────────────────
+        # ── Whole-face Octree spatial grouping (unchanged) ─────────────────────
         # Partition the bounding volume of all candidate centroids so that
         # nearby open surfaces are clustered into a single "missing region".
-        eps = 1e-6
-        all_cx = [c["centroid"][0] for c in candidates]
-        all_cy = [c["centroid"][1] for c in candidates]
-        all_cz = [c["centroid"][2] for c in candidates]
-
-        root = OctreeNode((
-            min(all_cx) - eps, min(all_cy) - eps, min(all_cz) - eps,
-            max(all_cx) + eps, max(all_cy) + eps, max(all_cz) + eps,
-        ), max_depth=3)
-
-        for cand in candidates:
-            root.insert(cand["centroid"], cand)
-
-        # From each Octree leaf, keep the representative with highest area_ratio
         leaf_reps: List[Dict] = []
-        for leaf_items in root.leaves():
-            if not leaf_items:
-                continue
-            _, best = max(leaf_items, key=lambda x: x[1]["area_ratio"])
-            leaf_reps.append(best)
+        if candidates:
+            eps = 1e-6
+            all_cx = [c["centroid"][0] for c in candidates]
+            all_cy = [c["centroid"][1] for c in candidates]
+            all_cz = [c["centroid"][2] for c in candidates]
 
-        # Sort by area_ratio descending and cap
-        leaf_reps.sort(key=lambda x: x["area_ratio"], reverse=True)
-        leaf_reps = leaf_reps[:max_surfaces]
+            root = OctreeNode((
+                min(all_cx) - eps, min(all_cy) - eps, min(all_cz) - eps,
+                max(all_cx) + eps, max(all_cy) + eps, max(all_cz) + eps,
+            ), max_depth=3)
+
+            for cand in candidates:
+                root.insert(cand["centroid"], cand)
+
+            # From each Octree leaf, keep the representative with highest area_ratio
+            for leaf_items in root.leaves():
+                if not leaf_items:
+                    continue
+                _, best = max(leaf_items, key=lambda x: x[1]["area_ratio"])
+                leaf_reps.append(best)
+
+            # Sort by area_ratio descending and cap
+            leaf_reps.sort(key=lambda x: x["area_ratio"], reverse=True)
+            leaf_reps = leaf_reps[:max_surfaces]
+
+        # ── Fastener-hole pattern filter + coaxial-duplicate merge ─────────────
+        # Individual holes bypass octree reduction entirely (each is a genuine
+        # separate joint, not a redundant duplicate of a neighboring region) and
+        # aren't capped by max_surfaces — only require:
+        #   (a) diameter/depth already filtered above, and
+        #   (b) the diameter repeats elsewhere on the same body (a real bolt
+        #       pattern has ≥2 instances; a one-off functional bore — e.g. a
+        #       central tool/shaft bore — doesn't and gets excluded here).
+        # Survivors are then merged if coaxial and co-located (a counterbore's
+        # wide face + its narrower clearance-bore face are two topological
+        # faces for the same physical hole — kept once, using the wider face
+        # as the representative "opening").
+        hole_reps: List[Dict] = []
+        if hole_raw:
+            by_diam: Dict[Tuple[int, float], List[Dict]] = {}
+            for h in hole_raw:
+                key = (h["body_idx"], round(h["diameter"] * 2) / 2)
+                by_diam.setdefault(key, []).append(h)
+            patterned = [h for group in by_diam.values()
+                         if len(group) >= HOLE_MIN_PATTERN_COUNT
+                         for h in group]
+
+            for h in patterned:
+                try:
+                    h["normal"] = _hole_axis(h["stag"])
+                except Exception:
+                    dims = [h["bbox"][3] - h["bbox"][0],
+                            h["bbox"][4] - h["bbox"][1],
+                            h["bbox"][5] - h["bbox"][2]]
+                    min_ax = dims.index(min(dims))
+                    h["normal"] = [1.0 if i == min_ax else 0.0 for i in range(3)]
+
+            # Merge coaxial duplicates: group by body + position projected onto
+            # the plane perpendicular to the bore axis (axis-aligned holes are
+            # the norm in this corpus, matching the existing normal_hint
+            # convention used for whole-face candidates above).
+            merge_groups: Dict[Tuple, List[Dict]] = {}
+            for h in patterned:
+                axis = h["normal"]
+                perp = [round(v / HOLE_MERGE_TOLERANCE)
+                        for i, v in enumerate(h["centroid"]) if abs(axis[i]) < 0.5]
+                key = (h["body_idx"], tuple(perp))
+                merge_groups.setdefault(key, []).append(h)
+
+            for group in merge_groups.values():
+                hole_reps.append(max(group, key=lambda h: h["diameter"]))
+
+            hole_reps = hole_reps[:max_hole_surfaces]
+
+        if not leaf_reps and not hole_reps:
+            return []
 
         # ── Surface mesh generation for the flagged surfaces ──────────────────
         mesh_ok = False
-        if leaf_reps:
+        if leaf_reps or hole_reps:
             try:
                 gmsh.model.mesh.generate(2)
                 mesh_ok = True
             except Exception:
                 pass
 
-        # ── Build and return results ──────────────────────────────────────────
+        # ── Build and return results (whole-face regions, then hole candidates) ─
         results: List[Dict] = []
         for rep in leaf_reps:
             verts, tris = [], []
@@ -405,6 +551,26 @@ def analyze_open_surfaces(
                 "triangles":   tris,
                 "normal_hint": rep["normal"],
                 "bbox":        rep["bbox"],
+                "is_hole":     False,
+            })
+
+        for rep in hole_reps:
+            verts, tris = [], []
+            if mesh_ok:
+                verts, tris = _extract_surface_mesh(rep["stag"])
+            if not verts or not tris:
+                verts, tris = _synthetic_surface_mesh(rep["bbox"], rep["normal"])
+
+            results.append({
+                "centroid":    rep["centroid"],
+                "area":        round(rep["area"], 4),
+                "area_ratio":  round(rep["area_ratio"], 4),
+                "body_idx":    rep["body_idx"],
+                "vertices":    verts,
+                "triangles":   tris,
+                "normal_hint": rep["normal"],
+                "bbox":        rep["bbox"],
+                "is_hole":     True,
             })
 
         return results

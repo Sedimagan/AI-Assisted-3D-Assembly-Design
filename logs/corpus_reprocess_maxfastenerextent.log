@@ -1,0 +1,429 @@
+Reprocessing full corpus with corrected classifier (max_fastener_extent gate)...
+Processing...
+  Category filter: ['Bench_vice', 'C_Clamps', 'Pipe_vice', 'Gate_Valve', 'Press_Tool', 'Tool_Post', 'Crane_hook']
+  193 STEP files after category filter
+  Found 193 STEP file(s) in /Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Source_3d_models/Best_models_for_training
+  [1/193] Parsing: Bench_Vice_02/Bench_Vice_02.STEP
+  [OK]  Bench_Vice_02/Bench_Vice_02.STEP — 26 nodes  39 edges  (4.8s)
+  [2/193] Parsing: Bench_Vice_03/Bench_Vice_03.step
+  [OK]  Bench_Vice_03/Bench_Vice_03.step — 18 nodes  22 edges  (4.2s)
+  [3/193] Parsing: Bench_Vice_04/Bench_Vice_04.STEP
+  [OK]  Bench_Vice_04/Bench_Vice_04.STEP — 47 nodes  67 edges  (5.3s)
+  [4/193] Parsing: Bench_Vice_06/Bench_Vice_06.stp
+  [OK]  Bench_Vice_06/Bench_Vice_06.stp — 16 nodes  12 edges  (8.6s)
+  [5/193] Parsing: Bench_Vice_07/Bench_Vice_07.STEP
+  [OK]  Bench_Vice_07/Bench_Vice_07.STEP — 12 nodes  16 edges  (3.6s)
+  [6/193] Parsing: Bench_Vice_08/Bench_Vice_08.step
+  [OK]  Bench_Vice_08/Bench_Vice_08.step — 55 nodes  48 edges  (28.1s)
+  [7/193] Parsing: Bench_Vice_09/Bench_Vice_09.stp
+  [OK]  Bench_Vice_09/Bench_Vice_09.stp — 22 nodes  33 edges  (3.8s)
+  [8/193] Parsing: Bench_Vice_11/Bench_Vice_11.STEP
+  [OK]  Bench_Vice_11/Bench_Vice_11.STEP — 20 nodes  33 edges  (5.1s)
+  [9/193] Parsing: Bench_Vice_12/Bench_Vice_12.stp
+  [OK]  Bench_Vice_12/Bench_Vice_12.stp — 31 nodes  41 edges  (6.4s)
+  [10/193] Parsing: Bench_Vice_13/Bench_Vice_13.STEP
+  [OK]  Bench_Vice_13/Bench_Vice_13.STEP — 27 nodes  43 edges  (4.4s)
+  [11/193] Parsing: Bench_Vice_14/Bench_Vice_14.STEP
+  [OK]  Bench_Vice_14/Bench_Vice_14.STEP — 24 nodes  39 edges  (4.2s)
+  [12/193] Parsing: Bench_Vice_17/Bench_Vice_17.STEP
+  [OK]  Bench_Vice_17/Bench_Vice_17.STEP — 25 nodes  41 edges  (4.7s)
+  [13/193] Parsing: Bench_Vice_18/Bench_Vice_18.stp
+  [OK]  Bench_Vice_18/Bench_Vice_18.stp — 7 nodes  7 edges  (4.4s)
+  [14/193] Parsing: Bench_Vice_20/Bench_Vice_20.stp
+  [OK]  Bench_Vice_20/Bench_Vice_20.stp — 21 nodes  35 edges  (11.9s)
+  [15/193] Parsing: Bench_Vice_21/Bench_Vice_21.STEP
+  [OK]  Bench_Vice_21/Bench_Vice_21.STEP — 12 nodes  15 edges  (3.4s)
+  [16/193] Parsing: Bench_Vice_22/Bench_Vice_22.stp
+  [OK]  Bench_Vice_22/Bench_Vice_22.stp — 22 nodes  31 edges  (3.8s)
+  [17/193] Parsing: Bench_Vice_23/Bench_Vice_23.stp
+  [OK]  Bench_Vice_23/Bench_Vice_23.stp — 27 nodes  36 edges  (3.7s)
+  [18/193] Parsing: Bench_Vice_26/Bench_Vice_26.step
+  [OK]  Bench_Vice_26/Bench_Vice_26.step — 17 nodes  12 edges  (55.2s)
+  [19/193] Parsing: Bench_Vice_27/Bench_Vice_27.stp
+  [OK]  Bench_Vice_27/Bench_Vice_27.stp — 10 nodes  11 edges  (5.5s)
+  [20/193] Parsing: Bench_Vice_28/Bench_Vice_28.stp
+  [OK]  Bench_Vice_28/Bench_Vice_28.stp — 46 nodes  77 edges  (4.4s)
+  [21/193] Parsing: Bench_Vice_31/Bench_Vice_31.stp
+  [OK]  Bench_Vice_31/Bench_Vice_31.stp — 20 nodes  25 edges  (3.8s)
+  [22/193] Parsing: Bench_Vice_34/Bench_Vice_34.stp
+  [OK]  Bench_Vice_34/Bench_Vice_34.stp — 23 nodes  40 edges  (4.7s)
+  [23/193] Parsing: Bench_Vice_38/Bench_Vice_38.step
+  [OK]  Bench_Vice_38/Bench_Vice_38.step — 20 nodes  27 edges  (3.7s)
+  [24/193] Parsing: Bench_Vice_39/Bench_Vice_39.step
+  [OK]  Bench_Vice_39/Bench_Vice_39.step — 14 nodes  21 edges  (5.0s)
+  [25/193] Parsing: Bench_Vice_41/Bench_Vice_41.stp
+  [OK]  Bench_Vice_41/Bench_Vice_41.stp — 22 nodes  33 edges  (3.8s)
+  [26/193] Parsing: Bench_Vice_42/Bench_Vice_42.stp
+  [OK]  Bench_Vice_42/Bench_Vice_42.stp — 15 nodes  24 edges  (34.6s)
+  [27/193] Parsing: Bench_Vice_43/Bench_Vice_43.step
+  [OK]  Bench_Vice_43/Bench_Vice_43.step — 16 nodes  15 edges  (5.8s)
+  [28/193] Parsing: Bench_Vice_45/Bench_Vice_45.step
+  [OK]  Bench_Vice_45/Bench_Vice_45.step — 25 nodes  31 edges  (10.9s)
+  [29/193] Parsing: Bench_Vice_46/Bench_Vice_46.stp
+  [OK]  Bench_Vice_46/Bench_Vice_46.stp — 18 nodes  21 edges  (4.5s)
+  [30/193] Parsing: Bench_Vice_47/Bench_Vice_47.STEP
+  [OK]  Bench_Vice_47/Bench_Vice_47.STEP — 21 nodes  28 edges  (17.7s)
+  [31/193] Parsing: Bench_Vice_50/Bench_Vice_50.STEP
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/trimesh/triangles.py:550: RuntimeWarning: divide by zero encountered in divide
+  inverse_denominator = 1.0 / (dot00 * dot11 - dot01 * dot01)
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/trimesh/triangles.py:555: RuntimeWarning: invalid value encountered in subtract
+  barycentric[:, 0] = 1 - barycentric[:, 1] - barycentric[:, 2]
+  [OK]  Bench_Vice_50/Bench_Vice_50.STEP — 31 nodes  465 edges  (82.8s)
+  [32/193] Parsing: Bench_Vice_51/Bench_Vice_51.STEP
+  [OK]  Bench_Vice_51/Bench_Vice_51.STEP — 13 nodes  18 edges  (3.5s)
+  [33/193] Parsing: Bench_Vice_52/Bench_Vice_52.stp
+  [OK]  Bench_Vice_52/Bench_Vice_52.stp — 57 nodes  69 edges  (66.5s)
+  [34/193] Parsing: Bench_Vice_53/Bench_Vice_53.STEP
+  [OK]  Bench_Vice_53/Bench_Vice_53.STEP — 27 nodes  37 edges  (4.2s)
+  [35/193] Parsing: Bench_Vice_58/Bench_Vice_58.stp
+  [OK]  Bench_Vice_58/Bench_Vice_58.stp — 6 nodes  6 edges  (4.6s)
+  [36/193] Parsing: Bench_Vice_59/Bench_Vice_59.STEP
+  [OK]  Bench_Vice_59/Bench_Vice_59.STEP — 97 nodes  144 edges  (14.2s)
+  [37/193] Parsing: Bench_Vice_60/Bench_Vice_60.stp
+  [OK]  Bench_Vice_60/Bench_Vice_60.stp — 24 nodes  20 edges  (15.7s)
+  [38/193] Parsing: Bench_Vice_61/Bench_Vice_61.stp
+  [OK]  Bench_Vice_61/Bench_Vice_61.stp — 48 nodes  65 edges  (4.6s)
+  [39/193] Parsing: Bench_Vice_65/Bench_Vice_65.stp
+  [OK]  Bench_Vice_65/Bench_Vice_65.stp — 28 nodes  47 edges  (4.3s)
+  [40/193] Parsing: Bench_Vice_66/Bench_Vice_66.step
+  [OK]  Bench_Vice_66/Bench_Vice_66.step — 26 nodes  40 edges  (9.7s)
+  [41/193] Parsing: Bench_Vice_67/Bench_Vice_67.stp
+  [OK]  Bench_Vice_67/Bench_Vice_67.stp — 26 nodes  34 edges  (4.0s)
+  [42/193] Parsing: Bench_Vice_68/Bench_Vice_68.stp
+  [OK]  Bench_Vice_68/Bench_Vice_68.stp — 24 nodes  35 edges  (5.5s)
+  [43/193] Parsing: Bench_Vice_69/Bench_Vice_69.stp
+  [OK]  Bench_Vice_69/Bench_Vice_69.stp — 22 nodes  31 edges  (4.2s)
+  [44/193] Parsing: Bench_Vice_72/Bench_Vice_72.stp
+  [OK]  Bench_Vice_72/Bench_Vice_72.stp — 25 nodes  37 edges  (3.9s)
+  [45/193] Parsing: Bench_Vice_73/Bench_Vice_73.stp
+  [OK]  Bench_Vice_73/Bench_Vice_73.stp — 2 nodes  1 edges  (3.0s)
+  [46/193] Parsing: Bench_Vice_74/Bench_Vice_74.stp
+  [OK]  Bench_Vice_74/Bench_Vice_74.stp — 15 nodes  14 edges  (4.8s)
+  [47/193] Parsing: Bench_Vice_75/Bench_Vice_75.STEP
+  [OK]  Bench_Vice_75/Bench_Vice_75.STEP — 33 nodes  44 edges  (14.5s)
+  [48/193] Parsing: Bench_Vice_76/Bench_Vice_76.stp
+  [OK]  Bench_Vice_76/Bench_Vice_76.stp — 37 nodes  65 edges  (5.6s)
+  [49/193] Parsing: Bench_Vice_77/Bench_Vice_77.STEP
+  [OK]  Bench_Vice_77/Bench_Vice_77.STEP — 6 nodes  6 edges  (6.9s)
+  [50/193] Parsing: Bench_Vice_78/Bench_Vice_78.STEP
+  [OK]  Bench_Vice_78/Bench_Vice_78.STEP — 35 nodes  44 edges  (4.9s)
+  [51/193] Parsing: Bench_Vice_79/Bench_Vice_79.STEP
+  [OK]  Bench_Vice_79/Bench_Vice_79.STEP — 19 nodes  22 edges  (77.2s)
+  [52/193] Parsing: Bench_Vice_80/Bench_Vice_80.STEP
+  [OK]  Bench_Vice_80/Bench_Vice_80.STEP — 16 nodes  19 edges  (4.4s)
+  [53/193] Parsing: Bench_Vice_81/Bench_Vice_81.stp
+  [OK]  Bench_Vice_81/Bench_Vice_81.stp — 36 nodes  49 edges  (5.5s)
+  [54/193] Parsing: Bench_Vice_82/Bench_Vice_82.stp
+  [OK]  Bench_Vice_82/Bench_Vice_82.stp — 41 nodes  63 edges  (6.9s)
+  [55/193] Parsing: C_Clamps_01/C_Clamps_01.stp
+  [OK]  C_Clamps_01/C_Clamps_01.stp — 8 nodes  6 edges  (22.4s)
+  [56/193] Parsing: C_Clamps_03/C_Clamps_03.STEP
+  [OK]  C_Clamps_03/C_Clamps_03.STEP — 10 nodes  14 edges  (45.8s)
+  [57/193] Parsing: C_Clamps_04/C_Clamps_04.stp
+  [OK]  C_Clamps_04/C_Clamps_04.stp — 10 nodes  13 edges  (3.7s)
+  [58/193] Parsing: C_Clamps_05/C_Clamps_05.STEP
+  [OK]  C_Clamps_05/C_Clamps_05.STEP — 5 nodes  5 edges  (3.4s)
+  [59/193] Parsing: C_Clamps_06/C_Clamps_06.stp
+  [OK]  C_Clamps_06/C_Clamps_06.stp — 9 nodes  10 edges  (3.9s)
+  [60/193] Parsing: C_Clamps_07/C_Clamps_07.stp
+  [OK]  C_Clamps_07/C_Clamps_07.stp — 7 nodes  5 edges  (61.1s)
+  [61/193] Parsing: C_Clamps_08/C_Clamps_08.stp
+  [OK]  C_Clamps_08/C_Clamps_08.stp — 2 nodes  1 edges  (3.9s)
+  [62/193] Parsing: C_Clamps_09/C_Clamps_09.STEP
+  [OK]  C_Clamps_09/C_Clamps_09.STEP — 9 nodes  11 edges  (3.8s)
+  [63/193] Parsing: C_Clamps_10/C_Clamps_10.stp
+  [OK]  C_Clamps_10/C_Clamps_10.stp — 7 nodes  8 edges  (4.6s)
+  [64/193] Parsing: C_Clamps_11/C_Clamps_11.STEP
+  [OK]  C_Clamps_11/C_Clamps_11.STEP — 2 nodes  1 edges  (111.9s)
+  [65/193] Parsing: C_Clamps_12/C_Clamps_12.stp
+  [OK]  C_Clamps_12/C_Clamps_12.stp — 5 nodes  4 edges  (30.6s)
+  [66/193] Parsing: C_Clamps_13/C_Clamps_13.STEP
+  [OK]  C_Clamps_13/C_Clamps_13.STEP — 6 nodes  3 edges  (97.7s)
+  [67/193] Parsing: C_Clamps_14/C_Clamps_14.STEP
+  [OK]  C_Clamps_14/C_Clamps_14.STEP — 4 nodes  4 edges  (79.9s)
+  [68/193] Parsing: C_Clamps_15/C_Clamps_15.stp
+  [OK]  C_Clamps_15/C_Clamps_15.stp — 4 nodes  4 edges  (3.1s)
+  [69/193] Parsing: C_Clamps_16/C_Clamps_16.stp
+  [OK]  C_Clamps_16/C_Clamps_16.stp — 10 nodes  12 edges  (3.5s)
+  [70/193] Parsing: C_Clamps_18/C_Clamps_18.stp
+  [OK]  C_Clamps_18/C_Clamps_18.stp — 3 nodes  3 edges  (13.9s)
+  [71/193] Parsing: C_Clamps_19/C_Clamps_19.stp
+  [OK]  C_Clamps_19/C_Clamps_19.stp — 6 nodes  4 edges  (3.1s)
+  [72/193] Parsing: C_Clamps_20/C_Clamps_20.stp
+  [OK]  C_Clamps_20/C_Clamps_20.stp — 2 nodes  1 edges  (3.4s)
+  [73/193] Parsing: C_Clamps_21/C_Clamps_21.STEP
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/trimesh/triangles.py:550: RuntimeWarning: divide by zero encountered in divide
+  inverse_denominator = 1.0 / (dot00 * dot11 - dot01 * dot01)
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/trimesh/triangles.py:555: RuntimeWarning: invalid value encountered in subtract
+  barycentric[:, 0] = 1 - barycentric[:, 1] - barycentric[:, 2]
+  [OK]  C_Clamps_21/C_Clamps_21.STEP — 6 nodes  3 edges  (92.9s)
+  [74/193] Parsing: C_Clamps_22/C_Clamps_22.stp
+  [OK]  C_Clamps_22/C_Clamps_22.stp — 7 nodes  5 edges  (3.5s)
+  [75/193] Parsing: C_Clamps_23/C_Clamps_23.STEP
+  [OK]  C_Clamps_23/C_Clamps_23.STEP — 16 nodes  29 edges  (6.2s)
+  [76/193] Parsing: C_Clamps_26/C_Clamps_26.stp
+  [OK]  C_Clamps_26/C_Clamps_26.stp — 11 nodes  11 edges  (4.0s)
+  [77/193] Parsing: C_Clamps_28/C_Clamps_28.step
+  [OK]  C_Clamps_28/C_Clamps_28.step — 10 nodes  10 edges  (48.6s)
+  [78/193] Parsing: C_Clamps_29/C_Clamps_29.stp
+  [OK]  C_Clamps_29/C_Clamps_29.stp — 7 nodes  5 edges  (8.6s)
+  [79/193] Parsing: C_Clamps_31/C_Clamps_31.stp
+  [OK]  C_Clamps_31/C_Clamps_31.stp — 6 nodes  4 edges  (7.7s)
+  [80/193] Parsing: C_Clamps_32/C_Clamps_32.step
+  [OK]  C_Clamps_32/C_Clamps_32.step — 10 nodes  10 edges  (3.7s)
+  [81/193] Parsing: C_Clamps_33/C_Clamps_33.stp
+  [OK]  C_Clamps_33/C_Clamps_33.stp — 9 nodes  9 edges  (3.6s)
+  [82/193] Parsing: C_Clamps_36/C_Clamps_36.STEP
+  [OK]  C_Clamps_36/C_Clamps_36.STEP — 5 nodes  3 edges  (3.2s)
+  [83/193] Parsing: C_Clamps_37/C_Clamps_37.step
+  [OK]  C_Clamps_37/C_Clamps_37.step — 5 nodes  2 edges  (4.2s)
+  [84/193] Parsing: C_Clamps_38/C_Clamps_38.STEP
+  [OK]  C_Clamps_38/C_Clamps_38.STEP — 8 nodes  7 edges  (8.1s)
+  [85/193] Parsing: C_Clamps_40/C_Clamps_40.stp
+  [OK]  C_Clamps_40/C_Clamps_40.stp — 4 nodes  2 edges  (17.1s)
+  [86/193] Parsing: Crane_Hook_01/Crane_Hook_01.stp
+  [OK]  Crane_Hook_01/Crane_Hook_01.stp — 33 nodes  55 edges  (4.9s)
+  [87/193] Parsing: Crane_Hook_02/Crane_Hook_02.STEP
+  [OK]  Crane_Hook_02/Crane_Hook_02.STEP — 35 nodes  60 edges  (6.4s)
+  [88/193] Parsing: Crane_Hook_04/Crane_Hook_04.STEP
+  [OK]  Crane_Hook_04/Crane_Hook_04.STEP — 44 nodes  78 edges  (82.5s)
+  [89/193] Parsing: Crane_Hook_05/Crane_Hook_05.STEP
+  [OK]  Crane_Hook_05/Crane_Hook_05.STEP — 15 nodes  22 edges  (4.1s)
+  [90/193] Parsing: Crane_Hook_06/Crane_Hook_06.step
+  [OK]  Crane_Hook_06/Crane_Hook_06.step — 20 nodes  33 edges  (79.7s)
+  [91/193] Parsing: Crane_Hook_07/Crane_Hook_07.stp
+  [OK]  Crane_Hook_07/Crane_Hook_07.stp — 46 nodes  71 edges  (4.9s)
+  [92/193] Parsing: Crane_Hook_09/Crane_Hook_09.step
+  [OK]  Crane_Hook_09/Crane_Hook_09.step — 28 nodes  44 edges  (36.8s)
+  [93/193] Parsing: Crane_Hook_10/Crane_Hook_10.stp
+  [OK]  Crane_Hook_10/Crane_Hook_10.stp — 46 nodes  91 edges  (5.1s)
+  [94/193] Parsing: Crane_Hook_11/Crane_Hook_11.stp
+  [OK]  Crane_Hook_11/Crane_Hook_11.stp — 19 nodes  26 edges  (3.7s)
+  [95/193] Parsing: Crane_Hook_12/Crane_Hook_12.stp
+  [OK]  Crane_Hook_12/Crane_Hook_12.stp — 53 nodes  88 edges  (5.0s)
+  [96/193] Parsing: Crane_Hook_13/Crane_Hook_13.stp
+  [OK]  Crane_Hook_13/Crane_Hook_13.stp — 28 nodes  50 edges  (3.7s)
+  [97/193] Parsing: Crane_Hook_15/Crane_Hook_15.STEP
+  [OK]  Crane_Hook_15/Crane_Hook_15.STEP — 86 nodes  157 edges  (8.4s)
+  [98/193] Parsing: Crane_Hook_17/Crane_Hook_17.stp
+  [OK]  Crane_Hook_17/Crane_Hook_17.stp — 49 nodes  79 edges  (5.3s)
+  [99/193] Parsing: Crane_Hook_21/Crane_Hook_21.STEP
+  [OK]  Crane_Hook_21/Crane_Hook_21.STEP — 57 nodes  107 edges  (5.4s)
+  [100/193] Parsing: Crane_Hook_22/Crane_Hook_22.STEP
+  [OK]  Crane_Hook_22/Crane_Hook_22.STEP — 66 nodes  127 edges  (203.8s)
+  [101/193] Parsing: Crane_Hook_23/Crane_Hook_23.step
+  [OK]  Crane_Hook_23/Crane_Hook_23.step — 24 nodes  41 edges  (72.5s)
+  [102/193] Parsing: Gate_Valve_02/Gate_Valve_02.STEP
+  [OK]  Gate_Valve_02/Gate_Valve_02.STEP — 4 nodes  5 edges  (5.2s)
+  [103/193] Parsing: Gate_Valve_03/Gate_Valve_03.stp
+  [OK]  Gate_Valve_03/Gate_Valve_03.stp — 40 nodes  47 edges  (30.0s)
+  [104/193] Parsing: Gate_Valve_04/Gate_Valve_04.stp
+  [OK]  Gate_Valve_04/Gate_Valve_04.stp — 63 nodes  80 edges  (57.4s)
+  [105/193] Parsing: Gate_Valve_05/Gate_Valve_05.stp
+  [OK]  Gate_Valve_05/Gate_Valve_05.stp — 87 nodes  148 edges  (17.0s)
+  [106/193] Parsing: Gate_Valve_06/Gate_Valve_06.stp
+  [OK]  Gate_Valve_06/Gate_Valve_06.stp — 41 nodes  48 edges  (33.7s)
+  [107/193] Parsing: Gate_Valve_07/Gate_Valve_07.stp
+  [OK]  Gate_Valve_07/Gate_Valve_07.stp — 69 nodes  92 edges  (55.5s)
+  [108/193] Parsing: Gate_Valve_10/Gate_Valve_10.stp
+  [OK]  Gate_Valve_10/Gate_Valve_10.stp — 61 nodes  68 edges  (52.3s)
+  [109/193] Parsing: Gate_Valve_11/Gate_Valve_11.STEP
+  [OK]  Gate_Valve_11/Gate_Valve_11.STEP — 47 nodes  69 edges  (142.6s)
+  [110/193] Parsing: Gate_Valve_12/Gate_Valve_12.stp
+    [detail] Gate_Valve_12.stp: worker process crashed (no output)
+  [ERROR]   Gate_Valve_12/Gate_Valve_12.stp — parse failed
+  [111/193] Parsing: Gate_Valve_14/Gate_Valve_14.stp
+  [OK]  Gate_Valve_14/Gate_Valve_14.stp — 59 nodes  79 edges  (43.7s)
+  [112/193] Parsing: Gate_Valve_15/Gate_Valve_15.stp
+  [OK]  Gate_Valve_15/Gate_Valve_15.stp — 51 nodes  63 edges  (33.2s)
+  [113/193] Parsing: Gate_Valve_23/Gate_Valve_23.STEP
+  [OK]  Gate_Valve_23/Gate_Valve_23.STEP — 35 nodes  26 edges  (9.4s)
+  [114/193] Parsing: Gate_Valve_24/Gate_Valve_24.STEP
+  [OK]  Gate_Valve_24/Gate_Valve_24.STEP — 81 nodes  140 edges  (38.1s)
+  [115/193] Parsing: Gate_Valve_25/Gate_Valve_25.STEP
+  [OK]  Gate_Valve_25/Gate_Valve_25.STEP — 22 nodes  35 edges  (4.4s)
+  [116/193] Parsing: Gate_Valve_27/Gate_Valve_27.stp
+  [OK]  Gate_Valve_27/Gate_Valve_27.stp — 5 nodes  4 edges  (5.8s)
+  [117/193] Parsing: Gate_Valve_31/Gate_Valve_31.STEP
+  [OK]  Gate_Valve_31/Gate_Valve_31.STEP — 4 nodes  1 edges  (31.0s)
+  [118/193] Parsing: Gate_Valve_34/Gate_Valve_34.stp
+  [OK]  Gate_Valve_34/Gate_Valve_34.stp — 62 nodes  83 edges  (39.1s)
+  [119/193] Parsing: Gate_Valve_35/Gate_Valve_35.step
+  [OK]  Gate_Valve_35/Gate_Valve_35.step — 43 nodes  79 edges  (95.6s)
+  [120/193] Parsing: Gate_Valve_36/Gate_Valve_36.STEP
+  [OK]  Gate_Valve_36/Gate_Valve_36.STEP — 93 nodes  133 edges  (15.8s)
+  [121/193] Parsing: Gate_Valve_37/Gate_Valve_37.stp
+  [OK]  Gate_Valve_37/Gate_Valve_37.stp — 2 nodes  1 edges  (4.8s)
+  [122/193] Parsing: Gate_Valve_38/Gate_Valve_38.stp
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/trimesh/triangles.py:550: RuntimeWarning: divide by zero encountered in divide
+  inverse_denominator = 1.0 / (dot00 * dot11 - dot01 * dot01)
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/trimesh/triangles.py:553: RuntimeWarning: invalid value encountered in multiply
+  barycentric[:, 2] = (dot00 * dot12 - dot01 * dot02) * inverse_denominator
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/trimesh/triangles.py:554: RuntimeWarning: invalid value encountered in multiply
+  barycentric[:, 1] = (dot11 * dot02 - dot01 * dot12) * inverse_denominator
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/trimesh/triangles.py:555: RuntimeWarning: invalid value encountered in subtract
+  barycentric[:, 0] = 1 - barycentric[:, 1] - barycentric[:, 2]
+  [OK]  Gate_Valve_38/Gate_Valve_38.stp — 176 nodes  244 edges  (40.9s)
+  [123/193] Parsing: Pipe_Vice_01/Pipe_Vice_01.stp
+  [OK]  Pipe_Vice_01/Pipe_Vice_01.stp — 10 nodes  10 edges  (3.8s)
+  [124/193] Parsing: Pipe_Vice_03/Pipe_Vice_03.STEP
+  [OK]  Pipe_Vice_03/Pipe_Vice_03.STEP — 6 nodes  4 edges  (3.5s)
+  [125/193] Parsing: Pipe_Vice_04/Pipe_Vice_04.stp
+  [OK]  Pipe_Vice_04/Pipe_Vice_04.stp — 6 nodes  4 edges  (3.6s)
+  [126/193] Parsing: Pipe_Vice_07/Pipe_Vice_07.STEP
+  [OK]  Pipe_Vice_07/Pipe_Vice_07.STEP — 20 nodes  19 edges  (69.7s)
+  [127/193] Parsing: Pipe_Vice_08/Pipe_Vice_08.STEP
+  [OK]  Pipe_Vice_08/Pipe_Vice_08.STEP — 5 nodes  6 edges  (3.4s)
+  [128/193] Parsing: Pipe_Vice_09/Pipe_Vice_09.STEP
+  [OK]  Pipe_Vice_09/Pipe_Vice_09.STEP — 7 nodes  5 edges  (3.7s)
+  [129/193] Parsing: Pipe_Vice_10/Pipe_Vice_10.stp
+  [OK]  Pipe_Vice_10/Pipe_Vice_10.stp — 11 nodes  12 edges  (4.3s)
+  [130/193] Parsing: Pipe_Vice_11/Pipe_Vice_11.STEP
+  [OK]  Pipe_Vice_11/Pipe_Vice_11.STEP — 36 nodes  57 edges  (69.2s)
+  [131/193] Parsing: Pipe_Vice_14/Pipe_Vice_14.stp
+  [OK]  Pipe_Vice_14/Pipe_Vice_14.stp — 10 nodes  13 edges  (4.1s)
+  [132/193] Parsing: Pipe_Vice_15/Pipe_Vice_15.STEP
+  [OK]  Pipe_Vice_15/Pipe_Vice_15.STEP — 6 nodes  4 edges  (3.7s)
+  [133/193] Parsing: Pipe_Vice_16/Pipe_Vice_16.stp
+  [OK]  Pipe_Vice_16/Pipe_Vice_16.stp — 21 nodes  25 edges  (18.5s)
+  [134/193] Parsing: Pipe_Vice_17/Pipe_Vice_17.step
+  [OK]  Pipe_Vice_17/Pipe_Vice_17.step — 16 nodes  18 edges  (12.9s)
+  [135/193] Parsing: Pipe_Vice_19/Pipe_Vice_19.stp
+  [OK]  Pipe_Vice_19/Pipe_Vice_19.stp — 16 nodes  21 edges  (3.8s)
+  [136/193] Parsing: Pipe_Vice_20/Pipe_Vice_20.stp
+  [OK]  Pipe_Vice_20/Pipe_Vice_20.stp — 20 nodes  34 edges  (15.7s)
+  [137/193] Parsing: Pipe_Vice_21/Pipe_Vice_21.step
+  [OK]  Pipe_Vice_21/Pipe_Vice_21.step — 3 nodes  2 edges  (3.2s)
+  [138/193] Parsing: Pipe_Vice_22/Pipe_Vice_22.stp
+  [OK]  Pipe_Vice_22/Pipe_Vice_22.stp — 8 nodes  8 edges  (3.5s)
+  [139/193] Parsing: Pipe_Vice_23/Pipe_Vice_23.STEP
+  [OK]  Pipe_Vice_23/Pipe_Vice_23.STEP — 21 nodes  26 edges  (98.6s)
+  [140/193] Parsing: Pipe_Vice_24/Pipe_Vice_24.stp
+  [OK]  Pipe_Vice_24/Pipe_Vice_24.stp — 10 nodes  10 edges  (8.2s)
+  [141/193] Parsing: Pipe_Vice_25/Pipe_Vice_25.stp
+  [OK]  Pipe_Vice_25/Pipe_Vice_25.stp — 16 nodes  21 edges  (3.6s)
+  [142/193] Parsing: Pipe_Vice_27/Pipe_Vice_27.STEP
+  [OK]  Pipe_Vice_27/Pipe_Vice_27.STEP — 17 nodes  20 edges  (4.5s)
+  [143/193] Parsing: Pipe_Vice_28/Pipe_Vice_28.stp
+  [OK]  Pipe_Vice_28/Pipe_Vice_28.stp — 7 nodes  6 edges  (3.5s)
+  [144/193] Parsing: Pipe_Vice_29/Pipe_Vice_29.stp
+  [OK]  Pipe_Vice_29/Pipe_Vice_29.stp — 6 nodes  4 edges  (3.4s)
+  [145/193] Parsing: Pipe_Vice_30/Pipe_Vice_30.STEP
+  [OK]  Pipe_Vice_30/Pipe_Vice_30.STEP — 6 nodes  4 edges  (3.8s)
+  [146/193] Parsing: Pipe_Vice_31/Pipe_Vice_31.stp
+  [OK]  Pipe_Vice_31/Pipe_Vice_31.stp — 7 nodes  4 edges  (23.3s)
+  [147/193] Parsing: Pipe_Vice_32/Pipe_Vice_32.stp
+  [OK]  Pipe_Vice_32/Pipe_Vice_32.stp — 9 nodes  10 edges  (8.5s)
+  [148/193] Parsing: Pipe_Vice_33/Pipe_Vice_33.stp
+  [OK]  Pipe_Vice_33/Pipe_Vice_33.stp — 6 nodes  3 edges  (3.5s)
+  [149/193] Parsing: Pipe_Vice_35/Pipe_Vice_35.stp
+  [OK]  Pipe_Vice_35/Pipe_Vice_35.stp — 10 nodes  12 edges  (3.5s)
+  [150/193] Parsing: Pipe_Vice_36/Pipe_Vice_36.STEP
+  [OK]  Pipe_Vice_36/Pipe_Vice_36.STEP — 7 nodes  6 edges  (3.6s)
+  [151/193] Parsing: Pipe_Vice_37/Pipe_Vice_37.stp
+  [OK]  Pipe_Vice_37/Pipe_Vice_37.stp — 8 nodes  8 edges  (3.5s)
+  [152/193] Parsing: Pipe_Vice_38/Pipe_Vice_38.stp
+  [OK]  Pipe_Vice_38/Pipe_Vice_38.stp — 10 nodes  13 edges  (7.1s)
+  [153/193] Parsing: Pipe_Vice_40/Pipe_Vice_40.stp
+  [OK]  Pipe_Vice_40/Pipe_Vice_40.stp — 39 nodes  61 edges  (8.0s)
+  [154/193] Parsing: Pipe_Vice_41/Pipe_Vice_41.stp
+  [OK]  Pipe_Vice_41/Pipe_Vice_41.stp — 5 nodes  6 edges  (3.5s)
+  [155/193] Parsing: Pipe_Vice_42/Pipe_Vice_42.stp
+  [OK]  Pipe_Vice_42/Pipe_Vice_42.stp — 6 nodes  4 edges  (3.4s)
+  [156/193] Parsing: Pipe_Vice_43/Pipe_Vice_43.stp
+  [OK]  Pipe_Vice_43/Pipe_Vice_43.stp — 15 nodes  17 edges  (3.7s)
+  [157/193] Parsing: Pipe_Vice_44/Pipe_Vice_44.STEP
+  [OK]  Pipe_Vice_44/Pipe_Vice_44.STEP — 39 nodes  64 edges  (69.6s)
+  [158/193] Parsing: Pipe_Vice_45/Pipe_Vice_45.STEP
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/trimesh/triangles.py:302: RuntimeWarning: divide by zero encountered in divide
+  center_mass = integrated[1:4] / volume
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/trimesh/triangles.py:302: RuntimeWarning: invalid value encountered in divide
+  center_mass = integrated[1:4] / volume
+  [OK]  Pipe_Vice_45/Pipe_Vice_45.STEP — 30 nodes  44 edges  (107.5s)
+  [159/193] Parsing: Pipe_Vice_46/Pipe_Vice_46.stp
+  [OK]  Pipe_Vice_46/Pipe_Vice_46.stp — 6 nodes  6 edges  (4.0s)
+  [160/193] Parsing: Pipe_Vice_48/Pipe_Vice_48.step
+  [OK]  Pipe_Vice_48/Pipe_Vice_48.step — 8 nodes  8 edges  (6.5s)
+  [161/193] Parsing: Pipe_Vice_49/Pipe_Vice_49.STEP
+  [OK]  Pipe_Vice_49/Pipe_Vice_49.STEP — 19 nodes  24 edges  (77.7s)
+  [162/193] Parsing: Pipe_Vice_50/Pipe_Vice_50.stp
+  [OK]  Pipe_Vice_50/Pipe_Vice_50.stp — 8 nodes  8 edges  (3.4s)
+  [163/193] Parsing: Pipe_Vice_51/Pipe_Vice_51.step
+  [OK]  Pipe_Vice_51/Pipe_Vice_51.step — 6 nodes  3 edges  (5.0s)
+  [164/193] Parsing: Pipe_Vice_53/Pipe_Vice_53.step
+  [OK]  Pipe_Vice_53/Pipe_Vice_53.step — 5 nodes  2 edges  (4.3s)
+  [165/193] Parsing: Press_Tool_02/Press_Tool_02.stp
+  [OK]  Press_Tool_02/Press_Tool_02.stp — 10 nodes  16 edges  (4.3s)
+  [166/193] Parsing: Press_Tool_04/Press_Tool_04.stp
+  [OK]  Press_Tool_04/Press_Tool_04.stp — 98 nodes  148 edges  (8.0s)
+  [167/193] Parsing: Press_Tool_05/Press_Tool_05.stp
+  [OK]  Press_Tool_05/Press_Tool_05.stp — 14 nodes  16 edges  (3.5s)
+  [168/193] Parsing: Press_Tool_06/Press_Tool_06.STEP
+  [OK]  Press_Tool_06/Press_Tool_06.STEP — 10 nodes  12 edges  (3.5s)
+  [169/193] Parsing: Press_Tool_07/Press_Tool_07.stp
+  [OK]  Press_Tool_07/Press_Tool_07.stp — 170 nodes  284 edges  (6.4s)
+  [170/193] Parsing: Press_Tool_08/Press_Tool_08.step
+  [OK]  Press_Tool_08/Press_Tool_08.step — 178 nodes  275 edges  (126.9s)
+  [171/193] Parsing: Press_Tool_09/Press_Tool_09.STEP
+  [OK]  Press_Tool_09/Press_Tool_09.STEP — 89 nodes  147 edges  (15.5s)
+  [172/193] Parsing: Press_Tool_10/Press_Tool_10.step
+  [OK]  Press_Tool_10/Press_Tool_10.step — 145 nodes  244 edges  (60.2s)
+  [173/193] Parsing: Press_Tool_12/Press_Tool_12.STEP
+  [OK]  Press_Tool_12/Press_Tool_12.STEP — 198 nodes  344 edges  (33.2s)
+  [174/193] Parsing: Press_Tool_13/Press_Tool_13.stp
+  [OK]  Press_Tool_13/Press_Tool_13.stp — 10 nodes  12 edges  (3.4s)
+  [175/193] Parsing: Press_Tool_14/Press_Tool_14.stp
+  [OK]  Press_Tool_14/Press_Tool_14.stp — 10 nodes  12 edges  (3.4s)
+  [176/193] Parsing: Press_Tool_15/Press_Tool_15.stp
+  [OK]  Press_Tool_15/Press_Tool_15.stp — 10 nodes  12 edges  (3.4s)
+  [177/193] Parsing: Press_Tool_16/Press_Tool_16.stp
+  [OK]  Press_Tool_16/Press_Tool_16.stp — 10 nodes  12 edges  (3.3s)
+  [178/193] Parsing: Press_Tool_17/Press_Tool_17.step
+  [OK]  Press_Tool_17/Press_Tool_17.step — 10 nodes  12 edges  (3.3s)
+  [179/193] Parsing: Press_Tool_18/Press_Tool_18.step
+  [OK]  Press_Tool_18/Press_Tool_18.step — 8 nodes  6 edges  (6.5s)
+  [180/193] Parsing: Press_Tool_19/Press_Tool_19.step
+  [OK]  Press_Tool_19/Press_Tool_19.step — 37 nodes  71 edges  (12.1s)
+  [181/193] Parsing: Press_Tool_21/Press_Tool_21.stp
+  [OK]  Press_Tool_21/Press_Tool_21.stp — 43 nodes  72 edges  (4.5s)
+  [182/193] Parsing: Press_Tool_23/Press_Tool_23.stp
+  [OK]  Press_Tool_23/Press_Tool_23.stp — 10 nodes  12 edges  (3.8s)
+  [183/193] Parsing: Press_Tool_24/Press_Tool_24.STEP
+  [OK]  Press_Tool_24/Press_Tool_24.STEP — 10 nodes  12 edges  (3.4s)
+  [184/193] Parsing: Press_Tool_25/Press_Tool_25.stp
+  [OK]  Press_Tool_25/Press_Tool_25.stp — 14 nodes  20 edges  (3.4s)
+  [185/193] Parsing: Press_Tool_26/Press_Tool_26.step
+  [OK]  Press_Tool_26/Press_Tool_26.step — 16 nodes  16 edges  (15.9s)
+  [186/193] Parsing: Tool_Post_01/Tool_Post_01.step
+  [OK]  Tool_Post_01/Tool_Post_01.step — 31 nodes  42 edges  (4.5s)
+  [187/193] Parsing: Tool_Post_02/Tool_Post_02.stp
+  [OK]  Tool_Post_02/Tool_Post_02.stp — 28 nodes  25 edges  (90.8s)
+  [188/193] Parsing: Tool_Post_05/Tool_Post_05.STEP
+  [OK]  Tool_Post_05/Tool_Post_05.STEP — 54 nodes  68 edges  (53.9s)
+  [189/193] Parsing: Tool_Post_08/Tool_Post_08.stp
+  [OK]  Tool_Post_08/Tool_Post_08.stp — 15 nodes  19 edges  (4.6s)
+  [190/193] Parsing: Tool_Post_10/Tool_Post_10.stp
+  [OK]  Tool_Post_10/Tool_Post_10.stp — 50 nodes  50 edges  (11.1s)
+  [191/193] Parsing: Tool_Post_13/Tool_Post_13.stp
+  [OK]  Tool_Post_13/Tool_Post_13.stp — 27 nodes  36 edges  (3.7s)
+  [192/193] Parsing: Tool_Post_14/Tool_Post_14.stp
+  [OK]  Tool_Post_14/Tool_Post_14.stp — 24 nodes  30 edges  (4.1s)
+  [193/193] Parsing: Tool_Post_17/Tool_Post_17.STEP
+  [OK]  Tool_Post_17/Tool_Post_17.STEP — 31 nodes  45 edges  (18.6s)
+  Parsed 192 new  |  cached: 0  errors: 1  timeouts: 0
+Done!
+  Using 192 real assembly graph(s) — no synthetic data.
+  Saved 192 graphs → data/processed/processed/data.pt
+  Saved source paths    → data/processed/processed/sources.json
+  Saved categories      → data/processed/processed/categories.json
+
+DONE — 192 graphs loaded.
+Node-feature type counts across reprocessed corpus:
+  long_shaft   383
+  short_shaft  309
+  thick_plate  622
+  thin_plate   415
+  bolt         577
+  washer       254
+  nut          607
+  body         2000

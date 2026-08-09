@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Phase 2 — Third Guidance Call Review</title>
+<style>
+  :root {
+    --bg: #0a121f; --panel: #101c30; --card: #142338; --border: #24405f;
+    --text: #e6edf5; --muted: #8aa0b8; --accent: #5b9bd5; --accent2: #8b5cf6;
+    --good: #4caf82; --warn: #f0a83c; --bad: #ef5a5a;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--bg); color: var(--text);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .slide {
+    display: none; flex-direction: column; justify-content: center;
+    height: calc(100vh - 54px); width: 100%; padding: 32px 64px; overflow-y: auto;
+  }
+  .slide.active { display: flex; }
+  .kicker { color: var(--accent); font-size: 0.85rem; font-weight: 700; letter-spacing: 0.08em;
+            text-transform: uppercase; margin-bottom: 8px; }
+  h1 { font-size: 2.3rem; margin: 0 0 6px; }
+  h2 { font-size: 1.6rem; margin: 0 0 16px; color: var(--text); }
+  .sub { color: var(--muted); font-size: 0.95rem; margin-bottom: 22px; }
+  .grid { display: grid; gap: 14px; }
+  .grid2 { grid-template-columns: 1fr 1fr; }
+  .grid3 { grid-template-columns: 1fr 1fr 1fr; }
+  .grid4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .card h3 { margin: 0 0 10px; font-size: 1.0rem; color: var(--accent); }
+  .card h3.done { color: var(--good); }
+  .card h3.plan { color: var(--accent2); }
+  .card h3.risk { color: var(--warn); }
+  .card h3.wip { color: var(--warn); }
+  ul { margin: 0; padding-left: 20px; }
+  li { margin-bottom: 6px; font-size: 0.88rem; line-height: 1.42; color: #cfd9e6; }
+  li b, li strong { color: var(--text); }
+  code { background: rgba(91,155,213,0.12); padding: 1px 5px; border-radius: 4px; font-size: 0.85em; }
+  .badge {
+    display: inline-block; background: rgba(91,155,213,0.15); color: var(--accent);
+    border: 1px solid var(--accent); border-radius: 4px; padding: 1px 8px;
+    font-size: 0.7rem; font-weight: 700; margin-left: 8px;
+  }
+  .badge.wip { background: rgba(240,168,60,0.15); color: var(--warn); border-color: var(--warn); }
+  .badge.done { background: rgba(76,175,130,0.15); color: var(--good); border-color: var(--good); }
+  .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 14px 0; }
+  .fbox {
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 9px 12px; font-size: 0.8rem; text-align: center; flex: 1; min-width: 120px;
+  }
+  .fbox.new { border-color: var(--accent2); background: rgba(139,92,246,0.10); }
+  .fbox.old { opacity: 0.6; }
+  .arrow { color: var(--muted); font-size: 1.0rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  th, td { padding: 6px 9px; text-align: left; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; }
+  .metric-row td:nth-child(2) { color: var(--accent); font-weight: 700; }
+  .footer {
+    height: 54px; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; border-top: 1px solid var(--border); background: var(--panel);
+    font-size: 0.8rem; color: var(--muted); flex-shrink: 0;
+  }
+  .dots { display: flex; gap: 6px; flex-wrap: wrap; max-width: 50vw; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: #2a4060; cursor: pointer; }
+  .dot.active { background: var(--accent); }
+  .navbtn {
+    background: var(--card); border: 1px solid var(--border); color: var(--text);
+    border-radius: 6px; padding: 6px 14px; cursor: pointer; font-size: 0.85rem;
+  }
+  .navbtn:hover { border-color: var(--accent); }
+  .center { display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100%; text-align: center; }
+  .qa-item { margin-bottom: 14px; }
+  .qa-item .q { color: var(--accent2); font-weight: 700; font-size: 0.92rem; margin-bottom: 4px; }
+  .qa-item .a { color: #cfd9e6; font-size: 0.86rem; }
+  .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .bar-label { width: 110px; font-size: 0.8rem; color: #cfd9e6; flex-shrink: 0; }
+  .bar-track { flex: 1; background: #0d1a2c; border-radius: 4px; height: 16px; overflow: hidden; }
+  .bar-fill { height: 100%; background: var(--accent); }
+  .bar-fill.new { background: var(--accent2); }
+  .bar-fill.live { background: var(--warn); }
+  .bar-val { width: 70px; text-align: right; font-size: 0.78rem; color: var(--muted); flex-shrink: 0; }
+  .pill-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .pill { background: rgba(91,155,213,0.12); border: 1px solid var(--border); border-radius: 20px;
+          padding: 3px 12px; font-size: 0.75rem; color: var(--text); }
+  .diagram-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+                  padding: 18px 22px; }
+  .dia-row { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+  .dia-box { background: #0d1a2c; border: 1px solid var(--border); border-radius: 8px;
+             padding: 10px 14px; font-size: 0.82rem; text-align: center; min-width: 150px; }
+  .dia-box.p1 { border-color: var(--accent); }
+  .dia-box.p2 { border-color: var(--good); background: rgba(76,175,130,0.07); }
+  .dia-box.p3 { border-color: var(--accent2); background: rgba(139,92,246,0.07); border-style: dashed; }
+  .dia-box.out { border-color: var(--warn); background: rgba(240,168,60,0.08); }
+  .dia-box.new { border-color: var(--warn); background: rgba(240,168,60,0.10); border-style: dashed; }
+  .dia-arrow-down { text-align: center; color: var(--muted); font-size: 1.1rem; margin: 2px 0; width: 100%; }
+  .live-dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--warn);
+              margin-right:6px; box-shadow:0 0 0 0 rgba(240,168,60,0.6); animation: pulse 1.6s infinite; }
+  @keyframes pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(240,168,60,0.55); }
+    70%  { box-shadow: 0 0 0 7px rgba(240,168,60,0); }
+    100% { box-shadow: 0 0 0 0 rgba(240,168,60,0); }
+  }
+</style>
+</head>
+<body>
+
+<!-- Slide 1 — Title -->
+<div class="slide active" id="s1">
+  <div class="center">
+    <div class="kicker">Phase 2 · Fastener-Scoped Prediction &amp; Generation</div>
+    <h1 style="font-size:2.6rem;">Third Guidance Call Review</h1>
+    <p class="sub" style="font-size:1.1rem;">AI-Assisted 3D Assembly Design</p>
+    <div style="margin-top:22px;color:#cfd9e6;">
+      <div><b>Presented by:</b> Parthasarathy Perumal &nbsp;·&nbsp; SRN PES2PGE24DS193</div>
+      <div style="margin-top:4px;"><b>Presented to:</b> Prof. Gaurav Siwal (Phase 2 Guide)</div>
+      <div style="margin-top:4px;color:var(--muted);">MTECH — Data Science &amp; AI, PES University Bengaluru</div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 2 — Agenda -->
+<div class="slide" id="s2">
+  <div class="kicker">Agenda</div>
+  <h2>What we'll cover today</h2>
+  <div class="grid grid2">
+    <div class="card">
+      <h3>Where we left off</h3>
+      <ul>
+        <li>Last call ended on an open question: prune the corpus, or scope to fasteners?</li>
+        <li><b>Chose Option B — scope to fasteners</b> (Bolt / Washer / Nut) — this call covers what came of it</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="plan">This cycle's work</h3>
+      <ul>
+        <li>Shape generation narrowed to fasteners; a real orientation bug found and fixed</li>
+        <li>New geometric per-hole fastener detection, replacing a template-count guess</li>
+        <li>Streamlit UI reworked around the new hole-based pipeline</li>
+        <li>A classifier over-generalization bug found via the new pipeline, fixed, and a fresh encoder retrain (R34) is running live as of this call</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 3 — Since last meeting overview -->
+<div class="slide" id="s3">
+  <div class="kicker">Recap</div>
+  <h2>Since the last guidance call <span class="badge done">5 workstreams</span></h2>
+  <div class="grid grid2">
+    <div class="card">
+      <h3 class="done">1. Fastener scoping decided &amp; shipped</h3>
+      <ul>
+        <li>Shape <i>generation</i> narrowed to Bolt / Washer / Nut only</li>
+        <li>Detection across all 8 types is unchanged — non-fastener misses still reported, just no ghost mesh</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="done">2. Orientation bug found &amp; fixed</h3>
+      <ul>
+        <li>Bolts were aligning on their short axis, not their long axis, in some cases</li>
+        <li>Generated/retrieved meshes now rotate onto the real joint axis from the open surface's geometry</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="done">3. Geometric per-hole detection</h3>
+      <ul>
+        <li>Individual bolt-hole candidates detected directly from cylindrical faces, not inferred from a category template count</li>
+        <li>Shape generation now runs per detected hole instead of being capped by an often-wrong template guess</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="wip">4. UI rework + classifier bugfix → R34 retrain (live)</h3>
+      <ul>
+        <li>3D viewer and results panel reworked around collapsible sections and the new hole overlays</li>
+        <li>Found and fixed a classifier over-generalization bug; full corpus reprocessed; encoder retrain in progress now</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 4 — Why fasteners: recap of the decision -->
+<div class="slide" id="s4">
+  <div class="kicker">Decision Recap</div>
+  <h2>Why fasteners — the case made last time, now acted on</h2>
+  <p class="sub">Last call posed two options for making training and generation more tractable on a single M1 MacBook with no dedicated GPU. We went with Option B.</p>
+  <div class="grid grid2">
+    <div class="card">
+      <h3 style="color:var(--muted);">Option A — prune the corpus <span style="color:var(--muted);font-weight:400;">(not taken)</span></h3>
+      <ul>
+        <li>Drop Gate Valve / Tool Post categories, keep 143 cleaner assemblies</li>
+        <li>Would have reduced category diversity going into Phase 3 report review</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="done">Option B — scope to fasteners <span class="badge done">Taken</span></h3>
+      <ul>
+        <li>Bolt / Washer / Nut are the most abundant classes (~28% of all bodies) and the most geometrically consistent <i>across every category</i></li>
+        <li>Keeps the full 193-folder / 7-category corpus intact for Phase 1 detection and Phase 2 ranking</li>
+        <li>Only the Phase 3 <i>generation</i> target is narrowed — a smaller, more tractable shape space</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 5 — Shape gen narrowed + orientation fix -->
+<div class="slide" id="s5">
+  <div class="kicker">Phase 3 — Shape Generation</div>
+  <h2>Narrowed to fasteners, and a real orientation bug fixed</h2>
+  <div class="grid grid2">
+    <div class="card">
+      <h3>What changed</h3>
+      <ul>
+        <li>Training samples restricted to fastener-type bodies only; 18 folders with zero fastener bodies excluded (Phase 1/2 corpus untouched)</li>
+        <li>Augmentation extended from 90°-only rotation to continuous-angle rotation plus scale/occupancy jitter</li>
+        <li>Non-fastener missing components still surface in the text-only "Expected Components Missing" panel — they just don't get a generated mesh</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="risk">The bug, and the fix</h3>
+      <ul>
+        <li>Comparing only shortest/longest bounding-box extent can't distinguish a bolt's rod shape from a washer's disk shape when both share the same extreme ratio</li>
+        <li>Bolts were sometimes aligning their <i>short</i> axis onto the joint instead of their <i>long</i> axis</li>
+        <li>Fixed by using the middle extent too, and by orienting onto the open surface's real bore-axis (<code>normal_hint</code>) instead of the part bank's arbitrary canonical pose</li>
+      </ul>
+    </div>
+  </div>
+  <table style="margin-top:14px;">
+    <tr><th>Metric (fastener-only VAE)</th><th>Before</th><th>After retrain</th></tr>
+    <tr class="metric-row"><td>Test IoU</td><td>0.5192</td><td>0.6113</td></tr>
+    <tr><td>Test Chamfer</td><td>0.0424</td><td>0.0442 <span style="color:var(--muted);">(flat within per-epoch noise)</span></td></tr>
+  </table>
+</div>
+
+<!-- Slide 6 — Geometric per-hole detection: motivation -->
+<div class="slide" id="s6">
+  <div class="kicker">Phase 3 — Detection Redesign</div>
+  <h2>From "one guess per category" to "one hole, one detection"</h2>
+  <div class="card" style="border-color:var(--warn);">
+    <h3 class="risk">The problem this replaces</h3>
+    <p style="font-size:0.9rem;color:#cfd9e6;margin:0 0 8px;">
+      Shape generation used to be capped by the assembly-template's predicted missing count per type — an
+      approximate per-category <i>median</i>. When the template match itself was wrong or low-confidence, this
+      could be wildly off: observed case — the template predicted <b>1 missing bolt</b> for an assembly that
+      actually had <b>12</b> real empty bolt holes.
+    </p>
+  </div>
+  <div class="flow" style="margin-top:16px;">
+    <div class="fbox old">Template missing-count guess<br><span style="color:var(--muted);">per-category median</span></div>
+    <div class="arrow">✕</div>
+    <div class="fbox">capped how many ghosts could ever appear</div>
+  </div>
+  <div class="flow">
+    <div class="fbox new">Every detected hole<br><span style="color:var(--accent2);">geometric, per-hole</span></div>
+    <div class="arrow">→</div>
+    <div class="fbox new">scored directly against Bolt/Washer/Nut shape-fit</div>
+    <div class="arrow">→</div>
+    <div class="fbox new">ghost only if fit score clears a floor (0.3)</div>
+  </div>
+</div>
+
+<!-- Slide 7 — Per-hole detection: how it works -->
+<div class="slide" id="s7">
+  <div class="kicker">Phase 3 — Detection Redesign</div>
+  <h2>New per-hole candidate pipeline (<code>surface_analyzer.py</code>)</h2>
+  <div class="grid grid3">
+    <div class="card">
+      <h3>1. Candidate faces</h3>
+      <ul>
+        <li>Every free cylindrical face becomes a hole candidate — independent of the whole-face octree path, whose area threshold is calibrated for big faces, not small hole walls</li>
+        <li>Filtered by plausible diameter (2–50mm) and minimum depth (1mm) to exclude witness-mark slivers</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>2. Pattern requirement</h3>
+      <ul>
+        <li>A real fastener-hole pattern repeats (a bolt circle, a corner pattern)</li>
+        <li>A one-off bore of a "plausible" diameter (e.g. a central tool or shaft bore) is a single unmatched instance — excluded by requiring ≥2 same-diameter candidates on the same body</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>3. Coaxial merge</h3>
+      <ul>
+        <li>A counterbore + its narrower clearance bore are two separate topological faces for the same physical hole</li>
+        <li>Merged via bore-axis + position tolerance (3mm), keeping the wider face as the representative opening</li>
+      </ul>
+    </div>
+  </div>
+  <p class="sub" style="margin-top:14px;">
+    Bore axis is derived from two parametric point samples on the face (not the bbox-thinness heuristic used for
+    whole-face regions), which stays accurate for shallow, wide holes where that heuristic breaks down. Hole
+    candidates bypass the octree/<code>max_surfaces</code> cap entirely — each is a genuine separate joint, not a
+    duplicate of a neighboring region.
+  </p>
+</div>
+
+<!-- Slide 8 — Wiring change -->
+<div class="slide" id="s8">
+  <div class="kicker">Phase 3 — Detection Redesign</div>
+  <h2>Wired straight through — API, inference, UI</h2>
+  <div class="diagram-card">
+    <div class="dia-row">
+      <div class="dia-box p1">surface_analyzer.py<br><span style="color:var(--muted);">is_hole=True candidates + bbox</span></div>
+      <div class="arrow">→</div>
+      <div class="dia-box p1">api.py<br><span style="color:var(--muted);">now forwards bbox / is_hole</span></div>
+      <div class="arrow">→</div>
+      <div class="dia-box new">app.py — per-hole loop<br><span style="color:var(--muted);">no template count gate</span></div>
+    </div>
+    <div class="dia-arrow-down">↓</div>
+    <div class="dia-row">
+      <div class="dia-box p3">PartBank.query() fit-score<br><span style="color:var(--muted);">vs. Bolt / Washer / Nut</span></div>
+      <div class="arrow">→</div>
+      <div class="dia-box p3">best type if fit ≥ 0.3</div>
+      <div class="arrow">→</div>
+      <div class="dia-box out">generate_missing_shape()<br><span style="color:var(--muted);">oriented onto the hole's bore axis</span></div>
+    </div>
+  </div>
+  <p class="sub" style="margin-top:14px;">
+    The template match still drives the text-only "Expected Components Missing" panel for non-fastener types,
+    where geometric hole detection doesn't apply — the two paths run side by side, not one replacing the other.
+  </p>
+</div>
+
+<!-- Slide 9 — UI rework -->
+<div class="slide" id="s9">
+  <div class="kicker">UI</div>
+  <h2>3D viewer &amp; results panel reworked</h2>
+  <div class="grid grid2">
+    <div class="card">
+      <h3>Results panel (Input side)</h3>
+      <ul>
+        <li>Split into independently collapsible sections (Assembly Type, Not Assembled, Potentially Missing, Expected Components Missing, Next Component, Open Joints, Suggested Shapes)</li>
+        <li>Removed the "AI Predicted Missing Links" section and the redundant N-Fold CV breakdown expander</li>
+        <li>Val AUC / Test AUC / Test AP badges consolidated into the sidebar, single line</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>3D viewer (Results side)</h3>
+      <ul>
+        <li>Single synced upload flow — viewer no longer has its own independent file uploader</li>
+        <li>New Original/Result toggle and a Highlight on/off toggle</li>
+        <li>Legend grouped by category with a per-group "select all", each item still individually selectable</li>
+        <li>Recoloured: Not Assembled red → amber, Suggested Shapes sky-blue → red</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px;">
+    <h3 class="done">Also this cycle</h3>
+    <ul>
+      <li>Dark-theme contrast bug fixed — Assembly Type label now reads Streamlit's actual active theme instead of a hardcoded colour</li>
+      <li>AIDA's explanation gained a 4th data category: <b>Suggested Missing-Part Shapes</b> (type, retrieved-vs-generated, location fit, confidence)</li>
+      <li>Sidebar's 3D-file upload/training controls removed — training still runs from the terminal per project convention</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Slide 10 — Classifier bugfix -->
+<div class="slide" id="s10">
+  <div class="kicker">Modeling — Classifier Fix</div>
+  <h2>Found via the new pipeline: an over-generalized nut/washer rule</h2>
+  <div class="card" style="border-color:var(--warn);">
+    <h3 class="risk">The bug</h3>
+    <p style="font-size:0.9rem;color:#cfd9e6;margin:0 0 8px;">
+      Nut/Washer classification relies on relative shape ratios (flatness, elongation, hole presence) — but relative
+      ratios alone can't tell a small hex nut from a large multi-hole plate; both can be "not elongated, flat,
+      has holes." Testing the new hole-detection pipeline surfaced cases of oversized bodies landing on Nut/Washer.
+    </p>
+  </div>
+  <div class="card" style="margin-top:12px;">
+    <h3 class="done">The fix</h3>
+    <ul>
+      <li>New absolute-size gate: <code>max_fastener_extent = 100mm</code> — a body's longest extent must be below this to qualify for the Nut or Washer branches at all</li>
+      <li>Set generously above the largest real fastener observed in the corpus (a 62mm hex clamping nut)</li>
+      <li>Oversized candidates that would have matched the shape ratios are now explicitly logged (<code>oversized-for-washer-or-nut</code>) rather than silently reclassified</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Slide 11 — Reprocess + class balance shift -->
+<div class="slide" id="s11">
+  <div class="kicker">Modeling — Classifier Fix</div>
+  <h2>Full corpus reprocessed under the fixed classifier</h2>
+  <p class="sub">193 folders reprocessed (192 parsed, 1 pre-existing error) — class balance shifts modestly, as expected: some previously over-eager Nut/Washer calls move to Thick Plate / Body.</p>
+  <div class="bar-row"><div class="bar-label">Body</div><div class="bar-track"><div class="bar-fill new" style="width:38.5%;"></div></div><div class="bar-val">38.5% <span style="color:var(--muted);">(37.7)</span></div></div>
+  <div class="bar-row"><div class="bar-label">Thick Plate</div><div class="bar-track"><div class="bar-fill new" style="width:12.2%;"></div></div><div class="bar-val">12.2% <span style="color:var(--muted);">(11.3)</span></div></div>
+  <div class="bar-row"><div class="bar-label">Nut</div><div class="bar-track"><div class="bar-fill new" style="width:11.8%;"></div></div><div class="bar-val">11.8% <span style="color:var(--muted);">(13.0)</span></div></div>
+  <div class="bar-row"><div class="bar-label">Bolt</div><div class="bar-track"><div class="bar-fill new" style="width:11.2%;"></div></div><div class="bar-val">11.2% <span style="color:var(--muted);">(11.2)</span></div></div>
+  <div class="bar-row"><div class="bar-label">Thin Plate</div><div class="bar-track"><div class="bar-fill new" style="width:8.0%;"></div></div><div class="bar-val">8.0% <span style="color:var(--muted);">(7.8)</span></div></div>
+  <div class="bar-row"><div class="bar-label">Long Shaft</div><div class="bar-track"><div class="bar-fill new" style="width:7.4%;"></div></div><div class="bar-val">7.4% <span style="color:var(--muted);">(7.5)</span></div></div>
+  <div class="bar-row"><div class="bar-label">Short Shaft</div><div class="bar-track"><div class="bar-fill new" style="width:6.0%;"></div></div><div class="bar-val">6.0% <span style="color:var(--muted);">(6.1)</span></div></div>
+  <div class="bar-row"><div class="bar-label">Washer</div><div class="bar-track"><div class="bar-fill new" style="width:5.0%;"></div></div><div class="bar-val">5.0% <span style="color:var(--muted);">(5.5)</span></div></div>
+  <p class="sub" style="margin-top:10px;">(previous R33-era share shown in parentheses) — 5,131 bodies audited across 193 folders; class balance direction confirms the fix is doing what it was meant to, not distorting the corpus.</p>
+</div>
+
+<!-- Slide 12 — R34 live training -->
+<div class="slide" id="s12">
+  <div class="kicker">Training Status</div>
+  <h2><span class="live-dot"></span>R34 — Phase 1 encoder retrain, running live as of this call</h2>
+  <p class="sub">Kicked off against the reprocessed corpus (192 graphs) to pick up the classifier fix. 5-fold CV, same architecture as R30/R33 (RGATConv + TypedLinear). Numbers below are partial — the run is still in progress.</p>
+  <table>
+    <tr><th>Fold</th><th>Test AUC</th><th>Test AP</th><th>Status</th></tr>
+    <tr class="metric-row"><td>1</td><td>0.6323</td><td>0.7975</td><td style="color:var(--good);">Done</td></tr>
+    <tr class="metric-row"><td>2</td><td>0.5280</td><td>0.6996</td><td style="color:var(--good);">Done</td></tr>
+    <tr class="metric-row"><td>3</td><td>0.4899</td><td>0.6773</td><td style="color:var(--good);">Done</td></tr>
+    <tr><td>4</td><td colspan="2" style="color:var(--warn);">in progress — best val AUC so far 0.66</td><td style="color:var(--warn);">Running</td></tr>
+    <tr><td>5</td><td colspan="2" style="color:var(--muted);">not started</td><td style="color:var(--muted);">Pending</td></tr>
+  </table>
+  <div class="card" style="margin-top:14px;">
+    <h3 class="wip">Reported honestly, not padded for the call</h3>
+    <ul>
+      <li>These are live numbers pulled from the training log while this deck was built — nothing here is final</li>
+      <li>Promotion decision (does R34 replace R33 as <code>best_serving.pt</code>?) will follow the same evidence-based gate used for R30→R33</li>
+      <li>Part bank and Shape VAE retrains against R34 are queued next, sequentially — not run in parallel, per the standing M1/MPS memory constraint</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Slide 13 — Infra fix -->
+<div class="slide" id="s13">
+  <div class="kicker">Infrastructure</div>
+  <h2>Small but real: worker-kill timeout bug fixed</h2>
+  <div class="card">
+    <ul>
+      <li><code>audit_component_types.py</code> used unconditional <code>p.join()</code> right after <code>p.kill()</code> — on macOS, a gmsh/OpenCASCADE child that ignores SIGKILL can block that join for minutes</li>
+      <li>Fixed with the same bounded-polling pattern already used in <code>dataset.py</code> / <code>part_bank.py</code> — trust an already-received result before checking process liveness</li>
+      <li>Verified via a full post-migration audit re-run: 193/193 folders processed, 1 timeout, class balance confirmed stable vs. pre-migration</li>
+    </ul>
+  </div>
+  <p class="sub" style="margin-top:14px;">Same category of bug found twice now (first in <code>part_bank.py</code>'s extraction worker, now here) — worth treating as a standing pattern to check whenever a new multiprocessing timeout path gets added to this codebase.</p>
+</div>
+
+<!-- Slide 14 — Open items -->
+<div class="slide" id="s14">
+  <div class="kicker">Discussion</div>
+  <h2>Open items &amp; questions for your input</h2>
+  <div class="qa-item">
+    <div class="q">1. R34 promotion criterion</div>
+    <div class="a">R33 and R34 share the same 8-class taxonomy (unlike the R30→R33 jump, which changed taxonomies), so this
+      should be a valid apples-to-apples AUC/AP comparison via the normal automatic promotion gate — confirming that's the
+      right call before it's applied.</div>
+  </div>
+  <div class="qa-item">
+    <div class="q">2. Fit-score floor for shape generation (0.3)</div>
+    <div class="a">The per-hole pipeline now generates a ghost whenever a fastener type's shape-fit score clears 0.3 — chosen
+      as a reasonable-looking floor, not yet tuned against a labelled precision/recall target. Worth discussing whether a
+      held-out set of "known-empty vs. known-filled" holes should be built to calibrate this properly.</div>
+  </div>
+  <div class="qa-item">
+    <div class="q">3. Carried over from last review</div>
+    <div class="a">GNNExplainer interpretability (still not started), MRR below target for NodeRanker, and the 39.5%
+      ambiguous-class bodies from the taxonomy audit remain open — none blocked on this cycle's fastener work, but
+      still on the list.</div>
+  </div>
+</div>
+
+<!-- Slide 15 — Next steps -->
+<div class="slide" id="s15">
+  <div class="kicker">Next Steps</div>
+  <h2>Plan going forward</h2>
+  <table>
+    <tr><th>Step</th><th>Status</th></tr>
+    <tr><td>Narrow shape generation to fasteners; fix orientation bug; retrain VAE</td><td style="color:var(--good);">Done</td></tr>
+    <tr><td>Geometric per-hole fastener detection, replacing template-count cap</td><td style="color:var(--good);">Done</td></tr>
+    <tr><td>3D viewer / results panel UI rework</td><td style="color:var(--good);">Done</td></tr>
+    <tr><td>Fix Nut/Washer over-generalization bug; reprocess corpus</td><td style="color:var(--good);">Done</td></tr>
+    <tr><td>R34 encoder retrain</td><td style="color:var(--warn);">Running now</td></tr>
+    <tr><td>Rebuild part bank + retrain Shape VAE + NodeRanker against R34</td><td style="color:var(--muted);">Queued next</td></tr>
+    <tr><td>Calibrate the 0.3 shape-fit floor against labelled hole outcomes</td><td style="color:var(--muted);">Planned</td></tr>
+    <tr><td>GNNExplainer integration for interpretability</td><td style="color:var(--muted);">Planned, carried over</td></tr>
+  </table>
+  <p class="sub" style="margin-top:24px;">Timeline: Phase 2 window is Jul – Sep 2026.</p>
+</div>
+
+<!-- Slide 16 — Thank you -->
+<div class="slide" id="s16">
+  <div class="center">
+    <h1>Thank you</h1>
+    <p class="sub" style="font-size:1.1rem;">Looking forward to your guidance on the R34 promotion criterion and shape-fit calibration.</p>
+  </div>
+</div>
+
+<div class="footer">
+  <span id="slideLabel">1 / 16</span>
+  <div class="dots" id="dots"></div>
+  <div>
+    <button class="navbtn" onclick="prev()">&larr; Prev</button>
+    <button class="navbtn" onclick="next()">Next &rarr;</button>
+  </div>
+</div>
+
+<script>
+  const SLIDE_ORDER = ['s1','s2','s3','s4','s5','s6','s7','s8','s9','s10','s11','s12','s13','s14','s15','s16'];
+  const TOTAL = SLIDE_ORDER.length;
+  let cur = 1;
+
+  function renderDots() {
+    const dots = document.getElementById('dots');
+    dots.innerHTML = '';
+    for (let i = 1; i <= TOTAL; i++) {
+      const d = document.createElement('div');
+      d.className = 'dot' + (i === cur ? ' active' : '');
+      d.onclick = () => go(i);
+      dots.appendChild(d);
+    }
+  }
+
+  function go(n) {
+    if (n < 1 || n > TOTAL) return;
+    document.getElementById(SLIDE_ORDER[cur - 1]).classList.remove('active');
+    cur = n;
+    document.getElementById(SLIDE_ORDER[cur - 1]).classList.add('active');
+    document.getElementById('slideLabel').textContent = cur + ' / ' + TOTAL;
+    renderDots();
+  }
+  function next() { go(cur + 1); }
+  function prev() { go(cur - 1); }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') next();
+    if (e.key === 'ArrowLeft') prev();
+  });
+
+  renderDots();
+</script>
+
+</body>
+</html>

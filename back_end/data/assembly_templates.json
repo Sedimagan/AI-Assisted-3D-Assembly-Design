@@ -28,7 +28,7 @@
     "component_counts": {
       "long_shaft": 1,
       "short_shaft": 1,
-      "thick_plate": 2,
+      "thick_plate": 1,
       "thin_plate": 1,
       "bolt": 1,
       "washer": 1,
@@ -51,7 +51,7 @@
     "component_counts": {
       "long_shaft": 2,
       "short_shaft": 3,
-      "thick_plate": 6,
+      "thick_plate": 5,
       "thin_plate": 2,
       "bolt": 1,
       "washer": 7,
@@ -75,7 +75,7 @@
       "long_shaft": 2,
       "short_shaft": 4,
       "thick_plate": 2,
-      "thin_plate": 3,
+      "thin_plate": 4,
       "bolt": 4,
       "washer": 3,
       "nut": 18,
@@ -96,7 +96,7 @@
     "label": "Pipe Vice",
     "component_counts": {
       "long_shaft": 1,
-      "short_shaft": 2,
+      "short_shaft": 1,
       "thick_plate": 1,
       "thin_plate": 2,
       "bolt": 1,
@@ -112,7 +112,7 @@
       "Pipe_Vice_07.STEP",
       "Pipe_Vice_08.STEP"
     ],
-    "n_assemblies": 39
+    "n_assemblies": 42
   },
   {
     "category": "press_tool",
@@ -121,13 +121,13 @@
       "long_shaft": 4,
       "short_shaft": 4,
       "thick_plate": 2,
-      "thin_plate": 5,
+      "thin_plate": 18,
       "bolt": 10,
-      "washer": 3,
+      "washer": 4,
       "nut": 4,
       "body": 5
     },
-    "total_bodies": 12,
+    "total_bodies": 14,
     "examples": [
       "Press_Tool_02.stp",
       "Press_Tool_04.stp",
@@ -135,7 +135,7 @@
       "Press_Tool_06.STEP",
       "Press_Tool_07.stp"
     ],
-    "n_assemblies": 20
+    "n_assemblies": 21
   },
   {
     "category": "tool_post",
@@ -146,9 +146,9 @@
       "thick_plate": 2,
       "thin_plate": 1,
       "bolt": 8,
-      "washer": 1,
-      "nut": 3,
-      "body": 10
+      "washer": 2,
+      "nut": 2,
+      "body": 11
     },
     "total_bodies": 30,
     "examples": [

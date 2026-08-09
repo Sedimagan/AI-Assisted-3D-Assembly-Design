@@ -17,6 +17,7 @@ first run if missing (can take a while; reparses the corpus once).
 from __future__ import annotations
 
 import argparse
+import gc
 import json
 import random
 from datetime import datetime
@@ -218,7 +219,7 @@ def epoch_pass(vae, gnn, samples, device, opt=None, augment=False, rng=None,
     ious, chamfers = [], []
     n_seen = 0
 
-    for partial, vox, comp_type_idx, bbox_norm, _assembly in samples:
+    for _i, (partial, vox, comp_type_idx, bbox_norm, _assembly) in enumerate(samples):
         if augment and rng is not None:
             vox = augment_voxel(vox, rng)
 
@@ -244,7 +245,21 @@ def epoch_pass(vae, gnn, samples, device, opt=None, augment=False, rng=None,
                 chamfers.append(chamfer_from_voxels(probs, vox_t.squeeze(0)))
         n_seen += 1
 
+        # Unbatched per-sample loop: `partial`'s node count varies sample to
+        # sample, and MPS caches a compiled graph executable per distinct
+        # tensor shape it sees with no automatic eviction (same root cause
+        # diagnosed in train.py's train_epoch — see its comments). Left
+        # unchecked this grows unbounded over hundreds of samples/epoch and
+        # thrashes swap (observed: this exact leak, 19GB+ RSS, mid-run).
+        # Clear periodically, same proven mitigation as train.py.
+        if device.type == "mps" and (_i + 1) % 10 == 0:
+            gc.collect()
+            torch.mps.empty_cache()
+
     n_seen = max(1, n_seen)
+    if device.type == "mps":
+        gc.collect()
+        torch.mps.empty_cache()
     if is_train:
         return total_loss / n_seen
     return {

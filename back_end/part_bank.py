@@ -57,7 +57,18 @@ def _extract_bodies_worker(step_path: str, result_queue: "_mp.Queue") -> None:
                 gmsh.model.occ.fragment(volumes, [])
                 gmsh.model.occ.synchronize()
                 volumes = gmsh.model.occ.getEntities(3)
-                gmsh.model.mesh.generate(2)
+                # Some STEP files have surfaces gmsh can't triangulate (e.g.
+                # "Impossible to mesh periodic surface") — dataset.py's
+                # _parse_step already isolates this exact call in its own
+                # try/except so one bad face degrades gracefully rather than
+                # aborting the whole assembly; mirror that here. Per-body
+                # _build_trimesh() below already handles a partially-meshed
+                # (or unmeshed) model by returning None for bodies it can't
+                # build, which the `if tm is None` check just below skips.
+                try:
+                    gmsh.model.mesh.generate(2)
+                except Exception:
+                    pass
 
                 # body_index = position in this enumeration — matches
                 # dataset.py's node ordering exactly (same

@@ -73,7 +73,8 @@
       "Bash(bash auto_recover.sh)",
       "Bash(echo \"auto_recover PID: $!\")",
       "Skill(update-config)",
-      "Skill(loop)"
+      "Skill(loop)",
+      "Bash(awk '{ print length, NR }' Review_files/Phase2-Second_Guidance_call_review.html)"
     ],
     "defaultMode": "bypassPermissions"
   }

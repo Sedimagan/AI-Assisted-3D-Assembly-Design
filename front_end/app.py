@@ -666,16 +666,24 @@ def _run_inference(step_bytes: bytes,
             pass
 
         # ── Shape generation for missing components (Phase 3) ─────────────────
-        # Pairs each template-predicted missing type/count with the best-fitting
-        # open-joint location (by bbox-shape similarity, via PartBank.query's
-        # existing fit_score) and generates/retrieves a ghost-preview mesh.
+        # Every detected hole-shaped open surface (is_hole=True, from
+        # surface_analyzer's per-hole detection — a real bolt-hole pattern,
+        # not a one-off bore) is evaluated against all three fastener types
+        # directly via PartBank's shape-fit score. This is no longer capped by
+        # the template's per-type missing-count prediction, which is only an
+        # approximate per-category median and — when the template match itself
+        # is wrong or low-confidence — can be wildly off (observed: predicted
+        # 1 missing bolt for an assembly with 12 real empty bolt holes). The
+        # template match still drives the text-only "Expected Components
+        # Missing" panel (_tmpl_missing, unfiltered) for non-fastener types,
+        # where geometric hole-detection doesn't apply.
         _generated_parts = []
         _svae_path = {repr(str(_SHAPE_VAE_PATH))}
         _pbank_dir = {repr(str(_PART_BANK_DIR))}
-        if (_tmpl_missing and os.path.exists(_svae_path)
+        _MIN_FASTENER_FIT = 0.3
+        if (_open_surfs and os.path.exists(_svae_path)
                 and os.path.exists(os.path.join(_pbank_dir, "index.json"))):
             try:
-                from collections import Counter as _Counter
                 from infer import load_shape_generator, generate_missing_shape
 
                 with contextlib.redirect_stdout(io.StringIO()):
@@ -685,35 +693,23 @@ def _run_inference(step_bytes: bytes,
                 if _hsg is not None:
                     _bank = _hsg.retriever.bank
                     _gen_category = _tmpl_match["category"] if _tmpl_match else None
-                    _type_bank_counts = _Counter(e["comp_type"] for e in _bank.index)
-                    # Shape *generation* is scoped to fasteners only — other
-                    # missing types still get detected/listed in the text-only
-                    # "Expected Components Missing" panel (_tmpl_missing,
-                    # unfiltered), just no ghost mesh is generated for them.
                     _FASTENER_TYPES = {{"bolt", "washer", "nut"}}
-                    _remaining = {{
-                        m["type"]: m["count"] for m in _tmpl_missing
-                        if m["type"] in _FASTENER_TYPES
-                        and _type_bank_counts.get(m["type"], 0) > 0
-                    }}
-                    _surfs_by_size = sorted(_open_surfs, key=lambda s: s.get("area_ratio", 0), reverse=True)
+                    _hole_surfs = [s for s in _open_surfs if s.get("is_hole")]
+                    _hole_surfs.sort(key=lambda s: s.get("area_ratio", 0), reverse=True)
 
-                    for _surf in _surfs_by_size:
+                    for _surf in _hole_surfs:
                         _bbox = _surf.get("bbox")
-                        if not _bbox or not any(v > 0 for v in _remaining.values()):
+                        if not _bbox:
                             continue
                         _extents = [_bbox[3] - _bbox[0], _bbox[4] - _bbox[1], _bbox[5] - _bbox[2]]
 
-                        _best_t, _best_score = None, -1.0
-                        for _t, _cnt in _remaining.items():
-                            if _cnt <= 0:
-                                continue
+                        _best_t, _best_score = None, _MIN_FASTENER_FIT
+                        for _t in _FASTENER_TYPES:
                             _hits = _bank.query(_t, _gen_category, _extents, top_k=1)
                             if _hits and _hits[0].fit_score > _best_score:
                                 _best_t, _best_score = _t, _hits[0].fit_score
                         if _best_t is None:
                             continue
-                        _remaining[_best_t] -= 1
 
                         _sr = generate_missing_shape(
                             _hsg, gnn, graph, _best_t,

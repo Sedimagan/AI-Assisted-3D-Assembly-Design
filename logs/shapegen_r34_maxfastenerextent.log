@@ -1,0 +1,39 @@
+
+[1/6] Loading dataset …
+      192 graphs loaded.
+      train: 131  val: 33  test: 28
+
+[2/6] Loading frozen Phase-1 encoder …
+Model built on mps  |  total params: 2,441,745
+      Encoder frozen (val AUC=0.7364, trained_at=2026-08-09T11:48:05.427485)
+
+[3/6] Loading / building part bank …
+      Part bank: 4500 parts
+
+[4/6] Building leave-one-out samples …
+      Samples — train: 485  val: 102  test: 90
+
+[5/6] Building ConditionalShapeVAE …
+      VAE params: 6,457,665
+
+[6/6] Training (60 epochs) …
+  Ep   1/60  loss=0.6381  val_loss=0.4625  IoU=0.3989  chamfer=0.0548
+  Ep   2/60  loss=0.5720  val_loss=0.4342  IoU=0.4282  chamfer=0.0521
+  Ep   3/60  loss=0.5348  val_loss=0.4132  IoU=0.4507  chamfer=0.0485
+  Ep   4/60  loss=0.5192  val_loss=0.4082  IoU=0.4098  chamfer=0.0514
+  Ep   5/60  loss=0.5132  val_loss=0.3767  IoU=0.4929  chamfer=0.0436
+  Ep   6/60  loss=0.5094  val_loss=0.3820  IoU=0.5072  chamfer=0.0434
+  Ep   7/60  loss=0.4976  val_loss=0.3551  IoU=0.5152  chamfer=0.0451
+  Ep   8/60  loss=0.4962  val_loss=0.3599  IoU=0.5349  chamfer=0.0440
+  Ep   9/60  loss=0.4892  val_loss=0.3592  IoU=0.5076  chamfer=0.0432
+  Ep  10/60  loss=0.4878  val_loss=0.3400  IoU=0.5386  chamfer=0.0428
+  Ep  11/60  loss=0.4853  val_loss=0.4006  IoU=0.4681  chamfer=0.0536
+  Ep  12/60  loss=0.4823  val_loss=0.3570  IoU=0.5275  chamfer=0.0449
+  Ep  13/60  loss=0.4857  val_loss=0.3648  IoU=0.5484  chamfer=0.0420
+  Ep  14/60  loss=0.4829  val_loss=0.3789  IoU=0.4874  chamfer=0.0565
+  Ep  15/60  loss=0.4813  val_loss=0.3649  IoU=0.5396  chamfer=0.0439
+  Ep  16/60  loss=0.4795  val_loss=0.3392  IoU=0.5456  chamfer=0.0432
+  Ep  17/60  loss=0.4743  val_loss=0.3360  IoU=0.5462  chamfer=0.0439
+  Ep  18/60  loss=0.4725  val_loss=0.3428  IoU=0.5231  chamfer=0.0473
+  Ep  19/60  loss=0.4710  val_loss=0.3434  IoU=0.5057  chamfer=0.0503
+  Ep  20/60  loss=0.4722  val_loss=0.3541  IoU=0.5266  chamfer=0.0470

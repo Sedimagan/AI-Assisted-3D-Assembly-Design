@@ -16,6 +16,13 @@
 
 ## What's New (August 2026 — Phase 2/3)
 
+- **Fixed under-detected/malformed fastener suggestions.** `surface_analyzer.py`'s free-surface detector was designed to find whole-face regions, not individual holes — an assembly with 8+4 real empty bolt holes had them all collapsed into a single whole-body region, so at most 1 ghost bolt/nut/washer mesh was ever generated, sized to the whole face instead of the hole. Added a parallel per-hole candidate path: gmsh's cylindrical-face type query + a diameter/depth plausibility filter + a pattern-repetition check (a real bolt-hole pattern repeats — 2+ same-diameter holes on a body; a one-off functional bore, like a central tool or shaft bore, doesn't and is correctly excluded). Verified on a real 12-hole test assembly: 12/12 holes now detected and correctly filled (was 1, malformed).
+- **Decoupled fastener shape generation from the template's missing-count prediction** (`front_end/app.py`). `AssemblyTemplateDB`'s per-type count is only a category median from a small sample and was hard-capping generation — e.g. predicting 1 missing bolt for an assembly with 12 real empty holes whenever the template match was wrong or low-confidence. Generation is now driven directly by detected hole geometry + `PartBank`'s shape-fit score; the template match still drives the informational "Expected Components Missing" text panel for non-fastener types, just no longer gates the 3D ghost meshes.
+- **Fixed a rod-vs-disk misclassification bug** in `rotate_to_target_axis()` (`shape_generator.py`) — comparing only the shortest-vs-longest extent can't distinguish a bolt's rod shape (`[5,5,20]`) from a washer's disk shape (`[5,20,20]`) when both hit the same extremes ratio, so bolts were aligning their *short* (diameter) axis to the joint instead of their long (shaft) axis. Fixed using the middle extent to tell rods from disks.
+- **Added an absolute-size gate to the component-type classifier** (`max_fastener_extent` in `dataset.py`) — large multi-hole plates (e.g. a 150mm plate) were landing in the same relative-shape-ratio branch as small hex nuts/washers, since the classifier had no scale awareness at all. Corpus-wide audit confirmed the fix: Nut/Washer counts dropped ~10% each, redistributing correctly to Body/Thick Plate.
+- **R34 — full corpus reprocess + retrain under the corrected classifier.** Phase 1: Mean AUC 0.5306→**0.5561** ± 0.0257, Mean AP 0.7213→**0.7422** ± 0.0146 (best fold val AUC 0.7364) — promoted to `checkpoints/best_serving.pt`; real evidence that mislabeled training data was hurting Phase 1. Phase 2 (NodeRanker) and Phase 3 (shape-gen VAE) both **regressed** on the mandatory re-sync retrain — Hit@1 0.3869→0.3261 (now *below* the 0.3406 majority-class baseline), shape-gen IoU 0.6113→0.5516, chamfer 0.0442→0.0778 — open question for follow-up, not yet root-caused.
+- **Fixed a meshing-resilience gap in `part_bank.py`** — some STEP files have surfaces gmsh's mesher can't triangulate ("Impossible to mesh periodic surface"), which previously aborted extraction for the *whole* file instead of just that surface (mirrors a fix `dataset.py`'s `_parse_step` already had). Part bank grew from 3,221 → **4,500 parts** after the fix recovered previously-failed files.
+- **Fixed two separate MPS memory leaks during retraining** — `train.py`'s fold-to-fold boundary and `train_shape_gen.py`'s per-sample training loop both accumulate MPS's per-tensor-shape compiled-graph cache with no eviction; left unmitigated, RSS ran away to 19–51GB and thrashed swap, collapsing epoch times from ~90s to 15+ minutes. Fixed with periodic `gc.collect()`/`torch.mps.empty_cache()` clearing (same pattern `train.py`'s within-epoch loop already used).
 - **Migrated to the 8-class component taxonomy** (Long/Short Shaft, Thick/Thin Plate, Bolt, Washer, Nut, Body) — previously a candidate/audit-only scheme, now the *live* classifier used everywhere (`dataset.py`, `part_bank.py`, `app.py`'s single-body path). Replaces the old single-signal SDF rules (`fastener`/`bearing`/`shaft`/`plate`/`housing`/`gear`) with multi-signal voting (convex-hull ratio + ray-cast for through-holes, cylinder-fill + COM-offset + face-count for bolt heads). Triggered by a real bug: the old taxonomy's "bearing" class (1 example in the whole corpus) polluted a category's expected-components template and produced a spurious "1 bearing missing" report in the UI. `dataset.py` is now the single source of truth for `COMP_TYPES` and the classifier; `part_bank.py`, `app.py`, and `audit_component_types.py` import from it instead of duplicating.
 - **R33 — full retrain under the new taxonomy** (5-fold CV, same 193-folder/7-category corpus) — Mean AUC 0.5306 ± 0.0314, Mean AP 0.7213 ± 0.0209. Manually promoted to `checkpoints/best_serving.pt` (R30 backed up to `archive_r30/`) since R30 and R33 encode node-feature type-slots under completely different taxonomies and aren't a valid apples-to-apples AUC comparison — the automatic promotion gate was deliberately overridden for this one case.
 - **NodeRanker re-trained against R33** — Hit@1 0.3869, now **beating** the majority-class baseline (0.3650) — Hit@5 0.8467, MRR 0.5723, NDCG@5 0.6225. This resolves the prior below-baseline Hit@1 finding (0.2519 vs. baseline 0.5556 under the old taxonomy/R30).
@@ -592,7 +599,8 @@ python skills_agent.py
 After training completes a timestamped file is saved to `trained_models/`:
 
 ```
-trained_models/assembly_gnn_20260806_104442_auc06367.pt   ← R33 (22+6-dim, new 8-class taxonomy — long/short shaft, thick/thin plate, bolt, washer, nut, body — heterogeneous RGATConv+TypedLinear, same 193-folder/7-category corpus re-parsed under new taxonomy, best fold val AUC 0.6367, mean AUC 0.5306±0.0314, mean AP 0.7213±0.0209, 2026-08-06) — serving promoted ★ CURRENT (manually overridden gate — R30/R33 taxonomies aren't AUC-comparable)
+trained_models/assembly_gnn_20260809_114805_auc07364.pt   ← R34 (22+6-dim, same 8-class taxonomy, `max_fastener_extent` absolute-size classifier fix — stops large multi-hole plates misclassifying as nut/washer — full 193-folder corpus reprocessed under the corrected classifier, best fold val AUC 0.7364, mean AUC 0.5561±0.0257, mean AP 0.7422±0.0146, 2026-08-09) — serving promoted ★ CURRENT (beats R33 on both metrics, automatic gate)
+trained_models/assembly_gnn_20260806_104442_auc06367.pt   ← R33 (22+6-dim, new 8-class taxonomy — long/short shaft, thick/thin plate, bolt, washer, nut, body — heterogeneous RGATConv+TypedLinear, same 193-folder/7-category corpus re-parsed under new taxonomy, best fold val AUC 0.6367, mean AUC 0.5306±0.0314, mean AP 0.7213±0.0209, 2026-08-06) — superseded by R34 (manually overridden gate at the time — R30/R33 taxonomies aren't AUC-comparable)
 trained_models/assembly_gnn_20260731_*_auc06670.pt        ← R32 (22+6-dim, heterogeneous RGATConv+TypedLinear, 193-folder 7-category corpus post category-filter bugfix, best fold val AUC 0.6670, mean AUC 0.5067±0.0524, mean AP 0.7054±0.0265, final test AUC 0.4875/AP 0.6873, 2026-07-31/08-01) — serving NOT promoted (R30 better on both, old taxonomy)
 trained_models/assembly_gnn_20260721_103045_auc06368.pt   ← R31 (22+6-dim, heterogeneous RGATConv+TypedLinear, 484-graph expanded corpus, best fold val AUC 0.6368, mean AUC 0.5940, mean AP 0.7617, 2026-07-21) — serving NOT promoted (R30 better on both, old taxonomy)
 trained_models/assembly_gnn_20260719_213012_auc07070.pt   ← R30 (22+6-dim, heterogeneous RGATConv+TypedLinear — first hetero run, 248 graphs, best fold val AUC 0.7070, mean AUC 0.599, mean AP 0.869, 2026-07-19) — superseded by R33 (old taxonomy); backed up at `checkpoints/archive_r30/`
@@ -624,41 +632,49 @@ Each export contains: epoch · best AUC · test metrics · `trained_at` timestam
 | AUC-ROC | ≥ 0.85 |
 | Average Precision | ≥ 0.82 |
 
-> Current status (Aug 2026): serving model is **R33** — mean AUC 0.5306 ± 0.0314, mean AP 0.7213 ± 0.0209,
-> trained under the new 8-class taxonomy (see *What's New*). Manually promoted over the automatic
-> gate's verdict, since R30's incumbent numbers were fit under the old taxonomy and aren't a valid
-> comparison against R33. AP target still open; AUC target still open — this is a like-for-like
-> regression vs. R30's raw numbers (0.599/0.869), expected given the harder/more granular 8-class
-> problem and not yet threshold-tuned (see the taxonomy note above). Historical R30-era commentary
-> below is preserved for the training-history narrative but no longer describes the serving model.
+> Current status (Aug 2026): serving model is **R34** — mean AUC 0.5561 ± 0.0257, mean AP 0.7422 ± 0.0146
+> (best fold val AUC 0.7364), trained under the corrected classifier (`max_fastener_extent` absolute-size
+> gate, see *What's New*) on the same 8-class taxonomy. Promoted automatically — beats R33 (0.5306/0.7213)
+> on both metrics, with lower variance too. AP target still open; AUC target still open. This is real
+> evidence the classifier's large-multi-hole-plate-as-nut bug was hurting Phase 1 training data quality,
+> though the AUC is still fairly close to random — narrowing the gap, not closing it. Historical R30-era
+> commentary below is preserved for the training-history narrative but no longer describes the serving model.
 
 ### Phase 2 targets — Next-Component Ranking (NodeRanker)
 
-| Metric | Target | Current run (retrained vs. R33 encoder, Aug 2026) |
-|---|---|---|
-| Hit@5 | ≥ 0.70 | **0.8467 ✓** |
-| MRR | ≥ 0.64 | 0.5723 |
-| Hit@1 | — | **0.3869** (majority-class baseline: 0.3650 — model now beats baseline) |
-| NDCG@5 | — | 0.6225 |
+| Metric | Target | R33 run (Aug 2026) | R34 run (Aug 2026) |
+|---|---|---|---|
+| Hit@5 | ≥ 0.70 | 0.8467 ✓ | 0.7681 ✓ |
+| MRR | ≥ 0.64 | 0.5723 | 0.5264 |
+| Hit@1 | — | 0.3869 (beat 0.3650 baseline) | **0.3261 (below 0.3406 baseline)** |
+| NDCG@5 | — | 0.6225 | 0.5606 |
 
-> Retrained against R33 after the taxonomy migration (mandatory whenever `best_serving.pt` is
-> re-promoted). Hit@1 now beats the majority-class baseline, resolving the prior below-baseline
-> finding (Hit@1 0.2519 vs. baseline 0.5556 under the old taxonomy/R30) — the new taxonomy's
-> finer-grained fastener sub-types (bolt/washer/nut vs. one blended "fastener" class) appear to
-> give the ranker a less ambiguous signal to learn from, though this hasn't been rigorously
-> isolated as the cause.
+> Retrained against R34's encoder + corrected classifier (mandatory whenever `best_serving.pt` is
+> re-promoted — the ranker's cosine-similarity space must stay in sync with the frozen encoder it's
+> built on). Result is a **regression**, not an improvement: Hit@1 fell back below the majority-class
+> baseline, undoing the R33-era fix. Plausible cause: the corrected classifier rebalanced the type
+> distribution (less nut/washer, more body/thick_plate), making the 8-way ranking task intrinsically
+> harder and less skewed toward types the old (mislabeled) data over-represented — the fixed 30-epoch
+> budget may not be enough to adapt. Not yet root-caused; flagged as open follow-up work.
 
 ### Phase 3 targets — Missing-Component Shape Generation
 
-| Metric | Target | Test result (Aug 2026) |
-|---|---|---|
-| Voxel IoU | ≥ 0.35 | **0.5192 ✓** (best val 0.4930 @ epoch 31) |
-| Chamfer (voxel-centroid proxy) | ≤ 0.08 | **0.0424 ✓** |
-| Loss (BCE + soft-Dice + KL) | — | 0.4177 |
+| Metric | Target | R33 run (Aug 2026) | R34 run (Aug 2026) |
+|---|---|---|---|
+| Voxel IoU | ≥ 0.35 | 0.5192 ✓ | 0.5516 ✓ |
+| Chamfer (voxel-centroid proxy) | ≤ 0.08 | 0.0424 ✓ | 0.0778 |
+| Loss (BCE + soft-Dice + KL) | — | 0.4177 | 0.3214 |
 
-> `ConditionalShapeVAE` retrained 60 epochs against the R33 encoder and the rebuilt 3,221-part
-> bank (284 assemblies, new taxonomy). Both design targets met on held-out test samples, and both
-> metrics improved slightly over the pre-migration R30-era run (IoU 0.5002, chamfer 0.0621).
+> `ConditionalShapeVAE` retrained 60 epochs against the R34 encoder and the rebuilt 4,500-part bank
+> (up from 3,221 after the `part_bank.py` meshing-resilience fix, see *What's New*). Note this run is
+> **not directly comparable** to the R33 row above it — mid-session the shape-gen training target was
+> additionally narrowed to fasteners only (bolt/nut/washer), with continuous-rotation augmentation and
+> the 18 zero-fastener corpus folders excluded from training samples; the immediately-prior fastener-only
+> baseline (before the classifier fix) was IoU 0.6113 / chamfer 0.0442, and R34 is a **regression**
+> against *that* number specifically (IoU -9.8%, chamfer +76% worse) — likely from the larger, more
+> varied part bank now including geometry recovered from previously-failing files, some of it more
+> fragmented. Both design targets are still met in absolute terms; not yet root-caused, flagged as open
+> follow-up work alongside the Phase 2 regression above.
 
 ---
 
@@ -1216,7 +1232,7 @@ All previous output — red ⚠ body highlights, orange ❓ cross markers, AIDA 
 
 ![Training Progression — AUC-ROC & Average Precision](docs/training_history.png)
 
-Training runs through R28 are charted below (R29–R32 are tabulated but not yet re-charted). Each bar group shows Val AUC (light), Test AUC (solid), and Test AP (translucent) for that run. Dashed red/orange lines are the Phase 1 targets (AUC 0.85, AP 0.82). R12 onward report best-fold metrics from 5-fold CV. Mean-metric trend of the recent era: R28 (0.546) → R29 (0.566) → R30 (0.599, architecture change) → R31 (0.594, data-scale change) → R32 (0.507, 7-category/193-folder corpus — corpus expansion again failed to lift AUC, reinforcing R31's finding that scale alone isn't the limiter).
+Training runs through R28 are charted below (R29–R32 are tabulated but not yet re-charted). Each bar group shows Val AUC (light), Test AUC (solid), and Test AP (translucent) for that run. Dashed red/orange lines are the Phase 1 targets (AUC 0.85, AP 0.82). R12 onward report best-fold metrics from 5-fold CV. Mean-metric trend of the recent era: R28 (0.546) → R29 (0.566) → R30 (0.599, architecture change) → R31 (0.594, data-scale change) → R32 (0.507, 7-category/193-folder corpus — corpus expansion again failed to lift AUC, reinforcing R31's finding that scale alone isn't the limiter) → R33 (0.531, 8-class taxonomy migration, not AUC-comparable to R30/R32) → R34 (0.556, classifier absolute-size bugfix — real evidence some of the taxonomy-migration-era weakness was mislabeled training data, not purely a harder problem).
 
 ![Change Log — R1 to R14 (Early Runs)](docs/training_changelog_a.png)
 
@@ -1250,6 +1266,8 @@ Training runs through R28 are charted below (R29–R32 are tabulated but not yet
 | **R30** | **19 Jul 21:30** | **Heterogeneous encoder: RGATConv (4 joint-type relations) + TypedLinear (8 component types) · same 248-graph corpus as R29 · params 602K→2.44M · 5-fold CV · Mean AUC=0.599±0.112 · Mean AP=0.869±0.047 · serving promoted ★ CURRENT** | **248** | **0.7070** | **0.5458** | **0.8739** |
 | R31 | 21 Jul 10:30 | Corpus expanded to 484 graphs (+Machine design 75, +Mechanical Engineering 91, Tools 73) · MPS OOM fixed (batch_size 32→16) · heartbeat logging added · 5-fold CV · Mean AUC=0.594±0.034 · Mean AP=0.762±0.032 · **NOT promoted** (R30 better on both) | 484 | 0.6368 | 0.6099 | 0.7729 |
 | R32 | 01 Aug 2026 | Corpus expanded to 7 categories/193 folders (+Gate_Valve, Press_Tool, Tool_Post, Crane_hook) · `dataset.py` category-filter bugfix (was leaking `rejected/`/`slow_or_unstable/` files) · `CATEGORY_WEIGHTS` rebuilt · 5-fold CV · Mean AUC=0.5067±0.0524 · Mean AP=0.7054±0.0265 · **NOT promoted** (R30 better on both) | 193 folders | 0.6670 | 0.4875 | 0.6873 |
+| R33 | 06 Aug 2026 | Migrated to 8-class taxonomy (long/short shaft, thick/thin plate, bolt, washer, nut, body) — multi-signal voting classifier replaces old single-signal SDF rules · same 193-folder corpus re-parsed · 5-fold CV · Mean AUC=0.5306±0.0314 · Mean AP=0.7213±0.0209 · serving promoted (manually overridden gate — not AUC-comparable to R30's old-taxonomy numbers) | 193 folders | 0.6367 | — | — |
+| **R34** | **09 Aug 2026** | **Fixed classifier's absolute-size blind spot (`max_fastener_extent` gate) — large multi-hole plates no longer misclassify as nut/washer (corpus-wide: Nut/Washer counts -10% each) · full corpus reprocessed under corrected classifier · 5-fold CV · Mean AUC=0.5561±0.0257 · Mean AP=0.7422±0.0146 · serving promoted ★ CURRENT (beats R33 on both, automatic gate)** | **192 graphs** | **0.7364** | **—** | **—** |
 
 > \* R3 metrics artificially inflated: 300 synthetic test graphs trivially match the 300 synthetic training graphs — not a valid measure of real-geometry performance.
 
