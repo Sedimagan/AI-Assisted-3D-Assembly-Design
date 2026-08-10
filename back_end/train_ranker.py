@@ -31,7 +31,7 @@ from torch_geometric.data import Data
 
 from dataset  import AssemblyDataset, graph_level_indices, COMP_TYPES
 from model    import build_model, build_ranker
-from evaluate import ranking_metrics, majority_baseline_hit1
+from evaluate import ranking_metrics, majority_baseline_hit1, per_class_ranking_metrics
 
 
 # ── Type prototypes ────────────────────────────────────────────────────────────
@@ -104,9 +104,12 @@ def sample_leave_one_out(graphs: list, n_per_graph: int, rng: random.Random):
 
 # ── Epoch pass ─────────────────────────────────────────────────────────────────
 
-def epoch_pass(nr, gnn, prototypes_raw, samples, device, opt=None):
+def epoch_pass(nr, gnn, prototypes_raw, samples, device, opt=None, return_raw=False):
     """One pass over `samples`. Trains nr if opt is given, else runs eval-only
-    and returns ranking_metrics(). gnn is always frozen (no_grad context).
+    and returns ranking_metrics() -- or, if return_raw, a
+    (metrics_dict, true_idx_all, scores_all) tuple so callers can compute
+    additional breakdowns (e.g. per_class_ranking_metrics) without a second
+    pass over the encoder. gnn is always frozen (no_grad context).
 
     Prototype embeddings depend only on the frozen encoder + the fixed
     prototype table, so they're computed once per pass, not per sample."""
@@ -144,7 +147,10 @@ def epoch_pass(nr, gnn, prototypes_raw, samples, device, opt=None):
 
     if is_train:
         return total_loss / max(1, len(samples))
-    return ranking_metrics(true_idx_all, scores_all)
+    metrics = ranking_metrics(true_idx_all, scores_all)
+    if return_raw:
+        return metrics, true_idx_all, scores_all
+    return metrics
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
@@ -235,8 +241,10 @@ def main():
             best_metrics = val_metrics
 
     nr.load_state_dict(best_state)
-    test_metrics = epoch_pass(nr, gnn, prototypes_raw, test_samples, device, opt=None)
+    test_metrics, test_true_idx, test_scores = epoch_pass(
+        nr, gnn, prototypes_raw, test_samples, device, opt=None, return_raw=True)
     baseline_hit1 = majority_baseline_hit1(train_true_idx, [t for _, t in test_samples])
+    per_class = per_class_ranking_metrics(test_true_idx, test_scores, COMP_TYPES)
 
     print(f"\n{'='*55}")
     print("  NodeRanker — Test Results")
@@ -246,11 +254,25 @@ def main():
     print(f"     majority-class baseline Hit@1: {baseline_hit1:.4f}")
     print(f"  (best val MRR={best_mrr:.4f} at selection time)")
 
+    print(f"\n  Per-class breakdown (test set, n={len(test_true_idx)}):")
+    print(f"  {'type':12s} {'n':>4s} {'hit@1':>7s} {'true%':>7s} {'pred%':>7s}")
+    n_test = max(1, len(test_true_idx))
+    for t in COMP_TYPES:
+        c = per_class["per_class"][t]
+        true_pct = 100 * per_class["true_distribution"][t] / n_test
+        pred_pct = 100 * per_class["predicted_distribution"][t] / n_test
+        hit1_str = f"{c['hit@1']:.3f}" if c["hit@1"] is not None else "  n/a"
+        print(f"  {t:12s} {c['n']:>4d} {hit1_str:>7s} {true_pct:>6.1f}% {pred_pct:>6.1f}%")
+    print("  (true% vs pred% far apart for a type = the model is over/under-"
+          "predicting it relative to how often it's actually the answer — "
+          "a sign of majority-class collapse if e.g. 'body' pred% >> true%)")
+
     with open(res_dir / "ranker_test_metrics.json", "w") as f:
         json.dump({
             "test_metrics":  {k: round(v, 4) for k, v in test_metrics.items()},
             "val_metrics":   {k: round(v, 4) for k, v in best_metrics.items()},
             "baseline_hit1": round(baseline_hit1, 4),
+            "per_class":     per_class,
         }, f, indent=2)
 
     torch.save({

@@ -112,3 +112,54 @@ def majority_baseline_hit1(train_true_idx: Sequence[int], eval_true_idx: Sequenc
         return 0.0
     majority = Counter(train_true_idx).most_common(1)[0][0]
     return sum(1 for t in eval_true_idx if t == majority) / len(eval_true_idx)
+
+
+def per_class_ranking_metrics(
+    true_idx: Sequence[int],
+    scores:   Sequence[np.ndarray],
+    comp_types: Sequence[str],
+) -> dict:
+    """
+    Per-type breakdown of Hit@1, plus the predicted-vs-true type distribution —
+    the diagnostic for "is the ranker actually distinguishing types, or has it
+    collapsed to always guessing whichever type is most common overall
+    (typically Body)?" A model with reasonable aggregate Hit@1 can still have
+    collapsed onto one class if that class also happens to be the true label
+    often enough — this makes that failure mode visible per-class rather than
+    hidden inside one aggregate number.
+
+    true_idx: ground-truth COMP_TYPES index per sample.
+    scores:   one (n_candidates,) cosine-similarity array per sample.
+    Returns {
+      "per_class": {type_name: {"n": int, "hit@1": float}},
+      "true_distribution":      {type_name: count},
+      "predicted_distribution": {type_name: count},
+    }
+    """
+    n_types = len(comp_types)
+    n_correct  = [0] * n_types
+    n_total    = [0] * n_types
+    true_dist  = [0] * n_types
+    pred_dist  = [0] * n_types
+
+    for t, s in zip(true_idx, scores):
+        s = np.asarray(s)
+        pred = int(np.argmax(s))
+        n_total[t] += 1
+        true_dist[t] += 1
+        pred_dist[pred] += 1
+        if pred == t:
+            n_correct[t] += 1
+
+    per_class = {
+        comp_types[i]: {
+            "n": n_total[i],
+            "hit@1": (n_correct[i] / n_total[i]) if n_total[i] > 0 else None,
+        }
+        for i in range(n_types)
+    }
+    return {
+        "per_class":              per_class,
+        "true_distribution":      dict(zip(comp_types, true_dist)),
+        "predicted_distribution": dict(zip(comp_types, pred_dist)),
+    }

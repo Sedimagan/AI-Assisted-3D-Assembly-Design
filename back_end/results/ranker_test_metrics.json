@@ -11,5 +11,25 @@
     "mrr": 0.6445,
     "ndcg@5": 0.6719
   },
-  "baseline_hit1": 0.4286
+  "baseline_hit1": 0.4286,
+  "per_class": {
+    "per_class": {
+      "long_shaft":  {"n": 9,  "hit@1": 0.0},
+      "short_shaft": {"n": 2,  "hit@1": 0.0},
+      "thick_plate": {"n": 12, "hit@1": 0.0},
+      "thin_plate":  {"n": 4,  "hit@1": 0.0},
+      "bolt":        {"n": 17, "hit@1": 0.0588},
+      "washer":      {"n": 9,  "hit@1": 0.0},
+      "nut":         {"n": 7,  "hit@1": 0.0},
+      "body":        {"n": 45, "hit@1": 0.9778}
+    },
+    "true_distribution": {
+      "long_shaft": 9, "short_shaft": 2, "thick_plate": 12, "thin_plate": 4,
+      "bolt": 17, "washer": 9, "nut": 7, "body": 45
+    },
+    "predicted_distribution": {
+      "long_shaft": 1, "short_shaft": 2, "thick_plate": 2, "thin_plate": 0,
+      "bolt": 1, "washer": 0, "nut": 0, "body": 99
+    }
+  }
 }

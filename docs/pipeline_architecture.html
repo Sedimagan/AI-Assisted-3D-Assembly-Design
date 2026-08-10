@@ -271,12 +271,10 @@
 <div class="doc-header" id="overview">
   <div class="kicker">AI-Assisted 3D Assembly Design</div>
   <div class="last-updated" id="last-updated">
-    <span class="dot"></span>Last updated <b>2026-08-11 00:41 IST</b> — All three phases now retrained against
-    the promoted R36 encoder. Phase 1: Mean AUC 0.6277 (best yet). Phase 2: Hit@1 ties baseline exactly —
-    confirmed architectural, not encoder-driven. Phase 3: clears design targets, doesn't beat prior peak. See
-    <a href="#provenance" style="color:inherit;text-decoration:underline;">Run Provenance</a>,
-    <a href="#phase2" style="color:inherit;text-decoration:underline;">Phase 2</a>,
-    <a href="#phase3" style="color:inherit;text-decoration:underline;">Phase 3</a>
+    <span class="dot"></span>Last updated <b>2026-08-11 01:02 IST</b> — Phase 2's Hit@1 mystery is solved:
+    per-class breakdown confirms <b>definitive majority-class collapse</b> (body predicted 94.3% of the time
+    vs. true 42.9%; every other type Hit@1≈0) — see <a href="#phase2" style="color:inherit;text-decoration:underline;">Phase 2</a>.
+    Class-balanced BPR sampling is next.
   </div>
   <h1>End-to-End Pipeline Architecture</h1>
   <p class="sub">
@@ -579,16 +577,36 @@
     <li><b>Metrics</b>: Hit@1, Hit@5, MRR, NDCG@5, each compared against a majority-class baseline.</li>
   </ol>
   <div class="callout">
-    <p><b>Known open issue, confirmed not to be an encoder-quality problem:</b> Hit@1 has now landed at or
-    <i>exactly at</i> the majority-class baseline across every encoder generation retrained against
-    (R28-era, R30, R33, R34, and now <span class="badge r36">R36</span> — Hit@1=0.4286 vs. baseline 0.4286,
-    an exact tie, even though R36 is by far the strongest encoder this project has produced, Mean AUC 0.6277).
-    This settles the question raised earlier: the bottleneck is NodeRanker's own architecture, not the
-    encoder feeding it. Diagnosed as: <code>proj</code> only ever transforms the query side; the 8 prototype
-    embeddings it's compared against are never touched by anything trainable, so Hit@1 is capped by however
-    separated those prototypes already are. Combined with zero class-imbalance handling in the leave-one-out
-    sampling. Fix is queued (project-tracked) — compute the 8×8 prototype similarity matrix, class-balanced
-    sampling, and projecting the prototypes too, not just context.</p>
+    <p><b>Root cause found — diagnosed in three steps, not guessed:</b></p>
+    <p><b>1. Ruled out encoder quality.</b> Hit@1 landed at or exactly at the majority-class baseline across
+    every encoder generation (R28-era, R30, R33, R34, and <span class="badge r36">R36</span> — Hit@1=0.4286 vs.
+    baseline 0.4286, an exact tie, even though R36 is by far the strongest encoder this project has produced,
+    Mean AUC 0.6277). The bottleneck is NodeRanker's own head, not what feeds it.</p>
+    <p><b>2. Ruled out prototype collapse.</b> The leading architectural hypothesis was that <code>proj</code>
+    only transforms the query side, so the 8 type-prototype embeddings — never touched by anything trainable —
+    collapse together. A read-only diagnostic (8×8 cosine-similarity matrix between the embedded prototypes)
+    found they're actually reasonably separated: mean off-diagonal similarity ≈ <b>-0.05</b> (roughly
+    orthogonal), max <b>0.34</b>. Not collapsed.</p>
+    <p><b>3. Confirmed majority-class collapse directly.</b> Added per-class Hit@1 + predicted-vs-true
+    distribution logging (<code>evaluate.py</code>'s <code>per_class_ranking_metrics()</code>) and re-ran it
+    against the trained R36 checkpoint:</p>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><th>n</th><th>Hit@1</th><th>True %</th><th>Predicted %</th></tr>
+      <tr><td>long_shaft</td><td>9</td><td>0.000</td><td>8.6%</td><td>1.0%</td></tr>
+      <tr><td>short_shaft</td><td>2</td><td>0.000</td><td>1.9%</td><td>1.9%</td></tr>
+      <tr><td>thick_plate</td><td>12</td><td>0.000</td><td>11.4%</td><td>1.9%</td></tr>
+      <tr><td>thin_plate</td><td>4</td><td>0.000</td><td>3.8%</td><td>0.0%</td></tr>
+      <tr><td>bolt</td><td>17</td><td>0.059</td><td>16.2%</td><td>1.0%</td></tr>
+      <tr><td>washer</td><td>9</td><td>0.000</td><td>8.6%</td><td>0.0%</td></tr>
+      <tr><td>nut</td><td>7</td><td>0.000</td><td>6.7%</td><td>0.0%</td></tr>
+      <tr class="new-row"><td><b>body</b></td><td>45</td><td><b>0.978</b></td><td>42.9%</td><td><b>94.3%</b></td></tr>
+    </table></div>
+    <p>Unambiguous: the model predicts "body" for 94.3% of all test samples — more than double body's actual
+    frequency — and Hit@1 for every other type is essentially zero. This is not "the model favors body
+    somewhat," it's functionally a majority-class classifier for 7 of the 8 types. Since prototypes are
+    separated (step 2), the cause is the <b>training signal</b>: leave-one-out sampling is class-imbalance-blind
+    and Body is ~40% of the corpus, so BPR gradients are dominated by body-labeled examples. <b>Class-balanced
+    BPR sampling is now the clear next fix</b>, not one of several hypotheses.</p>
   </div>
 </section>
 
