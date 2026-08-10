@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AI-Assisted 3D Assembly Design — End-to-End Pipeline Architecture</title>
+<style>
+  /* Token system — light is the base :root, dark overrides via media query
+     and via an explicit [data-theme] the viewer's own toggle can stamp on
+     <html>, so that toggle always wins over the OS preference either way. */
+  :root {
+    --bg: #f4f6f9; --panel: #ffffff; --card: #ffffff; --card-alt: #eef1f6;
+    --border: #dbe2ea; --text: #1a2433; --text-soft: #2c3a4d; --muted: #5c6b80;
+    --accent: #2f6fb0; --accent2: #7c4fd8; --good: #2f8a5f; --warn: #c67a1a; --bad: #c23f3f;
+    --code-bg: rgba(47,111,176,0.09); --code-text: #1d4e78; --sec-label: #7d8a9a;
+    --tint-accent: rgba(47,111,176,0.10); --tint-accent-hover: rgba(47,111,176,0.06);
+    --tint-accent2: rgba(124,79,216,0.08); --tint-good: rgba(47,138,95,0.10);
+    --tint-good-soft: rgba(47,138,95,0.05); --tint-warn: rgba(198,122,26,0.13);
+    --tint-warn-soft: rgba(198,122,26,0.06); --tint-info-soft: rgba(47,111,176,0.05);
+    --swatch-line: rgba(255,255,255,0.55);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0a121f; --panel: #101c30; --card: #142338; --card-alt: #0d1a2c;
+      --border: #24405f; --text: #e6edf5; --text-soft: #cfd9e6; --muted: #8aa0b8;
+      --accent: #5b9bd5; --accent2: #8b5cf6; --good: #4caf82; --warn: #f0a83c; --bad: #ef5a5a;
+      --code-bg: rgba(91,155,213,0.12); --code-text: #cfe0f0; --sec-label: #5d7c96;
+      --tint-accent: rgba(91,155,213,0.15); --tint-accent-hover: rgba(91,155,213,0.06);
+      --tint-accent2: rgba(139,92,246,0.09); --tint-good: rgba(76,175,130,0.12);
+      --tint-good-soft: rgba(76,175,130,0.06); --tint-warn: rgba(240,168,60,0.15);
+      --tint-warn-soft: rgba(240,168,60,0.06); --tint-info-soft: rgba(91,155,213,0.06);
+      --swatch-line: rgba(0,0,0,0.28);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0a121f; --panel: #101c30; --card: #142338; --card-alt: #0d1a2c;
+    --border: #24405f; --text: #e6edf5; --text-soft: #cfd9e6; --muted: #8aa0b8;
+    --accent: #5b9bd5; --accent2: #8b5cf6; --good: #4caf82; --warn: #f0a83c; --bad: #ef5a5a;
+    --code-bg: rgba(91,155,213,0.12); --code-text: #cfe0f0; --sec-label: #5d7c96;
+    --tint-accent: rgba(91,155,213,0.15); --tint-accent-hover: rgba(91,155,213,0.06);
+    --tint-accent2: rgba(139,92,246,0.09); --tint-good: rgba(76,175,130,0.12);
+    --tint-good-soft: rgba(76,175,130,0.06); --tint-warn: rgba(240,168,60,0.15);
+    --tint-warn-soft: rgba(240,168,60,0.06); --tint-info-soft: rgba(91,155,213,0.06);
+    --swatch-line: rgba(0,0,0,0.28);
+  }
+  :root[data-theme="light"] {
+    --bg: #f4f6f9; --panel: #ffffff; --card: #ffffff; --card-alt: #eef1f6;
+    --border: #dbe2ea; --text: #1a2433; --text-soft: #2c3a4d; --muted: #5c6b80;
+    --accent: #2f6fb0; --accent2: #7c4fd8; --good: #2f8a5f; --warn: #c67a1a; --bad: #c23f3f;
+    --code-bg: rgba(47,111,176,0.09); --code-text: #1d4e78; --sec-label: #7d8a9a;
+    --tint-accent: rgba(47,111,176,0.10); --tint-accent-hover: rgba(47,111,176,0.06);
+    --tint-accent2: rgba(124,79,216,0.08); --tint-good: rgba(47,138,95,0.10);
+    --tint-good-soft: rgba(47,138,95,0.05); --tint-warn: rgba(198,122,26,0.13);
+    --tint-warn-soft: rgba(198,122,26,0.06); --tint-info-soft: rgba(47,111,176,0.05);
+    --swatch-line: rgba(255,255,255,0.55);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--bg); color: var(--text); margin: 0;
+    display: flex; min-height: 100vh;
+  }
+  a { color: var(--accent); }
+  a:focus-visible, button:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px;
+  }
+  code { background: var(--code-bg); padding: 1px 6px; border-radius: 4px;
+         font-size: 0.88em; font-family: "SF Mono", Menlo, monospace; color: var(--code-text); }
+  pre code { display: block; padding: 12px 14px; overflow-x: auto; line-height: 1.5; }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 268px; flex-shrink: 0; background: var(--panel); border-right: 1px solid var(--border);
+    padding: 22px 0; position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  }
+  .sidebar .brand { padding: 0 20px 16px; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+  .sidebar .brand .kicker { color: var(--accent); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; }
+  .sidebar .brand h1 { font-size: 1.05rem; margin: 6px 0 0; line-height: 1.35; color: var(--text); }
+  .sidebar nav a {
+    display: block; padding: 6px 20px; color: var(--muted); text-decoration: none;
+    font-size: 0.85rem; border-left: 2px solid transparent;
+  }
+  .sidebar nav a:hover, .sidebar nav a:focus-visible { color: var(--text); background: var(--tint-accent-hover); }
+  .sidebar nav a.lvl2 { padding-left: 34px; font-size: 0.78rem; }
+  .sidebar nav .sec-label {
+    padding: 14px 20px 4px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--sec-label);
+  }
+
+  /* ── Main ── */
+  main { flex: 1; min-width: 0; padding: 40px 56px 120px; max-width: 1080px; }
+  .doc-header { margin-bottom: 40px; }
+  .doc-header .kicker { color: var(--accent); font-size: 0.85rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+  .last-updated {
+    display: inline-flex; align-items: center; gap: 7px; margin-top: 10px;
+    background: var(--tint-warn); border: 1px solid var(--warn); border-radius: 20px;
+    padding: 4px 12px 4px 10px; font-size: 0.78rem; color: var(--text-soft);
+  }
+  .last-updated b { color: var(--text); font-variant-numeric: tabular-nums; }
+  .last-updated .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--warn); flex-shrink: 0; }
+  .last-updated.good { background: var(--tint-good); border-color: var(--good); }
+  .last-updated.good .dot { background: var(--good); }
+  .doc-header h1 { font-size: 2.1rem; margin: 12px 0 10px; text-wrap: balance; }
+  .doc-header .sub { color: var(--muted); font-size: 1rem; line-height: 1.6; max-width: 66ch; }
+  .doc-header .meta { margin-top: 14px; font-size: 0.8rem; color: var(--muted); }
+
+  section { margin-bottom: 56px; scroll-margin-top: 20px; }
+  section > h2 {
+    font-size: 1.5rem; margin: 0 0 6px; padding-bottom: 10px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px; text-wrap: balance;
+  }
+  section > .sec-desc { color: var(--muted); font-size: 0.92rem; margin: 10px 0 22px; max-width: 66ch; line-height: 1.55; }
+  h3 { font-size: 1.12rem; margin: 30px 0 12px; scroll-margin-top: 20px; }
+  h3 .step-num { color: var(--accent); font-weight: 700; margin-right: 6px; }
+  h4 { font-size: 0.95rem; margin: 18px 0 8px; color: var(--text-soft); }
+  p { line-height: 1.6; color: var(--text-soft); font-size: 0.92rem; max-width: 70ch; }
+  ul, ol { padding-left: 22px; }
+  li { margin-bottom: 6px; line-height: 1.5; color: var(--text-soft); font-size: 0.9rem; max-width: 68ch; }
+  li b, li strong, p strong { color: var(--text); }
+
+  .badge {
+    display: inline-block; background: var(--tint-accent); color: var(--accent);
+    border: 1px solid var(--accent); border-radius: 4px; padding: 1px 8px;
+    font-size: 0.66rem; font-weight: 700; letter-spacing: 0.02em; vertical-align: middle;
+  }
+  .badge.new { background: var(--tint-warn); color: var(--warn); border-color: var(--warn); }
+  .badge.core { background: var(--tint-good); color: var(--good); border-color: var(--good); }
+  /* Run-provenance badges — color marks generation (r36 = current/latest run,
+     r35 = the run before it), text is always the run id itself so this
+     scheme extends to r37/r38/... without new CSS. See #provenance. */
+  .badge.r36 { background: var(--tint-warn); color: var(--warn); border-color: var(--warn); }
+  .badge.r35 { background: var(--tint-accent2); color: var(--accent2); border-color: var(--accent2); }
+  .badge.pending { background: transparent; color: var(--muted); border-color: var(--border); border-style: dashed; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 20px; margin: 14px 0;
+  }
+  .grid { display: grid; gap: 14px; }
+  .grid2 { grid-template-columns: 1fr 1fr; }
+  .grid3 { grid-template-columns: 1fr 1fr 1fr; }
+  @media (max-width: 900px) { .grid2, .grid3 { grid-template-columns: 1fr; } }
+
+  .table-wrap { overflow-x: auto; margin: 10px 0; }
+  table { width: 100%; min-width: 460px; border-collapse: collapse; font-size: 0.85rem; margin: 0; }
+  th, td { padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em; }
+  td code { white-space: nowrap; }
+  tr.new-row td:first-child { border-left: 2px solid var(--warn); padding-left: 8px; }
+
+  /* ── Flow / architecture diagrams ── */
+  .diagram-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px; margin: 16px 0; overflow-x: auto; }
+  .dia-row { display: flex; align-items: stretch; justify-content: center; gap: 8px; flex-wrap: wrap; }
+  .dia-col { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 150px; }
+  .dia-box {
+    background: var(--card-alt); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 12px; font-size: 0.78rem; text-align: center; display: flex; flex-direction: column;
+    justify-content: center; gap: 2px;
+  }
+  .dia-box .t { font-weight: 700; color: var(--text); }
+  .dia-box .d { color: var(--muted); font-size: 0.7rem; }
+  .dia-box.p1 { border-color: var(--accent); }
+  .dia-box.p2 { border-color: var(--good); background: var(--tint-good-soft); }
+  .dia-box.p3 { border-color: var(--accent2); background: var(--tint-accent2); }
+  .dia-box.data { border-color: var(--muted); }
+  .dia-box.out { border-color: var(--warn); background: var(--tint-warn-soft); }
+  .dia-box.new { border-style: dashed; border-color: var(--warn); }
+  .dia-arrow { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 1.1rem; min-width: 20px; }
+  .dia-arrow-down { text-align: center; color: var(--muted); font-size: 1.1rem; margin: 4px 0; width: 100%; }
+  .dia-col-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; text-align: center; margin-bottom: 2px; }
+  .dia-col-label.p1 { color: var(--accent); }
+  .dia-col-label.p2 { color: var(--good); }
+  .dia-col-label.p3 { color: var(--accent2); }
+
+  .feat-bar { display: flex; height: 30px; border-radius: 6px; overflow: hidden; margin: 12px 0 6px; font-size: 0.68rem; }
+  .feat-bar span { display: flex; align-items: center; justify-content: center; color: #fff; border-right: 1px solid var(--swatch-line); white-space: nowrap; overflow: hidden; }
+  .feat-legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.72rem; color: var(--muted); margin-bottom: 18px; }
+  .feat-legend .sw { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: middle; }
+
+  details { background: var(--card); border: 1px solid var(--border); border-radius: 8px; margin: 10px 0; }
+  details summary {
+    cursor: pointer; padding: 10px 14px; font-size: 0.86rem; font-weight: 600; color: var(--accent);
+    list-style: none; display: flex; align-items: center; gap: 8px;
+  }
+  details summary::-webkit-details-marker { display: none; }
+  details summary::before { content: "▸"; display: inline-block; transition: transform 0.15s; color: var(--muted); }
+  details[open] summary::before { transform: rotate(90deg); }
+  details .inner { padding: 2px 16px 14px; }
+
+  .callout { border-left: 3px solid var(--warn); background: var(--tint-warn-soft); border-radius: 0 8px 8px 0; padding: 12px 16px; margin: 14px 0; font-size: 0.86rem; }
+  .callout.good { border-color: var(--good); background: var(--tint-good-soft); }
+  .callout.info { border-color: var(--accent); background: var(--tint-info-soft); }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout p { max-width: none; }
+
+  .changelog-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .changelog-item:last-child { border-bottom: none; }
+  .changelog-item .tag { flex-shrink: 0; width: 90px; font-size: 0.7rem; font-weight: 700; color: var(--warn); padding-top: 2px; }
+  .changelog-item .body p { margin: 0 0 4px; max-width: none; }
+
+  footer { max-width: 66ch; color: var(--muted); font-size: 0.78rem; border-top: 1px solid var(--border); padding-top: 18px; margin-top: 60px; }
+
+  /* ── iPad / narrow viewports ── */
+  @media (max-width: 900px) {
+    body { flex-direction: column; }
+    .sidebar {
+      width: 100%; height: auto; max-height: 260px; position: relative;
+      border-right: none; border-bottom: 1px solid var(--border);
+    }
+    main { padding: 28px 20px 90px; max-width: 100%; }
+    .doc-header h1 { font-size: 1.65rem; }
+    .diagram-card .dia-row { justify-content: flex-start; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    details summary::before { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="brand">
+    <div class="kicker">Reference Doc</div>
+    <h1>End-to-End Pipeline Architecture</h1>
+  </div>
+  <nav>
+    <a href="#overview">Overview</a>
+    <div class="sec-label">0 · Data Pipeline</div>
+    <a href="#data-pipeline">Corpus → Graph</a>
+    <a href="#data-parsing" class="lvl2">STEP Parsing (gmsh)</a>
+    <a href="#data-classify" class="lvl2">Component Classifier</a>
+    <a href="#data-nodefeat" class="lvl2">Node Features (22-dim)</a>
+    <a href="#data-edgefeat" class="lvl2">Edge Features (6-dim)</a>
+    <a href="#data-pos" class="lvl2">Spatial Position <span class="badge r36">R36</span></a>
+    <a href="#data-split" class="lvl2">Dataset Splitting</a>
+    <div class="sec-label">1 · Phase 1</div>
+    <a href="#phase1">Missing-Component Detection</a>
+    <a href="#p1-encoder" class="lvl2">AssemblyGNN Encoder</a>
+    <a href="#p1-predictor" class="lvl2">LinkPredictor</a>
+    <a href="#p1-training" class="lvl2">Training Loop</a>
+    <a href="#p1-eval" class="lvl2">Evaluation &amp; Promotion</a>
+    <div class="sec-label">2 · Phase 2</div>
+    <a href="#phase2">Next-Component Ranking</a>
+    <a href="#p2-design" class="lvl2">NodeRanker Design</a>
+    <a href="#p2-training" class="lvl2">Training &amp; Eval</a>
+    <div class="sec-label">3 · Phase 3</div>
+    <a href="#phase3">Missing-Shape Generation</a>
+    <a href="#p3-bank" class="lvl2">Part Bank</a>
+    <a href="#p3-vae" class="lvl2">Conditional Shape VAE</a>
+    <a href="#p3-hybrid" class="lvl2">Hybrid Orchestration</a>
+    <a href="#p3-training" class="lvl2">Training &amp; Eval</a>
+    <div class="sec-label">Supporting Modules</div>
+    <a href="#support-templates">AssemblyTemplateDB</a>
+    <a href="#support-surface">surface_analyzer.py</a>
+    <a href="#support-aida">AIDA (Skills Agent)</a>
+    <div class="sec-label">Serving</div>
+    <a href="#serving-api">FastAPI Backend</a>
+    <a href="#serving-app">Streamlit Frontend</a>
+    <div class="sec-label">Appendix</div>
+    <a href="#provenance">Run Provenance</a>
+    <a href="#changelog">Changelog by Run</a>
+    <a href="#files">Key File Map</a>
+  </nav>
+</aside>
+
+<main>
+
+<div class="doc-header" id="overview">
+  <div class="kicker">AI-Assisted 3D Assembly Design</div>
+  <div class="last-updated good" id="last-updated">
+    <span class="dot"></span>Last updated <b>2026-08-10 20:32 IST</b> — R36 <b>complete and promoted</b>
+    (Mean AUC 0.6277±0.0516, beats R34/R35 — see <a href="#provenance" style="color:inherit;text-decoration:underline;">Run Provenance</a>).
+    Next up: Phase 2/3 retrains against this encoder
+  </div>
+  <h1>End-to-End Pipeline Architecture</h1>
+  <p class="sub">
+    A single frozen graph encoder, trained once on link prediction, feeds three independent task heads —
+    missing-component <b>detection</b> (Phase 1), next-component <b>ranking</b> (Phase 2), and missing-shape
+    <b>generation</b> (Phase 3) — plus a template-based frequency prior, an open-surface/hole geometry
+    detector, and a Gemini-backed explanation agent, all served through a FastAPI backend and a Streamlit
+    dual-panel UI.
+  </p>
+  <div class="meta">Every feature below is tagged with the run that introduced it —
+  <span class="badge r35">R35</span> or <span class="badge r36">R36</span> — so this page always cites exactly
+  when and where a change landed, not just that it's "new." See <a href="#provenance" style="color:var(--accent);">Run Provenance</a>
+  for commit hashes, dates, and results per run, and the <a href="#changelog" style="color:var(--accent);">changelog</a>
+  for the full list grouped by run. This page is updated alongside the codebase — if you're reading this during
+  an active retrain, check <a href="#provenance" style="color:var(--accent);">Run Provenance</a> for whether the
+  latest run has landed yet.</div>
+</div>
+
+<div class="diagram-card">
+  <div class="dia-col-label" style="color:var(--muted);">Top-level data &amp; model flow</div>
+  <div class="dia-row">
+    <div class="dia-box data"><span class="t">STEP file</span><span class="d">partial or complete CAD assembly</span></div>
+    <div class="dia-arrow">→</div>
+    <div class="dia-box data"><span class="t">dataset.py</span><span class="d">22-dim node / 6-dim edge graph + pos</span></div>
+    <div class="dia-arrow">→</div>
+    <div class="dia-box p1"><span class="t">AssemblyGNN</span><span class="d">frozen after Phase 1 training</span></div>
+  </div>
+  <div class="dia-arrow-down">↓ node embeddings (64-dim) + mean-pooled context vector ↓</div>
+  <div class="dia-arrow-down" style="font-size:0.68rem;">three heads run independently off the same frozen encoder output</div>
+  <div class="dia-row">
+    <div class="dia-col">
+      <div class="dia-col-label p1">Phase 1</div>
+      <div class="dia-box p1"><span class="t">LinkPredictor</span><span class="d">z_u ‖ z_v ‖ distance(u,v)</span></div>
+      <div class="dia-box out"><span class="t">Missing links</span><span class="d">candidate pairs, ranked by score</span></div>
+    </div>
+    <div class="dia-col">
+      <div class="dia-col-label p2">Phase 2</div>
+      <div class="dia-box p2"><span class="t">NodeRanker</span><span class="d">cosine sim × learned temperature</span></div>
+      <div class="dia-box out"><span class="t">Ranked component type</span><span class="d">Hit@K / MRR / NDCG@K</span></div>
+    </div>
+    <div class="dia-col">
+      <div class="dia-col-label p3">Phase 3</div>
+      <div class="dia-box p3"><span class="t">HybridShapeGenerator</span><span class="d">part-bank retrieval → VAE fallback</span></div>
+      <div class="dia-box out"><span class="t">Generated mesh</span><span class="d">placed at open-joint centroid</span></div>
+    </div>
+  </div>
+  <div class="dia-arrow-down">↓</div>
+  <div class="dia-row">
+    <div class="dia-box out" style="flex:1;"><span class="t">FastAPI + Streamlit</span><span class="d">AssemblyTemplateDB prior · surface_analyzer.py hole detection · AIDA (Gemini) explanation</span></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ 0. DATA PIPELINE ══════════════════════════ -->
+<section id="data-pipeline">
+  <h2>0 · Data Pipeline — Corpus → Attributed Graph <span class="badge core">back_end/dataset.py</span></h2>
+  <p class="sec-desc">
+    Every phase shares one graph representation, built once per STEP file and cached. Nodes are solid bodies;
+    edges are detected mate contacts. This section is the foundation everything else is built on — most of
+    this retrain cycle's fixes live here.
+  </p>
+
+  <h3 id="data-parsing"><span class="step-num">0.1</span>STEP Parsing (gmsh + OpenCASCADE)</h3>
+  <p>Each STEP file is parsed independently in a spawned subprocess with a 300s wall-clock timeout (polled in
+  short increments rather than one blocking join — a single OpenCASCADE call can be uninterruptible, and
+  macOS has been observed to hold up SIGKILL reaping for large C++ processes).</p>
+  <ol>
+    <li><code>gmsh.merge(step_path)</code> loads the file; requires ≥2 solid volumes to count as an assembly.</li>
+    <li><code>gmsh.model.occ.fragment(volumes, [])</code> — the key step: booleans all volumes together so that
+        surfaces shared by ≥2 bodies get a single shared face tag. This is what turns "touching geometry" into
+        a detectable graph edge.</li>
+    <li>Per body: bounding box, mass/volume, center-of-mass, and boundary face tag set (<code>body_surfs[i]</code>) via <code>gmsh.model.occ</code>.</li>
+    <li><code>gmsh.model.mesh.generate(2)</code> triangulates all surfaces (best-effort — wrapped so one
+        unmeshable periodic surface doesn't abort the whole file's other bodies).</li>
+    <li>Per body, a <code>trimesh.Trimesh</code> is rebuilt from that body's triangulated faces for exact
+        surface-area and SDF (Shape Diameter Function) computation via inward ray-casting — approximates
+        CGAL's SDF without the CGAL dependency.</li>
+  </ol>
+
+  <h3 id="data-classify"><span class="step-num">0.2</span>Component-Type Classification</h3>
+  <p>Multi-signal geometric voting over an 8-class taxonomy — <code>long_shaft</code>, <code>short_shaft</code>,
+  <code>thick_plate</code>, <code>thin_plate</code>, <code>bolt</code>, <code>washer</code>, <code>nut</code>,
+  <code>body</code> (catch-all). No single rule decides a class; each candidate class needs multiple signals to agree.</p>
+  <div class="grid grid3">
+    <div class="card">
+      <h4 style="margin-top:0;">Hole detection</h4>
+      <p style="font-size:0.82rem;">Convex-hull volume ratio <b>and</b> a central-axis ray probe must <i>both</i> vote for a through-hole before washer/nut branches are even considered.</p>
+    </div>
+    <div class="card">
+      <h4 style="margin-top:0;">Bolt-head detection</h4>
+      <p style="font-size:0.82rem;">Bounding-cylinder fill ratio + center-of-mass axial offset + B-Rep face count — 2 of 3 must agree before a round, elongated body is called a bolt over a plain shaft.</p>
+    </div>
+    <div class="card">
+      <h4 style="margin-top:0;">Absolute-size gate</h4>
+      <p style="font-size:0.82rem;"><code>max_fastener_extent</code> (100mm) — relative shape ratios alone can't tell a small hex nut from a large multi-hole plate; caps how large a body can be and still land on washer/nut.</p>
+    </div>
+  </div>
+  <p style="font-size:0.85rem;color:var(--muted);">Everything else falls back to elongation/flatness ratios (long vs. short shaft, thick vs. thin plate), with <code>body</code> as the honest catch-all when no branch fires confidently. A full-corpus audit found ~39.5% of bodies flagged ambiguous by the voting rules — reported honestly, not hidden, and open for further threshold tuning.</p>
+
+  <h3 id="data-nodefeat"><span class="step-num">0.3</span>Node Feature Vector — 22 dimensions</h3>
+  <div class="feat-bar">
+    <span style="background:#5b9bd5;width:36%;">[0:8] type one-hot</span>
+    <span style="background:#4caf82;width:9%;">[8:10] vol/SA</span>
+    <span style="background:#8b5cf6;width:13.5%;">[10:13] bbox</span>
+    <span style="background:#f0a83c;width:22.5%;">[13:18] shape ratios</span>
+    <span style="background:#5b9bd5;width:13.5%;">[18:21] SDF/SA-V</span>
+    <span style="background:#f0a83c;width:4.5%;">[21] holes</span>
+  </div>
+  <div class="table-wrap"><table>
+    <tr><th>Dims</th><th>Feature</th><th>Notes</th></tr>
+    <tr><td><code>[0:8]</code></td><td>Component-type one-hot</td><td>from the classifier above</td></tr>
+    <tr><td><code>[8]</code></td><td>log1p(volume), clipped 13.8</td><td>—</td></tr>
+    <tr><td><code>[9]</code></td><td>log1p(surface area), clipped 11.5</td><td>exact, from trimesh</td></tr>
+    <tr><td><code>[10:13]</code></td><td>bbox Δx/Δy/Δz ÷ assembly bbox_max</td><td>scale relative to this assembly</td></tr>
+    <tr><td><code>[13]</code></td><td>Elongation (longest/mid extent)</td><td>affine-invariant</td></tr>
+    <tr><td><code>[14]</code></td><td>Flatness (shortest/longest extent)</td><td>affine-invariant</td></tr>
+    <tr><td><code>[15:17]</code></td><td>Aspect x/y, y/z</td><td>affine-invariant</td></tr>
+    <tr><td><code>[17]</code></td><td>Sphericity</td><td>π^⅓(6V)^⅔ / SA</td></tr>
+    <tr><td><code>[18:20]</code></td><td>SDF mean, SDF variance</td><td>normalised; shafts low-variance, gears/housings high</td></tr>
+    <tr><td><code>[20]</code></td><td>SA/V ratio</td><td>normalised</td></tr>
+    <tr class="new-row"><td><code>[21]</code></td><td>log1p(hole count) <span class="badge r35">R35</span></td>
+      <td>counts cylindrical boundary faces below a diameter/depth floor, relative to the body's own mid extent — was <b>always exactly 0.0</b> for every node in every run through R34, since it was only ever sourced from an <code>assembly.json</code> sidecar that has never existed anywhere in the real corpus</td></tr>
+  </table></div>
+
+  <h3 id="data-edgefeat"><span class="step-num">0.4</span>Edge Detection &amp; Feature Vector — 6 dimensions</h3>
+  <p>Two bodies get an edge iff their boundary face sets intersect after <code>fragment()</code> — i.e. they
+  share real geometry, not just a nearby bounding box. Contacts are deduplicated to one edge per body pair,
+  then built bidirectionally.</p>
+  <div class="callout new" style="border-color:var(--warn);">
+    <p><b>The single most consequential bug found this cycle:</b> all 6 edge dimensions, and node dim
+    <code>[21]</code> above, were sourced exclusively from an <code>assembly.json</code> sidecar file that
+    <b>has never existed</b> in the real 193-STEP-file corpus. Every edge's mate-type and joint-type one-hot
+    were silently constant across every training run from the project's earliest retrains through R34. In
+    <code>model.py</code>, the encoder resolves an edge's relation type via
+    <code>edge_attr[:,2:6].argmax()</code> — on an all-zero slice this always returns index 0, so 3 of the
+    4 relation-specific attention weight matrices in <code>RGATConv</code> <b>never received a training
+    signal, in any run, ever</b>. The "heterogeneous" relational encoder introduced in R30 was functionally a
+    plain GAT with wasted parameters. Fixed by deriving these values from geometry directly (below) — the
+    JSON path is kept as an optional override if a richer metadata source is ever available, but the
+    geometry fallback is what actually runs today.</p>
+  </div>
+  <div class="table-wrap"><table>
+    <tr><th>Dims</th><th>Feature</th><th>How it's derived now</th></tr>
+    <tr class="new-row"><td><code>[0]</code></td><td>Mate type (normalised 0–1)</td>
+      <td><span class="badge r35">R35</span> geometry-derived from the shared contact surface(s)' geometric type: cylindrical face(s) → <i>concentric</i>, planar → <i>coincident</i>, otherwise → <i>other</i></td></tr>
+    <tr class="new-row"><td><code>[1]</code></td><td>Weight</td>
+      <td><span class="badge r36">R36</span> real contact-surface area ÷ the smaller body's total surface area, clipped [0,1]. Still hardcoded <code>1.0</code> as of R35 (only dims <code>[0]</code> and <code>[2:6]</code> were fixed that run) — every edge regardless of whether it was a flush mating face or a token touch</td></tr>
+    <tr class="new-row"><td><code>[2:6]</code></td><td>Joint type one-hot (rigid / revolute / slider / cylindrical)</td>
+      <td><span class="badge r35">R35</span> geometry-derived — cylinder-only shared face → <i>revolute</i>; cylinder + plane → <i>cylindrical</i>; plane-only → <i>rigid</i>; anything else → <i>slider</i></td></tr>
+  </table></div>
+
+  <h3 id="data-pos"><span class="step-num">0.5</span>Spatial Position <span class="badge r36">R36</span></h3>
+  <p>Every parsed <code>Data</code> object now also carries <code>pos</code> — each body's AABB center,
+  scaled by the assembly's own <code>bbox_max</code> — via PyG's standard <code>pos</code> attribute.</p>
+  <div class="callout info">
+    <p>Before this, the model had <b>zero geometric proximity signal anywhere</b>. All 22 node features are
+    affine-invariant shape ratios; message passing only ever runs along real edges, so when
+    <code>LinkPredictor</code> scores an arbitrary candidate (non-edge) pair, it had no way to express
+    "these two bodies are nowhere near each other." <code>centers[i]</code>/<code>coms[i]</code> were already
+    computed during parsing but only ever fed into a body's own <i>relative</i> signals (e.g. bolt-head
+    center-of-mass offset) — never exposed to the model. See <a href="#p1-predictor" style="color:var(--accent);">LinkPredictor</a>
+    for how this is consumed.</p>
+  </div>
+
+  <h3 id="data-split"><span class="step-num">0.6</span>Dataset Caching &amp; Train/Val/Test Splitting</h3>
+  <p>Parsed graphs are cached per-file (<code>graph_cache/</code>) so restarts and re-runs skip already-parsed
+  files; <code>--force-reload</code> rebuilds the collated dataset but this per-file cache must be cleared
+  separately when the parsing/feature logic itself changes, or stale cached graphs get silently reused.</p>
+  <div class="grid grid2">
+    <div class="card">
+      <h4 style="margin-top:0;">Test carve-out <span class="badge r36">R36</span> <span style="font-size:0.7rem;color:var(--muted);font-weight:400;">hash-stable</span></h4>
+      <p style="font-size:0.85rem;">Each graph's test/train-val membership is a deterministic hash of its own
+      <code>(category, source path)</code> — adding or removing graphs elsewhere in the corpus never reshuffles
+      an existing graph's membership. Replaces a plain <code>torch.randperm(n)</code>, which reshuffled
+      entirely whenever the corpus size changed — confirmed to have made a Phase 3 "regression" partly a
+      measurement artifact (two runs at n=188 vs n=192 drew almost entirely different 28-graph test sets).</p>
+    </div>
+    <div class="card">
+      <h4 style="margin-top:0;">CV fold split <span class="badge r35">R35</span> <span style="font-size:0.7rem;color:var(--muted);font-weight:400;">category-stratified</span></h4>
+      <p style="font-size:0.85rem;"><code>StratifiedKFold</code> over the remaining train_val graphs, keyed on
+      category. Corpus categories range from Bench_vice (54 graphs) to Tool_Post (8) — an unstratified split
+      could leave a fold with zero Tool_Post examples, a confirmed contributor to large per-fold AUC variance.
+      Verified every one of the 7 categories appears in every fold's validation set.</p>
+    </div>
+  </div>
+  <p style="font-size:0.82rem;color:var(--muted);">A pure hash-based fold split (matching the test carve-out's
+  approach) was tried first and measured to regress this — it left Tool_Post with zero validation examples in
+  3 of 5 folds. Reverted for the fold half specifically, since fold assignments are only ever used within one
+  training run and don't need the cross-run stability the test set does.</p>
+</section>
+
+<!-- ══════════════════════════ PHASE 1 ══════════════════════════ -->
+<section id="phase1">
+  <h2>1 · Phase 1 — Missing-Component Detection <span class="badge core">link prediction</span></h2>
+  <p class="sec-desc">Given a (possibly partial) assembly graph, score every candidate node pair on how likely
+  it is to be a real mate — i.e. "is a component missing here?" Trained once; its frozen encoder feeds
+  Phases 2 and 3.</p>
+
+  <h3 id="p1-encoder"><span class="step-num">1.1</span>AssemblyGNN Encoder <code>model.py</code></h3>
+  <p>A 3-layer relational GAT with type-aware processing at both ends:</p>
+  <div class="diagram-card">
+    <div class="dia-row">
+      <div class="dia-box p1"><span class="t">TypedLinear (in)</span><span class="d">8 per-type input projections, dispatched by node's true type</span></div>
+      <div class="dia-arrow">→</div>
+      <div class="dia-box p1"><span class="t">RGATConv ×3</span><span class="d">128 hidden, heads [8,4,1], num_relations=4, edge_dim=6 (layer 1 only)</span></div>
+      <div class="dia-arrow">→</div>
+      <div class="dia-box p1"><span class="t">TypedLinear (out)</span><span class="d">8 per-type output projections → 64-dim embedding</span></div>
+    </div>
+  </div>
+  <ul>
+    <li>Layer 1 injects edge features directly (<code>edge_attr</code>); layers 2–3 use only the relation type derived from it.</li>
+    <li>Relation type per edge = <code>argmax(edge_attr[:,2:6])</code> — now meaningfully non-constant thanks to the geometry-derived joint features above.</li>
+    <li><code>BatchNorm</code> + <code>ELU</code> + dropout (0.2) after layers 1–2.</li>
+    <li><b>2,441,809</b> total trainable params (encoder + LinkPredictor combined).</li>
+  </ul>
+
+  <h3 id="p1-predictor"><span class="step-num">1.2</span>LinkPredictor</h3>
+  <p><code>score(u,v) = MLP( z_u ‖ z_v ‖ distance(u,v) )</code> — a scalar logit per candidate edge.</p>
+  <div class="callout good">
+    <p><span class="badge r36">R36</span> The MLP's first layer grew from <code>in_dim×2 → hidden</code> to
+    <code>in_dim×2+1 → hidden</code> to accept one extra scalar: the Euclidean distance between the two
+    bodies' <code>pos</code> values (already scale-normalised per assembly). <code>pos=None</code> degrades
+    to a zero-filled distance for callers without positions. This changed the predictor's weight shape,
+    breaking strict-load of any pre-R36 checkpoint — held back until the retrain that makes it meaningful, to
+    avoid a window where the live app couldn't load its model. <b>That retrain landed</b>: R36 beat R34 by
+    +0.0716 mean AUC and was promoted to <code>best_serving.pt</code> — this is now the live, deployed
+    architecture, not a pending change.</p>
+  </div>
+
+  <h3 id="p1-training"><span class="step-num">1.3</span>Training Loop <code>train.py</code></h3>
+  <ol>
+    <li><b>5-fold cross-validation</b> — a fresh <code>gnn</code>+<code>lp</code> per fold, Adam optimizer, <code>ReduceLROnPlateau</code> scheduler.</li>
+    <li><b>Per-graph edge split</b> via PyG's <code>RandomLinkSplit</code> (10% val / 10% test edges per graph, <code>neg_sampling_ratio=0.5</code>).
+      <span class="badge r35">R35</span> <code>disjoint_train_ratio=0.25</code> — without this (PyG's default 0.0), train supervision edges were
+      identical to train message-passing edges, so the encoder could see the very edges it was being scored
+      on during training; val/test never had this leak. 25% of each graph's training edges are now held out
+      of message passing too, closing most of that train/eval task mismatch.</li>
+    <li><b>Loss</b>: BCE on positive+negative edges, plus a hard-negative term — the most similar
+      non-neighbour node to each positive edge's source is mined via embedding cosine similarity each batch
+      and penalised at 0.3× weight.</li>
+    <li><b>Category sample weighting</b> — inverse-frequency weights (capped 3.0×) applied per batch so
+      Tool_Post (8 graphs) isn't drowned out by Bench_vice (54).</li>
+    <li><b>Checkpoint selection</b> <span class="badge r35">R35</span> — compares/saves against a 3-epoch
+      trailing average of validation AUC, not the raw single-epoch value. R34 fold 3 hit val AUC=0.7364 on
+      one lucky epoch (≈33-graph val set), saved that checkpoint, and its test AUC came back at 0.4899 — a
+      0.25 gap this directly targets.</li>
+    <li>MPS-specific memory hygiene: periodic <code>gc.collect()</code> / <code>torch.mps.empty_cache()</code>
+      within an epoch and at fold boundaries — variable-sized graph batches otherwise leave MPS's per-shape
+      compiled-graph cache growing unbounded (observed RSS climbing to 19–51GB, swap thrashing).</li>
+  </ol>
+
+  <h3 id="p1-eval"><span class="step-num">1.4</span>Evaluation &amp; Promotion Gate <code>evaluate.py</code></h3>
+  <p>AUC-ROC and Average Precision per fold; mean ± stdev reported across the 5 folds. A new run is promoted
+  to <code>best_serving.pt</code> only if it beats the incumbent on <i>both</i> mean AUC and mean AP — an
+  automatic, evidence-based gate that has correctly held back multiple retrains this project (R32 vs R30, R35 vs R34)
+  when they didn't actually improve — and correctly promoted <span class="badge r36">R36</span> when it did
+  (Mean AUC 0.6277±0.0516 vs R34's 0.5561±0.0257).</p>
+  <p style="font-size:0.82rem;color:var(--muted);"><b>Reading AP honestly:</b> with <code>neg_ratio=0.5</code>,
+  a random classifier's expected AP is <code>1/(1+0.5) ≈ 0.667</code>, not the usual 0.5 — so an AP of 0.74
+  is only ~0.07 above chance, not the "74%" it superficially looks like. AUC (chance = 0.5 regardless of
+  class ratio) is the more honest single number to track.</p>
+</section>
+
+<!-- ══════════════════════════ PHASE 2 ══════════════════════════ -->
+<section id="phase2">
+  <h2>2 · Phase 2 — Next-Component Ranking <span class="badge core">NodeRanker</span></h2>
+  <p class="sec-desc">A different question from Phase 1: not "does this edge exist," but "given this partial
+  assembly, which of the 8 component types is most likely the next/missing one?"</p>
+
+  <h3 id="p2-design"><span class="step-num">2.1</span>Design <code>model.py</code></h3>
+  <div class="diagram-card">
+    <div class="dia-row">
+      <div class="dia-box p2"><span class="t">Partial graph</span><span class="d">→ frozen AssemblyGNN → mean-pool</span></div>
+      <div class="dia-arrow">→</div>
+      <div class="dia-box p2"><span class="t">proj (64×64)</span><span class="d">only this layer trains</span></div>
+      <div class="dia-arrow">→</div>
+      <div class="dia-box p2"><span class="t">cosine similarity</span><span class="d">vs. 8 type-prototype embeddings</span></div>
+      <div class="dia-arrow">→</div>
+      <div class="dia-box out"><span class="t">score × exp(logit_scale)</span><span class="d"><span class="badge r36">R36</span> learnable temperature</span></div>
+    </div>
+  </div>
+  <ul>
+    <li><b>Candidates</b> = the 8 fixed component types, not arbitrary real graph nodes.</li>
+    <li><b>Type prototypes</b> = mean raw 22-dim feature vector per type (from train+val graphs), embedded
+        through the frozen encoder as a zero-edge batch — recomputed fresh every time the encoder changes.</li>
+    <li><span class="badge r36">R36</span> <span class="badge pending">code landed, retrain pending</span>
+        <code>logit_scale</code> — a CLIP-style learnable scalar
+        multiplying the cosine similarity before the loss. Plain cosine similarity is bounded [-1,1], so raw
+        score differences fed into BPR were small and the loss gradient sat in a flat region for a head this
+        thin (~4.2K params in <code>proj</code> alone). Initialised to <code>exp(0)=1.0</code> — identical to
+        the old unscaled behaviour until training says otherwise. <code>infer.py</code> loads existing
+        checkpoints with <code>strict=False</code> so this addition doesn't break them; the parameter just
+        defaults to its identity value until the head is next retrained — landed in the R36 commit but Phase 2
+        hasn't been retrained since, so this has not yet run against real data.</li>
+  </ul>
+
+  <h3 id="p2-training"><span class="step-num">2.2</span>Training &amp; Evaluation <code>train_ranker.py</code></h3>
+  <ol>
+    <li><b>Leave-one-node-out sampling</b>: remove a real node from a training graph, encode the remainder
+      through the frozen encoder, mean-pool to a context vector.</li>
+    <li><b>BPR loss</b> (Bayesian Personalized Ranking) pushes the true removed node's type-prototype score
+      above the other 7 types'.</li>
+    <li><b>Metrics</b>: Hit@1, Hit@5, MRR, NDCG@5, each compared against a majority-class baseline.</li>
+  </ol>
+  <div class="callout">
+    <p><b>Known open issue, not yet fixed:</b> Hit@1 has landed at or below the majority-class baseline across
+    every encoder generation retrained against so far (R28-era, R30, R33, R34). Diagnosed as likely
+    architectural — <code>proj</code> only ever transforms the query side; the 8 prototype embeddings it's
+    compared against are never touched by anything trainable, so Hit@1 is capped by however separated those
+    prototypes already are coming out of the frozen encoder. Combined with zero class-imbalance handling in
+    the leave-one-out sampling. Fix is queued (project-tracked, not yet implemented) for after Phase 1
+    settles on a promoted encoder.</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════ PHASE 3 ══════════════════════════ -->
+<section id="phase3">
+  <h2>3 · Phase 3 — Missing-Shape Generation <span class="badge core">fastener-scoped</span></h2>
+  <p class="sec-desc">Given a predicted-missing component type and a target open-joint region, produce an
+  actual 3D mesh. <b>Generation</b> is scoped to fasteners (bolt/washer/nut) only — detection of all 8 types
+  is unchanged; non-fastener misses still surface in the text-only expected-components panel, they just don't
+  get a ghost mesh.</p>
+
+  <h3 id="p3-bank"><span class="step-num">3.1</span>Part Bank <code>part_bank.py</code></h3>
+  <p>A separate corpus walk (STEP files re-parsed, this time keeping the per-body meshes dataset.py discards)
+  builds a library of real part shapes:</p>
+  <ol>
+    <li><b>Canonicalize</b> — center at centroid, align to OBB principal axes, scale to unit max-extent.</li>
+    <li><b>Voxelize</b> — 32³ occupancy grid, 1.2× padding beyond the part's own extent.</li>
+    <li>Index by <code>(component_type, category, bbox)</code> for nearest-neighbour retrieval at inference time.</li>
+  </ol>
+  <p style="font-size:0.85rem;color:var(--muted);">4,500 parts from 193 assemblies after a meshing-resilience
+  fix let STEP files with periodic (unmeshable) surfaces contribute their <i>other</i> bodies instead of
+  aborting the whole file — up from 3,221. No quality gate currently exists on these newly-admitted bodies
+  (open item, tracked separately).</p>
+
+  <h3 id="p3-vae"><span class="step-num">3.2</span>Conditional Shape VAE <code>shape_generator.py</code></h3>
+  <div class="diagram-card">
+    <div class="dia-row">
+      <div class="dia-box p3"><span class="t">Encoder</span><span class="d">4× Conv3d blocks, 32→64→128→256 channels, stride 2</span></div>
+      <div class="dia-arrow">→</div>
+      <div class="dia-box p3"><span class="t">μ, log σ² </span><span class="d">128-dim latent</span></div>
+      <div class="dia-arrow">→</div>
+      <div class="dia-box p3"><span class="t">Decoder</span><span class="d">4× ConvTranspose3d, 256→128→64→32→1</span></div>
+    </div>
+  </div>
+  <p><b>77-dim conditioning vector</b>: 64-dim frozen-encoder context + 8-dim type one-hot + 3-dim target
+  bbox + 2-dim neighbor-scale — concatenated with the latent before decoding, so the same VAE can generate
+  any of the 8 types at any target size.</p>
+  <p><b>Loss</b>: <code>BCE + λ_dice·soft-Dice + β_KL·KL</code> (λ_dice=0.5, β_KL=0.05) on voxel occupancy.</p>
+
+  <h3 id="p3-hybrid"><span class="step-num">3.3</span>Hybrid Orchestration</h3>
+  <div class="grid grid2">
+    <div class="card">
+      <h4 style="margin-top:0;">ShapeRetriever (first choice)</h4>
+      <p style="font-size:0.85rem;">Nearest-neighbour lookup in the part bank by bbox-shape similarity, rescaled to the target bbox via <code>fit_to_bbox()</code>. Zero training, and usually wins for standardized fastener shapes.</p>
+    </div>
+    <div class="card">
+      <h4 style="margin-top:0;">ConditionalShapeVAE (fallback)</h4>
+      <p style="font-size:0.85rem;">Used only when retrieval's <code>fit_score</code> falls below a threshold — <code>retrieval_tau=0.6</code> generally, <code>retrieval_tau_fastener=0.4</code> for bolt/washer/nut specifically (the bank already has hundreds of real examples; a slightly-imperfect real one usually beats a VAE hallucination).</p>
+    </div>
+  </div>
+  <p><code>rotate_to_target_axis()</code> then orients the chosen mesh onto the real open-joint's bore axis
+  (<code>normal_hint</code>, from <a href="#support-surface" style="color:var(--accent);">surface_analyzer.py</a>)
+  instead of keeping whatever pose the part bank canonicalized it in — using the <i>middle</i> extent (not
+  just shortest/longest) to correctly distinguish a rod-like bolt from a disk-like washer, which can share
+  the same shortest/longest ratio.</p>
+
+  <h3 id="p3-training"><span class="step-num">3.4</span>Training &amp; Evaluation <code>train_shape_gen.py</code></h3>
+  <ul>
+    <li>Same leave-one-node-out sampling pattern as NodeRanker, against the frozen encoder — 60 epochs, continuous-angle rotation + scale/occupancy jitter augmentation.</li>
+    <li><b>Metrics</b>: voxel IoU (deterministic, full-grid) and a chamfer-distance proxy over occupied-voxel centroid clouds.</li>
+    <li><span class="badge r36">R36</span> <span class="badge pending">code landed, retrain pending</span>
+      Chamfer's point-cloud subsampling now uses a <b>fixed-seed generator</b>
+      instead of the global RNG — re-evaluating the same checkpoint on the same voxel grid used to give a
+      <i>different</i> chamfer every call once a shape exceeded 300 occupied voxels (measured ~110% coefficient
+      of variation from sampling noise alone, on top of real model variance). Landed in the R36 commit; Phase 3
+      hasn't been retrained since, so not yet exercised against real data.</li>
+    <li><span class="badge r36">R36</span> <span class="badge pending">code landed, retrain pending</span>
+      Checkpoint selection now uses <code>score = IoU − 2.0×chamfer</code>
+      instead of IoU alone — the old selection was observed passing over a near-IoU-tied epoch with ~20%
+      better chamfer purely because IoU ticked up slightly on a different epoch.</li>
+  </ul>
+</section>
+
+<!-- ══════════════════════════ SUPPORTING MODULES ══════════════════════════ -->
+<section id="support-templates">
+  <h2>Supporting — AssemblyTemplateDB <code>assembly_templates.py</code></h2>
+  <p class="sec-desc">A frequency prior, independent of the GNN entirely: median component-type counts per
+  category, computed once from the training corpus.</p>
+  <ol>
+    <li><code>build()</code> groups all processed graphs by category (walking past known container
+      directories in the source path) and computes the median count of each of the 8 types per category.</li>
+    <li>At inference, <code>match()</code> compares an uploaded assembly's observed type counts against every
+      category template and returns the best fit + a confidence score.</li>
+    <li><code>get_missing()</code> then reports <code>expected − observed</code> per type as the text-only
+      "Expected Components Missing" panel — this is what still covers non-fastener types after Phase 3's
+      shape generation was scoped down to fasteners only.</li>
+  </ol>
+</section>
+
+<section id="support-surface">
+  <h2>Supporting — Open-Surface &amp; Hole Detection <code>surface_analyzer.py</code></h2>
+  <p class="sec-desc">Finds <i>where</i> on the 3D model a component is likely missing — two independent
+  detection paths that both run on every uploaded assembly.</p>
+  <div class="grid grid2">
+    <div class="card">
+      <h4 style="margin-top:0;">Whole-face regions (Octree)</h4>
+      <p style="font-size:0.85rem;">Adapts Borah &amp; Borah (2020)'s block-based regional approach: free
+      (unshared) surfaces above an area-ratio threshold are spatially clustered via a lightweight 3D octree,
+      keeping the highest-area-ratio representative per leaf — flags large open regions like an unfilled
+      housing face.</p>
+    </div>
+    <div class="card">
+      <h4 style="margin-top:0;">Per-hole fastener candidates</h4>
+      <p style="font-size:0.85rem;">Every free cylindrical face is independently checked as a bolt/screw-hole
+      candidate: diameter (2–50mm) and depth (≥1mm) plausibility, then a same-diameter <b>repetition</b>
+      requirement (≥2 instances on the same body — a real bolt pattern repeats; a one-off tool bore doesn't).
+      Coaxial duplicates (a counterbore + its clearance bore) are merged by bore-axis + position tolerance.</p>
+    </div>
+  </div>
+  <p>Both paths return <code>centroid</code>, <code>bbox</code>, and <code>normal_hint</code> (surface normal
+  or bore axis) per candidate, tagged <code>is_hole</code> true/false — the Streamlit app's shape-generation
+  step (see below) runs directly off the hole candidates now, no longer capped by
+  <a href="#support-templates" style="color:var(--accent);">AssemblyTemplateDB</a>'s approximate per-type
+  missing-count prediction.</p>
+</section>
+
+<section id="support-aida">
+  <h2>Supporting — AIDA <code>skills_agent.py</code></h2>
+  <p class="sec-desc">A Gemini-backed agent that explains predictions in engineering language, persona and
+  domain skills defined declaratively in <code>skills/engineering_3d_assembly.yaml</code> (extend by editing
+  that file, not the agent code).</p>
+  <ul>
+    <li>Builds a system prompt from the loaded skills profile, then narrates each inference result section
+      (Assembly Type, Not Assembled, Potentially Missing, Expected Components Missing, Next Component,
+      Open Joints, and Suggested Missing-Part Shapes) as structured, section-headed prose.</li>
+    <li>Degrades gracefully without <code>GEMINI_API_KEY</code> set — every other feature still works, only
+      the natural-language explanation is unavailable.</li>
+  </ul>
+</section>
+
+<!-- ══════════════════════════ SERVING ══════════════════════════ -->
+<section id="serving-api">
+  <h2>Serving — FastAPI Backend <code>api.py</code></h2>
+  <div class="table-wrap"><table>
+    <tr><th>Endpoint</th><th>Purpose</th></tr>
+    <tr><td><code>GET /health</code></td><td>reports whether the GNN/LinkPredictor/NodeRanker are loaded, and their checkpoint metadata</td></tr>
+    <tr><td><code>POST /predict/missing</code></td><td>score candidate node pairs on an already-built graph payload</td></tr>
+    <tr><td><code>POST /predict/next-component</code></td><td>NodeRanker inference on a graph payload</td></tr>
+    <tr><td><code>POST /explain</code></td><td>AIDA natural-language explanation of a result</td></tr>
+    <tr><td><code>POST /identify</code></td><td>component-type identification</td></tr>
+    <tr><td><code>POST /analyze/step</code></td><td>full pipeline on an uploaded raw STEP file</td></tr>
+    <tr><td><code>GET /docs-summary</code></td><td>lightweight metadata for the frontend</td></tr>
+  </table></div>
+  <p style="font-size:0.82rem;color:var(--muted);">On startup, loads <code>best_serving.pt</code> (gnn+lp)
+  and <code>node_ranker.pt</code> (if present) once and keeps them resident; each request reuses the loaded
+  models rather than reloading per call.</p>
+</section>
+
+<section id="serving-app">
+  <h2>Serving — Streamlit Frontend <code>front_end/app.py</code></h2>
+  <div class="callout info">
+    <p>The Streamlit app does <b>not</b> call the FastAPI backend — it runs its own subprocess importing
+    <code>infer.py</code> directly. The API above exists as a separate, independently-usable interface to the
+    same underlying models.</p>
+  </div>
+  <ol>
+    <li><code>_run_inference()</code> — the full pipeline per upload: parse STEP → classify components → run
+      the GNN+LinkPredictor for missing-link detection → NodeRanker for next-component → AssemblyTemplateDB
+      for expected-missing counts → <code>surface_analyzer.py</code> for open-joint/hole detection →
+      <code>HybridShapeGenerator</code> for shape-gen ghost meshes on detected fastener holes.</li>
+    <li><code>_build_panel_sections()</code> — collapsible results UI: Assembly Type, Not Assembled,
+      Potentially Missing, Expected Components Missing, Next Component, Open Joints, Suggested Shapes.</li>
+    <li><code>_run_aida_explain()</code> — sends the structured result to AIDA for natural-language narration.</li>
+    <li>Dual 3D viewer (Plotly): Original/Result toggle, Highlight on/off, legend grouped by overlay category
+      with per-group select-all, each item independently selectable.</li>
+  </ol>
+</section>
+
+<!-- ══════════════════════════ CHANGELOG ══════════════════════════ -->
+<section id="provenance">
+  <h2>Run Provenance</h2>
+  <p class="sec-desc">The canonical lookup for "which run introduced/validated this" — every badge in this document
+  cites a run listed here. Update this table (and the grouped changelog below it) whenever a new run's code
+  lands or finishes, <i>before</i> moving on to the next change — this is what keeps every badge trustworthy.</p>
+  <div class="table-wrap"><table>
+    <tr><th>Run</th><th>Commit</th><th>Landed</th><th>Corpus</th><th>Result</th><th>Status</th></tr>
+    <tr>
+      <td><b>R34</b></td><td><code>590be8f</code></td><td>2026-08-09 23:42 IST</td><td>192/193 graphs</td>
+      <td>Mean AUC 0.5561±0.0257<br>Mean AP 0.7422±0.0146</td>
+      <td style="color:var(--good);">Promoted — was <code>best_serving.pt</code> going into this cycle</td>
+    </tr>
+    <tr>
+      <td><b>R35</b> <span class="badge r35">R35</span></td><td><code>749e62b</code></td><td>2026-08-10 01:07 IST</td><td>179/193 graphs<br><span style="color:var(--muted);font-size:0.78rem;">(13 timeouts, 1 error)</span></td>
+      <td>Mean AUC 0.5386±0.0787<br>Mean AP 0.8079±0.0475</td>
+      <td style="color:var(--warn);">NOT promoted — worse AUC, higher variance than R34; corpus shrinkage confounds the comparison (open item)</td>
+    </tr>
+    <tr>
+      <td><b>R36</b> <span class="badge r36">R36</span></td><td><code>6aa2776</code></td><td>2026-08-10 11:39 IST</td><td>191/193 graphs<br><span style="color:var(--muted);font-size:0.78rem;">(2 timeouts)</span></td>
+      <td><b>Mean AUC 0.6277±0.0516</b><br>Mean AP 0.7747±0.0378<br><span style="color:var(--muted);font-size:0.78rem;">final test (best-overall): AUC=0.6231, AP=0.7787</span></td>
+      <td style="color:var(--good);">✓ <b>Promoted</b> — beats R34 by +0.0716 AUC with lower variance than R35. Original 5-fold run was killed mid-Fold-5 (likely OOM, swap hit 30.7/31.7GB), recovered via <code>--start-fold 4</code> resume rather than a full redo — folds 1–4 checkpoints were intact</td>
+    </tr>
+  </table></div>
+  <p style="font-size:0.82rem;color:var(--muted);"><b>Reproducibility caveat on R36's numbers:</b> the resume re-evaluated folds 1–4 from their saved checkpoints
+  to build the final mean, and <code>get_splits()</code>'s per-graph edge-level val/test split (via <code>RandomLinkSplit</code>)
+  isn't seeded — confirmed those re-evaluated numbers differ from what the same folds would report on a fresh pass.
+  The graph-level split (which graphs are train/val/test) is deterministic; the edge-level split within a test
+  graph isn't yet. Doesn't affect the promotion decision (still an internally consistent comparison), but the
+  exact per-fold AUC digits above aren't perfectly reproducible until this is fixed (tracked as an open item).</p>
+  <p style="font-size:0.82rem;color:var(--muted);">R34 predates this diagnostic cycle (per-hole fastener detection,
+  <code>max_fastener_extent</code> classifier gate, part-bank meshing-resilience fix — see
+  <a href="#support-surface" style="color:var(--accent);">surface_analyzer.py</a> and
+  <a href="#p3-bank" style="color:var(--accent);">Part Bank</a>). R35 and R36 are both Phase-1-only retrains from
+  this cycle's diagnostic; Phase 2 (NodeRanker) and Phase 3 (shape-gen) have not been retrained against either —
+  see the <span class="badge pending">code landed, retrain pending</span> tags throughout <a href="#phase2" style="color:var(--accent);">Phase 2</a>
+  and <a href="#phase3" style="color:var(--accent);">Phase 3</a>.</p>
+</section>
+
+<section id="changelog">
+  <h2>Changelog by Run</h2>
+  <p class="sec-desc">Same content as the inline badges above, grouped by the run each change actually landed in.</p>
+
+  <h3 style="margin-top:0;"><span class="badge r35">R35</span> commit <code>749e62b</code> — 2026-08-10 01:07 IST</h3>
+  <div class="changelog-item">
+    <div class="tag">dataset.py</div>
+    <div class="body"><p><b>Geometry-derived edge/node features</b> replace the never-present <code>assembly.json</code>
+      dependency — real joint-type <code>[2:6]</code> and mate-type <code>[0]</code> on edges, hole-count <code>[21]</code>
+      on nodes. (Edge weight <code>[1]</code> was <i>not</i> part of this fix — it stayed hardcoded <code>1.0</code> until R36.)</p></div>
+  </div>
+  <div class="changelog-item">
+    <div class="tag">dataset.py</div>
+    <div class="body"><p><b><code>disjoint_train_ratio=0.25</code></b> in <code>RandomLinkSplit</code> — closes a train/eval task mismatch (train supervision edges were visible to the encoder's own message passing; val/test never were).</p></div>
+  </div>
+  <div class="changelog-item">
+    <div class="tag">dataset.py</div>
+    <div class="body"><p><b>Category-stratified splitting</b> — both the test carve-out and CV folds; guarantees every category (down to Tool_Post's 8 graphs) is represented in every fold. (The test carve-out was later upgraded to hash-stable in R36; the CV-fold half stayed as this R35 mechanism.)</p></div>
+  </div>
+  <div class="changelog-item">
+    <div class="tag">train.py</div>
+    <div class="body"><p><b>Smoothed checkpoint selection</b> — 3-epoch trailing average of val AUC instead of a single noisy epoch, targeting a confirmed overfit-to-noise selection failure (R34 fold 3: val AUC=0.7364 on one epoch, test AUC=0.4899).</p></div>
+  </div>
+  <div class="changelog-item">
+    <div class="tag">config.yaml</div>
+    <div class="body"><p><b>Dead config removed</b> — <code>mask_ratio</code>, <code>train_ratio</code>, <code>val_ratio</code> were never read by any code; removed rather than left misleading.</p></div>
+  </div>
+  <div class="changelog-item">
+    <div class="tag">Result</div>
+    <div class="body"><p>Mean AUC 0.5386±0.0787, Mean AP 0.8079±0.0475 on 179/193 graphs (13 parse timeouts — a side effect of the added geometry calls). <b>Not promoted</b> — see <a href="#provenance" style="color:var(--accent);">Run Provenance</a>.</p></div>
+  </div>
+
+  <h3><span class="badge r36">R36</span> commit <code>6aa2776</code> — 2026-08-10 11:39 IST</h3>
+  <div class="changelog-item">
+    <div class="tag">dataset.py<br>model.py</div>
+    <div class="body"><p><b>Spatial link-prediction signal</b> — body positions (<code>pos</code>) now stored on every graph and consumed by <code>LinkPredictor</code> as a relative-distance feature; previously zero geometric proximity signal existed anywhere in the model. Changes <code>LinkPredictor</code>'s weight shape, breaking strict-load of pre-R36 checkpoints by design.</p></div>
+  </div>
+  <div class="changelog-item">
+    <div class="tag">dataset.py</div>
+    <div class="body"><p><b>Real contact-area edge weight</b> <code>[1]</code> — replaces the hardcoded <code>1.0</code> (still present as of R35) with the actual shared-surface area ratio.</p></div>
+  </div>
+  <div class="changelog-item">
+    <div class="tag">dataset.py</div>
+    <div class="body"><p><b>Hash-stable test-set split</b> — upgrades R35's test carve-out from corpus-size-sensitive stratification to a per-graph hash keyed on <code>(category, source path)</code>, independent of corpus size. CV fold split kept R35's category-stratified mechanism (a pure hash-based fold split was tried and measured to regress Tool_Post's fold coverage).</p></div>
+  </div>
+  <div class="changelog-item">
+    <div class="tag">model.py<br>infer.py</div>
+    <div class="body"><p><b>NodeRanker temperature scaling</b> <span class="badge pending">retrain pending</span> — CLIP-style learnable <code>logit_scale</code>; loads existing checkpoints with <code>strict=False</code> for backward compatibility. Code only — Phase 2 hasn't been retrained since this landed.</p></div>
+  </div>
+  <div class="changelog-item">
+    <div class="tag">train_shape_gen.py</div>
+    <div class="body"><p><b>Seeded chamfer metric + chamfer-aware checkpoint selection</b> <span class="badge pending">retrain pending</span> — removes ~110% coefficient-of-variation measurement noise from an unseeded point-subsampling call, and stops checkpoint selection from ignoring chamfer entirely. Code only — Phase 3 hasn't been retrained since this landed.</p></div>
+  </div>
+  <div class="changelog-item">
+    <div class="tag">Result</div>
+    <div class="body"><p><b>Mean AUC 0.6277±0.0516, Mean AP 0.7747±0.0378</b> on 191/193 graphs (2 timeouts, an improvement over R35's 13) —
+      beats R34 by +0.0716 AUC. <b>Promoted to <code>best_serving.pt</code></b>. See <a href="#provenance" style="color:var(--accent);">Run Provenance</a> for the reproducibility caveat on these numbers (original run crashed mid-fold, recovered via resume).</p></div>
+  </div>
+</section>
+
+<!-- ══════════════════════════ FILE MAP ══════════════════════════ -->
+<section id="files">
+  <h2>Key File Map</h2>
+  <div class="table-wrap"><table>
+    <tr><th>File</th><th>Role</th></tr>
+    <tr><td><code>back_end/dataset.py</code></td><td>STEP → graph pipeline; classifier; edge/node feature extraction; dataset splitting</td></tr>
+    <tr><td><code>back_end/model.py</code></td><td><code>AssemblyGNN</code>, <code>LinkPredictor</code>, <code>NodeRanker</code></td></tr>
+    <tr><td><code>back_end/train.py</code></td><td>Phase 1 training loop, 5-fold CV, promotion gating</td></tr>
+    <tr><td><code>back_end/train_ranker.py</code></td><td>Phase 2 NodeRanker training</td></tr>
+    <tr><td><code>back_end/train_shape_gen.py</code></td><td>Phase 3 VAE training</td></tr>
+    <tr><td><code>back_end/evaluate.py</code></td><td>AUC/AP, Hit@K/MRR/NDCG@K</td></tr>
+    <tr><td><code>back_end/infer.py</code></td><td>Inference-time model loading + prediction functions, shared by API and Streamlit subprocess</td></tr>
+    <tr><td><code>back_end/part_bank.py</code></td><td>Phase 3 part library build + query</td></tr>
+    <tr><td><code>back_end/shape_generator.py</code></td><td><code>ConditionalShapeVAE</code>, <code>ShapeRetriever</code>, <code>HybridShapeGenerator</code></td></tr>
+    <tr><td><code>back_end/assembly_templates.py</code></td><td><code>AssemblyTemplateDB</code> frequency prior</td></tr>
+    <tr><td><code>back_end/surface_analyzer.py</code></td><td>Open-surface + per-hole fastener detection</td></tr>
+    <tr><td><code>back_end/skills_agent.py</code></td><td>AIDA (Gemini) explanation agent</td></tr>
+    <tr><td><code>back_end/api.py</code></td><td>FastAPI backend</td></tr>
+    <tr><td><code>front_end/app.py</code></td><td>Streamlit dual-panel UI</td></tr>
+    <tr><td><code>back_end/config.yaml</code></td><td>Authoritative hyperparameters, dims, paths — source of truth over prose docs</td></tr>
+    <tr><td><code>skills/engineering_3d_assembly.yaml</code></td><td>AIDA persona/domain-skill definitions</td></tr>
+  </table></div>
+</section>
+
+<footer>
+  AI-Assisted 3D Assembly Design — MTech Data Science &amp; AI, PES University Bengaluru.
+  This document reflects the codebase state after the Phase 1 R36 retrain cycle; verify against
+  <code>config.yaml</code> and recent git log for anything time-sensitive (checkpoint metrics, corpus size).
+</footer>
+
+</main>
+</body>
+</html>

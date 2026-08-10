@@ -1,0 +1,1106 @@
+Processing...
+
+[1/4] Loading dataset …
+  Category filter: ['Bench_vice', 'C_Clamps', 'Pipe_vice', 'Gate_Valve', 'Press_Tool', 'Tool_Post', 'Crane_hook']
+  193 STEP files after category filter
+  Found 193 STEP file(s) in /Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Source_3d_models/Best_models_for_training
+  [1/193] Parsing: Bench_Vice_02/Bench_Vice_02.STEP
+  [OK]  Bench_Vice_02/Bench_Vice_02.STEP — 26 nodes  39 edges  (5.1s)
+  [2/193] Parsing: Bench_Vice_03/Bench_Vice_03.step
+  [OK]  Bench_Vice_03/Bench_Vice_03.step — 18 nodes  22 edges  (4.3s)
+  [3/193] Parsing: Bench_Vice_04/Bench_Vice_04.STEP
+  [OK]  Bench_Vice_04/Bench_Vice_04.STEP — 47 nodes  67 edges  (5.6s)
+  [4/193] Parsing: Bench_Vice_06/Bench_Vice_06.stp
+  [OK]  Bench_Vice_06/Bench_Vice_06.stp — 16 nodes  12 edges  (9.2s)
+  [5/193] Parsing: Bench_Vice_07/Bench_Vice_07.STEP
+  [OK]  Bench_Vice_07/Bench_Vice_07.STEP — 12 nodes  16 edges  (3.7s)
+  [6/193] Parsing: Bench_Vice_08/Bench_Vice_08.step
+  [OK]  Bench_Vice_08/Bench_Vice_08.step — 55 nodes  48 edges  (30.3s)
+  [7/193] Parsing: Bench_Vice_09/Bench_Vice_09.stp
+  [OK]  Bench_Vice_09/Bench_Vice_09.stp — 22 nodes  33 edges  (4.3s)
+  [8/193] Parsing: Bench_Vice_11/Bench_Vice_11.STEP
+  [OK]  Bench_Vice_11/Bench_Vice_11.STEP — 20 nodes  33 edges  (5.3s)
+  [9/193] Parsing: Bench_Vice_12/Bench_Vice_12.stp
+  [OK]  Bench_Vice_12/Bench_Vice_12.stp — 31 nodes  41 edges  (6.7s)
+  [10/193] Parsing: Bench_Vice_13/Bench_Vice_13.STEP
+  [OK]  Bench_Vice_13/Bench_Vice_13.STEP — 27 nodes  43 edges  (4.6s)
+  [11/193] Parsing: Bench_Vice_14/Bench_Vice_14.STEP
+  [OK]  Bench_Vice_14/Bench_Vice_14.STEP — 24 nodes  39 edges  (4.4s)
+  [12/193] Parsing: Bench_Vice_17/Bench_Vice_17.STEP
+  [OK]  Bench_Vice_17/Bench_Vice_17.STEP — 25 nodes  41 edges  (5.0s)
+  [13/193] Parsing: Bench_Vice_18/Bench_Vice_18.stp
+  [OK]  Bench_Vice_18/Bench_Vice_18.stp — 7 nodes  7 edges  (4.6s)
+  [14/193] Parsing: Bench_Vice_20/Bench_Vice_20.stp
+  [OK]  Bench_Vice_20/Bench_Vice_20.stp — 21 nodes  35 edges  (13.0s)
+  [15/193] Parsing: Bench_Vice_21/Bench_Vice_21.STEP
+  [OK]  Bench_Vice_21/Bench_Vice_21.STEP — 12 nodes  15 edges  (3.4s)
+  [16/193] Parsing: Bench_Vice_22/Bench_Vice_22.stp
+  [OK]  Bench_Vice_22/Bench_Vice_22.stp — 22 nodes  31 edges  (3.9s)
+  [17/193] Parsing: Bench_Vice_23/Bench_Vice_23.stp
+  [OK]  Bench_Vice_23/Bench_Vice_23.stp — 27 nodes  36 edges  (3.8s)
+  [18/193] Parsing: Bench_Vice_26/Bench_Vice_26.step
+  [OK]  Bench_Vice_26/Bench_Vice_26.step — 17 nodes  12 edges  (57.7s)
+  [19/193] Parsing: Bench_Vice_27/Bench_Vice_27.stp
+  [OK]  Bench_Vice_27/Bench_Vice_27.stp — 10 nodes  11 edges  (5.7s)
+  [20/193] Parsing: Bench_Vice_28/Bench_Vice_28.stp
+  [OK]  Bench_Vice_28/Bench_Vice_28.stp — 46 nodes  77 edges  (4.6s)
+  [21/193] Parsing: Bench_Vice_31/Bench_Vice_31.stp
+  [OK]  Bench_Vice_31/Bench_Vice_31.stp — 20 nodes  25 edges  (3.9s)
+  [22/193] Parsing: Bench_Vice_34/Bench_Vice_34.stp
+  [OK]  Bench_Vice_34/Bench_Vice_34.stp — 23 nodes  40 edges  (4.9s)
+  [23/193] Parsing: Bench_Vice_38/Bench_Vice_38.step
+  [OK]  Bench_Vice_38/Bench_Vice_38.step — 20 nodes  27 edges  (3.8s)
+  [24/193] Parsing: Bench_Vice_39/Bench_Vice_39.step
+  [OK]  Bench_Vice_39/Bench_Vice_39.step — 14 nodes  21 edges  (5.1s)
+  [25/193] Parsing: Bench_Vice_41/Bench_Vice_41.stp
+  [OK]  Bench_Vice_41/Bench_Vice_41.stp — 22 nodes  33 edges  (3.8s)
+  [26/193] Parsing: Bench_Vice_42/Bench_Vice_42.stp
+  [OK]  Bench_Vice_42/Bench_Vice_42.stp — 15 nodes  24 edges  (36.5s)
+  [27/193] Parsing: Bench_Vice_43/Bench_Vice_43.step
+  [OK]  Bench_Vice_43/Bench_Vice_43.step — 16 nodes  15 edges  (6.0s)
+  [28/193] Parsing: Bench_Vice_45/Bench_Vice_45.step
+  [OK]  Bench_Vice_45/Bench_Vice_45.step — 25 nodes  31 edges  (11.6s)
+  [29/193] Parsing: Bench_Vice_46/Bench_Vice_46.stp
+  [OK]  Bench_Vice_46/Bench_Vice_46.stp — 18 nodes  21 edges  (4.6s)
+  [30/193] Parsing: Bench_Vice_47/Bench_Vice_47.STEP
+  [OK]  Bench_Vice_47/Bench_Vice_47.STEP — 21 nodes  28 edges  (18.4s)
+  [31/193] Parsing: Bench_Vice_50/Bench_Vice_50.STEP
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/trimesh/triangles.py:550: RuntimeWarning: divide by zero encountered in divide
+  inverse_denominator = 1.0 / (dot00 * dot11 - dot01 * dot01)
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/trimesh/triangles.py:555: RuntimeWarning: invalid value encountered in subtract
+  barycentric[:, 0] = 1 - barycentric[:, 1] - barycentric[:, 2]
+  [OK]  Bench_Vice_50/Bench_Vice_50.STEP — 31 nodes  465 edges  (88.7s)
+  [32/193] Parsing: Bench_Vice_51/Bench_Vice_51.STEP
+  [OK]  Bench_Vice_51/Bench_Vice_51.STEP — 13 nodes  18 edges  (4.0s)
+  [33/193] Parsing: Bench_Vice_52/Bench_Vice_52.stp
+  [OK]  Bench_Vice_52/Bench_Vice_52.stp — 57 nodes  69 edges  (70.8s)
+  [34/193] Parsing: Bench_Vice_53/Bench_Vice_53.STEP
+  [OK]  Bench_Vice_53/Bench_Vice_53.STEP — 27 nodes  37 edges  (4.4s)
+  [35/193] Parsing: Bench_Vice_58/Bench_Vice_58.stp
+  [OK]  Bench_Vice_58/Bench_Vice_58.stp — 6 nodes  6 edges  (4.8s)
+  [36/193] Parsing: Bench_Vice_59/Bench_Vice_59.STEP
+  [OK]  Bench_Vice_59/Bench_Vice_59.STEP — 97 nodes  144 edges  (15.2s)
+  [37/193] Parsing: Bench_Vice_60/Bench_Vice_60.stp
+  [OK]  Bench_Vice_60/Bench_Vice_60.stp — 24 nodes  20 edges  (16.6s)
+  [38/193] Parsing: Bench_Vice_61/Bench_Vice_61.stp
+  [OK]  Bench_Vice_61/Bench_Vice_61.stp — 48 nodes  65 edges  (4.8s)
+  [39/193] Parsing: Bench_Vice_65/Bench_Vice_65.stp
+  [OK]  Bench_Vice_65/Bench_Vice_65.stp — 28 nodes  47 edges  (4.5s)
+  [40/193] Parsing: Bench_Vice_66/Bench_Vice_66.step
+  [OK]  Bench_Vice_66/Bench_Vice_66.step — 26 nodes  40 edges  (10.6s)
+  [41/193] Parsing: Bench_Vice_67/Bench_Vice_67.stp
+  [OK]  Bench_Vice_67/Bench_Vice_67.stp — 26 nodes  34 edges  (4.1s)
+  [42/193] Parsing: Bench_Vice_68/Bench_Vice_68.stp
+  [OK]  Bench_Vice_68/Bench_Vice_68.stp — 24 nodes  35 edges  (5.7s)
+  [43/193] Parsing: Bench_Vice_69/Bench_Vice_69.stp
+  [OK]  Bench_Vice_69/Bench_Vice_69.stp — 22 nodes  31 edges  (4.3s)
+  [44/193] Parsing: Bench_Vice_72/Bench_Vice_72.stp
+  [OK]  Bench_Vice_72/Bench_Vice_72.stp — 25 nodes  37 edges  (4.1s)
+  [45/193] Parsing: Bench_Vice_73/Bench_Vice_73.stp
+  [OK]  Bench_Vice_73/Bench_Vice_73.stp — 2 nodes  1 edges  (3.1s)
+  [46/193] Parsing: Bench_Vice_74/Bench_Vice_74.stp
+  [OK]  Bench_Vice_74/Bench_Vice_74.stp — 15 nodes  14 edges  (5.1s)
+  [47/193] Parsing: Bench_Vice_75/Bench_Vice_75.STEP
+  [OK]  Bench_Vice_75/Bench_Vice_75.STEP — 33 nodes  44 edges  (15.2s)
+  [48/193] Parsing: Bench_Vice_76/Bench_Vice_76.stp
+  [OK]  Bench_Vice_76/Bench_Vice_76.stp — 37 nodes  65 edges  (5.9s)
+  [49/193] Parsing: Bench_Vice_77/Bench_Vice_77.STEP
+  [OK]  Bench_Vice_77/Bench_Vice_77.STEP — 6 nodes  6 edges  (7.1s)
+  [50/193] Parsing: Bench_Vice_78/Bench_Vice_78.STEP
+  [OK]  Bench_Vice_78/Bench_Vice_78.STEP — 35 nodes  44 edges  (5.0s)
+  [51/193] Parsing: Bench_Vice_79/Bench_Vice_79.STEP
+  [OK]  Bench_Vice_79/Bench_Vice_79.STEP — 19 nodes  22 edges  (78.4s)
+  [52/193] Parsing: Bench_Vice_80/Bench_Vice_80.STEP
+  [OK]  Bench_Vice_80/Bench_Vice_80.STEP — 16 nodes  19 edges  (4.7s)
+  [53/193] Parsing: Bench_Vice_81/Bench_Vice_81.stp
+  [OK]  Bench_Vice_81/Bench_Vice_81.stp — 36 nodes  49 edges  (5.7s)
+  [54/193] Parsing: Bench_Vice_82/Bench_Vice_82.stp
+  [OK]  Bench_Vice_82/Bench_Vice_82.stp — 41 nodes  63 edges  (7.2s)
+  [55/193] Parsing: C_Clamps_01/C_Clamps_01.stp
+  [OK]  C_Clamps_01/C_Clamps_01.stp — 8 nodes  6 edges  (22.9s)
+  [56/193] Parsing: C_Clamps_03/C_Clamps_03.STEP
+  [OK]  C_Clamps_03/C_Clamps_03.STEP — 10 nodes  14 edges  (47.3s)
+  [57/193] Parsing: C_Clamps_04/C_Clamps_04.stp
+  [OK]  C_Clamps_04/C_Clamps_04.stp — 10 nodes  13 edges  (4.5s)
+  [58/193] Parsing: C_Clamps_05/C_Clamps_05.STEP
+  [OK]  C_Clamps_05/C_Clamps_05.STEP — 5 nodes  5 edges  (3.5s)
+  [59/193] Parsing: C_Clamps_06/C_Clamps_06.stp
+  [OK]  C_Clamps_06/C_Clamps_06.stp — 9 nodes  10 edges  (4.0s)
+  [60/193] Parsing: C_Clamps_07/C_Clamps_07.stp
+  [OK]  C_Clamps_07/C_Clamps_07.stp — 7 nodes  5 edges  (61.5s)
+  [61/193] Parsing: C_Clamps_08/C_Clamps_08.stp
+  [OK]  C_Clamps_08/C_Clamps_08.stp — 2 nodes  1 edges  (4.1s)
+  [62/193] Parsing: C_Clamps_09/C_Clamps_09.STEP
+  [OK]  C_Clamps_09/C_Clamps_09.STEP — 9 nodes  11 edges  (3.9s)
+  [63/193] Parsing: C_Clamps_10/C_Clamps_10.stp
+  [OK]  C_Clamps_10/C_Clamps_10.stp — 7 nodes  8 edges  (4.9s)
+  [64/193] Parsing: C_Clamps_11/C_Clamps_11.STEP
+  [OK]  C_Clamps_11/C_Clamps_11.STEP — 2 nodes  1 edges  (115.3s)
+  [65/193] Parsing: C_Clamps_12/C_Clamps_12.stp
+  [OK]  C_Clamps_12/C_Clamps_12.stp — 5 nodes  4 edges  (32.1s)
+  [66/193] Parsing: C_Clamps_13/C_Clamps_13.STEP
+    [skip] C_Clamps_13.STEP: timeout after 300s
+  [TIMEOUT] C_Clamps_13/C_Clamps_13.STEP (1050.2s)
+  [67/193] Parsing: C_Clamps_14/C_Clamps_14.STEP
+    [skip] C_Clamps_14.STEP: timeout after 300s
+  [TIMEOUT] C_Clamps_14/C_Clamps_14.STEP (1053.8s)
+  [68/193] Parsing: C_Clamps_15/C_Clamps_15.stp
+  [OK]  C_Clamps_15/C_Clamps_15.stp — 4 nodes  4 edges  (3.2s)
+  [69/193] Parsing: C_Clamps_16/C_Clamps_16.stp
+  [OK]  C_Clamps_16/C_Clamps_16.stp — 10 nodes  12 edges  (3.6s)
+  [70/193] Parsing: C_Clamps_18/C_Clamps_18.stp
+  [OK]  C_Clamps_18/C_Clamps_18.stp — 3 nodes  3 edges  (14.2s)
+  [71/193] Parsing: C_Clamps_19/C_Clamps_19.stp
+  [OK]  C_Clamps_19/C_Clamps_19.stp — 6 nodes  4 edges  (3.1s)
+  [72/193] Parsing: C_Clamps_20/C_Clamps_20.stp
+  [OK]  C_Clamps_20/C_Clamps_20.stp — 2 nodes  1 edges  (3.4s)
+  [73/193] Parsing: C_Clamps_21/C_Clamps_21.STEP
+    [skip] C_Clamps_21.STEP: timeout after 300s
+  [TIMEOUT] C_Clamps_21/C_Clamps_21.STEP (969.6s)
+  [74/193] Parsing: C_Clamps_22/C_Clamps_22.stp
+  [OK]  C_Clamps_22/C_Clamps_22.stp — 7 nodes  5 edges  (3.7s)
+  [75/193] Parsing: C_Clamps_23/C_Clamps_23.STEP
+  [OK]  C_Clamps_23/C_Clamps_23.STEP — 16 nodes  29 edges  (6.6s)
+  [76/193] Parsing: C_Clamps_26/C_Clamps_26.stp
+  [OK]  C_Clamps_26/C_Clamps_26.stp — 11 nodes  11 edges  (4.4s)
+  [77/193] Parsing: C_Clamps_28/C_Clamps_28.step
+    [skip] C_Clamps_28.step: timeout after 300s
+  [TIMEOUT] C_Clamps_28/C_Clamps_28.step (1029.1s)
+  [78/193] Parsing: C_Clamps_29/C_Clamps_29.stp
+  [OK]  C_Clamps_29/C_Clamps_29.stp — 7 nodes  5 edges  (9.1s)
+  [79/193] Parsing: C_Clamps_31/C_Clamps_31.stp
+  [OK]  C_Clamps_31/C_Clamps_31.stp — 6 nodes  4 edges  (8.2s)
+  [80/193] Parsing: C_Clamps_32/C_Clamps_32.step
+  [OK]  C_Clamps_32/C_Clamps_32.step — 10 nodes  10 edges  (3.8s)
+  [81/193] Parsing: C_Clamps_33/C_Clamps_33.stp
+  [OK]  C_Clamps_33/C_Clamps_33.stp — 9 nodes  9 edges  (3.7s)
+  [82/193] Parsing: C_Clamps_36/C_Clamps_36.STEP
+  [OK]  C_Clamps_36/C_Clamps_36.STEP — 5 nodes  3 edges  (3.2s)
+  [83/193] Parsing: C_Clamps_37/C_Clamps_37.step
+  [OK]  C_Clamps_37/C_Clamps_37.step — 5 nodes  2 edges  (4.4s)
+  [84/193] Parsing: C_Clamps_38/C_Clamps_38.STEP
+  [OK]  C_Clamps_38/C_Clamps_38.STEP — 8 nodes  7 edges  (8.4s)
+  [85/193] Parsing: C_Clamps_40/C_Clamps_40.stp
+    [skip] C_Clamps_40.stp: timeout after 300s
+  [TIMEOUT] C_Clamps_40/C_Clamps_40.stp (851.5s)
+  [86/193] Parsing: Crane_Hook_01/Crane_Hook_01.stp
+  [OK]  Crane_Hook_01/Crane_Hook_01.stp — 33 nodes  55 edges  (5.3s)
+  [87/193] Parsing: Crane_Hook_02/Crane_Hook_02.STEP
+  [OK]  Crane_Hook_02/Crane_Hook_02.STEP — 35 nodes  60 edges  (6.8s)
+  [88/193] Parsing: Crane_Hook_04/Crane_Hook_04.STEP
+    [skip] Crane_Hook_04.STEP: timeout after 300s
+  [TIMEOUT] Crane_Hook_04/Crane_Hook_04.STEP (741.7s)
+  [89/193] Parsing: Crane_Hook_05/Crane_Hook_05.STEP
+  [OK]  Crane_Hook_05/Crane_Hook_05.STEP — 15 nodes  22 edges  (4.3s)
+  [90/193] Parsing: Crane_Hook_06/Crane_Hook_06.step
+    [skip] Crane_Hook_06.step: timeout after 300s
+  [TIMEOUT] Crane_Hook_06/Crane_Hook_06.step (1007.7s)
+  [91/193] Parsing: Crane_Hook_07/Crane_Hook_07.stp
+  [OK]  Crane_Hook_07/Crane_Hook_07.stp — 46 nodes  71 edges  (6.0s)
+  [92/193] Parsing: Crane_Hook_09/Crane_Hook_09.step
+  [OK]  Crane_Hook_09/Crane_Hook_09.step — 28 nodes  44 edges  (39.9s)
+  [93/193] Parsing: Crane_Hook_10/Crane_Hook_10.stp
+    [skip] Crane_Hook_10.stp: timeout after 300s
+  [TIMEOUT] Crane_Hook_10/Crane_Hook_10.stp (911.7s)
+  [94/193] Parsing: Crane_Hook_11/Crane_Hook_11.stp
+  [OK]  Crane_Hook_11/Crane_Hook_11.stp — 19 nodes  26 edges  (4.2s)
+  [95/193] Parsing: Crane_Hook_12/Crane_Hook_12.stp
+  [OK]  Crane_Hook_12/Crane_Hook_12.stp — 53 nodes  88 edges  (5.2s)
+  [96/193] Parsing: Crane_Hook_13/Crane_Hook_13.stp
+  [OK]  Crane_Hook_13/Crane_Hook_13.stp — 28 nodes  50 edges  (3.8s)
+  [97/193] Parsing: Crane_Hook_15/Crane_Hook_15.STEP
+  [OK]  Crane_Hook_15/Crane_Hook_15.STEP — 86 nodes  157 edges  (8.7s)
+  [98/193] Parsing: Crane_Hook_17/Crane_Hook_17.stp
+  [OK]  Crane_Hook_17/Crane_Hook_17.stp — 49 nodes  79 edges  (5.4s)
+  [99/193] Parsing: Crane_Hook_21/Crane_Hook_21.STEP
+  [OK]  Crane_Hook_21/Crane_Hook_21.STEP — 57 nodes  107 edges  (5.3s)
+  [100/193] Parsing: Crane_Hook_22/Crane_Hook_22.STEP
+    [skip] Crane_Hook_22.STEP: timeout after 300s
+  [TIMEOUT] Crane_Hook_22/Crane_Hook_22.STEP (911.2s)
+  [101/193] Parsing: Crane_Hook_23/Crane_Hook_23.step
+    [skip] Crane_Hook_23.step: timeout after 300s
+  [TIMEOUT] Crane_Hook_23/Crane_Hook_23.step (747.0s)
+  [102/193] Parsing: Gate_Valve_02/Gate_Valve_02.STEP
+  [OK]  Gate_Valve_02/Gate_Valve_02.STEP — 4 nodes  5 edges  (5.9s)
+  [103/193] Parsing: Gate_Valve_03/Gate_Valve_03.stp
+  [OK]  Gate_Valve_03/Gate_Valve_03.stp — 40 nodes  47 edges  (31.6s)
+  [104/193] Parsing: Gate_Valve_04/Gate_Valve_04.stp
+    [skip] Gate_Valve_04.stp: timeout after 300s
+  [TIMEOUT] Gate_Valve_04/Gate_Valve_04.stp (981.0s)
+  [105/193] Parsing: Gate_Valve_05/Gate_Valve_05.stp
+  [OK]  Gate_Valve_05/Gate_Valve_05.stp — 87 nodes  148 edges  (17.2s)
+  [106/193] Parsing: Gate_Valve_06/Gate_Valve_06.stp
+  [OK]  Gate_Valve_06/Gate_Valve_06.stp — 41 nodes  48 edges  (33.7s)
+  [107/193] Parsing: Gate_Valve_07/Gate_Valve_07.stp
+  [OK]  Gate_Valve_07/Gate_Valve_07.stp — 69 nodes  92 edges  (57.4s)
+  [108/193] Parsing: Gate_Valve_10/Gate_Valve_10.stp
+  [OK]  Gate_Valve_10/Gate_Valve_10.stp — 61 nodes  68 edges  (56.2s)
+  [109/193] Parsing: Gate_Valve_11/Gate_Valve_11.STEP
+  [OK]  Gate_Valve_11/Gate_Valve_11.STEP — 47 nodes  69 edges  (172.1s)
+  [110/193] Parsing: Gate_Valve_12/Gate_Valve_12.stp
+    [detail] Gate_Valve_12.stp: worker process crashed (no output)
+  [ERROR]   Gate_Valve_12/Gate_Valve_12.stp — parse failed
+  [111/193] Parsing: Gate_Valve_14/Gate_Valve_14.stp
+  [OK]  Gate_Valve_14/Gate_Valve_14.stp — 59 nodes  79 edges  (38.5s)
+  [112/193] Parsing: Gate_Valve_15/Gate_Valve_15.stp
+  [OK]  Gate_Valve_15/Gate_Valve_15.stp — 51 nodes  63 edges  (34.1s)
+  [113/193] Parsing: Gate_Valve_23/Gate_Valve_23.STEP
+  [OK]  Gate_Valve_23/Gate_Valve_23.STEP — 35 nodes  26 edges  (10.2s)
+  [114/193] Parsing: Gate_Valve_24/Gate_Valve_24.STEP
+  [OK]  Gate_Valve_24/Gate_Valve_24.STEP — 81 nodes  140 edges  (39.6s)
+  [115/193] Parsing: Gate_Valve_25/Gate_Valve_25.STEP
+  [OK]  Gate_Valve_25/Gate_Valve_25.STEP — 22 nodes  35 edges  (4.5s)
+  [116/193] Parsing: Gate_Valve_27/Gate_Valve_27.stp
+  [OK]  Gate_Valve_27/Gate_Valve_27.stp — 5 nodes  4 edges  (5.7s)
+  [117/193] Parsing: Gate_Valve_31/Gate_Valve_31.STEP
+  [OK]  Gate_Valve_31/Gate_Valve_31.STEP — 4 nodes  1 edges  (31.8s)
+  [118/193] Parsing: Gate_Valve_34/Gate_Valve_34.stp
+  [OK]  Gate_Valve_34/Gate_Valve_34.stp — 62 nodes  83 edges  (41.2s)
+  [119/193] Parsing: Gate_Valve_35/Gate_Valve_35.step
+  [OK]  Gate_Valve_35/Gate_Valve_35.step — 43 nodes  79 edges  (115.8s)
+  [120/193] Parsing: Gate_Valve_36/Gate_Valve_36.STEP
+  [OK]  Gate_Valve_36/Gate_Valve_36.STEP — 93 nodes  133 edges  (16.3s)
+  [121/193] Parsing: Gate_Valve_37/Gate_Valve_37.stp
+  [OK]  Gate_Valve_37/Gate_Valve_37.stp — 2 nodes  1 edges  (5.2s)
+  [122/193] Parsing: Gate_Valve_38/Gate_Valve_38.stp
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/trimesh/triangles.py:550: RuntimeWarning: divide by zero encountered in divide
+  inverse_denominator = 1.0 / (dot00 * dot11 - dot01 * dot01)
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/trimesh/triangles.py:555: RuntimeWarning: invalid value encountered in subtract
+  barycentric[:, 0] = 1 - barycentric[:, 1] - barycentric[:, 2]
+  [OK]  Gate_Valve_38/Gate_Valve_38.stp — 176 nodes  244 edges  (41.8s)
+  [123/193] Parsing: Pipe_Vice_01/Pipe_Vice_01.stp
+  [OK]  Pipe_Vice_01/Pipe_Vice_01.stp — 10 nodes  10 edges  (3.5s)
+  [124/193] Parsing: Pipe_Vice_03/Pipe_Vice_03.STEP
+  [OK]  Pipe_Vice_03/Pipe_Vice_03.STEP — 6 nodes  4 edges  (3.3s)
+  [125/193] Parsing: Pipe_Vice_04/Pipe_Vice_04.stp
+  [OK]  Pipe_Vice_04/Pipe_Vice_04.stp — 6 nodes  4 edges  (3.3s)
+  [126/193] Parsing: Pipe_Vice_07/Pipe_Vice_07.STEP
+  [OK]  Pipe_Vice_07/Pipe_Vice_07.STEP — 20 nodes  19 edges  (69.4s)
+  [127/193] Parsing: Pipe_Vice_08/Pipe_Vice_08.STEP
+  [OK]  Pipe_Vice_08/Pipe_Vice_08.STEP — 5 nodes  6 edges  (3.5s)
+  [128/193] Parsing: Pipe_Vice_09/Pipe_Vice_09.STEP
+  [OK]  Pipe_Vice_09/Pipe_Vice_09.STEP — 7 nodes  5 edges  (3.5s)
+  [129/193] Parsing: Pipe_Vice_10/Pipe_Vice_10.stp
+  [OK]  Pipe_Vice_10/Pipe_Vice_10.stp — 11 nodes  12 edges  (4.0s)
+  [130/193] Parsing: Pipe_Vice_11/Pipe_Vice_11.STEP
+  [OK]  Pipe_Vice_11/Pipe_Vice_11.STEP — 36 nodes  57 edges  (68.7s)
+  [131/193] Parsing: Pipe_Vice_14/Pipe_Vice_14.stp
+  [OK]  Pipe_Vice_14/Pipe_Vice_14.stp — 10 nodes  13 edges  (3.3s)
+  [132/193] Parsing: Pipe_Vice_15/Pipe_Vice_15.STEP
+  [OK]  Pipe_Vice_15/Pipe_Vice_15.STEP — 6 nodes  4 edges  (3.4s)
+  [133/193] Parsing: Pipe_Vice_16/Pipe_Vice_16.stp
+  [OK]  Pipe_Vice_16/Pipe_Vice_16.stp — 21 nodes  25 edges  (18.4s)
+  [134/193] Parsing: Pipe_Vice_17/Pipe_Vice_17.step
+  [OK]  Pipe_Vice_17/Pipe_Vice_17.step — 16 nodes  18 edges  (12.2s)
+  [135/193] Parsing: Pipe_Vice_19/Pipe_Vice_19.stp
+  [OK]  Pipe_Vice_19/Pipe_Vice_19.stp — 16 nodes  21 edges  (3.5s)
+  [136/193] Parsing: Pipe_Vice_20/Pipe_Vice_20.stp
+  [OK]  Pipe_Vice_20/Pipe_Vice_20.stp — 20 nodes  34 edges  (16.1s)
+  [137/193] Parsing: Pipe_Vice_21/Pipe_Vice_21.step
+  [OK]  Pipe_Vice_21/Pipe_Vice_21.step — 3 nodes  2 edges  (2.9s)
+  [138/193] Parsing: Pipe_Vice_22/Pipe_Vice_22.stp
+  [OK]  Pipe_Vice_22/Pipe_Vice_22.stp — 8 nodes  8 edges  (3.3s)
+  [139/193] Parsing: Pipe_Vice_23/Pipe_Vice_23.STEP
+  [OK]  Pipe_Vice_23/Pipe_Vice_23.STEP — 21 nodes  26 edges  (97.2s)
+  [140/193] Parsing: Pipe_Vice_24/Pipe_Vice_24.stp
+  [OK]  Pipe_Vice_24/Pipe_Vice_24.stp — 10 nodes  10 edges  (7.8s)
+  [141/193] Parsing: Pipe_Vice_25/Pipe_Vice_25.stp
+  [OK]  Pipe_Vice_25/Pipe_Vice_25.stp — 16 nodes  21 edges  (3.6s)
+  [142/193] Parsing: Pipe_Vice_27/Pipe_Vice_27.STEP
+  [OK]  Pipe_Vice_27/Pipe_Vice_27.STEP — 17 nodes  20 edges  (4.5s)
+  [143/193] Parsing: Pipe_Vice_28/Pipe_Vice_28.stp
+  [OK]  Pipe_Vice_28/Pipe_Vice_28.stp — 7 nodes  6 edges  (3.5s)
+  [144/193] Parsing: Pipe_Vice_29/Pipe_Vice_29.stp
+  [OK]  Pipe_Vice_29/Pipe_Vice_29.stp — 6 nodes  4 edges  (3.4s)
+  [145/193] Parsing: Pipe_Vice_30/Pipe_Vice_30.STEP
+  [OK]  Pipe_Vice_30/Pipe_Vice_30.STEP — 6 nodes  4 edges  (3.5s)
+  [146/193] Parsing: Pipe_Vice_31/Pipe_Vice_31.stp
+  [OK]  Pipe_Vice_31/Pipe_Vice_31.stp — 7 nodes  4 edges  (22.4s)
+  [147/193] Parsing: Pipe_Vice_32/Pipe_Vice_32.stp
+  [OK]  Pipe_Vice_32/Pipe_Vice_32.stp — 9 nodes  10 edges  (8.4s)
+  [148/193] Parsing: Pipe_Vice_33/Pipe_Vice_33.stp
+  [OK]  Pipe_Vice_33/Pipe_Vice_33.stp — 6 nodes  3 edges  (3.3s)
+  [149/193] Parsing: Pipe_Vice_35/Pipe_Vice_35.stp
+  [OK]  Pipe_Vice_35/Pipe_Vice_35.stp — 10 nodes  12 edges  (3.5s)
+  [150/193] Parsing: Pipe_Vice_36/Pipe_Vice_36.STEP
+  [OK]  Pipe_Vice_36/Pipe_Vice_36.STEP — 7 nodes  6 edges  (3.4s)
+  [151/193] Parsing: Pipe_Vice_37/Pipe_Vice_37.stp
+  [OK]  Pipe_Vice_37/Pipe_Vice_37.stp — 8 nodes  8 edges  (3.4s)
+  [152/193] Parsing: Pipe_Vice_38/Pipe_Vice_38.stp
+  [OK]  Pipe_Vice_38/Pipe_Vice_38.stp — 10 nodes  13 edges  (7.1s)
+  [153/193] Parsing: Pipe_Vice_40/Pipe_Vice_40.stp
+  [OK]  Pipe_Vice_40/Pipe_Vice_40.stp — 39 nodes  61 edges  (8.1s)
+  [154/193] Parsing: Pipe_Vice_41/Pipe_Vice_41.stp
+  [OK]  Pipe_Vice_41/Pipe_Vice_41.stp — 5 nodes  6 edges  (3.4s)
+  [155/193] Parsing: Pipe_Vice_42/Pipe_Vice_42.stp
+  [OK]  Pipe_Vice_42/Pipe_Vice_42.stp — 6 nodes  4 edges  (3.4s)
+  [156/193] Parsing: Pipe_Vice_43/Pipe_Vice_43.stp
+  [OK]  Pipe_Vice_43/Pipe_Vice_43.stp — 15 nodes  17 edges  (3.5s)
+  [157/193] Parsing: Pipe_Vice_44/Pipe_Vice_44.STEP
+  [OK]  Pipe_Vice_44/Pipe_Vice_44.STEP — 39 nodes  64 edges  (69.4s)
+  [158/193] Parsing: Pipe_Vice_45/Pipe_Vice_45.STEP
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/trimesh/triangles.py:302: RuntimeWarning: divide by zero encountered in divide
+  center_mass = integrated[1:4] / volume
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/trimesh/triangles.py:302: RuntimeWarning: invalid value encountered in divide
+  center_mass = integrated[1:4] / volume
+  [OK]  Pipe_Vice_45/Pipe_Vice_45.STEP — 30 nodes  44 edges  (108.8s)
+  [159/193] Parsing: Pipe_Vice_46/Pipe_Vice_46.stp
+  [OK]  Pipe_Vice_46/Pipe_Vice_46.stp — 6 nodes  6 edges  (3.5s)
+  [160/193] Parsing: Pipe_Vice_48/Pipe_Vice_48.step
+  [OK]  Pipe_Vice_48/Pipe_Vice_48.step — 8 nodes  8 edges  (6.5s)
+  [161/193] Parsing: Pipe_Vice_49/Pipe_Vice_49.STEP
+  [OK]  Pipe_Vice_49/Pipe_Vice_49.STEP — 19 nodes  24 edges  (78.0s)
+  [162/193] Parsing: Pipe_Vice_50/Pipe_Vice_50.stp
+  [OK]  Pipe_Vice_50/Pipe_Vice_50.stp — 8 nodes  8 edges  (3.5s)
+  [163/193] Parsing: Pipe_Vice_51/Pipe_Vice_51.step
+  [OK]  Pipe_Vice_51/Pipe_Vice_51.step — 6 nodes  3 edges  (5.1s)
+  [164/193] Parsing: Pipe_Vice_53/Pipe_Vice_53.step
+  [OK]  Pipe_Vice_53/Pipe_Vice_53.step — 5 nodes  2 edges  (4.4s)
+  [165/193] Parsing: Press_Tool_02/Press_Tool_02.stp
+  [OK]  Press_Tool_02/Press_Tool_02.stp — 10 nodes  16 edges  (4.6s)
+  [166/193] Parsing: Press_Tool_04/Press_Tool_04.stp
+  [OK]  Press_Tool_04/Press_Tool_04.stp — 98 nodes  148 edges  (8.6s)
+  [167/193] Parsing: Press_Tool_05/Press_Tool_05.stp
+  [OK]  Press_Tool_05/Press_Tool_05.stp — 14 nodes  16 edges  (3.6s)
+  [168/193] Parsing: Press_Tool_06/Press_Tool_06.STEP
+  [OK]  Press_Tool_06/Press_Tool_06.STEP — 10 nodes  12 edges  (3.6s)
+  [169/193] Parsing: Press_Tool_07/Press_Tool_07.stp
+  [OK]  Press_Tool_07/Press_Tool_07.stp — 170 nodes  284 edges  (6.7s)
+  [170/193] Parsing: Press_Tool_08/Press_Tool_08.step
+  [OK]  Press_Tool_08/Press_Tool_08.step — 178 nodes  275 edges  (148.2s)
+  [171/193] Parsing: Press_Tool_09/Press_Tool_09.STEP
+  [OK]  Press_Tool_09/Press_Tool_09.STEP — 89 nodes  147 edges  (246.4s)
+  [172/193] Parsing: Press_Tool_10/Press_Tool_10.step
+    [skip] Press_Tool_10.step: timeout after 300s
+  [TIMEOUT] Press_Tool_10/Press_Tool_10.step (951.2s)
+  [173/193] Parsing: Press_Tool_12/Press_Tool_12.STEP
+  [OK]  Press_Tool_12/Press_Tool_12.STEP — 198 nodes  344 edges  (35.8s)
+  [174/193] Parsing: Press_Tool_13/Press_Tool_13.stp
+  [OK]  Press_Tool_13/Press_Tool_13.stp — 10 nodes  12 edges  (3.5s)
+  [175/193] Parsing: Press_Tool_14/Press_Tool_14.stp
+  [OK]  Press_Tool_14/Press_Tool_14.stp — 10 nodes  12 edges  (3.3s)
+  [176/193] Parsing: Press_Tool_15/Press_Tool_15.stp
+  [OK]  Press_Tool_15/Press_Tool_15.stp — 10 nodes  12 edges  (919.3s)
+  [177/193] Parsing: Press_Tool_16/Press_Tool_16.stp
+  [OK]  Press_Tool_16/Press_Tool_16.stp — 10 nodes  12 edges  (3.6s)
+  [178/193] Parsing: Press_Tool_17/Press_Tool_17.step
+  [OK]  Press_Tool_17/Press_Tool_17.step — 10 nodes  12 edges  (3.8s)
+  [179/193] Parsing: Press_Tool_18/Press_Tool_18.step
+  [OK]  Press_Tool_18/Press_Tool_18.step — 8 nodes  6 edges  (7.3s)
+  [180/193] Parsing: Press_Tool_19/Press_Tool_19.step
+  [OK]  Press_Tool_19/Press_Tool_19.step — 37 nodes  71 edges  (13.1s)
+  [181/193] Parsing: Press_Tool_21/Press_Tool_21.stp
+  [OK]  Press_Tool_21/Press_Tool_21.stp — 43 nodes  72 edges  (4.7s)
+  [182/193] Parsing: Press_Tool_23/Press_Tool_23.stp
+  [OK]  Press_Tool_23/Press_Tool_23.stp — 10 nodes  12 edges  (3.9s)
+  [183/193] Parsing: Press_Tool_24/Press_Tool_24.STEP
+  [OK]  Press_Tool_24/Press_Tool_24.STEP — 10 nodes  12 edges  (3.5s)
+  [184/193] Parsing: Press_Tool_25/Press_Tool_25.stp
+  [OK]  Press_Tool_25/Press_Tool_25.stp — 14 nodes  20 edges  (3.5s)
+  [185/193] Parsing: Press_Tool_26/Press_Tool_26.step
+    [skip] Press_Tool_26.step: timeout after 300s
+  [TIMEOUT] Press_Tool_26/Press_Tool_26.step (1022.5s)
+  [186/193] Parsing: Tool_Post_01/Tool_Post_01.step
+  [OK]  Tool_Post_01/Tool_Post_01.step — 31 nodes  42 edges  (4.9s)
+  [187/193] Parsing: Tool_Post_02/Tool_Post_02.stp
+  [OK]  Tool_Post_02/Tool_Post_02.stp — 28 nodes  25 edges  (92.3s)
+  [188/193] Parsing: Tool_Post_05/Tool_Post_05.STEP
+  [OK]  Tool_Post_05/Tool_Post_05.STEP — 54 nodes  68 edges  (56.3s)
+  [189/193] Parsing: Tool_Post_08/Tool_Post_08.stp
+  [OK]  Tool_Post_08/Tool_Post_08.stp — 15 nodes  19 edges  (4.8s)
+  [190/193] Parsing: Tool_Post_10/Tool_Post_10.stp
+  [OK]  Tool_Post_10/Tool_Post_10.stp — 50 nodes  50 edges  (11.1s)
+  [191/193] Parsing: Tool_Post_13/Tool_Post_13.stp
+  [OK]  Tool_Post_13/Tool_Post_13.stp — 27 nodes  36 edges  (3.8s)
+  [192/193] Parsing: Tool_Post_14/Tool_Post_14.stp
+  [OK]  Tool_Post_14/Tool_Post_14.stp — 24 nodes  30 edges  (4.2s)
+  [193/193] Parsing: Tool_Post_17/Tool_Post_17.STEP
+  [OK]  Tool_Post_17/Tool_Post_17.STEP — 31 nodes  45 edges  (19.4s)
+  Parsed 179 new  |  cached: 0  errors: 1  timeouts: 13
+Done!
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+  Using 179 real assembly graph(s) — no synthetic data.
+  Saved 179 graphs → data/processed/processed/data.pt
+  Saved source paths    → data/processed/processed/sources.json
+  Saved categories      → data/processed/processed/categories.json
+      179 graphs loaded.
+      Dataset: 179 graphs | mean nodes=26.3 | mean edges=78.8 | categories: Bench_vice=54 C_Clamps=26 Crane_hook=11 Gate_Valve=19 Pipe_vice=42 Press_Tool=19 Tool_Post=8
+
+[2/4] Building model …  (5-fold CV)
+
+[3/4] Training (5 folds) …
+
+=======================================================
+  FOLD 1 / 5
+=======================================================
+  Fold 1/5 — train: 121  val: 31  test: 27
+Model built on mps  |  total params: 2,441,745
+    batch 1/8
+    batch 6/8
+  Ep   1/200  loss=1.5547  AUC=0.5104  AP=0.6991  smoothAUC=0.5104  (35.0s)
+  ✓ Fold 1 new best smoothed AUC=0.5104  saved.
+    batch 1/8
+    batch 6/8
+  Ep   2/200  loss=1.5057  AUC=0.5158  AP=0.7114  smoothAUC=0.5131  (32.0s)
+  ✓ Fold 1 new best smoothed AUC=0.5131  saved.
+    batch 1/8
+    batch 6/8
+  Ep   3/200  loss=1.4844  AUC=0.4899  AP=0.7156  smoothAUC=0.5054  (28.4s)
+    batch 1/8
+    batch 6/8
+  Ep   4/200  loss=1.4294  AUC=0.4714  AP=0.7004  smoothAUC=0.4923  (27.8s)
+    batch 1/8
+    batch 6/8
+  Ep   5/200  loss=1.3677  AUC=0.5137  AP=0.7035  smoothAUC=0.4917  (27.6s)
+    batch 1/8
+    batch 6/8
+  Ep   6/200  loss=1.3336  AUC=0.5143  AP=0.6973  smoothAUC=0.4998  (27.3s)
+    batch 1/8
+    batch 6/8
+  Ep   7/200  loss=1.3465  AUC=0.5244  AP=0.7213  smoothAUC=0.5175  (40.4s)
+  ✓ Fold 1 new best smoothed AUC=0.5175  saved.
+    batch 1/8
+    batch 6/8
+  Ep   8/200  loss=1.2594  AUC=0.5295  AP=0.7385  smoothAUC=0.5228  (30.0s)
+  ✓ Fold 1 new best smoothed AUC=0.5228  saved.
+    batch 1/8
+    batch 6/8
+  Ep   9/200  loss=1.2961  AUC=0.5292  AP=0.7333  smoothAUC=0.5277  (33.2s)
+  ✓ Fold 1 new best smoothed AUC=0.5277  saved.
+    batch 1/8
+    batch 6/8
+  Ep  10/200  loss=1.2296  AUC=0.4878  AP=0.6977  smoothAUC=0.5155  (30.1s)
+    batch 1/8
+    batch 6/8
+  Ep  11/200  loss=1.2077  AUC=0.5525  AP=0.7003  smoothAUC=0.5232  (34.3s)
+    batch 1/8
+    batch 6/8
+  Ep  12/200  loss=1.1887  AUC=0.5587  AP=0.7280  smoothAUC=0.5330  (29.6s)
+  ✓ Fold 1 new best smoothed AUC=0.5330  saved.
+    batch 1/8
+    batch 6/8
+  Ep  13/200  loss=1.1414  AUC=0.5772  AP=0.7542  smoothAUC=0.5628  (33.1s)
+  ✓ Fold 1 new best smoothed AUC=0.5628  saved.
+    batch 1/8
+    batch 6/8
+  Ep  14/200  loss=1.1351  AUC=0.6342  AP=0.7712  smoothAUC=0.5900  (32.9s)
+  ✓ Fold 1 new best smoothed AUC=0.5900  saved.
+    batch 1/8
+    batch 6/8
+  Ep  15/200  loss=1.1199  AUC=0.6205  AP=0.7516  smoothAUC=0.6106  (39.3s)
+  ✓ Fold 1 new best smoothed AUC=0.6106  saved.
+    batch 1/8
+    batch 6/8
+  Ep  16/200  loss=1.0356  AUC=0.5820  AP=0.7427  smoothAUC=0.6122  (33.4s)
+  ✓ Fold 1 new best smoothed AUC=0.6122  saved.
+    batch 1/8
+    batch 6/8
+  Ep  17/200  loss=1.0210  AUC=0.5665  AP=0.7399  smoothAUC=0.5896  (40.0s)
+    batch 1/8
+    batch 6/8
+  Ep  18/200  loss=0.9917  AUC=0.5936  AP=0.7377  smoothAUC=0.5807  (29.7s)
+    batch 1/8
+    batch 6/8
+  Ep  19/200  loss=0.9747  AUC=0.5859  AP=0.7387  smoothAUC=0.5820  (36.6s)
+    batch 1/8
+    batch 6/8
+  Ep  20/200  loss=1.0224  AUC=0.5605  AP=0.7248  smoothAUC=0.5800  (38.1s)
+    batch 1/8
+    batch 6/8
+  Ep  21/200  loss=0.9879  AUC=0.5954  AP=0.7409  smoothAUC=0.5806  (37.0s)
+    batch 1/8
+    batch 6/8
+  Ep  22/200  loss=0.9850  AUC=0.6109  AP=0.7504  smoothAUC=0.5889  (34.8s)
+    batch 1/8
+    batch 6/8
+  Ep  23/200  loss=0.9579  AUC=0.5906  AP=0.7396  smoothAUC=0.5990  (27.7s)
+    batch 1/8
+    batch 6/8
+  Ep  24/200  loss=0.9600  AUC=0.5665  AP=0.7371  smoothAUC=0.5893  (41.3s)
+    batch 1/8
+    batch 6/8
+  Ep  25/200  loss=0.9889  AUC=0.5921  AP=0.7585  smoothAUC=0.5831  (45.8s)
+    batch 1/8
+    batch 6/8
+  Ep  26/200  loss=0.9514  AUC=0.5871  AP=0.7436  smoothAUC=0.5819  (29.2s)
+    batch 1/8
+    batch 6/8
+  Ep  27/200  loss=0.9062  AUC=0.5614  AP=0.7343  smoothAUC=0.5802  (40.2s)
+    batch 1/8
+    batch 6/8
+  Ep  28/200  loss=0.8911  AUC=0.5313  AP=0.7194  smoothAUC=0.5599  (41.5s)
+    batch 1/8
+    batch 6/8
+  Ep  29/200  loss=0.8415  AUC=0.5367  AP=0.7248  smoothAUC=0.5431  (34.0s)
+    batch 1/8
+    batch 6/8
+  Ep  30/200  loss=0.8441  AUC=0.5659  AP=0.7361  smoothAUC=0.5446  (51.6s)
+    batch 1/8
+    batch 6/8
+  Ep  31/200  loss=0.8691  AUC=0.5990  AP=0.7537  smoothAUC=0.5672  (36.6s)
+    batch 1/8
+    batch 6/8
+  Ep  32/200  loss=0.9109  AUC=0.6222  AP=0.7578  smoothAUC=0.5957  (46.0s)
+    batch 1/8
+    batch 6/8
+  Ep  33/200  loss=0.8033  AUC=0.6282  AP=0.7647  smoothAUC=0.6165  (33.5s)
+  ✓ Fold 1 new best smoothed AUC=0.6165  saved.
+    batch 1/8
+    batch 6/8
+  Ep  34/200  loss=0.8254  AUC=0.6377  AP=0.7693  smoothAUC=0.6294  (34.5s)
+  ✓ Fold 1 new best smoothed AUC=0.6294  saved.
+    batch 1/8
+    batch 6/8
+  Ep  35/200  loss=0.8144  AUC=0.6541  AP=0.7828  smoothAUC=0.6400  (42.9s)
+  ✓ Fold 1 new best smoothed AUC=0.6400  saved.
+    batch 1/8
+    batch 6/8
+  Ep  36/200  loss=0.7591  AUC=0.6613  AP=0.7908  smoothAUC=0.6511  (43.7s)
+  ✓ Fold 1 new best smoothed AUC=0.6511  saved.
+    batch 1/8
+    batch 6/8
+  Ep  37/200  loss=0.7704  AUC=0.6410  AP=0.7824  smoothAUC=0.6522  (42.2s)
+  ✓ Fold 1 new best smoothed AUC=0.6522  saved.
+    batch 1/8
+    batch 6/8
+  Ep  38/200  loss=0.7660  AUC=0.6184  AP=0.7696  smoothAUC=0.6402  (38.7s)
+    batch 1/8
+    batch 6/8
+  Ep  39/200  loss=0.7521  AUC=0.6154  AP=0.7614  smoothAUC=0.6249  (37.8s)
+    batch 1/8
+    batch 6/8
+  Ep  40/200  loss=0.7259  AUC=0.6154  AP=0.7570  smoothAUC=0.6164  (48.5s)
+    batch 1/8
+    batch 6/8
+  Ep  41/200  loss=0.7392  AUC=0.6029  AP=0.7447  smoothAUC=0.6112  (41.0s)
+    batch 1/8
+    batch 6/8
+  Ep  42/200  loss=0.7370  AUC=0.5972  AP=0.7424  smoothAUC=0.6051  (50.1s)
+    batch 1/8
+    batch 6/8
+  Ep  43/200  loss=0.7379  AUC=0.6380  AP=0.7591  smoothAUC=0.6127  (45.0s)
+    batch 1/8
+    batch 6/8
+  Ep  44/200  loss=0.7393  AUC=0.6568  AP=0.7650  smoothAUC=0.6307  (40.9s)
+    batch 1/8
+    batch 6/8
+  Ep  45/200  loss=0.7211  AUC=0.6586  AP=0.7684  smoothAUC=0.6512  (78.3s)
+    batch 1/8
+    batch 6/8
+  Ep  46/200  loss=0.7529  AUC=0.6497  AP=0.7701  smoothAUC=0.6550  (43.9s)
+  ✓ Fold 1 new best smoothed AUC=0.6550  saved.
+    batch 1/8
+    batch 6/8
+  Ep  47/200  loss=0.6879  AUC=0.6413  AP=0.7623  smoothAUC=0.6499  (44.2s)
+    batch 1/8
+    batch 6/8
+  Ep  48/200  loss=0.7048  AUC=0.6371  AP=0.7656  smoothAUC=0.6427  (49.2s)
+    batch 1/8
+    batch 6/8
+  Ep  49/200  loss=0.6866  AUC=0.6240  AP=0.7579  smoothAUC=0.6342  (54.6s)
+    batch 1/8
+    batch 6/8
+  Ep  50/200  loss=0.7516  AUC=0.6309  AP=0.7665  smoothAUC=0.6307  (43.7s)
+    batch 1/8
+    batch 6/8
+  Ep  51/200  loss=0.6723  AUC=0.6330  AP=0.7656  smoothAUC=0.6293  (42.6s)
+    batch 1/8
+    batch 6/8
+  Ep  52/200  loss=0.6983  AUC=0.6342  AP=0.7690  smoothAUC=0.6327  (49.1s)
+    batch 1/8
+    batch 6/8
+  Ep  53/200  loss=0.6749  AUC=0.6219  AP=0.7591  smoothAUC=0.6297  (42.4s)
+    batch 1/8
+    batch 6/8
+  Ep  54/200  loss=0.7265  AUC=0.6216  AP=0.7700  smoothAUC=0.6259  (40.3s)
+    batch 1/8
+    batch 6/8
+  Ep  55/200  loss=0.6556  AUC=0.6187  AP=0.7707  smoothAUC=0.6208  (55.1s)
+    batch 1/8
+    batch 6/8
+  Ep  56/200  loss=0.6100  AUC=0.6208  AP=0.7790  smoothAUC=0.6204  (46.9s)
+    batch 1/8
+    batch 6/8
+  Ep  57/200  loss=0.7079  AUC=0.6178  AP=0.7793  smoothAUC=0.6191  (41.3s)
+    batch 1/8
+    batch 6/8
+  Ep  58/200  loss=0.6956  AUC=0.6133  AP=0.7692  smoothAUC=0.6173  (45.2s)
+    batch 1/8
+    batch 6/8
+  Ep  59/200  loss=0.6774  AUC=0.6112  AP=0.7639  smoothAUC=0.6141  (47.5s)
+    batch 1/8
+    batch 6/8
+  Ep  60/200  loss=0.6409  AUC=0.6049  AP=0.7537  smoothAUC=0.6098  (39.3s)
+    batch 1/8
+    batch 6/8
+  Ep  61/200  loss=0.6343  AUC=0.5981  AP=0.7521  smoothAUC=0.6048  (47.4s)
+    batch 1/8
+    batch 6/8
+  Ep  62/200  loss=0.6395  AUC=0.6020  AP=0.7557  smoothAUC=0.6017  (75.7s)
+    batch 1/8
+    batch 6/8
+  Ep  63/200  loss=0.6354  AUC=0.6047  AP=0.7565  smoothAUC=0.6016  (51.6s)
+    batch 1/8
+    batch 6/8
+  Ep  64/200  loss=0.6142  AUC=0.6038  AP=0.7613  smoothAUC=0.6035  (54.5s)
+    batch 1/8
+    batch 6/8
+  Ep  65/200  loss=0.6305  AUC=0.6035  AP=0.7640  smoothAUC=0.6040  (65.3s)
+    batch 1/8
+    batch 6/8
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+  Ep  66/200  loss=0.5752  AUC=0.6044  AP=0.7623  smoothAUC=0.6039  (51.4s)
+
+  Early stopping at epoch 66.
+
+  Fold 1 test — AUC=0.6463  AP=0.8717
+
+=======================================================
+  FOLD 2 / 5
+=======================================================
+  Fold 2/5 — train: 121  val: 31  test: 27
+Model built on mps  |  total params: 2,441,745
+    batch 1/8
+    batch 6/8
+  Ep   1/200  loss=1.5525  AUC=0.5397  AP=0.7228  smoothAUC=0.5397  (60.6s)
+  ✓ Fold 2 new best smoothed AUC=0.5397  saved.
+    batch 1/8
+    batch 6/8
+  Ep   2/200  loss=1.5156  AUC=0.5043  AP=0.7264  smoothAUC=0.5220  (36.6s)
+    batch 1/8
+    batch 6/8
+  Ep   3/200  loss=1.5034  AUC=0.5304  AP=0.7330  smoothAUC=0.5248  (40.2s)
+    batch 1/8
+    batch 6/8
+  Ep   4/200  loss=1.4174  AUC=0.5417  AP=0.7312  smoothAUC=0.5255  (47.6s)
+    batch 1/8
+    batch 6/8
+  Ep   5/200  loss=1.3666  AUC=0.5543  AP=0.7442  smoothAUC=0.5421  (55.8s)
+  ✓ Fold 2 new best smoothed AUC=0.5421  saved.
+    batch 1/8
+    batch 6/8
+  Ep   6/200  loss=1.3195  AUC=0.5677  AP=0.7484  smoothAUC=0.5546  (50.2s)
+  ✓ Fold 2 new best smoothed AUC=0.5546  saved.
+    batch 1/8
+    batch 6/8
+  Ep   7/200  loss=1.3256  AUC=0.6023  AP=0.7631  smoothAUC=0.5748  (47.8s)
+  ✓ Fold 2 new best smoothed AUC=0.5748  saved.
+    batch 1/8
+    batch 6/8
+  Ep   8/200  loss=1.2135  AUC=0.6269  AP=0.8018  smoothAUC=0.5990  (43.4s)
+  ✓ Fold 2 new best smoothed AUC=0.5990  saved.
+    batch 1/8
+    batch 6/8
+  Ep   9/200  loss=1.2193  AUC=0.6354  AP=0.8007  smoothAUC=0.6215  (45.5s)
+  ✓ Fold 2 new best smoothed AUC=0.6215  saved.
+    batch 1/8
+    batch 6/8
+  Ep  10/200  loss=1.2406  AUC=0.5912  AP=0.7609  smoothAUC=0.6178  (42.3s)
+    batch 1/8
+    batch 6/8
+  Ep  11/200  loss=1.1452  AUC=0.5992  AP=0.7702  smoothAUC=0.6086  (56.9s)
+    batch 1/8
+    batch 6/8
+  Ep  12/200  loss=1.1809  AUC=0.6175  AP=0.7906  smoothAUC=0.6027  (44.0s)
+    batch 1/8
+    batch 6/8
+  Ep  13/200  loss=1.1475  AUC=0.6209  AP=0.7968  smoothAUC=0.6126  (47.5s)
+    batch 1/8
+    batch 6/8
+  Ep  14/200  loss=1.1393  AUC=0.6262  AP=0.8085  smoothAUC=0.6215  (54.4s)
+  ✓ Fold 2 new best smoothed AUC=0.6215  saved.
+    batch 1/8
+    batch 6/8
+  Ep  15/200  loss=1.0508  AUC=0.6174  AP=0.7904  smoothAUC=0.6215  (44.6s)
+    batch 1/8
+    batch 6/8
+  Ep  16/200  loss=1.0926  AUC=0.5664  AP=0.7605  smoothAUC=0.6033  (46.2s)
+    batch 1/8
+    batch 6/8
+  Ep  17/200  loss=1.0943  AUC=0.5895  AP=0.7849  smoothAUC=0.5911  (53.1s)
+    batch 1/8
+    batch 6/8
+  Ep  18/200  loss=1.0907  AUC=0.5794  AP=0.7787  smoothAUC=0.5784  (42.8s)
+    batch 1/8
+    batch 6/8
+  Ep  19/200  loss=0.9856  AUC=0.5767  AP=0.7721  smoothAUC=0.5818  (60.2s)
+    batch 1/8
+    batch 6/8
+  Ep  20/200  loss=1.0032  AUC=0.5580  AP=0.7623  smoothAUC=0.5713  (50.3s)
+    batch 1/8
+    batch 6/8
+  Ep  21/200  loss=0.9756  AUC=0.5602  AP=0.7650  smoothAUC=0.5650  (55.4s)
+    batch 1/8
+    batch 6/8
+  Ep  22/200  loss=0.9219  AUC=0.5675  AP=0.7688  smoothAUC=0.5619  (49.2s)
+    batch 1/8
+    batch 6/8
+  Ep  23/200  loss=0.9566  AUC=0.5754  AP=0.7653  smoothAUC=0.5677  (42.7s)
+    batch 1/8
+    batch 6/8
+  Ep  24/200  loss=0.8885  AUC=0.5765  AP=0.7637  smoothAUC=0.5731  (48.2s)
+    batch 1/8
+    batch 6/8
+  Ep  25/200  loss=0.9131  AUC=0.5738  AP=0.7706  smoothAUC=0.5753  (47.5s)
+    batch 1/8
+    batch 6/8
+  Ep  26/200  loss=0.9276  AUC=0.5457  AP=0.7634  smoothAUC=0.5654  (45.9s)
+    batch 1/8
+    batch 6/8
+  Ep  27/200  loss=0.9109  AUC=0.5471  AP=0.7627  smoothAUC=0.5556  (54.9s)
+    batch 1/8
+    batch 6/8
+  Ep  28/200  loss=0.8498  AUC=0.5642  AP=0.7749  smoothAUC=0.5524  (65.0s)
+    batch 1/8
+    batch 6/8
+  Ep  29/200  loss=0.8916  AUC=0.5699  AP=0.7756  smoothAUC=0.5604  (62.7s)
+    batch 1/8
+    batch 6/8
+  Ep  30/200  loss=0.8405  AUC=0.5667  AP=0.7725  smoothAUC=0.5669  (46.6s)
+    batch 1/8
+    batch 6/8
+  Ep  31/200  loss=0.8287  AUC=0.5582  AP=0.7669  smoothAUC=0.5649  (47.7s)
+    batch 1/8
+    batch 6/8
+  Ep  32/200  loss=0.8316  AUC=0.5526  AP=0.7628  smoothAUC=0.5592  (44.6s)
+    batch 1/8
+    batch 6/8
+  Ep  33/200  loss=0.7953  AUC=0.5574  AP=0.7637  smoothAUC=0.5561  (54.7s)
+    batch 1/8
+    batch 6/8
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+  Ep  34/200  loss=0.8006  AUC=0.5618  AP=0.7617  smoothAUC=0.5573  (49.6s)
+
+  Early stopping at epoch 34.
+
+  Fold 2 test — AUC=0.5851  AP=0.8255
+
+=======================================================
+  FOLD 3 / 5
+=======================================================
+  Fold 3/5 — train: 122  val: 30  test: 27
+Model built on mps  |  total params: 2,441,745
+    batch 1/8
+    batch 6/8
+  Ep   1/200  loss=1.5882  AUC=0.5403  AP=0.7446  smoothAUC=0.5403  (92.3s)
+  ✓ Fold 3 new best smoothed AUC=0.5403  saved.
+    batch 1/8
+    batch 6/8
+  Ep   2/200  loss=1.5207  AUC=0.5377  AP=0.7173  smoothAUC=0.5390  (1925.0s)
+    batch 1/8
+    batch 6/8
+  Ep   3/200  loss=1.4498  AUC=0.5475  AP=0.7584  smoothAUC=0.5419  (520.8s)
+  ✓ Fold 3 new best smoothed AUC=0.5419  saved.
+    batch 1/8
+    batch 6/8
+  Ep   4/200  loss=1.4119  AUC=0.5777  AP=0.7888  smoothAUC=0.5543  (959.2s)
+  ✓ Fold 3 new best smoothed AUC=0.5543  saved.
+    batch 1/8
+    batch 6/8
+  Ep   5/200  loss=1.3415  AUC=0.5823  AP=0.7975  smoothAUC=0.5692  (74.9s)
+  ✓ Fold 3 new best smoothed AUC=0.5692  saved.
+    batch 1/8
+    batch 6/8
+  Ep   6/200  loss=1.2981  AUC=0.6079  AP=0.8139  smoothAUC=0.5893  (60.0s)
+  ✓ Fold 3 new best smoothed AUC=0.5893  saved.
+    batch 1/8
+    batch 6/8
+  Ep   7/200  loss=1.2818  AUC=0.6531  AP=0.8408  smoothAUC=0.6144  (63.2s)
+  ✓ Fold 3 new best smoothed AUC=0.6144  saved.
+    batch 1/8
+    batch 6/8
+  Ep   8/200  loss=1.2174  AUC=0.6275  AP=0.8275  smoothAUC=0.6295  (67.5s)
+  ✓ Fold 3 new best smoothed AUC=0.6295  saved.
+    batch 1/8
+    batch 6/8
+  Ep   9/200  loss=1.1705  AUC=0.6420  AP=0.8284  smoothAUC=0.6409  (56.9s)
+  ✓ Fold 3 new best smoothed AUC=0.6409  saved.
+    batch 1/8
+    batch 6/8
+  Ep  10/200  loss=1.0864  AUC=0.6525  AP=0.8208  smoothAUC=0.6407  (84.7s)
+    batch 1/8
+    batch 6/8
+  Ep  11/200  loss=1.1262  AUC=0.6236  AP=0.7938  smoothAUC=0.6393  (65.1s)
+    batch 1/8
+    batch 6/8
+  Ep  12/200  loss=1.0727  AUC=0.5226  AP=0.7493  smoothAUC=0.5996  (80.4s)
+    batch 1/8
+    batch 6/8
+  Ep  13/200  loss=1.1124  AUC=0.4990  AP=0.7364  smoothAUC=0.5484  (60.3s)
+    batch 1/8
+    batch 6/8
+  Ep  14/200  loss=1.0863  AUC=0.5043  AP=0.7503  smoothAUC=0.5086  (79.7s)
+    batch 1/8
+    batch 6/8
+  Ep  15/200  loss=1.1192  AUC=0.5298  AP=0.7445  smoothAUC=0.5110  (77.1s)
+    batch 1/8
+    batch 6/8
+  Ep  16/200  loss=1.0018  AUC=0.5816  AP=0.7915  smoothAUC=0.5386  (67.5s)
+    batch 1/8
+    batch 6/8
+  Ep  17/200  loss=1.0933  AUC=0.5810  AP=0.8043  smoothAUC=0.5642  (95.1s)
+    batch 1/8
+    batch 6/8
+  Ep  18/200  loss=1.0471  AUC=0.5272  AP=0.7801  smoothAUC=0.5633  (92.7s)
+    batch 1/8
+    batch 6/8
+  Ep  19/200  loss=0.9955  AUC=0.5095  AP=0.7521  smoothAUC=0.5392  (127.3s)
+    batch 1/8
+    batch 6/8
+  Ep  20/200  loss=0.9775  AUC=0.5272  AP=0.7494  smoothAUC=0.5213  (132.6s)
+    batch 1/8
+    batch 6/8
+  Ep  21/200  loss=0.8946  AUC=0.5902  AP=0.7714  smoothAUC=0.5423  (115.7s)
+    batch 1/8
+    batch 6/8
+  Ep  22/200  loss=0.9161  AUC=0.6066  AP=0.7957  smoothAUC=0.5746  (103.9s)
+    batch 1/8
+    batch 6/8
+  Ep  23/200  loss=0.9310  AUC=0.5895  AP=0.7893  smoothAUC=0.5954  (81.0s)
+    batch 1/8
+    batch 6/8
+  Ep  24/200  loss=0.9236  AUC=0.5613  AP=0.7757  smoothAUC=0.5858  (95.3s)
+    batch 1/8
+    batch 6/8
+  Ep  25/200  loss=0.9108  AUC=0.5692  AP=0.7729  smoothAUC=0.5733  (108.7s)
+    batch 1/8
+    batch 6/8
+  Ep  26/200  loss=0.9140  AUC=0.5725  AP=0.7836  smoothAUC=0.5677  (97.8s)
+    batch 1/8
+    batch 6/8
+  Ep  27/200  loss=0.8952  AUC=0.5574  AP=0.7745  smoothAUC=0.5663  (70.5s)
+    batch 1/8
+    batch 6/8
+  Ep  28/200  loss=0.9351  AUC=0.5639  AP=0.7812  smoothAUC=0.5646  (88.5s)
+    batch 1/8
+    batch 6/8
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+  Ep  29/200  loss=0.8539  AUC=0.5698  AP=0.7907  smoothAUC=0.5637  (121.4s)
+
+  Early stopping at epoch 29.
+
+  Fold 3 test — AUC=0.5273  AP=0.8210
+
+=======================================================
+  FOLD 4 / 5
+=======================================================
+  Fold 4/5 — train: 122  val: 30  test: 27
+Model built on mps  |  total params: 2,441,745
+    batch 1/8
+    batch 6/8
+  Ep   1/200  loss=1.5591  AUC=0.5741  AP=0.7491  smoothAUC=0.5741  (69.0s)
+  ✓ Fold 4 new best smoothed AUC=0.5741  saved.
+    batch 1/8
+    batch 6/8
+  Ep   2/200  loss=1.5103  AUC=0.5244  AP=0.7043  smoothAUC=0.5493  (82.0s)
+    batch 1/8
+    batch 6/8
+  Ep   3/200  loss=1.4549  AUC=0.5397  AP=0.7140  smoothAUC=0.5461  (74.6s)
+    batch 1/8
+    batch 6/8
+  Ep   4/200  loss=1.4221  AUC=0.5188  AP=0.7035  smoothAUC=0.5276  (86.7s)
+    batch 1/8
+    batch 6/8
+  Ep   5/200  loss=1.3494  AUC=0.5369  AP=0.7194  smoothAUC=0.5318  (84.0s)
+    batch 1/8
+    batch 6/8
+  Ep   6/200  loss=1.3100  AUC=0.5462  AP=0.7284  smoothAUC=0.5340  (65.1s)
+    batch 1/8
+    batch 6/8
+  Ep   7/200  loss=1.2431  AUC=0.5700  AP=0.7400  smoothAUC=0.5510  (93.6s)
+    batch 1/8
+    batch 6/8
+  Ep   8/200  loss=1.2099  AUC=0.5657  AP=0.7425  smoothAUC=0.5606  (75.9s)
+    batch 1/8
+    batch 6/8
+  Ep   9/200  loss=1.2408  AUC=0.5444  AP=0.7239  smoothAUC=0.5600  (95.1s)
+    batch 1/8
+    batch 6/8
+  Ep  10/200  loss=1.1743  AUC=0.5372  AP=0.7310  smoothAUC=0.5491  (81.5s)
+    batch 1/8
+    batch 6/8
+  Ep  11/200  loss=1.1266  AUC=0.5496  AP=0.7457  smoothAUC=0.5437  (78.8s)
+    batch 1/8
+    batch 6/8
+  Ep  12/200  loss=1.1255  AUC=0.5456  AP=0.7486  smoothAUC=0.5441  (66.6s)
+    batch 1/8
+    batch 6/8
+  Ep  13/200  loss=1.0710  AUC=0.5490  AP=0.7451  smoothAUC=0.5481  (69.8s)
+    batch 1/8
+    batch 6/8
+  Ep  14/200  loss=1.0596  AUC=0.5433  AP=0.7343  smoothAUC=0.5460  (81.0s)
+    batch 1/8
+    batch 6/8
+  Ep  15/200  loss=1.0507  AUC=0.5476  AP=0.7378  smoothAUC=0.5466  (70.3s)
+    batch 1/8
+    batch 6/8
+  Ep  16/200  loss=1.0424  AUC=0.5476  AP=0.7337  smoothAUC=0.5462  (87.1s)
+    batch 1/8
+    batch 6/8
+  Ep  17/200  loss=0.9860  AUC=0.5468  AP=0.7291  smoothAUC=0.5473  (86.0s)
+    batch 1/8
+    batch 6/8
+  Ep  18/200  loss=0.9859  AUC=0.5401  AP=0.7322  smoothAUC=0.5448  (76.8s)
+    batch 1/8
+    batch 6/8
+  Ep  19/200  loss=0.9578  AUC=0.5549  AP=0.7400  smoothAUC=0.5473  (88.3s)
+    batch 1/8
+    batch 6/8
+  Ep  20/200  loss=0.9531  AUC=0.5503  AP=0.7385  smoothAUC=0.5484  (74.8s)
+    batch 1/8
+    batch 6/8
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+  Ep  21/200  loss=0.8995  AUC=0.5431  AP=0.7309  smoothAUC=0.5494  (90.9s)
+
+  Early stopping at epoch 21.
+
+  Fold 4 test — AUC=0.4486  AP=0.7575
+
+=======================================================
+  FOLD 5 / 5
+=======================================================
+  Fold 5/5 — train: 122  val: 30  test: 27
+Model built on mps  |  total params: 2,441,745
+    batch 1/8
+    batch 6/8
+  Ep   1/200  loss=1.5626  AUC=0.4897  AP=0.7113  smoothAUC=0.4897  (867.4s)
+  ✓ Fold 5 new best smoothed AUC=0.4897  saved.
+    batch 1/8
+    batch 6/8
+  Ep   2/200  loss=1.5094  AUC=0.5322  AP=0.7643  smoothAUC=0.5110  (82.0s)
+  ✓ Fold 5 new best smoothed AUC=0.5110  saved.
+    batch 1/8
+    batch 6/8
+  Ep   3/200  loss=1.4837  AUC=0.5672  AP=0.7706  smoothAUC=0.5297  (219.1s)
+  ✓ Fold 5 new best smoothed AUC=0.5297  saved.
+    batch 1/8
+    batch 6/8
+  Ep   4/200  loss=1.4567  AUC=0.6333  AP=0.7935  smoothAUC=0.5776  (1225.6s)
+  ✓ Fold 5 new best smoothed AUC=0.5776  saved.
+    batch 1/8
+    batch 6/8
+  Ep   5/200  loss=1.4269  AUC=0.6179  AP=0.8068  smoothAUC=0.6062  (98.0s)
+  ✓ Fold 5 new best smoothed AUC=0.6062  saved.
+    batch 1/8
+    batch 6/8
+  Ep   6/200  loss=1.4089  AUC=0.5991  AP=0.7951  smoothAUC=0.6168  (74.5s)
+  ✓ Fold 5 new best smoothed AUC=0.6168  saved.
+    batch 1/8
+    batch 6/8
+  Ep   7/200  loss=1.3196  AUC=0.6014  AP=0.7899  smoothAUC=0.6062  (186.7s)
+    batch 1/8
+    batch 6/8
+  Ep   8/200  loss=1.3332  AUC=0.6427  AP=0.7946  smoothAUC=0.6144  (1153.4s)
+    batch 1/8
+    batch 6/8
+  Ep   9/200  loss=1.2872  AUC=0.6077  AP=0.7739  smoothAUC=0.6173  (189.6s)
+  ✓ Fold 5 new best smoothed AUC=0.6173  saved.
+    batch 1/8
+    batch 6/8
+  Ep  10/200  loss=1.2339  AUC=0.5225  AP=0.7263  smoothAUC=0.5910  (610.7s)
+    batch 1/8
+    batch 6/8
+  Ep  11/200  loss=1.1915  AUC=0.5573  AP=0.7253  smoothAUC=0.5625  (237.1s)
+    batch 1/8
+    batch 6/8
+  Ep  12/200  loss=1.1697  AUC=0.5766  AP=0.7460  smoothAUC=0.5521  (137.1s)
+    batch 1/8
+    batch 6/8
+  Ep  13/200  loss=1.2518  AUC=0.5883  AP=0.7530  smoothAUC=0.5741  (111.9s)
+    batch 1/8
+    batch 6/8
+  Ep  14/200  loss=1.1098  AUC=0.5427  AP=0.7417  smoothAUC=0.5692  (114.4s)
+    batch 1/8
+    batch 6/8
+  Ep  15/200  loss=1.1868  AUC=0.4872  AP=0.7102  smoothAUC=0.5394  (99.4s)
+    batch 1/8
+    batch 6/8
+  Ep  16/200  loss=1.0994  AUC=0.4621  AP=0.6878  smoothAUC=0.4973  (84.9s)
+    batch 1/8
+    batch 6/8
+  Ep  17/200  loss=1.0217  AUC=0.4829  AP=0.7129  smoothAUC=0.4774  (171.3s)
+    batch 1/8
+    batch 6/8
+  Ep  18/200  loss=1.0055  AUC=0.5293  AP=0.7478  smoothAUC=0.4915  (154.3s)
+    batch 1/8
+    batch 6/8
+  Ep  19/200  loss=0.9746  AUC=0.5108  AP=0.7385  smoothAUC=0.5077  (136.0s)
+    batch 1/8
+    batch 6/8
+  Ep  20/200  loss=0.9931  AUC=0.5254  AP=0.7214  smoothAUC=0.5218  (129.3s)
+    batch 1/8
+    batch 6/8
+  Ep  21/200  loss=0.9406  AUC=0.5425  AP=0.7337  smoothAUC=0.5262  (149.9s)
+    batch 1/8
+    batch 6/8
+  Ep  22/200  loss=0.9517  AUC=0.5587  AP=0.7445  smoothAUC=0.5422  (79.2s)
+    batch 1/8
+    batch 6/8
+  Ep  23/200  loss=0.9420  AUC=0.5823  AP=0.7550  smoothAUC=0.5612  (79.7s)
+    batch 1/8
+    batch 6/8
+  Ep  24/200  loss=0.8756  AUC=0.5900  AP=0.7570  smoothAUC=0.5770  (101.9s)
+    batch 1/8
+    batch 6/8
+  Ep  25/200  loss=0.8502  AUC=0.5630  AP=0.7460  smoothAUC=0.5784  (103.7s)
+    batch 1/8
+    batch 6/8
+  Ep  26/200  loss=0.9000  AUC=0.5536  AP=0.7371  smoothAUC=0.5689  (125.6s)
+    batch 1/8
+    batch 6/8
+  Ep  27/200  loss=0.9142  AUC=0.5476  AP=0.7445  smoothAUC=0.5547  (163.2s)
+    batch 1/8
+    batch 6/8
+  Ep  28/200  loss=0.8858  AUC=0.5407  AP=0.7474  smoothAUC=0.5473  (132.6s)
+    batch 1/8
+    batch 6/8
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+  Ep  29/200  loss=0.8734  AUC=0.5439  AP=0.7521  smoothAUC=0.5441  (115.4s)
+
+  Early stopping at epoch 29.
+
+  Fold 5 test — AUC=0.4856  AP=0.7640
+
+=======================================================
+  5-Fold CV Summary
+=======================================================
+  Fold 1: AUC=0.6463  AP=0.8717
+  Fold 2: AUC=0.5851  AP=0.8255
+  Fold 3: AUC=0.5273  AP=0.8210
+  Fold 4: AUC=0.4486  AP=0.7575
+  Fold 5: AUC=0.4856  AP=0.7640
+  ─────────────────────────────────────────
+  Mean AUC = 0.5386 ± 0.0787
+  Mean AP  = 0.8079 ± 0.0475
+  Best overall fold: 1  (val AUC=0.6550)
+
+[4/4] Final test evaluation (best_overall.pt) …
+Model built on mps  |  total params: 2,441,745
+  Fold 1/5 — train: 121  val: 31  test: 27
+
+  ── Test results (best overall model) ─────
+     auc         : 0.6227
+     ap          : 0.8699
+
+  Results saved        → results
+  Best overall ckpt    → checkpoints/best_overall.pt
+  Trained model export → ../trained_models/assembly_gnn_20260810_110846_auc06550.pt
+
+  ⊘ Serving model NOT updated — incumbent (AUC=0.5561, AP=0.7422) is better than this run (AUC=0.5386, AP=0.8079)
+
+  Building assembly template cache …
+  [TemplateDB] Built 7 category templates from 179 training assemblies.
+    Bench Vice                                bodies≈22  dist={'long_shaft': 2, 'short_shaft': 2, 'thick_plate': 2, 'thin_plate': 3, 'bolt': 2, 'washer': 2, 'nut': 4, 'body': 12}
+    C Clamps                                  bodies≈7  dist={'long_shaft': 1, 'short_shaft': 1, 'thick_plate': 1, 'thin_plate': 7, 'bolt': 1, 'washer': 1, 'nut': 1, 'body': 2}
+    Crane Hook                                bodies≈35  dist={'long_shaft': 2, 'short_shaft': 3, 'thick_plate': 5, 'thin_plate': 2, 'bolt': 5, 'washer': 7, 'nut': 14, 'body': 7}
+    Gate Valve                                bodies≈47  dist={'long_shaft': 1, 'short_shaft': 4, 'thick_plate': 2, 'thin_plate': 3, 'bolt': 4, 'washer': 3, 'nut': 17, 'body': 14}
+    Pipe Vice                                 bodies≈8  dist={'long_shaft': 1, 'short_shaft': 1, 'thick_plate': 1, 'thin_plate': 2, 'bolt': 1, 'washer': 1, 'nut': 2, 'body': 4}
+    Press Tool                                bodies≈10  dist={'long_shaft': 4, 'short_shaft': 6, 'thick_plate': 2, 'thin_plate': 18, 'bolt': 10, 'washer': 4, 'nut': 4, 'body': 5}
+    Tool Post                                 bodies≈30  dist={'long_shaft': 2, 'short_shaft': 8, 'thick_plate': 2, 'thin_plate': 1, 'bolt': 8, 'washer': 2, 'nut': 2, 'body': 11}
+  [TemplateDB] Saved 7 templates → data/assembly_templates.json

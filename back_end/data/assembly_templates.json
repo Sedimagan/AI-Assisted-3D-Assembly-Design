@@ -73,15 +73,15 @@
     "label": "Gate Valve",
     "component_counts": {
       "long_shaft": 2,
-      "short_shaft": 4,
+      "short_shaft": 3,
       "thick_plate": 2,
-      "thin_plate": 4,
+      "thin_plate": 5,
       "bolt": 4,
       "washer": 3,
       "nut": 18,
-      "body": 16
+      "body": 17
     },
-    "total_bodies": 49,
+    "total_bodies": 47,
     "examples": [
       "Gate_Valve_02.STEP",
       "Gate_Valve_03.stp",
@@ -89,7 +89,7 @@
       "Gate_Valve_05.stp",
       "Gate_Valve_06.stp"
     ],
-    "n_assemblies": 20
+    "n_assemblies": 19
   },
   {
     "category": "pipe_vice",
