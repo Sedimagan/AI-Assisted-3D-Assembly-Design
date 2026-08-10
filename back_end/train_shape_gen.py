@@ -186,6 +186,20 @@ def voxel_iou(pred_prob: torch.Tensor, target: torch.Tensor, threshold: float = 
     return inter / union if union > 0 else 0.0
 
 
+
+# Fixed, module-level seed for chamfer's point subsampling — without this,
+# torch.randperm() below draws from the global RNG state, so re-evaluating
+# the SAME checkpoint on the SAME voxel grid gives a DIFFERENT chamfer every
+# call once a shape exceeds n_points occupied voxels. That's pure
+# measurement noise stacked on top of real model variance (observed: ~110%
+# coefficient-of-variation across epochs vs. ~20% for the deterministic,
+# full-grid IoU metric) — enough to make single-epoch chamfer comparisons
+# (e.g. checkpoint selection) unreliable. A fixed generator makes repeated
+# evaluations of one checkpoint reproducible while still genuinely
+# subsampling (not cherry-picked) for shapes that need it.
+_CHAMFER_GEN = torch.Generator().manual_seed(1234)
+
+
 def chamfer_from_voxels(pred_prob: torch.Tensor, target: torch.Tensor,
                          threshold: float = 0.5, n_points: int = 300) -> float:
     """Lightweight unit-normalized Chamfer distance between occupied-voxel
@@ -197,9 +211,9 @@ def chamfer_from_voxels(pred_prob: torch.Tensor, target: torch.Tensor,
     if pred_pts.numel() == 0 or tgt_pts.numel() == 0:
         return 1.0  # worst case, one side empty
     if pred_pts.size(0) > n_points:
-        pred_pts = pred_pts[torch.randperm(pred_pts.size(0))[:n_points]]
+        pred_pts = pred_pts[torch.randperm(pred_pts.size(0), generator=_CHAMFER_GEN)[:n_points]]
     if tgt_pts.size(0) > n_points:
-        tgt_pts = tgt_pts[torch.randperm(tgt_pts.size(0))[:n_points]]
+        tgt_pts = tgt_pts[torch.randperm(tgt_pts.size(0), generator=_CHAMFER_GEN)[:n_points]]
     pred_pts = pred_pts / res
     tgt_pts = tgt_pts / res
     d = torch.cdist(pred_pts, tgt_pts)
@@ -360,6 +374,16 @@ def main():
     res_dir = Path(cfg["paths"]["results"])
     res_dir.mkdir(parents=True, exist_ok=True)
 
+    # Checkpoint selection used to be IoU-only, which let ties (or near-ties)
+    # get broken purely by chamfer noise it never looked at — observed:
+    # epoch 32 (IoU=0.5718, chamfer=0.0424) was passed over for epoch 59
+    # (IoU=0.5898, chamfer=0.0513 — ~20% worse) purely because IoU alone
+    # ticked up. CHAMFER_WEIGHT=2.0 makes chamfer meaningfully load-bearing
+    # in the selection score without letting it override a real IoU gap —
+    # a calibration choice, not a rigorously derived constant; revisit if
+    # selected checkpoints keep favoring poor-chamfer epochs in practice.
+    CHAMFER_WEIGHT = 2.0
+    best_score = -1e9
     best_iou = -1.0
     best_state = None
     best_metrics = None
@@ -371,10 +395,12 @@ def main():
                                  lambda_dice=lambda_dice)
         val_metrics = epoch_pass(vae, gnn, val_samples, device, opt=None,
                                   beta_kl=beta_kl, lambda_dice=lambda_dice)
+        score = val_metrics["iou"] - CHAMFER_WEIGHT * val_metrics["chamfer"]
         print(f"  Ep {epoch:3d}/{epochs}  loss={train_loss:.4f}  "
               f"val_loss={val_metrics['loss']:.4f}  IoU={val_metrics['iou']:.4f}  "
-              f"chamfer={val_metrics['chamfer']:.4f}", flush=True)
-        if val_metrics["iou"] > best_iou:
+              f"chamfer={val_metrics['chamfer']:.4f}  score={score:.4f}", flush=True)
+        if score > best_score:
+            best_score = score
             best_iou = val_metrics["iou"]
             best_state = {k: v.clone() for k, v in vae.state_dict().items()}
             best_metrics = val_metrics
@@ -388,7 +414,8 @@ def main():
     print(f"{'='*55}")
     for k, v in test_metrics.items():
         print(f"     {k:10s}: {v:.4f}")
-    print(f"  (best val IoU={best_iou:.4f} at selection time)")
+    print(f"  (selected epoch: val IoU={best_iou:.4f}, "
+          f"chamfer={best_metrics['chamfer']:.4f}, score={best_score:.4f})")
 
     with open(res_dir / "shape_gen_test_metrics.json", "w") as f:
         json.dump({

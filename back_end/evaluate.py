@@ -58,7 +58,8 @@ def evaluate(gnn, lp, loader, device) -> dict:
             torch.ones(pos_ei.size(1)),
             torch.zeros(neg_ei.size(1)),
         ]).numpy()
-        scores = torch.sigmoid(lp(z, ei_all)).cpu().numpy()
+        pos = getattr(batch, "pos", None)
+        scores = torch.sigmoid(lp(z, ei_all, pos)).cpu().numpy()
         all_true.append(y_true)
         all_score.append(scores)
 

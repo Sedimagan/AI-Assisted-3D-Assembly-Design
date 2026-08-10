@@ -55,7 +55,14 @@ def load_ranker(ranker_path: str, gnn, device):
     ckpt = torch.load(ranker_path, map_location="cpu", weights_only=False)
     mc = ckpt["cfg"]["model"]
     nr = build_ranker(out_dim=mc["out_dim"], device=device)
-    nr.load_state_dict(ckpt["nr"])
+    # strict=False: tolerates loading a checkpoint saved before logit_scale
+    # was added to NodeRanker — the freshly-initialised default (temperature
+    # 1.0, i.e. unscaled cosine similarity) exactly matches that old
+    # checkpoint's own trained behaviour, so this is a safe, silent no-op
+    # until NodeRanker is next retrained with the new parameter.
+    missing, unexpected = nr.load_state_dict(ckpt["nr"], strict=False)
+    if missing or unexpected:
+        print(f"  [NodeRanker] non-strict load — missing={missing} unexpected={unexpected}")
     nr.eval()
 
     type_prototypes = embed_prototypes(gnn, ckpt["type_prototypes_raw"], device)
@@ -159,7 +166,8 @@ def predict_missing(
         return []
 
     ei     = torch.tensor(cands, dtype=torch.long).T.to(device)
-    scores = torch.sigmoid(lp(z, ei)).cpu()
+    pos    = getattr(g, "pos", None)
+    scores = torch.sigmoid(lp(z, ei, pos)).cpu()
     top_i  = scores.topk(min(top_k, len(cands))).indices
 
     return [((cands[i][0], cands[i][1]), round(scores[i].item(), 4))

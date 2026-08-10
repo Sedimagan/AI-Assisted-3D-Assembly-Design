@@ -73,7 +73,8 @@ def link_loss(lp, z, batch, device, sample_weight=1.0):
     """BCE on pos+neg edges plus a weighted hard-negative term."""
     ei    = batch.edge_label_index.to(device)
     label = batch.edge_label.float().to(device)
-    logit = lp(z, ei)
+    pos   = batch.pos.to(device) if getattr(batch, "pos", None) is not None else None
+    logit = lp(z, ei, pos)
     base_loss = F.binary_cross_entropy_with_logits(logit, label)
     pos_mask = label > 0.5
     if pos_mask.sum() > 2:
@@ -82,7 +83,7 @@ def link_loss(lp, z, batch, device, sample_weight=1.0):
             n_hard=min(20, int(pos_mask.sum().item()))
         )
         if hard_ei is not None:
-            hard_logits = lp(z, hard_ei)
+            hard_logits = lp(z, hard_ei, pos)
             hard_labels = torch.zeros(hard_ei.size(1), device=device)
             hard_loss   = F.binary_cross_entropy_with_logits(hard_logits, hard_labels)
             return (base_loss + 0.3 * hard_loss) * sample_weight

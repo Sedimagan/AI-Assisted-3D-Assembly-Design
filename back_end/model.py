@@ -119,22 +119,40 @@ class AssemblyGNN(nn.Module):
 class LinkPredictor(nn.Module):
     """
     MLP that scores a candidate edge (u, v) given node embeddings.
-    score(u,v) = MLP( z_u ‖ z_v )  →  scalar logit
+    score(u,v) = MLP( z_u ‖ z_v ‖ dist(u,v) )  →  scalar logit
+
+    dist(u,v) is the Euclidean distance between the two bodies' AABB
+    centers (dataset.py's `pos`, already scale-normalised per assembly),
+    appended as one extra scalar. Before this, the model had zero spatial/
+    proximity signal anywhere — node features are all affine-invariant
+    shape ratios, and message passing only ever sees REAL edges, so a
+    candidate (non-edge) pair being scored had no way to express "these two
+    bodies are nowhere near each other." `pos=None` keeps the old
+    embeddings-only behaviour (zero-filled distance) for callers that don't
+    have positions (e.g. synthetic fallback graphs, or a checkpoint
+    predating this change being loaded into a stale caller — the shape
+    itself won't retroactively match, but the forward pass degrades to
+    "no distance info" rather than crashing on a None).
     """
 
     def __init__(self, in_dim: int = 64, hidden: int = 64):
         super().__init__()
         self.mlp = nn.Sequential(
-            nn.Linear(in_dim * 2, hidden),
+            nn.Linear(in_dim * 2 + 1, hidden),
             nn.ReLU(),
             nn.Dropout(0.1),
             nn.Linear(hidden, 1),
         )
 
-    def forward(self, z: torch.Tensor, edge_index: torch.Tensor) -> torch.Tensor:
+    def forward(self, z: torch.Tensor, edge_index: torch.Tensor,
+                pos: torch.Tensor | None = None) -> torch.Tensor:
         src, dst = edge_index
-        h = torch.cat([z[src], z[dst]], dim=-1)   # (E, 2*D)
-        return self.mlp(h).squeeze(-1)             # (E,)
+        if pos is not None:
+            dist = (pos[src] - pos[dst]).norm(dim=-1, keepdim=True)  # (E, 1)
+        else:
+            dist = z.new_zeros(src.size(0), 1)
+        h = torch.cat([z[src], z[dst], dist], dim=-1)   # (E, 2*D + 1)
+        return self.mlp(h).squeeze(-1)                   # (E,)
 
 
 # ── Task head B: Node Ranking ─────────────────────────────────────────────────
@@ -143,11 +161,20 @@ class NodeRanker(nn.Module):
     """
     Ranks candidate components by cosine similarity to the partial-assembly
     context vector (mean-pooled node embeddings).
+
+    logit_scale is a learnable temperature (CLIP-style: scores = cosine_sim *
+    exp(logit_scale)) — plain cosine similarity is bounded in [-1, 1], so raw
+    score differences fed into the BPR loss are small and the logsigmoid
+    gradient sits in a fairly flat region for a head this thin (~4.2K params
+    in `proj` alone). Initialised to exp(0)=1.0, i.e. identical to the old
+    unscaled behaviour at the start of training — it only starts sharpening
+    or softening the ranking once gradients say to.
     """
 
     def __init__(self, in_dim: int = 64):
         super().__init__()
         self.proj = nn.Linear(in_dim, in_dim)
+        self.logit_scale = nn.Parameter(torch.zeros(1))
 
     def forward(
         self,
@@ -155,7 +182,8 @@ class NodeRanker(nn.Module):
         z_candidates: torch.Tensor,   # (N_cand, D)   — embeddings of candidate nodes
     ) -> torch.Tensor:
         ctx    = self.proj(z_partial.mean(0, keepdim=True))  # (1, D)
-        scores = F.cosine_similarity(ctx, z_candidates, dim=-1)  # (N_cand,)
+        cos    = F.cosine_similarity(ctx, z_candidates, dim=-1)  # (N_cand,)
+        scores = cos * self.logit_scale.exp()
         return scores
 
 

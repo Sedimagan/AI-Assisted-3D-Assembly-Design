@@ -39,10 +39,10 @@ Edge feature vector: 6-dim
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import multiprocessing as _mp
-import random
 import time
 from pathlib import Path
 from typing import List, Optional, Tuple
@@ -420,6 +420,28 @@ _HOLE_DIAM_FLOOR = 1.0
 _HOLE_MIN_DEPTH  = 0.5
 
 
+def _contact_area_weight(shared_tags, sa_u: float, sa_v: float) -> float:
+    """
+    Weight a detected contact by how much of the two bodies actually touch,
+    relative to the smaller body's own total surface area — replaces a
+    hardcoded 1.0 for every contact regardless of whether it's a flush
+    mating face or a token touch. Clipped to [0,1] (numerically messy STEP
+    faces can push the raw ratio slightly over 1; treat that as "fully
+    mated" rather than propagating the noise as a feature value).
+    """
+    import gmsh
+    total = 0.0
+    for tag in shared_tags:
+        try:
+            total += abs(gmsh.model.occ.getMass(2, tag))
+        except Exception:
+            continue
+    denom = min(sa_u, sa_v)
+    if denom <= 0:
+        return 1.0
+    return max(0.0, min(1.0, total / denom))
+
+
 def _count_body_holes_from_geometry(body_surf_tags, ext: list) -> int:
     """
     Count boundary faces on this body that look like through-holes: cylindrical
@@ -692,11 +714,13 @@ def _parse_step(step_path: str) -> Optional[Data]:
             vtag_u = str(volumes[u][1])
             vtag_v = str(volumes[v][1])
             pkey = tuple(sorted([vtag_u, vtag_v]))
+            shared = body_surfs[u] & body_surfs[v]
             if pkey in json_pair_joint:
                 joint_oh, mate_norm = json_pair_joint[pkey], 0.0
             else:
-                joint_oh, mate_norm = _classify_joint_from_geometry(body_surfs[u] & body_surfs[v])
-            ea = [mate_norm, 1.0] + joint_oh   # 6-dim: mate + weight + joint type
+                joint_oh, mate_norm = _classify_joint_from_geometry(shared)
+            weight = _contact_area_weight(shared, exact_sas[u], exact_sas[v])
+            ea = [mate_norm, weight] + joint_oh   # 6-dim: mate + weight + joint type
             src += [u, v]; dst += [v, u]
             eattr += [ea, ea]
 
@@ -714,7 +738,20 @@ def _parse_step(step_path: str) -> Optional[Data]:
         x          = torch.tensor(node_feats, dtype=torch.float)
         edge_index = torch.tensor([src, dst],  dtype=torch.long)
         edge_attr  = torch.tensor(eattr,        dtype=torch.float)
-        return Data(x=x, edge_index=edge_index, edge_attr=edge_attr)
+        # Per-body AABB-center, scaled by this assembly's own bbox_max — NOT
+        # centered on the assembly, since LinkPredictor only ever consumes
+        # pos[u]-pos[v] differences, which cancel any constant origin offset
+        # regardless of where the STEP file's arbitrary origin sits. Scaling
+        # by bbox_max (the same constant used for the affine-invariant node
+        # features above) keeps relative distances comparable in magnitude
+        # across assemblies of very different absolute size. This is the
+        # only source of geometric proximity signal in the whole feature
+        # set — previously centers[i] was computed but only ever fed into
+        # per-body signals (com_offset), never exposed to the model at all,
+        # so "are these two bodies close enough to plausibly mate" had no
+        # feature to be answered from.
+        pos = torch.tensor(np.stack(centers) / bbox_max, dtype=torch.float)
+        return Data(x=x, edge_index=edge_index, edge_attr=edge_attr, pos=pos)
 
     except Exception as e:
         print(f"    [skip] {Path(step_path).name}: {e}")
@@ -904,10 +941,15 @@ def _synthetic_graph(n_nodes: int = None) -> Data:
     if not src:
         return None
 
+    # Random positions in a unit cube — LinkPredictor treats pos as required
+    # (see model.py), so synthetic graphs need *some* value here even though
+    # it carries no real geometric meaning for this fallback path.
+    pos = torch.rand(n, 3)
     return Data(
         x          = x,
         edge_index = torch.tensor([src, dst], dtype=torch.long),
         edge_attr  = torch.tensor(eattr,      dtype=torch.float),
+        pos        = pos,
     )
 
 
@@ -1098,47 +1140,59 @@ class AssemblyDataset(InMemoryDataset):
 
 # ── Split helper ──────────────────────────────────────────────────────────────
 
+def _stable_bucket(key: str, n_buckets: int) -> int:
+    """Deterministic hash bucket in [0, n_buckets) — same key always maps
+    to the same bucket, independent of process/run/corpus size."""
+    h = hashlib.md5(key.encode("utf-8")).hexdigest()
+    return int(h, 16) % n_buckets
+
+
 def graph_level_indices(dataset: AssemblyDataset, cfg: dict, fold_idx: int = 0, n_folds: int = 5):
     """
-    Seeded train/val/test graph-index partition — fixed 15% test set, then
-    KFold cross-validation on the remaining 85%. Both the test carve-out and
-    the CV folds are stratified by category (dataset.graph_categories):
-    corpus categories range from Bench_vice (54 graphs) down to Tool_Post
-    (8 graphs), and a plain unstratified randperm/KFold can leave a fold
-    with zero examples of a small category — a real, confirmed contributor
-    to the large per-fold AUC variance seen across R28-R34 training runs.
+    Train/val/test graph-index partition, split into two halves with
+    different stability requirements:
+
+    1. Test carve-out — hash-based on each graph's own (category, source
+       path), corpus-size-independent. A plain torch.randperm(n)/KFold(n)
+       split reshuffles entirely whenever n changes: confirmed, the
+       fastener-only Phase 3 peak run (n=188) and the R34 resync (n=192)
+       drew almost entirely different, non-overlapping 28-graph test sets
+       purely because n changed, not because either model was evaluated
+       differently on purpose — inflating an apparent "regression" that was
+       partly just a different, harder-by-chance test slice. Since the test
+       set is what gets compared *across* separate training runs, this is
+       the half that actually needs corpus-size independence.
+    2. CV fold split (within the train_val remainder) — category-stratified
+       (StratifiedKFold, falls back to plain KFold if a category is too
+       small). This part is only ever used *within* one training run (each
+       run computes its own 5 folds fresh), so it doesn't need cross-run
+       stability the way the test set does — and stratification matters
+       more here: corpus categories range from Bench_vice (54 graphs) down
+       to Tool_Post (8), and a hash-based per-graph fold assignment was
+       tried and measured to leave Tool_Post with zero val examples in 3 of
+       5 folds (worse than the plain-random baseline this whole split logic
+       replaced) — reverted in favor of explicit stratification here, kept
+       hash-based only where it's actually needed (the test set, above).
+
     Exposed standalone (not just via get_splits) so callers that need the
     raw, un-edge-masked graphs (e.g. NodeRanker training) can index the
     dataset directly without going through RandomLinkSplit.
     """
     n      = len(dataset)
-    n_test_target = max(1, int(n * cfg["data"]["test_ratio"]))
-    cats = (dataset.graph_categories if len(dataset.graph_categories) == n
-            else [''] * n)
+    cats    = (dataset.graph_categories if len(dataset.graph_categories) == n
+               else [''] * n)
+    sources = (dataset.graph_sources if len(dataset.graph_sources) == n
+               else [str(i) for i in range(n)])
 
-    by_cat: dict = {}
-    for i, c in enumerate(cats):
-        by_cat.setdefault(c, []).append(i)
-
-    rng = random.Random(42)
+    test_pct = max(1, min(99, round(cfg["data"]["test_ratio"] * 100)))
     test_idx:  List[int] = []
     train_val: List[int] = []
-    for c in sorted(by_cat):
-        idxs = by_cat[c][:]
-        rng.shuffle(idxs)
-        n_c_test = round(len(idxs) * cfg["data"]["test_ratio"])
-        if len(idxs) > 1:
-            n_c_test = min(len(idxs) - 1, n_c_test)   # keep >=1 graph in train_val
+    for i in range(n):
+        key = f"{cats[i]}::{sources[i]}"
+        if _stable_bucket("test::" + key, 100) < test_pct:
+            test_idx.append(i)
         else:
-            n_c_test = 0                              # a singleton category can't spare a test example
-        test_idx.extend(idxs[:n_c_test])
-        train_val.extend(idxs[n_c_test:])
-    test_idx  = sorted(test_idx)
-    train_val = sorted(train_val)
-    if abs(len(test_idx) - n_test_target) > max(2, n_test_target // 4):
-        print(f"  [split] stratified test carve-out is {len(test_idx)} graphs "
-              f"(target ~{n_test_target}) — category balance was prioritised "
-              f"over hitting the exact ratio")
+            train_val.append(i)
 
     tv_cats = [cats[i] for i in train_val]
     try:
@@ -1152,6 +1206,13 @@ def graph_level_indices(dataset: AssemblyDataset, cfg: dict, fold_idx: int = 0, 
     train_rel_idx, val_rel_idx = folds[fold_idx]
     train_idx = [train_val[i] for i in train_rel_idx]
     val_idx   = [train_val[i] for i in val_rel_idx]
+
+    cat_counts = {}
+    for i in val_idx:
+        cat_counts[cats[i]] = cat_counts.get(cats[i], 0) + 1
+    missing_cats = sorted(set(cats) - set(cat_counts))
+    if missing_cats:
+        print(f"  [split] fold {fold_idx}: categories with 0 val examples: {missing_cats}")
 
     return train_idx, val_idx, test_idx
 
