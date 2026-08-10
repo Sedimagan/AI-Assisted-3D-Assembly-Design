@@ -270,10 +270,13 @@
 
 <div class="doc-header" id="overview">
   <div class="kicker">AI-Assisted 3D Assembly Design</div>
-  <div class="last-updated good" id="last-updated">
-    <span class="dot"></span>Last updated <b>2026-08-10 20:32 IST</b> — R36 <b>complete and promoted</b>
-    (Mean AUC 0.6277±0.0516, beats R34/R35 — see <a href="#provenance" style="color:inherit;text-decoration:underline;">Run Provenance</a>).
-    Next up: Phase 2/3 retrains against this encoder
+  <div class="last-updated" id="last-updated">
+    <span class="dot"></span>Last updated <b>2026-08-11 00:41 IST</b> — All three phases now retrained against
+    the promoted R36 encoder. Phase 1: Mean AUC 0.6277 (best yet). Phase 2: Hit@1 ties baseline exactly —
+    confirmed architectural, not encoder-driven. Phase 3: clears design targets, doesn't beat prior peak. See
+    <a href="#provenance" style="color:inherit;text-decoration:underline;">Run Provenance</a>,
+    <a href="#phase2" style="color:inherit;text-decoration:underline;">Phase 2</a>,
+    <a href="#phase3" style="color:inherit;text-decoration:underline;">Phase 3</a>
   </div>
   <h1>End-to-End Pipeline Architecture</h1>
   <p class="sub">
@@ -558,15 +561,13 @@
     <li><b>Candidates</b> = the 8 fixed component types, not arbitrary real graph nodes.</li>
     <li><b>Type prototypes</b> = mean raw 22-dim feature vector per type (from train+val graphs), embedded
         through the frozen encoder as a zero-edge batch — recomputed fresh every time the encoder changes.</li>
-    <li><span class="badge r36">R36</span> <span class="badge pending">code landed, retrain pending</span>
-        <code>logit_scale</code> — a CLIP-style learnable scalar
+    <li><span class="badge r36">R36</span> <code>logit_scale</code> — a CLIP-style learnable scalar
         multiplying the cosine similarity before the loss. Plain cosine similarity is bounded [-1,1], so raw
         score differences fed into BPR were small and the loss gradient sat in a flat region for a head this
         thin (~4.2K params in <code>proj</code> alone). Initialised to <code>exp(0)=1.0</code> — identical to
         the old unscaled behaviour until training says otherwise. <code>infer.py</code> loads existing
-        checkpoints with <code>strict=False</code> so this addition doesn't break them; the parameter just
-        defaults to its identity value until the head is next retrained — landed in the R36 commit but Phase 2
-        hasn't been retrained since, so this has not yet run against real data.</li>
+        checkpoints with <code>strict=False</code> so this addition doesn't break them. Retrained against R36
+        — see the result callout below.</li>
   </ul>
 
   <h3 id="p2-training"><span class="step-num">2.2</span>Training &amp; Evaluation <code>train_ranker.py</code></h3>
@@ -578,13 +579,16 @@
     <li><b>Metrics</b>: Hit@1, Hit@5, MRR, NDCG@5, each compared against a majority-class baseline.</li>
   </ol>
   <div class="callout">
-    <p><b>Known open issue, not yet fixed:</b> Hit@1 has landed at or below the majority-class baseline across
-    every encoder generation retrained against so far (R28-era, R30, R33, R34). Diagnosed as likely
-    architectural — <code>proj</code> only ever transforms the query side; the 8 prototype embeddings it's
-    compared against are never touched by anything trainable, so Hit@1 is capped by however separated those
-    prototypes already are coming out of the frozen encoder. Combined with zero class-imbalance handling in
-    the leave-one-out sampling. Fix is queued (project-tracked, not yet implemented) for after Phase 1
-    settles on a promoted encoder.</p>
+    <p><b>Known open issue, confirmed not to be an encoder-quality problem:</b> Hit@1 has now landed at or
+    <i>exactly at</i> the majority-class baseline across every encoder generation retrained against
+    (R28-era, R30, R33, R34, and now <span class="badge r36">R36</span> — Hit@1=0.4286 vs. baseline 0.4286,
+    an exact tie, even though R36 is by far the strongest encoder this project has produced, Mean AUC 0.6277).
+    This settles the question raised earlier: the bottleneck is NodeRanker's own architecture, not the
+    encoder feeding it. Diagnosed as: <code>proj</code> only ever transforms the query side; the 8 prototype
+    embeddings it's compared against are never touched by anything trainable, so Hit@1 is capped by however
+    separated those prototypes already are. Combined with zero class-imbalance handling in the leave-one-out
+    sampling. Fix is queued (project-tracked) — compute the 8×8 prototype similarity matrix, class-balanced
+    sampling, and projecting the prototypes too, not just context.</p>
   </div>
 </section>
 
@@ -645,17 +649,25 @@
   <ul>
     <li>Same leave-one-node-out sampling pattern as NodeRanker, against the frozen encoder — 60 epochs, continuous-angle rotation + scale/occupancy jitter augmentation.</li>
     <li><b>Metrics</b>: voxel IoU (deterministic, full-grid) and a chamfer-distance proxy over occupied-voxel centroid clouds.</li>
-    <li><span class="badge r36">R36</span> <span class="badge pending">code landed, retrain pending</span>
-      Chamfer's point-cloud subsampling now uses a <b>fixed-seed generator</b>
+    <li><span class="badge r36">R36</span> Chamfer's point-cloud subsampling now uses a <b>fixed-seed generator</b>
       instead of the global RNG — re-evaluating the same checkpoint on the same voxel grid used to give a
       <i>different</i> chamfer every call once a shape exceeded 300 occupied voxels (measured ~110% coefficient
-      of variation from sampling noise alone, on top of real model variance). Landed in the R36 commit; Phase 3
-      hasn't been retrained since, so not yet exercised against real data.</li>
-    <li><span class="badge r36">R36</span> <span class="badge pending">code landed, retrain pending</span>
-      Checkpoint selection now uses <code>score = IoU − 2.0×chamfer</code>
+      of variation from sampling noise alone, on top of real model variance).</li>
+    <li><span class="badge r36">R36</span> Checkpoint selection now uses <code>score = IoU − 2.0×chamfer</code>
       instead of IoU alone — the old selection was observed passing over a near-IoU-tied epoch with ~20%
       better chamfer purely because IoU ticked up slightly on a different epoch.</li>
   </ul>
+  <div class="callout">
+    <p><b>Retrained against <span class="badge r36">R36</span>:</b> test IoU=0.5238, chamfer=0.0592 — clears
+    the design targets (IoU≥0.35, chamfer≤0.08) but doesn't beat either prior run (fastener-only peak:
+    IoU=0.6113/chamfer=0.0442; R34-resync: IoU=0.5516/chamfer=0.0778 — better chamfer than that one, worse
+    IoU than both). A real val→test gap showed up here too: the selected epoch looked strong on validation
+    (IoU=0.5550, chamfer=0.0383) but held-out test came in lower — the same small-sample overfitting-to-noise
+    pattern seen in Phase 1. Unlike Phase 1, there's no promotion gate on <code>shape_vae.pt</code> — it's
+    saved unconditionally, so this checkpoint is live regardless of whether it improved on the prior one.
+    Tasks #18-22 (part-bank quality gating, loss-breakdown logging, LR scheduler, augmentation fix,
+    retrieval-gated eval) remain the likely path back toward the 0.6113 peak.</p>
+  </div>
 </section>
 
 <!-- ══════════════════════════ SUPPORTING MODULES ══════════════════════════ -->
@@ -787,9 +799,10 @@
   <code>max_fastener_extent</code> classifier gate, part-bank meshing-resilience fix — see
   <a href="#support-surface" style="color:var(--accent);">surface_analyzer.py</a> and
   <a href="#p3-bank" style="color:var(--accent);">Part Bank</a>). R35 and R36 are both Phase-1-only retrains from
-  this cycle's diagnostic; Phase 2 (NodeRanker) and Phase 3 (shape-gen) have not been retrained against either —
-  see the <span class="badge pending">code landed, retrain pending</span> tags throughout <a href="#phase2" style="color:var(--accent);">Phase 2</a>
-  and <a href="#phase3" style="color:var(--accent);">Phase 3</a>.</p>
+  this cycle's diagnostic. Phase 2 (NodeRanker) and Phase 3 (shape-gen) have both since been retrained against
+  the promoted R36 encoder — see <a href="#phase2" style="color:var(--accent);">Phase 2</a> and
+  <a href="#phase3" style="color:var(--accent);">Phase 3</a> for results (NodeRanker: Hit@1 exactly ties
+  baseline; shape-gen: clears design targets, doesn't beat prior peak).</p>
 </section>
 
 <section id="changelog">

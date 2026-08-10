@@ -1,0 +1,59 @@
+
+[1/5] Loading dataset …
+      191 graphs loaded.
+      train: 136  val: 34  test: 21
+
+[2/5] Loading frozen Phase-1 encoder …
+Model built on mps  |  total params: 2,441,809
+      Encoder frozen (val AUC=0.7030, trained_at=2026-08-10T20:31:36.932305)
+
+[3/5] Computing type prototypes …
+      Prototype table: (8, 22)
+
+[4/5] Building NodeRanker …
+      Leave-one-out samples — train: 660  val: 166  test: 105
+
+[5/5] Training (30 epochs) …
+  Ep   1/30  loss=4.3601  Hit@1=0.5120  Hit@5=0.8313  MRR=0.6445  NDCG@5=0.6719
+  Ep   2/30  loss=3.9018  Hit@1=0.4578  Hit@5=0.8494  MRR=0.6195  NDCG@5=0.6599
+  Ep   3/30  loss=3.6528  Hit@1=0.4699  Hit@5=0.8434  MRR=0.6225  NDCG@5=0.6596
+  Ep   4/30  loss=3.4631  Hit@1=0.4157  Hit@5=0.8675  MRR=0.5991  NDCG@5=0.6516
+  Ep   5/30  loss=3.3226  Hit@1=0.4157  Hit@5=0.8795  MRR=0.5999  NDCG@5=0.6562
+  Ep   6/30  loss=3.1984  Hit@1=0.3554  Hit@5=0.8675  MRR=0.5659  NDCG@5=0.6267
+  Ep   7/30  loss=3.1198  Hit@1=0.3735  Hit@5=0.8916  MRR=0.5830  NDCG@5=0.6480
+  Ep   8/30  loss=3.0139  Hit@1=0.3735  Hit@5=0.8916  MRR=0.5746  NDCG@5=0.6417
+  Ep   9/30  loss=2.9530  Hit@1=0.3373  Hit@5=0.8735  MRR=0.5543  NDCG@5=0.6204
+  Ep  10/30  loss=2.8990  Hit@1=0.2952  Hit@5=0.8494  MRR=0.5280  NDCG@5=0.5920
+  Ep  11/30  loss=2.8622  Hit@1=0.3554  Hit@5=0.8916  MRR=0.5596  NDCG@5=0.6296
+  Ep  12/30  loss=2.8080  Hit@1=0.3253  Hit@5=0.8675  MRR=0.5444  NDCG@5=0.6101
+  Ep  13/30  loss=2.7880  Hit@1=0.3313  Hit@5=0.8976  MRR=0.5463  NDCG@5=0.6223
+  Ep  14/30  loss=2.7597  Hit@1=0.3193  Hit@5=0.8614  MRR=0.5347  NDCG@5=0.6010
+  Ep  15/30  loss=2.7548  Hit@1=0.3133  Hit@5=0.8795  MRR=0.5259  NDCG@5=0.5998
+  Ep  16/30  loss=2.7201  Hit@1=0.3373  Hit@5=0.8976  MRR=0.5492  NDCG@5=0.6238
+  Ep  17/30  loss=2.7011  Hit@1=0.3253  Hit@5=0.8614  MRR=0.5493  NDCG@5=0.6116
+  Ep  18/30  loss=2.6828  Hit@1=0.3554  Hit@5=0.8855  MRR=0.5610  NDCG@5=0.6288
+  Ep  19/30  loss=2.6435  Hit@1=0.2952  Hit@5=0.8494  MRR=0.5169  NDCG@5=0.5829
+  Ep  20/30  loss=2.6507  Hit@1=0.3193  Hit@5=0.8373  MRR=0.5407  NDCG@5=0.5965
+  Ep  21/30  loss=2.6206  Hit@1=0.3133  Hit@5=0.8554  MRR=0.5188  NDCG@5=0.5860
+  Ep  22/30  loss=2.6012  Hit@1=0.3373  Hit@5=0.8675  MRR=0.5457  NDCG@5=0.6110
+  Ep  23/30  loss=2.5870  Hit@1=0.3072  Hit@5=0.8494  MRR=0.5150  NDCG@5=0.5813
+  Ep  24/30  loss=2.5845  Hit@1=0.3193  Hit@5=0.8554  MRR=0.5270  NDCG@5=0.5925
+  Ep  25/30  loss=2.5772  Hit@1=0.3133  Hit@5=0.8614  MRR=0.5239  NDCG@5=0.5917
+  Ep  26/30  loss=2.5561  Hit@1=0.2952  Hit@5=0.8494  MRR=0.5209  NDCG@5=0.5857
+  Ep  27/30  loss=2.5503  Hit@1=0.3735  Hit@5=0.8614  MRR=0.5692  NDCG@5=0.6263
+  Ep  28/30  loss=2.5430  Hit@1=0.3373  Hit@5=0.8554  MRR=0.5435  NDCG@5=0.6047
+  Ep  29/30  loss=2.5188  Hit@1=0.3072  Hit@5=0.8494  MRR=0.5199  NDCG@5=0.5845
+  Ep  30/30  loss=2.5166  Hit@1=0.3434  Hit@5=0.8675  MRR=0.5457  NDCG@5=0.6101
+
+=======================================================
+  NodeRanker — Test Results
+=======================================================
+     hit@1     : 0.4286
+     hit@5     : 0.7905
+     mrr       : 0.5814
+     ndcg@5    : 0.6082
+     majority-class baseline Hit@1: 0.4286
+  (best val MRR=0.6445 at selection time)
+
+  Saved → checkpoints/node_ranker.pt
+  Saved → results/ranker_test_metrics.json
