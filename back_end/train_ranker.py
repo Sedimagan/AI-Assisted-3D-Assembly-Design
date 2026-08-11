@@ -104,12 +104,42 @@ def sample_leave_one_out(graphs: list, n_per_graph: int, rng: random.Random):
 
 # ── Epoch pass ─────────────────────────────────────────────────────────────────
 
-def epoch_pass(nr, gnn, prototypes_raw, samples, device, opt=None, return_raw=False):
+def compute_class_weights(samples, n_types: int, cap: float = 5.0) -> torch.Tensor:
+    """
+    Inverse-frequency class weight per COMP_TYPES index, computed from the
+    REALIZED leave-one-out sample distribution (not the raw corpus) since
+    that's what's actually driving gradients -- sklearn's 'balanced' formula:
+    weight[c] = n_samples / (n_types * count[c]), so a perfectly balanced
+    class gets weight 1.0, an over-represented class (Body, ~40% of samples)
+    gets pulled below 1.0, and an under-represented class (Washer, Short
+    Shaft) gets pulled above 1.0. Capped to avoid one near-absent class (a
+    handful of leave-one-out draws) blowing up into a wildly dominant
+    gradient -- same "capped inverse-frequency" pattern already used for
+    Phase 1's per-category CATEGORY_WEIGHTS in train.py.
+    """
+    counts = torch.zeros(n_types)
+    for _, t in samples:
+        counts[t] += 1
+    n = max(1, len(samples))
+    counts = counts.clamp(min=1)  # a class with 0 samples just gets the cap, not div-by-zero
+    weights = n / (n_types * counts)
+    return weights.clamp(max=cap)
+
+
+def epoch_pass(nr, gnn, prototypes_raw, samples, device, opt=None, return_raw=False,
+                class_weights: torch.Tensor | None = None):
     """One pass over `samples`. Trains nr if opt is given, else runs eval-only
     and returns ranking_metrics() -- or, if return_raw, a
     (metrics_dict, true_idx_all, scores_all) tuple so callers can compute
     additional breakdowns (e.g. per_class_ranking_metrics) without a second
     pass over the encoder. gnn is always frozen (no_grad context).
+
+    class_weights, if given, scales each sample's BPR loss by its true
+    type's inverse-frequency weight (see compute_class_weights) -- without
+    this, samples of the majority type dominate the gradient simply by
+    outnumbering everything else, which is what caused the majority-class
+    collapse confirmed via per_class_ranking_metrics (body predicted 94.3%
+    of the time vs. its true 42.9% frequency).
 
     Prototype embeddings depend only on the frozen encoder + the fixed
     prototype table, so they're computed once per pass, not per sample."""
@@ -136,6 +166,8 @@ def epoch_pass(nr, gnn, prototypes_raw, samples, device, opt=None, return_raw=Fa
             neg_mask[true_type] = False
             negs = scores[neg_mask]
             loss = -F.logsigmoid(pos - negs).sum()
+            if class_weights is not None:
+                loss = loss * class_weights[true_type]
             loss.backward()
             opt.step()
             total_loss += loss.item()
@@ -218,6 +250,10 @@ def main():
     print(f"      Leave-one-out samples — train: {len(train_samples)}  "
           f"val: {len(val_samples)}  test: {len(test_samples)}")
 
+    class_weights = compute_class_weights(train_samples, len(COMP_TYPES))
+    print(f"      Class weights (inverse-frequency, capped at 5.0): "
+          + ", ".join(f"{t}={w:.2f}" for t, w in zip(COMP_TYPES, class_weights.tolist())))
+
     print(f"\n[5/5] Training ({epochs} epochs) …")
     best_mrr = -1.0
     best_state = None
@@ -230,7 +266,8 @@ def main():
 
     for epoch in range(1, epochs + 1):
         rng.shuffle(train_samples)
-        train_loss = epoch_pass(nr, gnn, prototypes_raw, train_samples, device, opt=opt)
+        train_loss = epoch_pass(nr, gnn, prototypes_raw, train_samples, device, opt=opt,
+                                 class_weights=class_weights)
         val_metrics = epoch_pass(nr, gnn, prototypes_raw, val_samples, device, opt=None)
         print(f"  Ep {epoch:3d}/{epochs}  loss={train_loss:.4f}  "
               f"Hit@1={val_metrics['hit@1']:.4f}  Hit@5={val_metrics['hit@5']:.4f}  "

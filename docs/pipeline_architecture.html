@@ -271,10 +271,10 @@
 <div class="doc-header" id="overview">
   <div class="kicker">AI-Assisted 3D Assembly Design</div>
   <div class="last-updated" id="last-updated">
-    <span class="dot"></span>Last updated <b>2026-08-11 01:02 IST</b> — Phase 2's Hit@1 mystery is solved:
-    per-class breakdown confirms <b>definitive majority-class collapse</b> (body predicted 94.3% of the time
-    vs. true 42.9%; every other type Hit@1≈0) — see <a href="#phase2" style="color:inherit;text-decoration:underline;">Phase 2</a>.
-    Class-balanced BPR sampling is next.
+    <span class="dot"></span>Last updated <b>2026-08-11 06:41 IST</b> — Tried class-balanced BPR sampling for
+    NodeRanker's majority-class collapse: real but weak effect (body predicted% 94.3%→88.6%), collapse
+    persists. Refined hypothesis points at the mean-pooled context vector itself — held for design discussion
+    rather than implemented autonomously. See <a href="#phase2" style="color:inherit;text-decoration:underline;">Phase 2</a>.
   </div>
   <h1>End-to-End Pipeline Architecture</h1>
   <p class="sub">
@@ -604,9 +604,25 @@
     <p>Unambiguous: the model predicts "body" for 94.3% of all test samples — more than double body's actual
     frequency — and Hit@1 for every other type is essentially zero. This is not "the model favors body
     somewhat," it's functionally a majority-class classifier for 7 of the 8 types. Since prototypes are
-    separated (step 2), the cause is the <b>training signal</b>: leave-one-out sampling is class-imbalance-blind
-    and Body is ~40% of the corpus, so BPR gradients are dominated by body-labeled examples. <b>Class-balanced
-    BPR sampling is now the clear next fix</b>, not one of several hypotheses.</p>
+    separated (step 2), the leading hypothesis was the <b>training signal</b>: leave-one-out sampling is
+    class-imbalance-blind and Body is ~40% of the corpus, so BPR gradients are dominated by body-labeled
+    examples.</p>
+    <p><b>4. Tried class-balanced BPR sampling — weak improvement, not a fix.</b> Added inverse-frequency loss
+    reweighting (capped at 5×, same pattern as Phase 1's <code>CATEGORY_WEIGHTS</code>) and retrained. Body's
+    predicted share dropped <b>94.3% → 88.6%</b>, and <code>nut</code> improved from 0.000 → 0.143 Hit@1 — a
+    real, if small, effect confirming the weights are doing something. But aggregate Hit@1 actually ticked
+    down slightly (0.4286 → 0.4190), and <b>5 of 7 non-body classes are still at exactly 0.000 Hit@1</b>. Loss
+    reweighting alone doesn't fix this.</p>
+    <div class="callout info" style="margin:10px 0 0;">
+      <p><b>Refined hypothesis, not yet implemented:</b> loss reweighting only changes how much each example's
+      gradient counts — it can't fix an <i>uninformative input</i>. <code>NodeRanker</code>'s context vector
+      is a uniform mean-pool over <i>every</i> surviving node, not something localized to where the removed
+      node used to be. With Body at ~40% of most graphs, that pooled vector plausibly barely shifts based on
+      which specific node was removed — it mostly just encodes "this graph is Body-heavy," regardless of the
+      true answer. Attention-weighted or removed-node-proximity-weighted pooling is the likely next step, but
+      this changes a component that's been fairly settled since Phase 2's original design — held back pending
+      a design discussion rather than implemented unprompted.</p>
+    </div>
   </div>
 </section>
 

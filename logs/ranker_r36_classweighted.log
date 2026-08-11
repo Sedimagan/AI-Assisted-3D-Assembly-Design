@@ -1,0 +1,72 @@
+
+[1/5] Loading dataset …
+      191 graphs loaded.
+      train: 136  val: 34  test: 21
+
+[2/5] Loading frozen Phase-1 encoder …
+Model built on mps  |  total params: 2,441,809
+      Encoder frozen (val AUC=0.7030, trained_at=2026-08-10T20:31:36.932305)
+
+[3/5] Computing type prototypes …
+      Prototype table: (8, 22)
+
+[4/5] Building NodeRanker …
+      Leave-one-out samples — train: 660  val: 166  test: 105
+      Class weights (inverse-frequency, capped at 5.0): long_shaft=1.16, short_shaft=2.12, thick_plate=0.87, thin_plate=2.29, bolt=1.23, washer=3.06, nut=1.15, body=0.33
+
+[5/5] Training (30 epochs) …
+  Ep   1/30  loss=5.0439  Hit@1=0.5060  Hit@5=0.8494  MRR=0.6528  NDCG@5=0.6856
+  Ep   2/30  loss=4.5052  Hit@1=0.4398  Hit@5=0.8614  MRR=0.6100  NDCG@5=0.6572
+  Ep   3/30  loss=4.2103  Hit@1=0.4699  Hit@5=0.8614  MRR=0.6257  NDCG@5=0.6685
+  Ep   4/30  loss=3.9846  Hit@1=0.4337  Hit@5=0.8614  MRR=0.6084  NDCG@5=0.6562
+  Ep   5/30  loss=3.8267  Hit@1=0.3976  Hit@5=0.8795  MRR=0.5933  NDCG@5=0.6512
+  Ep   6/30  loss=3.6891  Hit@1=0.3494  Hit@5=0.8795  MRR=0.5635  NDCG@5=0.6289
+  Ep   7/30  loss=3.6016  Hit@1=0.3795  Hit@5=0.8916  MRR=0.5913  NDCG@5=0.6546
+  Ep   8/30  loss=3.4801  Hit@1=0.3675  Hit@5=0.8795  MRR=0.5694  NDCG@5=0.6333
+  Ep   9/30  loss=3.4143  Hit@1=0.3434  Hit@5=0.8675  MRR=0.5624  NDCG@5=0.6242
+  Ep  10/30  loss=3.3513  Hit@1=0.2892  Hit@5=0.8614  MRR=0.5210  NDCG@5=0.5908
+  Ep  11/30  loss=3.3115  Hit@1=0.3614  Hit@5=0.8795  MRR=0.5666  NDCG@5=0.6307
+  Ep  12/30  loss=3.2500  Hit@1=0.3434  Hit@5=0.8795  MRR=0.5603  NDCG@5=0.6267
+  Ep  13/30  loss=3.2282  Hit@1=0.3373  Hit@5=0.8976  MRR=0.5521  NDCG@5=0.6267
+  Ep  14/30  loss=3.1974  Hit@1=0.2952  Hit@5=0.8735  MRR=0.5312  NDCG@5=0.6032
+  Ep  15/30  loss=3.1937  Hit@1=0.3012  Hit@5=0.8855  MRR=0.5242  NDCG@5=0.6010
+  Ep  16/30  loss=3.1528  Hit@1=0.3494  Hit@5=0.8976  MRR=0.5581  NDCG@5=0.6307
+  Ep  17/30  loss=3.1321  Hit@1=0.3614  Hit@5=0.8855  MRR=0.5693  NDCG@5=0.6352
+  Ep  18/30  loss=3.1122  Hit@1=0.3554  Hit@5=0.8976  MRR=0.5658  NDCG@5=0.6370
+  Ep  19/30  loss=3.0666  Hit@1=0.3012  Hit@5=0.8494  MRR=0.5198  NDCG@5=0.5844
+  Ep  20/30  loss=3.0754  Hit@1=0.3193  Hit@5=0.8614  MRR=0.5381  NDCG@5=0.6027
+  Ep  21/30  loss=3.0416  Hit@1=0.3253  Hit@5=0.8614  MRR=0.5308  NDCG@5=0.5971
+  Ep  22/30  loss=3.0174  Hit@1=0.3373  Hit@5=0.8614  MRR=0.5485  NDCG@5=0.6111
+  Ep  23/30  loss=3.0035  Hit@1=0.3012  Hit@5=0.8554  MRR=0.5173  NDCG@5=0.5848
+  Ep  24/30  loss=3.0011  Hit@1=0.3193  Hit@5=0.8554  MRR=0.5313  NDCG@5=0.5955
+  Ep  25/30  loss=2.9935  Hit@1=0.3313  Hit@5=0.8554  MRR=0.5371  NDCG@5=0.5991
+  Ep  26/30  loss=2.9697  Hit@1=0.2952  Hit@5=0.8614  MRR=0.5214  NDCG@5=0.5904
+  Ep  27/30  loss=2.9624  Hit@1=0.3916  Hit@5=0.8614  MRR=0.5800  NDCG@5=0.6342
+  Ep  28/30  loss=2.9549  Hit@1=0.3554  Hit@5=0.8675  MRR=0.5568  NDCG@5=0.6188
+  Ep  29/30  loss=2.9251  Hit@1=0.3133  Hit@5=0.8675  MRR=0.5255  NDCG@5=0.5954
+  Ep  30/30  loss=2.9225  Hit@1=0.3313  Hit@5=0.8614  MRR=0.5404  NDCG@5=0.6040
+
+=======================================================
+  NodeRanker — Test Results
+=======================================================
+     hit@1     : 0.4190
+     hit@5     : 0.7619
+     mrr       : 0.5719
+     ndcg@5    : 0.5924
+     majority-class baseline Hit@1: 0.4286
+  (best val MRR=0.6528 at selection time)
+
+  Per-class breakdown (test set, n=105):
+  type            n   hit@1   true%   pred%
+  long_shaft      9   0.000    8.6%    1.9%
+  short_shaft     2   0.000    1.9%    0.0%
+  thick_plate    12   0.000   11.4%    1.0%
+  thin_plate      4   0.000    3.8%    0.0%
+  bolt           17   0.059   16.2%    1.0%
+  washer          9   0.000    8.6%    1.9%
+  nut             7   0.143    6.7%    5.7%
+  body           45   0.933   42.9%   88.6%
+  (true% vs pred% far apart for a type = the model is over/under-predicting it relative to how often it's actually the answer — a sign of majority-class collapse if e.g. 'body' pred% >> true%)
+
+  Saved → checkpoints/node_ranker.pt
+  Saved → results/ranker_test_metrics.json
