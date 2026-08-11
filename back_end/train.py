@@ -469,18 +469,42 @@ def main():
     print(f"  Best overall ckpt    → {ckpt_dir / 'best_overall.pt'}")
     print(f"  Trained model export → {tm_path}")
 
-    # ── Promote to best_serving.pt only if this run beats the incumbent ──
+    # ── Promote to best_serving.pt only if this run beats the incumbent on
+    # BOTH mean AUC and mean AP-lift-over-chance ──
+    #
+    # This used to compare `(mean_auc, mean_ap) <= (prev_auc, prev_ap)` --
+    # Python tuple comparison is LEXICOGRAPHIC, so it only ever looked at AP
+    # when AUC was an exact tie; any AUC improvement promoted regardless of
+    # what AP did, silently contradicting the "beats on both" behavior
+    # documented in docs/pipeline_architecture.html. Caught when R37 (mean
+    # AUC=0.6765, mean AP=0.6696) promoted over R36 (mean AUC=0.6277, mean
+    # AP=0.7747) despite a lower raw AP -- the promotion was substantively
+    # right (see below) but the gate got there by luck, not by actually
+    # checking.
+    #
+    # Raw AP also isn't safely comparable across a neg_ratio change (a
+    # random scorer's expected AP shifts with the pos:neg ratio -- see
+    # evaluate.py's random_ap) -- R36 was measured at neg_ratio=0.5
+    # (chance≈0.667), R37 at neg_ratio=1.0 (chance=0.5), so comparing raw
+    # mean_ap across them is apples-to-oranges regardless of the tuple bug.
+    # Compare AP-lift-over-chance instead, which is what's actually
+    # comparable. Older checkpoints saved before mean_random_ap existed
+    # default to 0.5 (the current standard ratio) rather than guessing their
+    # true historical chance level.
     serving_path = ckpt_dir / "best_serving.pt"
     promote = True
+    mean_ap_lift = mean_ap - mean_random_ap
     if serving_path.exists():
         prev = torch.load(serving_path, map_location="cpu", weights_only=False)
-        prev_auc = prev.get("cv_summary", {}).get("mean_auc", 0.0)
-        prev_ap  = prev.get("cv_summary", {}).get("mean_ap", 0.0)
-        if (mean_auc, mean_ap) <= (prev_auc, prev_ap):
+        prev_summary  = prev.get("cv_summary", {})
+        prev_auc      = prev_summary.get("mean_auc", 0.0)
+        prev_ap       = prev_summary.get("mean_ap", 0.0)
+        prev_ap_lift  = prev_ap - prev_summary.get("mean_random_ap", 0.5)
+        if mean_auc <= prev_auc or mean_ap_lift <= prev_ap_lift:
             promote = False
             print(f"\n  ⊘ Serving model NOT updated — incumbent "
-                  f"(AUC={prev_auc:.4f}, AP={prev_ap:.4f}) is better than "
-                  f"this run (AUC={mean_auc:.4f}, AP={mean_ap:.4f})")
+                  f"(AUC={prev_auc:.4f}, AP-lift={prev_ap_lift:.4f}) is at least as good as "
+                  f"this run (AUC={mean_auc:.4f}, AP-lift={mean_ap_lift:.4f})")
     if promote:
         torch.save({
             "epoch":        ckpt["epoch"],
