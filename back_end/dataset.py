@@ -1048,11 +1048,30 @@ class AssemblyDataset(InMemoryDataset):
         n_errors   = 0
         n_timeouts = 0
         n_cached   = 0
+        timed_out_files: List[Path] = []
 
         _TIMEOUT = 300
         _category_dirs = {
             d.name for d in self.source_dir.iterdir() if d.is_dir()
         }
+
+        def _category_of(sf: Path) -> str:
+            for part in sf.parts:
+                if part in _category_dirs:
+                    return part
+            return ''
+
+        def _record_success(g: Data, sf: Path, cache_path: Path, elapsed: float,
+                             tag: str = "OK") -> None:
+            cat = _category_of(sf)
+            g.category = cat
+            torch.save({"data": g, "category": cat, "source": str(sf)}, cache_path)
+            graphs.append(g)
+            graph_categories.append(cat)
+            source_paths.append(str(sf))
+            n_dir = g.edge_index.size(1)
+            print(f"  [{tag}]  {sf.parent.name}/{sf.name} — {g.num_nodes} nodes  "
+                  f"{n_dir//2} edges  ({elapsed}s)", flush=True)
 
         if step_files:
             print(f"  Found {len(step_files)} STEP file(s) in {self.source_dir}",
@@ -1089,35 +1108,58 @@ class AssemblyDataset(InMemoryDataset):
                 if status == "timeout":
                     print(f"  [TIMEOUT] {label} ({elapsed}s)", flush=True)
                     n_timeouts += 1
+                    timed_out_files.append(sf)
                     continue
                 if status == "error":
                     print(f"  [ERROR]   {label} — parse failed", flush=True)
                     n_errors += 1
                     continue
                 if g is not None and g.num_nodes >= 2:
-                    n_dir = g.edge_index.size(1)
-                    cat = ''
-                    for part in sf.parts:
-                        if part in _category_dirs:
-                            cat = part
-                            break
-                    g.category = cat
-
-                    # Save to per-graph cache immediately so restarts skip this file
-                    torch.save({"data": g, "category": cat, "source": str(sf)},
-                               cache_path)
-
-                    graphs.append(g)
-                    graph_categories.append(cat)
-                    source_paths.append(str(sf))
-                    print(f"  [OK]  {label} — {g.num_nodes} nodes  "
-                          f"{n_dir//2} edges  ({elapsed}s)", flush=True)
+                    _record_success(g, sf, cache_path, elapsed)
 
             print(
                 f"  Parsed {len(graphs) - n_cached} new  |  "
                 f"cached: {n_cached}  errors: {n_errors}  timeouts: {n_timeouts}",
                 flush=True,
             )
+
+            # ── Retry timeouts once, with a longer budget ──────────────────
+            # Observed across runs (R35 vs R36 logs): the same file times out
+            # in one run and parses in under a minute in another (e.g.
+            # Gate_Valve_15: 34.1s in R35, 512s timeout in R36) -- since
+            # parsing here is strictly sequential (one subprocess at a time,
+            # no internal parallelism), that variance points to transient
+            # system load (another process, swap pressure) at the moment
+            # that file's turn came up, not a deterministically-too-complex
+            # geometry. A single retry with 2x the timeout, after the main
+            # pass has released whatever contention it created, recovers
+            # most of these without needing to raise the budget for every
+            # file up front.
+            if timed_out_files:
+                retry_timeout = _TIMEOUT * 2
+                print(f"\n  Retrying {len(timed_out_files)} timed-out file(s) "
+                      f"with {retry_timeout}s budget …", flush=True)
+                n_recovered = 0
+                for sf in timed_out_files:
+                    label = f"{sf.parent.name}/{sf.name}"
+                    cache_path = graph_cache_dir / f"{sf.parent.name}__{sf.stem}.pt"
+                    print(f"  [RETRY] Parsing: {label}", flush=True)
+                    t0 = time.time()
+                    g, status = _parse_step_with_timeout(str(sf), timeout_secs=retry_timeout)
+                    elapsed = round(time.time() - t0, 1)
+                    if status == "timeout":
+                        print(f"  [RETRY-TIMEOUT] {label} ({elapsed}s) — giving up", flush=True)
+                        continue
+                    if status == "error":
+                        print(f"  [RETRY-ERROR]   {label} — parse failed", flush=True)
+                        continue
+                    if g is not None and g.num_nodes >= 2:
+                        _record_success(g, sf, cache_path, elapsed, tag="RETRY-OK")
+                        n_timeouts -= 1
+                        n_recovered += 1
+                print(f"  Recovered {n_recovered}/{len(timed_out_files)} "
+                      f"previously-timed-out file(s)  |  remaining timeouts: {n_timeouts}",
+                      flush=True)
         else:
             print(f"  No STEP files found in {self.source_dir}.", flush=True)
 
