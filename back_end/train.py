@@ -215,6 +215,12 @@ def main():
                         help="Override training.epochs from config.yaml")
     parser.add_argument("--patience", type=int, default=None,
                         help="Override training.patience (early stopping) from config.yaml")
+    parser.add_argument("--hidden-dim", type=int, default=None,
+                        help="Override model.hidden_dim from config.yaml (task 11 capacity ablation)")
+    parser.add_argument("--dropout", type=float, default=None,
+                        help="Override model.dropout from config.yaml (task 11 capacity ablation)")
+    parser.add_argument("--weight-decay", type=float, default=None,
+                        help="Override training.weight_decay from config.yaml (task 11 capacity ablation)")
     parser.add_argument("--no-promote", action="store_true",
                         help="Never touch best_serving.pt regardless of the promotion-gate "
                              "check's outcome -- for exploratory/benchmark runs (e.g. a "
@@ -237,6 +243,12 @@ def main():
         cfg["training"]["epochs"] = args.epochs
     if args.patience:
         cfg["training"]["patience"] = args.patience
+    if args.hidden_dim:
+        cfg["model"]["hidden_dim"] = args.hidden_dim
+    if args.dropout is not None:
+        cfg["model"]["dropout"] = args.dropout
+    if args.weight_decay is not None:
+        cfg["training"]["weight_decay"] = args.weight_decay
 
     # ── Dataset ───────────────────────────────────────────────────────────
     print("\n[1/4] Loading dataset …")
