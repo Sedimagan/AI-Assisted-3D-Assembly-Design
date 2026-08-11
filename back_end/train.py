@@ -204,10 +204,29 @@ def main():
                         help="Re-process STEP files even if cache exists")
     parser.add_argument("--start-fold",  type=int, default=0,
                         help="Resume from this fold (0-indexed, loads prior checkpoints)")
+    parser.add_argument("--encoder-type", default=None,
+                        choices=["rgat", "gatv2", "sage", "gin"],
+                        help="Override model.encoder_type from config.yaml "
+                             "(task 12 encoder benchmark; default rgat)")
+    parser.add_argument("--n-folds", type=int, default=None,
+                        help="Override training.n_folds from config.yaml "
+                             "(for a leaner benchmark protocol -- fewer folds, faster signal)")
+    parser.add_argument("--epochs", type=int, default=None,
+                        help="Override training.epochs from config.yaml")
+    parser.add_argument("--patience", type=int, default=None,
+                        help="Override training.patience (early stopping) from config.yaml")
     args = parser.parse_args()
 
     with open(args.config) as f:
         cfg = yaml.safe_load(f)
+    if args.encoder_type:
+        cfg.setdefault("model", {})["encoder_type"] = args.encoder_type
+    if args.n_folds:
+        cfg["training"]["n_folds"] = args.n_folds
+    if args.epochs:
+        cfg["training"]["epochs"] = args.epochs
+    if args.patience:
+        cfg["training"]["patience"] = args.patience
 
     # ── Dataset ───────────────────────────────────────────────────────────
     print("\n[1/4] Loading dataset …")
@@ -269,6 +288,7 @@ def main():
                 in_dim=mc["in_dim"], out_dim=mc["out_dim"],
                 hidden=mc["hidden_dim"], heads=mc["heads"],
                 dropout=mc["dropout"], edge_dim=mc["edge_dim"],
+                encoder_type=mc.get("encoder_type", "rgat"),
             )
             gnn_tmp.load_state_dict(ck["gnn"])
             lp_tmp.load_state_dict(ck["lp"])
@@ -309,6 +329,7 @@ def main():
             heads    = mc["heads"],
             dropout  = mc["dropout"],
             edge_dim = mc["edge_dim"],
+            encoder_type = mc.get("encoder_type", "rgat"),
         )
 
         params = list(gnn.parameters()) + list(lp.parameters())
@@ -451,6 +472,7 @@ def main():
         heads    = mc["heads"],
         dropout  = mc["dropout"],
         edge_dim = mc["edge_dim"],
+        encoder_type = mc.get("encoder_type", "rgat"),
     )
     gnn.load_state_dict(ckpt["gnn"])
     lp.load_state_dict(ckpt["lp"])

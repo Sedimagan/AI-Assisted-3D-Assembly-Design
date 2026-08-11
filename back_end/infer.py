@@ -35,6 +35,7 @@ def load_checkpoint(ckpt_path: str):
         heads    = mc["heads"],
         dropout  = mc["dropout"],
         edge_dim = mc["edge_dim"],
+        encoder_type = mc.get("encoder_type", "rgat"),
     )
     gnn.load_state_dict(ckpt["gnn"])
     lp.load_state_dict(ckpt["lp"])

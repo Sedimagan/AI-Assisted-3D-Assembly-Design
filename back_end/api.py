@@ -74,6 +74,7 @@ def startup():
         in_dim=mc["in_dim"], out_dim=mc["out_dim"],
         hidden=mc["hidden_dim"], heads=mc["heads"],
         dropout=mc["dropout"], edge_dim=mc["edge_dim"],
+        encoder_type=mc.get("encoder_type", "rgat"),
     )
 
     if _ckpt_path.exists():
