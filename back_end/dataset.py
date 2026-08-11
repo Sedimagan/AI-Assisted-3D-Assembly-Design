@@ -43,6 +43,7 @@ import hashlib
 import json
 import math
 import multiprocessing as _mp
+import random
 import time
 from pathlib import Path
 from typing import List, Optional, Tuple
@@ -1256,6 +1257,25 @@ def get_splits(dataset: AssemblyDataset, cfg: dict, fold_idx: int = 0, n_folds: 
                 print(f"    [DIAG] graph {i}: {data.num_nodes} nodes, "
                       f"{n_edges} dir-edges, {n_pos} pos, "
                       f"requested {req_neg} neg but only {max_neg} possible")
+            # RandomLinkSplit's edge permutation (torch.randperm) AND its
+            # negative_sampling() call underneath (torch.randint plus
+            # Python's own `random.sample` for the dense fallback path) all
+            # draw from global, unseeded RNG state -- no generator param is
+            # exposed anywhere in this chain. Left unseeded, re-evaluating
+            # the SAME fold's SAME graphs (e.g. reloading a checkpoint to
+            # re-check its reported AUC) redraws a different val/test edge
+            # split every call, so the "same" fold gives different numbers
+            # run to run. Seed both torch's and Python's global RNGs
+            # deterministically per (fold, graph) using the same md5-hash
+            # pattern as the test-set carve-out above, and restore both
+            # states afterward so this doesn't perturb unrelated randomness
+            # (model init, sample shuffling) that runs later in the process.
+            source = dataset.graph_sources[i] if i < len(dataset.graph_sources) else str(i)
+            seed = _stable_bucket(f"linksplit::{fold_idx}::{cat}::{source}", 2**31)
+            torch_rng_state = torch.get_rng_state()
+            py_rng_state = random.getstate()
+            torch.manual_seed(seed)
+            random.seed(seed)
             try:
                 train_d, val_d, test_d = splitter(data)
                 split_d = [train_d, val_d, test_d][split_idx]
@@ -1263,6 +1283,9 @@ def get_splits(dataset: AssemblyDataset, cfg: dict, fold_idx: int = 0, n_folds: 
                 result.append(split_d)
             except Exception:
                 continue
+            finally:
+                torch.set_rng_state(torch_rng_state)
+                random.setstate(py_rng_state)
         return result
 
     train_data = _transform(train_idx, 0)

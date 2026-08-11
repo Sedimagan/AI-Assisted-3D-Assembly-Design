@@ -74,7 +74,10 @@ def build_samples(graphs, sources, n_per_graph, part_bank: PartBank, rng: random
     """For each graph with >=2 nodes, sample up to n_per_graph nodes that have
     a matching part-bank entry (some bodies fail mesh extraction and have no
     entry — skipped). Returns [(partial_graph, target_vox, comp_type_idx,
-    target_bbox_norm, source_assembly), ...].
+    target_bbox_norm, source_assembly, category, target_bbox_raw), ...].
+    category and target_bbox_raw are carried alongside the already-used
+    fields specifically so a downstream retrieval-gated evaluation can
+    re-query the part bank per sample without re-deriving body indices.
 
     fastener_only restricts leave-one-out targets to bolt/nut/washer (shape
     *generation* is now scoped to fasteners — detection of all 8 types is
@@ -105,9 +108,31 @@ def build_samples(graphs, sources, n_per_graph, part_bank: PartBank, rng: random
             vox = part_bank.load_voxels(entry["part_id"]).astype(np.float32)
             bbox = np.asarray(entry["bbox"], dtype=np.float32)
             bbox_norm = bbox / (bbox.max() + 1e-9)
-            samples.append((remove_node(g, i), vox, comp_type_idx, bbox_norm, assembly))
+            samples.append((remove_node(g, i), vox, comp_type_idx, bbox_norm,
+                             assembly, category, bbox))
             taken += 1
     return samples
+
+
+def retrieval_gated_samples(samples, part_bank: PartBank, retrieval_tau: float):
+    """Filter `samples` (from build_samples) down to the subset where part-bank
+    retrieval's own fit_score falls below retrieval_tau — the harder minority
+    of cases that actually reach the VAE in production (HybridShapeGenerator
+    only falls back to the VAE when retrieval doesn't find a good enough
+    match). Without this, the VAE's reported IoU/chamfer are averaged over
+    every held-out fastener regardless of whether retrieval would have
+    handled it in practice, which doesn't answer "how good is the VAE at the
+    job it's actually given." exclude_assemblies={assembly} so a sample
+    can't trivially retrieve its own held-out part from the bank."""
+    gated = []
+    for sample in samples:
+        partial, vox, comp_type_idx, bbox_norm, assembly, category, bbox_raw = sample
+        hits = part_bank.query(COMP_TYPES[comp_type_idx], category, bbox_raw,
+                                top_k=1, exclude_assemblies={assembly})
+        fit_score = hits[0].fit_score if hits else 0.0
+        if fit_score < retrieval_tau:
+            gated.append(sample)
+    return gated
 
 
 def _center_crop_or_pad(vox: np.ndarray, target_res: int) -> np.ndarray:
@@ -129,14 +154,26 @@ def _center_crop_or_pad(vox: np.ndarray, target_res: int) -> np.ndarray:
 
 
 def augment_voxel(vox: np.ndarray, rng: random.Random, max_angle: float = 20.0,
-                   scale_range=(0.92, 1.08), jitter_prob: float = 0.02) -> np.ndarray:
+                   scale_range=(0.92, 1.08), jitter_prob: float = 0.02,
+                   jitter_band: int = 2) -> np.ndarray:
     """Continuous-angle 3D rotation (composed over all three axis pairs, not
     just 90-degree steps) plus mild scale and occupancy jitter on a fastener's
     voxel grid. Widens the orientation/size variety the VAE trains on using
     only geometry already in the corpus — pairs with the normal_hint-based
     rotate_to_target_axis() fix at inference time, which now needs the model
-    to have seen more than four fixed orientations per part."""
-    from scipy.ndimage import rotate as ndi_rotate, zoom as ndi_zoom
+    to have seen more than four fixed orientations per part.
+
+    jitter_band restricts occupancy jitter to a band within jitter_band
+    voxels of the (pre-jitter) occupied region, instead of the full 32^3
+    grid. A canonicalized fastener occupies roughly 1-5% of the padded grid,
+    so a uniform per-voxel flip probability lands ~98% of its flips on empty
+    background — for a sparse target that's mostly false-positive noise
+    injected into the reconstruction target the model can never learn to
+    predict, capping achievable IoU/Dice independent of model quality.
+    Restricting to a dilated near-surface band keeps jitter meaningful
+    (perturbing the boundary, which is where real shape variation lives)
+    without flooding empty space."""
+    from scipy.ndimage import rotate as ndi_rotate, zoom as ndi_zoom, binary_dilation
 
     res = vox.shape[-1]
     out = vox.astype(np.float32)
@@ -150,8 +187,9 @@ def augment_voxel(vox: np.ndarray, rng: random.Random, max_angle: float = 20.0,
         out = _center_crop_or_pad(ndi_zoom(out, scale, order=1, mode="constant", cval=0.0), res)
 
     if jitter_prob > 0:
+        occ_band = binary_dilation(out > 0.5, iterations=jitter_band)
         np_rng = np.random.default_rng(rng.randint(0, 2**31 - 1))
-        flip = np_rng.random(out.shape) < jitter_prob
+        flip = (np_rng.random(out.shape) < jitter_prob) & occ_band
         out = np.where(flip, 1.0 - np.round(out), out)
 
     return np.clip(out, 0.0, 1.0).astype(np.float32)
@@ -230,10 +268,11 @@ def epoch_pass(vae, gnn, samples, device, opt=None, augment=False, rng=None,
     vae.train(is_train)
 
     total_loss = 0.0
+    loss_parts_sum = {"bce": 0.0, "dice": 0.0, "kl": 0.0}
     ious, chamfers = [], []
     n_seen = 0
 
-    for _i, (partial, vox, comp_type_idx, bbox_norm, _assembly) in enumerate(samples):
+    for _i, (partial, vox, comp_type_idx, bbox_norm, _assembly, _category, _bbox_raw) in enumerate(samples):
         if augment and rng is not None:
             vox = augment_voxel(vox, rng)
 
@@ -245,15 +284,21 @@ def epoch_pass(vae, gnn, samples, device, opt=None, augment=False, rng=None,
         if is_train:
             opt.zero_grad()
             recon, mu, logvar = vae(vox_t.unsqueeze(1), cond)
-            loss, _parts = vae_loss(recon, vox_t, mu, logvar, beta_kl, lambda_dice)
+            loss, parts = vae_loss(recon, vox_t, mu, logvar, beta_kl, lambda_dice)
             loss.backward()
             opt.step()
             total_loss += loss.item()
+            for k in loss_parts_sum:
+                if k in parts:
+                    loss_parts_sum[k] += float(parts[k])
         else:
             with torch.no_grad():
                 recon, mu, logvar = vae(vox_t.unsqueeze(1), cond)
-                loss, _parts = vae_loss(recon, vox_t, mu, logvar, beta_kl, lambda_dice)
+                loss, parts = vae_loss(recon, vox_t, mu, logvar, beta_kl, lambda_dice)
                 total_loss += loss.item()
+                for k in loss_parts_sum:
+                    if k in parts:
+                        loss_parts_sum[k] += float(parts[k])
                 probs = torch.sigmoid(recon.squeeze(1).squeeze(0))
                 ious.append(voxel_iou(probs, vox_t.squeeze(0)))
                 chamfers.append(chamfer_from_voxels(probs, vox_t.squeeze(0)))
@@ -274,12 +319,14 @@ def epoch_pass(vae, gnn, samples, device, opt=None, augment=False, rng=None,
     if device.type == "mps":
         gc.collect()
         torch.mps.empty_cache()
+    loss_parts_avg = {k: v / n_seen for k, v in loss_parts_sum.items()}
     if is_train:
-        return total_loss / n_seen
+        return total_loss / n_seen, loss_parts_avg
     return {
         "loss": total_loss / n_seen,
         "iou": float(np.mean(ious)) if ious else 0.0,
         "chamfer": float(np.mean(chamfers)) if chamfers else 1.0,
+        **{f"loss_{k}": v for k, v in loss_parts_avg.items()},
     }
 
 
@@ -365,6 +412,14 @@ def main():
     print("\n[5/6] Building ConditionalShapeVAE …")
     vae = ConditionalShapeVAE(res=voxel_res, latent_dim=latent_dim, cond_dim=COND_DIM).to(device)
     opt = torch.optim.Adam(vae.parameters(), lr=lr, weight_decay=1.0e-5)
+    # Mirrors train.py's ReduceLROnPlateau pattern: steps on the same
+    # IoU/chamfer composite `score` used for checkpoint selection below, so
+    # the LR backs off exactly when the metric that actually matters plateaus
+    # rather than on raw val loss (which can keep falling from KL/BCE terms
+    # after IoU has already stalled).
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        opt, mode="max", factor=0.5, patience=8, min_lr=1e-5,
+    )
     n_params = sum(p.numel() for p in vae.parameters())
     print(f"      VAE params: {n_params:,}")
 
@@ -390,15 +445,21 @@ def main():
 
     for epoch in range(1, epochs + 1):
         rng.shuffle(train_samples)
-        train_loss = epoch_pass(vae, gnn, train_samples, device, opt=opt,
-                                 augment=True, rng=rng, beta_kl=beta_kl,
-                                 lambda_dice=lambda_dice)
+        train_loss, train_loss_parts = epoch_pass(
+            vae, gnn, train_samples, device, opt=opt,
+            augment=True, rng=rng, beta_kl=beta_kl, lambda_dice=lambda_dice,
+        )
         val_metrics = epoch_pass(vae, gnn, val_samples, device, opt=None,
                                   beta_kl=beta_kl, lambda_dice=lambda_dice)
         score = val_metrics["iou"] - CHAMFER_WEIGHT * val_metrics["chamfer"]
-        print(f"  Ep {epoch:3d}/{epochs}  loss={train_loss:.4f}  "
+        scheduler.step(score)
+        cur_lr = opt.param_groups[0]["lr"]
+        print(f"  Ep {epoch:3d}/{epochs}  loss={train_loss:.4f} "
+              f"(bce={train_loss_parts['bce']:.4f} dice={train_loss_parts['dice']:.4f} "
+              f"kl={train_loss_parts['kl']:.4f})  "
               f"val_loss={val_metrics['loss']:.4f}  IoU={val_metrics['iou']:.4f}  "
-              f"chamfer={val_metrics['chamfer']:.4f}  score={score:.4f}", flush=True)
+              f"chamfer={val_metrics['chamfer']:.4f}  score={score:.4f}  lr={cur_lr:.2e}",
+              flush=True)
         if score > best_score:
             best_score = score
             best_iou = val_metrics["iou"]
@@ -409,6 +470,19 @@ def main():
     test_metrics = epoch_pass(vae, gnn, test_samples, device, opt=None,
                                beta_kl=beta_kl, lambda_dice=lambda_dice)
 
+    # Shape-gen is fastener-scoped (see build_samples), so the production
+    # threshold that actually gates VAE fallback for these samples is
+    # retrieval_tau_fastener, not the generic retrieval_tau (config.yaml) —
+    # using the wrong one would report a metric HybridShapeGenerator never
+    # actually uses for this component family.
+    retrieval_tau = sc.get("retrieval_tau_fastener", sc.get("retrieval_tau", 0.6))
+    gated_test_samples = retrieval_gated_samples(test_samples, bank, retrieval_tau)
+    if gated_test_samples:
+        gated_test_metrics = epoch_pass(vae, gnn, gated_test_samples, device, opt=None,
+                                         beta_kl=beta_kl, lambda_dice=lambda_dice)
+    else:
+        gated_test_metrics = None
+
     print(f"\n{'='*55}")
     print("  ConditionalShapeVAE — Test Results")
     print(f"{'='*55}")
@@ -416,11 +490,27 @@ def main():
         print(f"     {k:10s}: {v:.4f}")
     print(f"  (selected epoch: val IoU={best_iou:.4f}, "
           f"chamfer={best_metrics['chamfer']:.4f}, score={best_score:.4f})")
+    if gated_test_metrics is not None:
+        print(f"\n  Retrieval-gated (fit_score < {retrieval_tau}, "
+              f"{len(gated_test_samples)}/{len(test_samples)} of test samples "
+              f"— the subset that would actually reach the VAE in production):")
+        for k, v in gated_test_metrics.items():
+            print(f"     {k:10s}: {v:.4f}")
+    else:
+        print(f"\n  Retrieval-gated: no test samples had fit_score < {retrieval_tau} "
+              f"— retrieval alone covers this test set at the current threshold.")
 
     with open(res_dir / "shape_gen_test_metrics.json", "w") as f:
         json.dump({
             "test_metrics": {k: round(v, 4) for k, v in test_metrics.items()},
             "val_metrics": {k: round(v, 4) for k, v in best_metrics.items()},
+            "retrieval_gated": {
+                "tau": retrieval_tau,
+                "n_gated": len(gated_test_samples),
+                "n_total": len(test_samples),
+                "metrics": ({k: round(v, 4) for k, v in gated_test_metrics.items()}
+                            if gated_test_metrics is not None else None),
+            },
         }, f, indent=2)
 
     torch.save({
