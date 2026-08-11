@@ -15,12 +15,20 @@ from sklearn.metrics import roc_auc_score, average_precision_score, ndcg_score
 
 
 def link_metrics(y_true: np.ndarray, y_score: np.ndarray) -> dict:
-    """AUC-ROC and Average Precision for binary edge labels."""
+    """AUC-ROC and Average Precision for binary edge labels, plus the AP a
+    random (or constant-score) classifier would get on this same eval set --
+    that baseline equals the positive-class prevalence exactly (a random
+    ranking's precision at any recall level is, in expectation, the base
+    rate). AP alone is easy to misread as skill when it's really dataset
+    imbalance: with neg_ratio < 1.0 positives outnumber negatives, inflating
+    AP for any scorer including a random one. Reporting random_ap alongside
+    ap makes the actual lift over chance visible instead of implicit."""
     if len(np.unique(y_true)) < 2:
-        return {"auc": 0.0, "ap": 0.0}
+        return {"auc": 0.0, "ap": 0.0, "random_ap": float(np.mean(y_true))}
     return {
-        "auc": float(roc_auc_score(y_true, y_score)),
-        "ap":  float(average_precision_score(y_true, y_score)),
+        "auc":       float(roc_auc_score(y_true, y_score)),
+        "ap":        float(average_precision_score(y_true, y_score)),
+        "random_ap": float(np.mean(y_true)),
     }
 
 

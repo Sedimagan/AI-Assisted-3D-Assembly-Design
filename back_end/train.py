@@ -208,6 +208,7 @@ def main():
 
     fold_aucs = []
     fold_aps  = []
+    fold_random_aps = []
     best_overall_auc  = 0.0
     best_overall_fold = -1
     all_log_rows      = []
@@ -239,11 +240,13 @@ def main():
             prev_metrics = evaluate(gnn_tmp, lp_tmp, test_loader_prev, dev_tmp)
             fold_aucs.append(prev_metrics["auc"])
             fold_aps.append(prev_metrics["ap"])
+            fold_random_aps.append(prev_metrics["random_ap"])
             if ck["auc"] > best_overall_auc:
                 best_overall_auc = ck["auc"]
                 best_overall_fold = prev
             print(f"  Fold {prev+1}: AUC={prev_metrics['auc']:.4f}  "
-                  f"AP={prev_metrics['ap']:.4f}  (from checkpoint)")
+                  f"AP={prev_metrics['ap']:.4f}  (from checkpoint, "
+                  f"random={prev_metrics['random_ap']:.4f})")
 
     print(f"\n[3/4] Training ({N_FOLDS} folds) …")
 
@@ -349,10 +352,12 @@ def main():
         test_metrics = evaluate(gnn, lp, test_loader, device)
         fold_aucs.append(test_metrics["auc"])
         fold_aps.append(test_metrics["ap"])
+        fold_random_aps.append(test_metrics["random_ap"])
         all_log_rows.extend(log_rows)
 
         print(f"\n  Fold {fold+1} test — AUC={test_metrics['auc']:.4f}"
-              f"  AP={test_metrics['ap']:.4f}")
+              f"  AP={test_metrics['ap']:.4f}"
+              f"  (random={test_metrics['random_ap']:.4f})")
 
         if best_auc > best_overall_auc:
             best_overall_auc  = best_auc
@@ -379,15 +384,19 @@ def main():
     std_auc  = statistics.stdev(fold_aucs) if len(fold_aucs) > 1 else 0.0
     mean_ap  = statistics.mean(fold_aps)
     std_ap   = statistics.stdev(fold_aps)  if len(fold_aps)  > 1 else 0.0
+    mean_random_ap = statistics.mean(fold_random_aps)
+    std_random_ap  = statistics.stdev(fold_random_aps) if len(fold_random_aps) > 1 else 0.0
 
     print(f"\n{'='*55}")
     print(f"  {N_FOLDS}-Fold CV Summary")
     print(f"{'='*55}")
-    for i, (a, p) in enumerate(zip(fold_aucs, fold_aps)):
-        print(f"  Fold {i+1}: AUC={a:.4f}  AP={p:.4f}")
+    for i, (a, p, r) in enumerate(zip(fold_aucs, fold_aps, fold_random_aps)):
+        print(f"  Fold {i+1}: AUC={a:.4f}  AP={p:.4f}  (random={r:.4f})")
     print(f"  ─────────────────────────────────────────")
-    print(f"  Mean AUC = {mean_auc:.4f} ± {std_auc:.4f}")
-    print(f"  Mean AP  = {mean_ap:.4f} ± {std_ap:.4f}")
+    print(f"  Mean AUC        = {mean_auc:.4f} ± {std_auc:.4f}")
+    print(f"  Mean AP         = {mean_ap:.4f} ± {std_ap:.4f}")
+    print(f"  Mean random AP  = {mean_random_ap:.4f} ± {std_random_ap:.4f}"
+          f"  (chance baseline — AP lift over this is the real signal)")
     print(f"  Best overall fold: {best_overall_fold + 1}"
           f"  (val AUC={best_overall_auc:.4f})")
 
@@ -418,14 +427,17 @@ def main():
 
     # ── Save logs and metrics ─────────────────────────────────────────────
     cv_summary = {
-        "n_folds":   N_FOLDS,
-        "fold_aucs": [round(a, 4) for a in fold_aucs],
-        "fold_aps":  [round(p, 4) for p in fold_aps],
-        "mean_auc":  round(mean_auc, 4),
-        "std_auc":   round(std_auc,  4),
-        "mean_ap":   round(mean_ap,  4),
-        "std_ap":    round(std_ap,   4),
-        "best_fold": best_overall_fold,
+        "n_folds":        N_FOLDS,
+        "fold_aucs":      [round(a, 4) for a in fold_aucs],
+        "fold_aps":       [round(p, 4) for p in fold_aps],
+        "fold_random_aps": [round(r, 4) for r in fold_random_aps],
+        "mean_auc":       round(mean_auc, 4),
+        "std_auc":        round(std_auc,  4),
+        "mean_ap":        round(mean_ap,  4),
+        "std_ap":         round(std_ap,   4),
+        "mean_random_ap": round(mean_random_ap, 4),
+        "std_random_ap":  round(std_random_ap,  4),
+        "best_fold":      best_overall_fold,
     }
     with open(res_dir / "train_log.json", "w") as f:
         json.dump(all_log_rows, f, indent=2)

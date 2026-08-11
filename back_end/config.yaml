@@ -34,7 +34,17 @@ training:
   patience:     20            # early stopping patience
   lr_patience:  8             # ReduceLROnPlateau patience
   lr_factor:    0.5
-  neg_ratio:    0.5           # negatives per positive edge (hard negatives via P4 cover the rest)
+  # negatives per positive edge for RandomLinkSplit's val/test edge labels
+  # (train_epoch's link_loss adds its own hard-negative term on top, see
+  # hard_negative_pairs() in train.py -- unaffected by this value). Was 0.5,
+  # meaning positives outnumbered negatives 2:1 in every eval set -- AP is
+  # sensitive to that skew (a random scorer's expected AP equals positive
+  # prevalence, see evaluate.py's random_ap), so a below-1.0 ratio inflates
+  # AP for any model, including a bad one, independent of real ranking
+  # skill. 1.0 is the standard link-prediction convention and makes AP
+  # numbers comparable to literature baselines; random_ap is now reported
+  # alongside ap either way so the skew is never silently hidden again.
+  neg_ratio:    1.0
   n_folds:      5             # K in K-fold cross-validation
 
 evaluation:
