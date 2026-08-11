@@ -271,13 +271,13 @@
 <div class="doc-header" id="overview">
   <div class="kicker">AI-Assisted 3D Assembly Design</div>
   <div class="last-updated" id="last-updated">
-    <span class="dot"></span>Last updated <b>2026-08-11 07:03 IST</b> — Four Phase 1 fixes landed (code only,
-    retrain pending, see <a href="#phase1" style="color:inherit;text-decoration:underline;">Phase 1</a>):
-    <code>neg_ratio</code> 0.5→1.0 + <code>random_ap</code> baseline reported alongside AP,
-    <code>RandomLinkSplit</code> now seeded per-graph for reproducible re-evaluation, and a single
-    2×-timeout retry for STEP files that time out during corpus parsing. Meanwhile a Phase 3 shape-gen
-    retrain (loss breakdown logging, LR scheduler, retrieval-gated test metric, occupancy-jitter fix) is
-    running in the background — see <a href="#phase3" style="color:inherit;text-decoration:underline;">Phase 3</a>.
+    <span class="dot"></span>Last updated <b>2026-08-11 07:56 IST</b> — Phase 3 shape-gen second retrain
+    (tasks 19–22: loss breakdown, LR scheduler, retrieval-gated metric, occupancy-jitter fix) completed:
+    test IoU=0.5352/chamfer=0.0746, a mixed result vs the first R36 retrain (IoU up, chamfer worse) — see
+    <a href="#phase3" style="color:inherit;text-decoration:underline;">Phase 3</a>. Three Phase 1 fixes also
+    landed this session (code only, retrain pending, see <a href="#phase1" style="color:inherit;text-decoration:underline;">Phase 1</a>):
+    <code>neg_ratio</code> 0.5→1.0 + <code>random_ap</code> baseline, <code>RandomLinkSplit</code> per-graph
+    seeding, and a 2×-timeout retry for STEP parse timeouts.
   </div>
   <h1>End-to-End Pipeline Architecture</h1>
   <p class="sub">
@@ -718,17 +718,41 @@
     <li><span class="badge r36">R36</span> Checkpoint selection now uses <code>score = IoU − 2.0×chamfer</code>
       instead of IoU alone — the old selection was observed passing over a near-IoU-tied epoch with ~20%
       better chamfer purely because IoU ticked up slightly on a different epoch.</li>
+    <li><span class="badge r36">R36</span> <b>Loss breakdown</b> (task 19) — <code>vae_loss()</code>'s previously
+      discarded <code>{bce, dice, kl}</code> parts dict is now averaged per epoch and printed/saved, so a
+      regression can be attributed to a specific loss term instead of one opaque scalar.</li>
+    <li><span class="badge r36">R36</span> <b>LR scheduler</b> (task 20) — <code>ReduceLROnPlateau</code> on the
+      same IoU/chamfer composite <code>score</code> used for checkpoint selection. Visibly fired 4 times over
+      this run (1e-3→5e-4 at epoch 21, →2.5e-4 at 33, →1.25e-4 at 48, →6.25e-5 at 57) as val score plateaued.</li>
+    <li><span class="badge r36">R36</span> <b>Occupancy-jitter fix</b> (task 21) — jitter used to flip voxels
+      uniformly over the whole 32³ grid; for a fastener occupying ~1–5% of the grid, ~98% of flips landed on
+      empty background, injecting pure noise into the reconstruction target with nothing to learn from. Now
+      restricted to a <code>binary_dilation</code>-widened band around the occupied region.</li>
+    <li><span class="badge r36">R36</span> <b>Retrieval-gated test metric</b> (task 22) — filters test samples
+      to the subset where the part bank's own retrieval <code>fit_score</code> falls below
+      <code>retrieval_tau_fastener</code>, i.e. the harder minority that would actually reach the VAE in
+      production (<code>HybridShapeGenerator</code> only falls back to it when retrieval fails). On this test
+      set, 0/92 samples qualified — retrieval alone already covers the current test set at that threshold, so
+      the gated metric had nothing to average over this run. Not a bug; a genuine (if unsurprising) finding —
+      re-check if the test set or threshold changes.</li>
   </ul>
   <div class="callout">
-    <p><b>Retrained against <span class="badge r36">R36</span>:</b> test IoU=0.5238, chamfer=0.0592 — clears
-    the design targets (IoU≥0.35, chamfer≤0.08) but doesn't beat either prior run (fastener-only peak:
-    IoU=0.6113/chamfer=0.0442; R34-resync: IoU=0.5516/chamfer=0.0778 — better chamfer than that one, worse
-    IoU than both). A real val→test gap showed up here too: the selected epoch looked strong on validation
-    (IoU=0.5550, chamfer=0.0383) but held-out test came in lower — the same small-sample overfitting-to-noise
-    pattern seen in Phase 1. Unlike Phase 1, there's no promotion gate on <code>shape_vae.pt</code> — it's
-    saved unconditionally, so this checkpoint is live regardless of whether it improved on the prior one.
-    Tasks #18-22 (part-bank quality gating, loss-breakdown logging, LR scheduler, augmentation fix,
-    retrieval-gated eval) remain the likely path back toward the 0.6113 peak.</p>
+    <p><b>First retrain against <span class="badge r36">R36</span>:</b> test IoU=0.5238, chamfer=0.0592 — cleared
+    the design targets (IoU≥0.35, chamfer≤0.08) but didn't beat either prior run (fastener-only peak:
+    IoU=0.6113/chamfer=0.0442; R34-resync: IoU=0.5516/chamfer=0.0778).</p>
+  </div>
+  <div class="callout">
+    <p><b>Second retrain, same <span class="badge r36">R36</span> encoder</b> — after tasks 19–22 above landed:
+    test IoU=<b>0.5352</b>, chamfer=<b>0.0746</b>. IoU improved slightly over the first retrain (+0.011) but
+    chamfer got worse (+0.015) — a mixed result, not a clean win, and still short of the 0.6113/0.0442
+    fastener-only peak. Selected epoch (39) looked strong on validation (IoU=0.5868, chamfer=0.0361) but test
+    came in lower on both — the same val→test generalization gap flagged in the first retrain and in Phase 1,
+    still unresolved. None of tasks 19–22 were ablated individually, so it isn't possible to attribute the
+    chamfer regression to any one of them (the jitter-band fix is the most likely single cause, since it's the
+    only one that changes what the model actually trains on rather than how training is scheduled/measured) —
+    an ablation run is the natural next step if this needs isolating. Unlike Phase 1, there's still no
+    promotion gate on <code>shape_vae.pt</code> — it's saved unconditionally, so this checkpoint is live
+    regardless. Task #18 (part-bank quality gating) remains the main open item toward the 0.6113 peak.</p>
   </div>
 </section>
 

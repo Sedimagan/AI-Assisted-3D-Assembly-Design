@@ -1,12 +1,24 @@
 {
   "test_metrics": {
-    "loss": 0.3238,
-    "iou": 0.5238,
-    "chamfer": 0.0592
+    "loss": 0.2998,
+    "iou": 0.5352,
+    "chamfer": 0.0746,
+    "loss_bce": 0.0898,
+    "loss_dice": 0.3761,
+    "loss_kl": 0.4388
   },
   "val_metrics": {
-    "loss": 0.3036,
-    "iou": 0.555,
-    "chamfer": 0.0383
+    "loss": 0.2487,
+    "iou": 0.5868,
+    "chamfer": 0.0361,
+    "loss_bce": 0.0688,
+    "loss_dice": 0.3198,
+    "loss_kl": 0.4006
+  },
+  "retrieval_gated": {
+    "tau": 0.4,
+    "n_gated": 0,
+    "n_total": 92,
+    "metrics": null
   }
 }
