@@ -1,0 +1,38 @@
+
+[1/4] Loading dataset …
+      192 graphs loaded.
+      Dataset: 192 graphs | mean nodes=26.9 | mean edges=81.1 | categories: Bench_vice=54 C_Clamps=31 Crane_hook=16 Gate_Valve=20 Pipe_vice=42 Press_Tool=21 Tool_Post=8
+
+[2/4] Building model …  (2-fold CV)
+
+[3/4] Training (2 folds) …
+
+=======================================================
+  FOLD 1 / 2
+=======================================================
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+    [DIAG] graph 119: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 44: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 60: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 63: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 71: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+  Fold 1/2 — train: 85  val: 86  test: 21
+Model built on mps  |  total params: 9,093,201
+    batch 1/6
+Traceback (most recent call last):
+  File "/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/back_end/train.py", line 621, in <module>
+    main()
+  File "/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/back_end/train.py", line 380, in main
+    train_loss  = train_epoch(gnn, lp, train_loader, opt, device)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/back_end/train.py", line 155, in train_epoch
+    loss.backward()
+  File "/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch/_tensor.py", line 631, in backward
+    torch.autograd.backward(
+  File "/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch/autograd/__init__.py", line 379, in backward
+    _engine_run_backward(
+  File "/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch/autograd/graph.py", line 882, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: MPS backend out of memory (MPS allocated: 8.65 GiB, other allocations: 4.41 GiB, max allowed: 20.13 GiB). Tried to allocate 7.62 GiB on shared pool. Use PYTORCH_MPS_HIGH_WATERMARK_RATIO=0.0 to disable upper limit for memory allocations (may cause system failure).

@@ -1,0 +1,566 @@
+
+[1/4] Loading dataset …
+      192 graphs loaded.
+      Dataset: 192 graphs | mean nodes=26.9 | mean edges=81.1 | categories: Bench_vice=54 C_Clamps=31 Crane_hook=16 Gate_Valve=20 Pipe_vice=42 Press_Tool=21 Tool_Post=8
+
+[2/4] Building model …  (2-fold CV)
+
+[3/4] Training (2 folds) …
+
+=======================================================
+  FOLD 1 / 2
+=======================================================
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+    [DIAG] graph 119: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 44: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 60: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 63: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 71: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+  Fold 1/2 — train: 85  val: 86  test: 21
+Model built on mps  |  total params: 713,553
+    batch 1/6
+    batch 6/6
+  Ep   1/60  loss=1.5132  AUC=0.5931  AP=0.6224  smoothAUC=0.5931  (7.4s)
+  ✓ Fold 1 new best smoothed AUC=0.5931  saved.
+    batch 1/6
+    batch 6/6
+  Ep   2/60  loss=1.5215  AUC=0.5796  AP=0.6048  smoothAUC=0.5864  (7.4s)
+    batch 1/6
+    batch 6/6
+  Ep   3/60  loss=1.4351  AUC=0.6026  AP=0.6307  smoothAUC=0.5918  (7.4s)
+    batch 1/6
+    batch 6/6
+  Ep   4/60  loss=1.3882  AUC=0.6364  AP=0.6592  smoothAUC=0.6062  (6.3s)
+  ✓ Fold 1 new best smoothed AUC=0.6062  saved.
+    batch 1/6
+    batch 6/6
+  Ep   5/60  loss=1.3809  AUC=0.6400  AP=0.6529  smoothAUC=0.6264  (7.2s)
+  ✓ Fold 1 new best smoothed AUC=0.6264  saved.
+    batch 1/6
+    batch 6/6
+  Ep   6/60  loss=1.3330  AUC=0.6315  AP=0.6364  smoothAUC=0.6360  (6.6s)
+  ✓ Fold 1 new best smoothed AUC=0.6360  saved.
+    batch 1/6
+    batch 6/6
+  Ep   7/60  loss=1.3486  AUC=0.6114  AP=0.6188  smoothAUC=0.6277  (6.0s)
+    batch 1/6
+    batch 6/6
+  Ep   8/60  loss=1.2750  AUC=0.6009  AP=0.6295  smoothAUC=0.6146  (7.4s)
+    batch 1/6
+    batch 6/6
+  Ep   9/60  loss=1.2456  AUC=0.6034  AP=0.6412  smoothAUC=0.6052  (6.7s)
+    batch 1/6
+    batch 6/6
+  Ep  10/60  loss=1.2751  AUC=0.6226  AP=0.6663  smoothAUC=0.6090  (7.1s)
+    batch 1/6
+    batch 6/6
+  Ep  11/60  loss=1.1639  AUC=0.6308  AP=0.6724  smoothAUC=0.6190  (7.6s)
+    batch 1/6
+    batch 6/6
+  Ep  12/60  loss=1.1275  AUC=0.6218  AP=0.6624  smoothAUC=0.6251  (6.9s)
+    batch 1/6
+    batch 6/6
+  Ep  13/60  loss=1.1875  AUC=0.6257  AP=0.6664  smoothAUC=0.6261  (7.9s)
+    batch 1/6
+    batch 6/6
+  Ep  14/60  loss=1.0647  AUC=0.6257  AP=0.6620  smoothAUC=0.6244  (7.3s)
+    batch 1/6
+    batch 6/6
+  Ep  15/60  loss=1.0406  AUC=0.6272  AP=0.6635  smoothAUC=0.6262  (8.1s)
+    batch 1/6
+    batch 6/6
+  Ep  16/60  loss=0.9963  AUC=0.6351  AP=0.6702  smoothAUC=0.6294  (6.8s)
+    batch 1/6
+    batch 6/6
+  Ep  17/60  loss=1.0290  AUC=0.6384  AP=0.6689  smoothAUC=0.6336  (6.3s)
+    batch 1/6
+    batch 6/6
+  Ep  18/60  loss=1.0837  AUC=0.6406  AP=0.6715  smoothAUC=0.6381  (8.7s)
+  ✓ Fold 1 new best smoothed AUC=0.6381  saved.
+    batch 1/6
+    batch 6/6
+  Ep  19/60  loss=0.9451  AUC=0.6437  AP=0.6769  smoothAUC=0.6409  (7.3s)
+  ✓ Fold 1 new best smoothed AUC=0.6409  saved.
+    batch 1/6
+    batch 6/6
+  Ep  20/60  loss=1.0850  AUC=0.6396  AP=0.6792  smoothAUC=0.6413  (7.7s)
+  ✓ Fold 1 new best smoothed AUC=0.6413  saved.
+    batch 1/6
+    batch 6/6
+  Ep  21/60  loss=0.8962  AUC=0.6363  AP=0.6778  smoothAUC=0.6399  (9.2s)
+    batch 1/6
+    batch 6/6
+  Ep  22/60  loss=0.9909  AUC=0.6385  AP=0.6808  smoothAUC=0.6381  (9.4s)
+    batch 1/6
+    batch 6/6
+  Ep  23/60  loss=0.9196  AUC=0.6413  AP=0.6813  smoothAUC=0.6387  (7.4s)
+    batch 1/6
+    batch 6/6
+  Ep  24/60  loss=0.9926  AUC=0.6409  AP=0.6762  smoothAUC=0.6402  (8.8s)
+    batch 1/6
+    batch 6/6
+  Ep  25/60  loss=0.9228  AUC=0.6381  AP=0.6655  smoothAUC=0.6401  (9.0s)
+    batch 1/6
+    batch 6/6
+  Ep  26/60  loss=0.8832  AUC=0.6364  AP=0.6643  smoothAUC=0.6385  (8.9s)
+    batch 1/6
+    batch 6/6
+  Ep  27/60  loss=0.9614  AUC=0.6389  AP=0.6689  smoothAUC=0.6378  (9.0s)
+    batch 1/6
+    batch 6/6
+  Ep  28/60  loss=0.8689  AUC=0.6424  AP=0.6696  smoothAUC=0.6392  (9.1s)
+    batch 1/6
+    batch 6/6
+  Ep  29/60  loss=0.8079  AUC=0.6498  AP=0.6759  smoothAUC=0.6437  (9.2s)
+  ✓ Fold 1 new best smoothed AUC=0.6437  saved.
+    batch 1/6
+    batch 6/6
+  Ep  30/60  loss=0.7864  AUC=0.6574  AP=0.6867  smoothAUC=0.6498  (9.1s)
+  ✓ Fold 1 new best smoothed AUC=0.6498  saved.
+    batch 1/6
+    batch 6/6
+  Ep  31/60  loss=0.9132  AUC=0.6572  AP=0.6881  smoothAUC=0.6548  (8.3s)
+  ✓ Fold 1 new best smoothed AUC=0.6548  saved.
+    batch 1/6
+    batch 6/6
+  Ep  32/60  loss=0.7944  AUC=0.6526  AP=0.6854  smoothAUC=0.6557  (9.7s)
+  ✓ Fold 1 new best smoothed AUC=0.6557  saved.
+    batch 1/6
+    batch 6/6
+  Ep  33/60  loss=0.7479  AUC=0.6505  AP=0.6846  smoothAUC=0.6534  (9.5s)
+    batch 1/6
+    batch 6/6
+  Ep  34/60  loss=0.8108  AUC=0.6517  AP=0.6847  smoothAUC=0.6516  (9.7s)
+    batch 1/6
+    batch 6/6
+  Ep  35/60  loss=0.7499  AUC=0.6530  AP=0.6892  smoothAUC=0.6518  (9.1s)
+    batch 1/6
+    batch 6/6
+  Ep  36/60  loss=0.7252  AUC=0.6511  AP=0.6879  smoothAUC=0.6520  (9.6s)
+    batch 1/6
+    batch 6/6
+  Ep  37/60  loss=0.8449  AUC=0.6533  AP=0.6837  smoothAUC=0.6525  (10.0s)
+    batch 1/6
+    batch 6/6
+  Ep  38/60  loss=0.8291  AUC=0.6486  AP=0.6699  smoothAUC=0.6510  (10.3s)
+    batch 1/6
+    batch 6/6
+  Ep  39/60  loss=0.7808  AUC=0.6442  AP=0.6649  smoothAUC=0.6487  (10.5s)
+    batch 1/6
+    batch 6/6
+  Ep  40/60  loss=0.7274  AUC=0.6415  AP=0.6651  smoothAUC=0.6448  (10.6s)
+    batch 1/6
+    batch 6/6
+    [swap-guard] 90.2% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 90.2% swap used (epoch end) -- pausing 3s for extra cleanup
+  Ep  41/60  loss=0.7635  AUC=0.6509  AP=0.6770  smoothAUC=0.6455  (16.7s)
+    batch 1/6
+    batch 6/6
+  Ep  42/60  loss=0.7743  AUC=0.6553  AP=0.6801  smoothAUC=0.6492  (10.5s)
+    batch 1/6
+    batch 6/6
+  Ep  43/60  loss=0.7808  AUC=0.6586  AP=0.6819  smoothAUC=0.6549  (10.0s)
+    batch 1/6
+    batch 6/6
+  Ep  44/60  loss=0.7912  AUC=0.6571  AP=0.6812  smoothAUC=0.6570  (11.2s)
+  ✓ Fold 1 new best smoothed AUC=0.6570  saved.
+    batch 1/6
+    [swap-guard] 91.4% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 90.8% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 90.8% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 90.8% swap used (fold 1 epoch 45 val) -- pausing 3s for extra cleanup
+  Ep  45/60  loss=0.8404  AUC=0.6570  AP=0.6821  smoothAUC=0.6576  (23.4s)
+  ✓ Fold 1 new best smoothed AUC=0.6576  saved.
+    batch 1/6
+    [swap-guard] 90.4% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 90.2% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 90.2% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 90.2% swap used (fold 1 epoch 46 val) -- pausing 3s for extra cleanup
+  Ep  46/60  loss=0.7344  AUC=0.6547  AP=0.6835  smoothAUC=0.6563  (23.3s)
+    batch 1/6
+    [swap-guard] 90.0% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+  Ep  47/60  loss=0.7307  AUC=0.6554  AP=0.6816  smoothAUC=0.6557  (14.5s)
+    batch 1/6
+    batch 6/6
+  Ep  48/60  loss=0.7354  AUC=0.6573  AP=0.6833  smoothAUC=0.6558  (10.3s)
+    batch 1/6
+    batch 6/6
+  Ep  49/60  loss=0.7084  AUC=0.6572  AP=0.6844  smoothAUC=0.6567  (9.7s)
+    batch 1/6
+    batch 6/6
+  Ep  50/60  loss=0.7545  AUC=0.6584  AP=0.6895  smoothAUC=0.6576  (12.1s)
+  ✓ Fold 1 new best smoothed AUC=0.6576  saved.
+    batch 1/6
+    batch 6/6
+  Ep  51/60  loss=0.7371  AUC=0.6594  AP=0.6926  smoothAUC=0.6583  (11.6s)
+  ✓ Fold 1 new best smoothed AUC=0.6583  saved.
+    batch 1/6
+    batch 6/6
+  Ep  52/60  loss=0.6711  AUC=0.6614  AP=0.6942  smoothAUC=0.6597  (12.3s)
+  ✓ Fold 1 new best smoothed AUC=0.6597  saved.
+    batch 1/6
+    batch 6/6
+  Ep  53/60  loss=0.6983  AUC=0.6611  AP=0.6925  smoothAUC=0.6606  (10.2s)
+  ✓ Fold 1 new best smoothed AUC=0.6606  saved.
+    batch 1/6
+    batch 6/6
+  Ep  54/60  loss=0.8093  AUC=0.6609  AP=0.6921  smoothAUC=0.6611  (12.2s)
+  ✓ Fold 1 new best smoothed AUC=0.6611  saved.
+    batch 1/6
+    batch 6/6
+  Ep  55/60  loss=0.7333  AUC=0.6618  AP=0.6937  smoothAUC=0.6613  (12.8s)
+  ✓ Fold 1 new best smoothed AUC=0.6613  saved.
+    batch 1/6
+    batch 6/6
+  Ep  56/60  loss=0.7326  AUC=0.6630  AP=0.6941  smoothAUC=0.6619  (11.6s)
+  ✓ Fold 1 new best smoothed AUC=0.6619  saved.
+    batch 1/6
+    batch 6/6
+  Ep  57/60  loss=0.7422  AUC=0.6640  AP=0.6967  smoothAUC=0.6629  (11.8s)
+  ✓ Fold 1 new best smoothed AUC=0.6629  saved.
+    batch 1/6
+    batch 6/6
+  Ep  58/60  loss=0.6868  AUC=0.6634  AP=0.6985  smoothAUC=0.6634  (12.1s)
+  ✓ Fold 1 new best smoothed AUC=0.6634  saved.
+    batch 1/6
+    batch 6/6
+  Ep  59/60  loss=0.6555  AUC=0.6627  AP=0.6991  smoothAUC=0.6634  (10.9s)
+    batch 1/6
+    batch 6/6
+  Ep  60/60  loss=0.6679  AUC=0.6611  AP=0.6983  smoothAUC=0.6624  (12.4s)
+
+  Fold 1 test — AUC=0.5752  AP=0.6068  (random=0.5000)
+
+=======================================================
+  FOLD 2 / 2
+=======================================================
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+    [DIAG] graph 44: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 60: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 63: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 71: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 119: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+  Fold 2/2 — train: 86  val: 85  test: 21
+Model built on mps  |  total params: 713,553
+    batch 1/6
+    batch 6/6
+  Ep   1/60  loss=1.6196  AUC=0.5047  AP=0.4897  smoothAUC=0.5047  (20.3s)
+  ✓ Fold 2 new best smoothed AUC=0.5047  saved.
+    batch 1/6
+    batch 6/6
+  Ep   2/60  loss=1.5332  AUC=0.5283  AP=0.5080  smoothAUC=0.5165  (15.8s)
+  ✓ Fold 2 new best smoothed AUC=0.5165  saved.
+    batch 1/6
+    batch 6/6
+  Ep   3/60  loss=1.4571  AUC=0.5577  AP=0.5434  smoothAUC=0.5302  (15.1s)
+  ✓ Fold 2 new best smoothed AUC=0.5302  saved.
+    batch 1/6
+    batch 6/6
+  Ep   4/60  loss=1.5005  AUC=0.5746  AP=0.5510  smoothAUC=0.5535  (13.8s)
+  ✓ Fold 2 new best smoothed AUC=0.5535  saved.
+    batch 1/6
+    batch 6/6
+  Ep   5/60  loss=1.4346  AUC=0.5662  AP=0.5506  smoothAUC=0.5662  (15.0s)
+  ✓ Fold 2 new best smoothed AUC=0.5662  saved.
+    batch 1/6
+    [swap-guard] 94.0% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 93.3% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 93.2% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 93.2% swap used (fold 2 epoch 6 val) -- pausing 3s for extra cleanup
+  Ep   6/60  loss=1.3701  AUC=0.5909  AP=0.5691  smoothAUC=0.5772  (27.1s)
+  ✓ Fold 2 new best smoothed AUC=0.5772  saved.
+    batch 1/6
+    [swap-guard] 93.1% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 93.1% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 92.9% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 92.9% swap used (fold 2 epoch 7 val) -- pausing 3s for extra cleanup
+  Ep   7/60  loss=1.3422  AUC=0.6029  AP=0.5810  smoothAUC=0.5867  (27.5s)
+  ✓ Fold 2 new best smoothed AUC=0.5867  saved.
+    batch 1/6
+    [swap-guard] 92.8% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 92.2% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 92.2% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 92.2% swap used (fold 2 epoch 8 val) -- pausing 3s for extra cleanup
+  Ep   8/60  loss=1.2887  AUC=0.6005  AP=0.5833  smoothAUC=0.5981  (27.6s)
+  ✓ Fold 2 new best smoothed AUC=0.5981  saved.
+    batch 1/6
+    [swap-guard] 91.8% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 91.5% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 91.5% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 91.5% swap used (fold 2 epoch 9 val) -- pausing 3s for extra cleanup
+  Ep   9/60  loss=1.2832  AUC=0.5934  AP=0.5788  smoothAUC=0.5989  (27.4s)
+  ✓ Fold 2 new best smoothed AUC=0.5989  saved.
+    batch 1/6
+    [swap-guard] 91.5% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 90.9% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 90.9% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 90.9% swap used (fold 2 epoch 10 val) -- pausing 3s for extra cleanup
+  Ep  10/60  loss=1.2542  AUC=0.5944  AP=0.5965  smoothAUC=0.5961  (28.0s)
+    batch 1/6
+    [swap-guard] 90.3% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 90.2% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 90.2% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 90.2% swap used (fold 2 epoch 11 val) -- pausing 3s for extra cleanup
+  Ep  11/60  loss=1.1893  AUC=0.6022  AP=0.6120  smoothAUC=0.5967  (28.7s)
+    batch 1/6
+    [swap-guard] 96.7% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 96.2% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 96.2% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 96.2% swap used (fold 2 epoch 12 val) -- pausing 3s for extra cleanup
+  Ep  12/60  loss=1.0971  AUC=0.6074  AP=0.6178  smoothAUC=0.6013  (30.9s)
+  ✓ Fold 2 new best smoothed AUC=0.6013  saved.
+    batch 1/6
+    [swap-guard] 95.7% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 95.2% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 95.2% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 95.2% swap used (fold 2 epoch 13 val) -- pausing 3s for extra cleanup
+  Ep  13/60  loss=1.1831  AUC=0.6086  AP=0.6160  smoothAUC=0.6061  (27.7s)
+  ✓ Fold 2 new best smoothed AUC=0.6061  saved.
+    batch 1/6
+    [swap-guard] 94.5% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 94.3% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 94.3% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 92.8% swap used (fold 2 epoch 14 val) -- pausing 3s for extra cleanup
+  Ep  14/60  loss=1.1272  AUC=0.6107  AP=0.6214  smoothAUC=0.6089  (27.5s)
+  ✓ Fold 2 new best smoothed AUC=0.6089  saved.
+    batch 1/6
+    [swap-guard] 92.0% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 91.4% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 91.4% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 91.4% swap used (fold 2 epoch 15 val) -- pausing 3s for extra cleanup
+  Ep  15/60  loss=0.9771  AUC=0.5982  AP=0.6018  smoothAUC=0.6058  (28.0s)
+    batch 1/6
+    [swap-guard] 91.1% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 90.4% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 90.4% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 90.4% swap used (fold 2 epoch 16 val) -- pausing 3s for extra cleanup
+  Ep  16/60  loss=1.0504  AUC=0.5987  AP=0.6007  smoothAUC=0.6025  (28.2s)
+    batch 1/6
+    [swap-guard] 94.1% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 93.3% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 93.3% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 93.3% swap used (fold 2 epoch 17 val) -- pausing 3s for extra cleanup
+  Ep  17/60  loss=1.0803  AUC=0.5982  AP=0.6019  smoothAUC=0.5984  (27.1s)
+    batch 1/6
+    [swap-guard] 93.2% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 95.3% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 95.2% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 95.2% swap used (fold 2 epoch 18 val) -- pausing 3s for extra cleanup
+  Ep  18/60  loss=0.9984  AUC=0.5998  AP=0.6011  smoothAUC=0.5989  (28.4s)
+    batch 1/6
+    [swap-guard] 95.1% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 95.0% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 95.0% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 95.0% swap used (fold 2 epoch 19 val) -- pausing 3s for extra cleanup
+  Ep  19/60  loss=1.0474  AUC=0.6042  AP=0.5992  smoothAUC=0.6008  (28.2s)
+    batch 1/6
+    [swap-guard] 94.6% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 94.2% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 94.2% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 94.2% swap used (fold 2 epoch 20 val) -- pausing 3s for extra cleanup
+  Ep  20/60  loss=1.1161  AUC=0.6056  AP=0.6056  smoothAUC=0.6032  (28.8s)
+    batch 1/6
+    [swap-guard] 93.8% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 94.0% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 94.0% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 93.9% swap used (fold 2 epoch 21 val) -- pausing 3s for extra cleanup
+  Ep  21/60  loss=0.9032  AUC=0.6100  AP=0.6175  smoothAUC=0.6066  (29.3s)
+    batch 1/6
+    [swap-guard] 93.4% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 93.3% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 93.3% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 93.3% swap used (fold 2 epoch 22 val) -- pausing 3s for extra cleanup
+  Ep  22/60  loss=1.0537  AUC=0.6180  AP=0.6247  smoothAUC=0.6112  (29.6s)
+  ✓ Fold 2 new best smoothed AUC=0.6112  saved.
+    batch 1/6
+    [swap-guard] 92.1% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 91.7% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 91.7% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 91.7% swap used (fold 2 epoch 23 val) -- pausing 3s for extra cleanup
+  Ep  23/60  loss=1.0138  AUC=0.6134  AP=0.6183  smoothAUC=0.6138  (31.7s)
+  ✓ Fold 2 new best smoothed AUC=0.6138  saved.
+    batch 1/6
+    [swap-guard] 91.4% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 91.2% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 91.2% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 91.2% swap used (fold 2 epoch 24 val) -- pausing 3s for extra cleanup
+  Ep  24/60  loss=0.9482  AUC=0.6131  AP=0.6122  smoothAUC=0.6148  (32.1s)
+  ✓ Fold 2 new best smoothed AUC=0.6148  saved.
+    batch 1/6
+    [swap-guard] 90.9% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 90.2% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 90.2% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 90.2% swap used (fold 2 epoch 25 val) -- pausing 3s for extra cleanup
+  Ep  25/60  loss=0.9360  AUC=0.6103  AP=0.6137  smoothAUC=0.6123  (29.1s)
+    batch 1/6
+    [swap-guard] 95.2% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 95.2% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 95.1% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 95.1% swap used (fold 2 epoch 26 val) -- pausing 3s for extra cleanup
+  Ep  26/60  loss=0.9219  AUC=0.6154  AP=0.6233  smoothAUC=0.6129  (31.1s)
+    batch 1/6
+    [swap-guard] 95.0% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 94.7% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 94.6% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 94.4% swap used (fold 2 epoch 27 val) -- pausing 3s for extra cleanup
+  Ep  27/60  loss=0.9163  AUC=0.6185  AP=0.6250  smoothAUC=0.6147  (29.3s)
+    batch 1/6
+    [swap-guard] 94.3% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 93.8% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 93.8% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 93.8% swap used (fold 2 epoch 28 val) -- pausing 3s for extra cleanup
+  Ep  28/60  loss=0.9185  AUC=0.6088  AP=0.6117  smoothAUC=0.6142  (29.1s)
+    batch 1/6
+    [swap-guard] 96.9% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 96.4% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 96.3% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 96.3% swap used (fold 2 epoch 29 val) -- pausing 3s for extra cleanup
+  Ep  29/60  loss=0.8971  AUC=0.6042  AP=0.5983  smoothAUC=0.6105  (30.6s)
+    batch 1/6
+    [swap-guard] 95.8% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 95.7% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 95.7% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 95.7% swap used (fold 2 epoch 30 val) -- pausing 3s for extra cleanup
+  Ep  30/60  loss=0.8579  AUC=0.6086  AP=0.5972  smoothAUC=0.6072  (30.5s)
+    batch 1/6
+    [swap-guard] 95.3% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 94.7% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 94.7% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 94.7% swap used (fold 2 epoch 31 val) -- pausing 3s for extra cleanup
+  Ep  31/60  loss=0.8415  AUC=0.6092  AP=0.5955  smoothAUC=0.6073  (29.7s)
+    batch 1/6
+    [swap-guard] 94.4% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 95.3% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 95.3% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 95.3% swap used (fold 2 epoch 32 val) -- pausing 3s for extra cleanup
+  Ep  32/60  loss=0.8175  AUC=0.6058  AP=0.6009  smoothAUC=0.6079  (34.6s)
+    batch 1/6
+    [swap-guard] 95.2% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 94.8% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 94.8% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 94.8% swap used (fold 2 epoch 33 val) -- pausing 3s for extra cleanup
+  Ep  33/60  loss=0.9223  AUC=0.5975  AP=0.5943  smoothAUC=0.6042  (32.8s)
+    batch 1/6
+    [swap-guard] 94.3% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 94.2% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 94.2% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 94.2% swap used (fold 2 epoch 34 val) -- pausing 3s for extra cleanup
+  Ep  34/60  loss=0.7882  AUC=0.6027  AP=0.6003  smoothAUC=0.6020  (32.4s)
+    batch 1/6
+    [swap-guard] 93.8% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 93.7% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 93.7% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 93.7% swap used (fold 2 epoch 35 val) -- pausing 3s for extra cleanup
+  Ep  35/60  loss=0.7965  AUC=0.6057  AP=0.6051  smoothAUC=0.6020  (30.6s)
+    batch 1/6
+    [swap-guard] 93.5% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 93.2% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 93.2% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 93.1% swap used (fold 2 epoch 36 val) -- pausing 3s for extra cleanup
+  Ep  36/60  loss=0.7573  AUC=0.6044  AP=0.6032  smoothAUC=0.6043  (30.0s)
+    batch 1/6
+    [swap-guard] 92.8% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 92.4% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 92.4% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 92.4% swap used (fold 2 epoch 37 val) -- pausing 3s for extra cleanup
+  Ep  37/60  loss=0.7237  AUC=0.6034  AP=0.6032  smoothAUC=0.6045  (29.1s)
+    batch 1/6
+    [swap-guard] 92.0% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 91.7% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 91.7% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 91.7% swap used (fold 2 epoch 38 val) -- pausing 3s for extra cleanup
+  Ep  38/60  loss=0.7725  AUC=0.6042  AP=0.6095  smoothAUC=0.6040  (29.2s)
+    batch 1/6
+    [swap-guard] 91.3% swap used (batch 3/6) -- pausing 3s for extra cleanup
+    batch 6/6
+    [swap-guard] 91.2% swap used (batch 6/6) -- pausing 3s for extra cleanup
+    [swap-guard] 91.2% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 91.2% swap used (fold 2 epoch 39 val) -- pausing 3s for extra cleanup
+  Ep  39/60  loss=0.7330  AUC=0.6035  AP=0.6076  smoothAUC=0.6037  (32.1s)
+
+  Early stopping at epoch 39.
+
+  Fold 2 test — AUC=0.6473  AP=0.6470  (random=0.5000)
+    [swap-guard] 91.0% swap used (fold 2 boundary) -- pausing 3s for extra cleanup
+
+=======================================================
+  2-Fold CV Summary
+=======================================================
+  Fold 1: AUC=0.5752  AP=0.6068  (random=0.5000)
+  Fold 2: AUC=0.6473  AP=0.6470  (random=0.5000)
+  ─────────────────────────────────────────
+  Mean AUC        = 0.6112 ± 0.0510
+  Mean AP         = 0.6269 ± 0.0284
+  Mean random AP  = 0.5000 ± 0.0000  (chance baseline — AP lift over this is the real signal)
+  Best overall fold: 1  (val AUC=0.6634)
+
+[4/4] Final test evaluation (best_overall.pt) …
+Model built on mps  |  total params: 713,553
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+    [DIAG] graph 119: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 44: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 60: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 63: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 71: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+  Fold 1/2 — train: 85  val: 86  test: 21
+
+  ── Test results (best overall model) ─────
+     auc         : 0.5752
+     ap          : 0.6068
+     random_ap   : 0.5000
+
+  Results saved        → results
+  Best overall ckpt    → checkpoints/best_overall.pt
+  Trained model export → ../trained_models/assembly_gnn_20260811_235627_auc06634.pt
+
+  ⊘ Serving model NOT updated — run launched with --no-promote (this run: AUC=0.6112, AP-lift=0.1269)
+
+  Building assembly template cache …
+  [TemplateDB] Built 7 category templates from 192 training assemblies.
+    Bench Vice                                bodies≈22  dist={'long_shaft': 2, 'short_shaft': 2, 'thick_plate': 2, 'thin_plate': 3, 'bolt': 2, 'washer': 2, 'nut': 4, 'body': 12}
+    C Clamps                                  bodies≈7  dist={'long_shaft': 1, 'short_shaft': 1, 'thick_plate': 1, 'thin_plate': 1, 'bolt': 1, 'washer': 1, 'nut': 2, 'body': 2}
+    Crane Hook                                bodies≈40  dist={'long_shaft': 2, 'short_shaft': 3, 'thick_plate': 5, 'thin_plate': 2, 'bolt': 1, 'washer': 7, 'nut': 12, 'body': 7}
+    Gate Valve                                bodies≈49  dist={'long_shaft': 2, 'short_shaft': 4, 'thick_plate': 2, 'thin_plate': 4, 'bolt': 4, 'washer': 3, 'nut': 18, 'body': 16}
+    Pipe Vice                                 bodies≈8  dist={'long_shaft': 1, 'short_shaft': 1, 'thick_plate': 1, 'thin_plate': 2, 'bolt': 1, 'washer': 1, 'nut': 2, 'body': 4}
+    Press Tool                                bodies≈14  dist={'long_shaft': 4, 'short_shaft': 4, 'thick_plate': 2, 'thin_plate': 18, 'bolt': 10, 'washer': 4, 'nut': 4, 'body': 5}
+    Tool Post                                 bodies≈30  dist={'long_shaft': 2, 'short_shaft': 8, 'thick_plate': 2, 'thin_plate': 1, 'bolt': 8, 'washer': 2, 'nut': 2, 'body': 11}
+  [TemplateDB] Saved 7 templates → data/assembly_templates.json
