@@ -215,6 +215,16 @@ def main():
                         help="Override training.epochs from config.yaml")
     parser.add_argument("--patience", type=int, default=None,
                         help="Override training.patience (early stopping) from config.yaml")
+    parser.add_argument("--no-promote", action="store_true",
+                        help="Never touch best_serving.pt regardless of the promotion-gate "
+                             "check's outcome -- for exploratory/benchmark runs (e.g. a "
+                             "reduced --n-folds sweep) that shouldn't silently become the "
+                             "production model just because their numbers happened to beat "
+                             "the incumbent. A run not run with the same rigor as a real "
+                             "promotion candidate (full n_folds, full epochs/patience) "
+                             "shouldn't be trusted to promote itself -- this exists because "
+                             "a --n-folds 2 encoder-benchmark run legitimately beat R37 on "
+                             "both metrics and auto-promoted before that gap was noticed.")
     args = parser.parse_args()
 
     with open(args.config) as f:
@@ -556,7 +566,11 @@ def main():
     serving_path = ckpt_dir / "best_serving.pt"
     promote = True
     mean_ap_lift = mean_ap - mean_random_ap
-    if serving_path.exists():
+    if args.no_promote:
+        promote = False
+        print(f"\n  ⊘ Serving model NOT updated — run launched with --no-promote "
+              f"(this run: AUC={mean_auc:.4f}, AP-lift={mean_ap_lift:.4f})")
+    elif serving_path.exists():
         prev = torch.load(serving_path, map_location="cpu", weights_only=False)
         prev_summary  = prev.get("cv_summary", {})
         prev_auc      = prev_summary.get("mean_auc", 0.0)
