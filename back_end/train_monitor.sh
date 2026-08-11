@@ -27,6 +27,27 @@ log_recovery() {
     echo "[$(ts)] $1" | tee -a "$RECOVERY_LOG"
 }
 
+# Periodic swap/memory snapshot, appended to recovery.log every poll cycle.
+# Added after the R36 crash (silently killed mid-fold-5, diagnosed only
+# after the fact via swap being at 30.7GB/31.7GB immediately before the log
+# stopped growing -- reconstructed indirectly since nothing was logging
+# memory state at the time). This makes that evidence available directly in
+# the recovery log next time, instead of requiring a manual post-mortem.
+# macOS-specific (vm.swapusage via sysctl); harmless no-op elsewhere.
+log_mem_stats() {
+    local swap_line used_mb total_mb pct
+    swap_line=$(sysctl -n vm.swapusage 2>/dev/null) || return 0
+    used_mb=$(echo "$swap_line" | grep -oE 'used = [0-9.]+M' | grep -oE '[0-9.]+')
+    total_mb=$(echo "$swap_line" | grep -oE 'total = [0-9.]+M' | grep -oE '[0-9.]+')
+    if [ -n "$used_mb" ] && [ -n "$total_mb" ] && [ "$(echo "$total_mb > 0" | bc 2>/dev/null)" = "1" ]; then
+        pct=$(echo "scale=1; 100 * $used_mb / $total_mb" | bc 2>/dev/null)
+        echo "[$(ts)] [mem] swap: ${used_mb}M/${total_mb}M (${pct}%)" >> "$RECOVERY_LOG"
+        if [ "$(echo "$pct > 90" | bc 2>/dev/null)" = "1" ]; then
+            log_recovery "WARNING: swap usage at ${pct}% -- OOM kill risk is high (see R36 crash precedent)"
+        fi
+    fi
+}
+
 # Determine the last completed fold from checkpoints
 last_completed_fold() {
     local last=-1
@@ -112,6 +133,8 @@ last_fold_seen=0
 
 while true; do
     sleep "$POLL_INTERVAL"
+
+    log_mem_stats
 
     # Check if process is still alive
     if ! kill -0 "$TRAINING_PID" 2>/dev/null; then
