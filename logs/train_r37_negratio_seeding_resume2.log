@@ -1,0 +1,880 @@
+
+[1/4] Loading dataset …
+Processing...
+  Category filter: ['Bench_vice', 'C_Clamps', 'Pipe_vice', 'Gate_Valve', 'Press_Tool', 'Tool_Post', 'Crane_hook']
+  193 STEP files after category filter
+  Found 193 STEP file(s) in /Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Source_3d_models/Best_models_for_training
+  [1/193] [CACHED] Bench_Vice_02/Bench_Vice_02.STEP — 26 nodes
+  [2/193] [CACHED] Bench_Vice_03/Bench_Vice_03.step — 18 nodes
+  [3/193] [CACHED] Bench_Vice_04/Bench_Vice_04.STEP — 47 nodes
+  [4/193] [CACHED] Bench_Vice_06/Bench_Vice_06.stp — 16 nodes
+  [5/193] [CACHED] Bench_Vice_07/Bench_Vice_07.STEP — 12 nodes
+  [6/193] [CACHED] Bench_Vice_08/Bench_Vice_08.step — 55 nodes
+  [7/193] [CACHED] Bench_Vice_09/Bench_Vice_09.stp — 22 nodes
+  [8/193] [CACHED] Bench_Vice_11/Bench_Vice_11.STEP — 20 nodes
+  [9/193] [CACHED] Bench_Vice_12/Bench_Vice_12.stp — 31 nodes
+  [10/193] [CACHED] Bench_Vice_13/Bench_Vice_13.STEP — 27 nodes
+  [11/193] [CACHED] Bench_Vice_14/Bench_Vice_14.STEP — 24 nodes
+  [12/193] [CACHED] Bench_Vice_17/Bench_Vice_17.STEP — 25 nodes
+  [13/193] [CACHED] Bench_Vice_18/Bench_Vice_18.stp — 7 nodes
+  [14/193] [CACHED] Bench_Vice_20/Bench_Vice_20.stp — 21 nodes
+  [15/193] [CACHED] Bench_Vice_21/Bench_Vice_21.STEP — 12 nodes
+  [16/193] [CACHED] Bench_Vice_22/Bench_Vice_22.stp — 22 nodes
+  [17/193] [CACHED] Bench_Vice_23/Bench_Vice_23.stp — 27 nodes
+  [18/193] [CACHED] Bench_Vice_26/Bench_Vice_26.step — 17 nodes
+  [19/193] [CACHED] Bench_Vice_27/Bench_Vice_27.stp — 10 nodes
+  [20/193] [CACHED] Bench_Vice_28/Bench_Vice_28.stp — 46 nodes
+  [21/193] [CACHED] Bench_Vice_31/Bench_Vice_31.stp — 20 nodes
+  [22/193] [CACHED] Bench_Vice_34/Bench_Vice_34.stp — 23 nodes
+  [23/193] [CACHED] Bench_Vice_38/Bench_Vice_38.step — 20 nodes
+  [24/193] [CACHED] Bench_Vice_39/Bench_Vice_39.step — 14 nodes
+  [25/193] [CACHED] Bench_Vice_41/Bench_Vice_41.stp — 22 nodes
+  [26/193] [CACHED] Bench_Vice_42/Bench_Vice_42.stp — 15 nodes
+  [27/193] [CACHED] Bench_Vice_43/Bench_Vice_43.step — 16 nodes
+  [28/193] [CACHED] Bench_Vice_45/Bench_Vice_45.step — 25 nodes
+  [29/193] [CACHED] Bench_Vice_46/Bench_Vice_46.stp — 18 nodes
+  [30/193] [CACHED] Bench_Vice_47/Bench_Vice_47.STEP — 21 nodes
+  [31/193] [CACHED] Bench_Vice_50/Bench_Vice_50.STEP — 31 nodes
+  [32/193] [CACHED] Bench_Vice_51/Bench_Vice_51.STEP — 13 nodes
+  [33/193] [CACHED] Bench_Vice_52/Bench_Vice_52.stp — 57 nodes
+  [34/193] [CACHED] Bench_Vice_53/Bench_Vice_53.STEP — 27 nodes
+  [35/193] [CACHED] Bench_Vice_58/Bench_Vice_58.stp — 6 nodes
+  [36/193] [CACHED] Bench_Vice_59/Bench_Vice_59.STEP — 97 nodes
+  [37/193] [CACHED] Bench_Vice_60/Bench_Vice_60.stp — 24 nodes
+  [38/193] [CACHED] Bench_Vice_61/Bench_Vice_61.stp — 48 nodes
+  [39/193] [CACHED] Bench_Vice_65/Bench_Vice_65.stp — 28 nodes
+  [40/193] [CACHED] Bench_Vice_66/Bench_Vice_66.step — 26 nodes
+  [41/193] [CACHED] Bench_Vice_67/Bench_Vice_67.stp — 26 nodes
+  [42/193] [CACHED] Bench_Vice_68/Bench_Vice_68.stp — 24 nodes
+  [43/193] [CACHED] Bench_Vice_69/Bench_Vice_69.stp — 22 nodes
+  [44/193] [CACHED] Bench_Vice_72/Bench_Vice_72.stp — 25 nodes
+  [45/193] [CACHED] Bench_Vice_73/Bench_Vice_73.stp — 2 nodes
+  [46/193] [CACHED] Bench_Vice_74/Bench_Vice_74.stp — 15 nodes
+  [47/193] [CACHED] Bench_Vice_75/Bench_Vice_75.STEP — 33 nodes
+  [48/193] [CACHED] Bench_Vice_76/Bench_Vice_76.stp — 37 nodes
+  [49/193] [CACHED] Bench_Vice_77/Bench_Vice_77.STEP — 6 nodes
+  [50/193] [CACHED] Bench_Vice_78/Bench_Vice_78.STEP — 35 nodes
+  [51/193] [CACHED] Bench_Vice_79/Bench_Vice_79.STEP — 19 nodes
+  [52/193] [CACHED] Bench_Vice_80/Bench_Vice_80.STEP — 16 nodes
+  [53/193] [CACHED] Bench_Vice_81/Bench_Vice_81.stp — 36 nodes
+  [54/193] [CACHED] Bench_Vice_82/Bench_Vice_82.stp — 41 nodes
+  [55/193] [CACHED] C_Clamps_01/C_Clamps_01.stp — 8 nodes
+  [56/193] [CACHED] C_Clamps_03/C_Clamps_03.STEP — 10 nodes
+  [57/193] [CACHED] C_Clamps_04/C_Clamps_04.stp — 10 nodes
+  [58/193] [CACHED] C_Clamps_05/C_Clamps_05.STEP — 5 nodes
+  [59/193] [CACHED] C_Clamps_06/C_Clamps_06.stp — 9 nodes
+  [60/193] [CACHED] C_Clamps_07/C_Clamps_07.stp — 7 nodes
+  [61/193] [CACHED] C_Clamps_08/C_Clamps_08.stp — 2 nodes
+  [62/193] [CACHED] C_Clamps_09/C_Clamps_09.STEP — 9 nodes
+  [63/193] [CACHED] C_Clamps_10/C_Clamps_10.stp — 7 nodes
+  [64/193] [CACHED] C_Clamps_11/C_Clamps_11.STEP — 2 nodes
+  [65/193] [CACHED] C_Clamps_12/C_Clamps_12.stp — 5 nodes
+  [66/193] [CACHED] C_Clamps_13/C_Clamps_13.STEP — 6 nodes
+  [67/193] [CACHED] C_Clamps_14/C_Clamps_14.STEP — 4 nodes
+  [68/193] [CACHED] C_Clamps_15/C_Clamps_15.stp — 4 nodes
+  [69/193] [CACHED] C_Clamps_16/C_Clamps_16.stp — 10 nodes
+  [70/193] [CACHED] C_Clamps_18/C_Clamps_18.stp — 3 nodes
+  [71/193] [CACHED] C_Clamps_19/C_Clamps_19.stp — 6 nodes
+  [72/193] [CACHED] C_Clamps_20/C_Clamps_20.stp — 2 nodes
+  [73/193] [CACHED] C_Clamps_21/C_Clamps_21.STEP — 6 nodes
+  [74/193] [CACHED] C_Clamps_22/C_Clamps_22.stp — 7 nodes
+  [75/193] [CACHED] C_Clamps_23/C_Clamps_23.STEP — 16 nodes
+  [76/193] [CACHED] C_Clamps_26/C_Clamps_26.stp — 11 nodes
+  [77/193] [CACHED] C_Clamps_28/C_Clamps_28.step — 10 nodes
+  [78/193] [CACHED] C_Clamps_29/C_Clamps_29.stp — 7 nodes
+  [79/193] [CACHED] C_Clamps_31/C_Clamps_31.stp — 6 nodes
+  [80/193] [CACHED] C_Clamps_32/C_Clamps_32.step — 10 nodes
+  [81/193] [CACHED] C_Clamps_33/C_Clamps_33.stp — 9 nodes
+  [82/193] [CACHED] C_Clamps_36/C_Clamps_36.STEP — 5 nodes
+  [83/193] [CACHED] C_Clamps_37/C_Clamps_37.step — 5 nodes
+  [84/193] [CACHED] C_Clamps_38/C_Clamps_38.STEP — 8 nodes
+  [85/193] [CACHED] C_Clamps_40/C_Clamps_40.stp — 4 nodes
+  [86/193] [CACHED] Crane_Hook_01/Crane_Hook_01.stp — 33 nodes
+  [87/193] [CACHED] Crane_Hook_02/Crane_Hook_02.STEP — 35 nodes
+  [88/193] [CACHED] Crane_Hook_04/Crane_Hook_04.STEP — 44 nodes
+  [89/193] [CACHED] Crane_Hook_05/Crane_Hook_05.STEP — 15 nodes
+  [90/193] [CACHED] Crane_Hook_06/Crane_Hook_06.step — 20 nodes
+  [91/193] [CACHED] Crane_Hook_07/Crane_Hook_07.stp — 46 nodes
+  [92/193] [CACHED] Crane_Hook_09/Crane_Hook_09.step — 28 nodes
+  [93/193] [CACHED] Crane_Hook_10/Crane_Hook_10.stp — 46 nodes
+  [94/193] [CACHED] Crane_Hook_11/Crane_Hook_11.stp — 19 nodes
+  [95/193] [CACHED] Crane_Hook_12/Crane_Hook_12.stp — 53 nodes
+  [96/193] [CACHED] Crane_Hook_13/Crane_Hook_13.stp — 28 nodes
+  [97/193] [CACHED] Crane_Hook_15/Crane_Hook_15.STEP — 86 nodes
+  [98/193] [CACHED] Crane_Hook_17/Crane_Hook_17.stp — 49 nodes
+  [99/193] [CACHED] Crane_Hook_21/Crane_Hook_21.STEP — 57 nodes
+  [100/193] [CACHED] Crane_Hook_22/Crane_Hook_22.STEP — 66 nodes
+  [101/193] [CACHED] Crane_Hook_23/Crane_Hook_23.step — 24 nodes
+  [102/193] [CACHED] Gate_Valve_02/Gate_Valve_02.STEP — 4 nodes
+  [103/193] [CACHED] Gate_Valve_03/Gate_Valve_03.stp — 40 nodes
+  [104/193] [CACHED] Gate_Valve_04/Gate_Valve_04.stp — 63 nodes
+  [105/193] [CACHED] Gate_Valve_05/Gate_Valve_05.stp — 87 nodes
+  [106/193] [CACHED] Gate_Valve_06/Gate_Valve_06.stp — 41 nodes
+  [107/193] [CACHED] Gate_Valve_07/Gate_Valve_07.stp — 69 nodes
+  [108/193] [CACHED] Gate_Valve_10/Gate_Valve_10.stp — 61 nodes
+  [109/193] [CACHED] Gate_Valve_11/Gate_Valve_11.STEP — 47 nodes
+  [110/193] Parsing: Gate_Valve_12/Gate_Valve_12.stp
+    [detail] Gate_Valve_12.stp: worker process crashed (no output)
+  [ERROR]   Gate_Valve_12/Gate_Valve_12.stp — parse failed
+  [111/193] [CACHED] Gate_Valve_14/Gate_Valve_14.stp — 59 nodes
+  [112/193] [CACHED] Gate_Valve_15/Gate_Valve_15.stp — 51 nodes
+  [113/193] [CACHED] Gate_Valve_23/Gate_Valve_23.STEP — 35 nodes
+  [114/193] [CACHED] Gate_Valve_24/Gate_Valve_24.STEP — 81 nodes
+  [115/193] [CACHED] Gate_Valve_25/Gate_Valve_25.STEP — 22 nodes
+  [116/193] [CACHED] Gate_Valve_27/Gate_Valve_27.stp — 5 nodes
+  [117/193] [CACHED] Gate_Valve_31/Gate_Valve_31.STEP — 4 nodes
+  [118/193] [CACHED] Gate_Valve_34/Gate_Valve_34.stp — 62 nodes
+  [119/193] [CACHED] Gate_Valve_35/Gate_Valve_35.step — 43 nodes
+  [120/193] [CACHED] Gate_Valve_36/Gate_Valve_36.STEP — 93 nodes
+  [121/193] [CACHED] Gate_Valve_37/Gate_Valve_37.stp — 2 nodes
+  [122/193] [CACHED] Gate_Valve_38/Gate_Valve_38.stp — 176 nodes
+  [123/193] [CACHED] Pipe_Vice_01/Pipe_Vice_01.stp — 10 nodes
+  [124/193] [CACHED] Pipe_Vice_03/Pipe_Vice_03.STEP — 6 nodes
+  [125/193] [CACHED] Pipe_Vice_04/Pipe_Vice_04.stp — 6 nodes
+  [126/193] [CACHED] Pipe_Vice_07/Pipe_Vice_07.STEP — 20 nodes
+  [127/193] [CACHED] Pipe_Vice_08/Pipe_Vice_08.STEP — 5 nodes
+  [128/193] [CACHED] Pipe_Vice_09/Pipe_Vice_09.STEP — 7 nodes
+  [129/193] [CACHED] Pipe_Vice_10/Pipe_Vice_10.stp — 11 nodes
+  [130/193] [CACHED] Pipe_Vice_11/Pipe_Vice_11.STEP — 36 nodes
+  [131/193] [CACHED] Pipe_Vice_14/Pipe_Vice_14.stp — 10 nodes
+  [132/193] [CACHED] Pipe_Vice_15/Pipe_Vice_15.STEP — 6 nodes
+  [133/193] [CACHED] Pipe_Vice_16/Pipe_Vice_16.stp — 21 nodes
+  [134/193] [CACHED] Pipe_Vice_17/Pipe_Vice_17.step — 16 nodes
+  [135/193] [CACHED] Pipe_Vice_19/Pipe_Vice_19.stp — 16 nodes
+  [136/193] [CACHED] Pipe_Vice_20/Pipe_Vice_20.stp — 20 nodes
+  [137/193] [CACHED] Pipe_Vice_21/Pipe_Vice_21.step — 3 nodes
+  [138/193] [CACHED] Pipe_Vice_22/Pipe_Vice_22.stp — 8 nodes
+  [139/193] [CACHED] Pipe_Vice_23/Pipe_Vice_23.STEP — 21 nodes
+  [140/193] [CACHED] Pipe_Vice_24/Pipe_Vice_24.stp — 10 nodes
+  [141/193] [CACHED] Pipe_Vice_25/Pipe_Vice_25.stp — 16 nodes
+  [142/193] [CACHED] Pipe_Vice_27/Pipe_Vice_27.STEP — 17 nodes
+  [143/193] [CACHED] Pipe_Vice_28/Pipe_Vice_28.stp — 7 nodes
+  [144/193] [CACHED] Pipe_Vice_29/Pipe_Vice_29.stp — 6 nodes
+  [145/193] [CACHED] Pipe_Vice_30/Pipe_Vice_30.STEP — 6 nodes
+  [146/193] [CACHED] Pipe_Vice_31/Pipe_Vice_31.stp — 7 nodes
+  [147/193] [CACHED] Pipe_Vice_32/Pipe_Vice_32.stp — 9 nodes
+  [148/193] [CACHED] Pipe_Vice_33/Pipe_Vice_33.stp — 6 nodes
+  [149/193] [CACHED] Pipe_Vice_35/Pipe_Vice_35.stp — 10 nodes
+  [150/193] [CACHED] Pipe_Vice_36/Pipe_Vice_36.STEP — 7 nodes
+  [151/193] [CACHED] Pipe_Vice_37/Pipe_Vice_37.stp — 8 nodes
+  [152/193] [CACHED] Pipe_Vice_38/Pipe_Vice_38.stp — 10 nodes
+  [153/193] [CACHED] Pipe_Vice_40/Pipe_Vice_40.stp — 39 nodes
+  [154/193] [CACHED] Pipe_Vice_41/Pipe_Vice_41.stp — 5 nodes
+  [155/193] [CACHED] Pipe_Vice_42/Pipe_Vice_42.stp — 6 nodes
+  [156/193] [CACHED] Pipe_Vice_43/Pipe_Vice_43.stp — 15 nodes
+  [157/193] [CACHED] Pipe_Vice_44/Pipe_Vice_44.STEP — 39 nodes
+  [158/193] [CACHED] Pipe_Vice_45/Pipe_Vice_45.STEP — 30 nodes
+  [159/193] [CACHED] Pipe_Vice_46/Pipe_Vice_46.stp — 6 nodes
+  [160/193] [CACHED] Pipe_Vice_48/Pipe_Vice_48.step — 8 nodes
+  [161/193] [CACHED] Pipe_Vice_49/Pipe_Vice_49.STEP — 19 nodes
+  [162/193] [CACHED] Pipe_Vice_50/Pipe_Vice_50.stp — 8 nodes
+  [163/193] [CACHED] Pipe_Vice_51/Pipe_Vice_51.step — 6 nodes
+  [164/193] [CACHED] Pipe_Vice_53/Pipe_Vice_53.step — 5 nodes
+  [165/193] [CACHED] Press_Tool_02/Press_Tool_02.stp — 10 nodes
+  [166/193] [CACHED] Press_Tool_04/Press_Tool_04.stp — 98 nodes
+  [167/193] [CACHED] Press_Tool_05/Press_Tool_05.stp — 14 nodes
+  [168/193] [CACHED] Press_Tool_06/Press_Tool_06.STEP — 10 nodes
+  [169/193] [CACHED] Press_Tool_07/Press_Tool_07.stp — 170 nodes
+  [170/193] [CACHED] Press_Tool_08/Press_Tool_08.step — 178 nodes
+  [171/193] [CACHED] Press_Tool_09/Press_Tool_09.STEP — 89 nodes
+  [172/193] [CACHED] Press_Tool_10/Press_Tool_10.step — 145 nodes
+  [173/193] [CACHED] Press_Tool_12/Press_Tool_12.STEP — 198 nodes
+  [174/193] [CACHED] Press_Tool_13/Press_Tool_13.stp — 10 nodes
+  [175/193] [CACHED] Press_Tool_14/Press_Tool_14.stp — 10 nodes
+  [176/193] [CACHED] Press_Tool_15/Press_Tool_15.stp — 10 nodes
+  [177/193] [CACHED] Press_Tool_16/Press_Tool_16.stp — 10 nodes
+  [178/193] [CACHED] Press_Tool_17/Press_Tool_17.step — 10 nodes
+  [179/193] [CACHED] Press_Tool_18/Press_Tool_18.step — 8 nodes
+  [180/193] [CACHED] Press_Tool_19/Press_Tool_19.step — 37 nodes
+  [181/193] [CACHED] Press_Tool_21/Press_Tool_21.stp — 43 nodes
+  [182/193] [CACHED] Press_Tool_23/Press_Tool_23.stp — 10 nodes
+  [183/193] [CACHED] Press_Tool_24/Press_Tool_24.STEP — 10 nodes
+  [184/193] [CACHED] Press_Tool_25/Press_Tool_25.stp — 14 nodes
+  [185/193] [CACHED] Press_Tool_26/Press_Tool_26.step — 16 nodes
+  [186/193] [CACHED] Tool_Post_01/Tool_Post_01.step — 31 nodes
+  [187/193] [CACHED] Tool_Post_02/Tool_Post_02.stp — 28 nodes
+  [188/193] [CACHED] Tool_Post_05/Tool_Post_05.STEP — 54 nodes
+  [189/193] [CACHED] Tool_Post_08/Tool_Post_08.stp — 15 nodes
+  [190/193] [CACHED] Tool_Post_10/Tool_Post_10.stp — 50 nodes
+  [191/193] [CACHED] Tool_Post_13/Tool_Post_13.stp — 27 nodes
+  [192/193] [CACHED] Tool_Post_14/Tool_Post_14.stp — 24 nodes
+  [193/193] [CACHED] Tool_Post_17/Tool_Post_17.STEP — 31 nodes
+  Parsed 0 new  |  cached: 192  errors: 1  timeouts: 0
+  Using 192 real assembly graph(s) — no synthetic data.
+  Saved 192 graphs → data/processed/processed/data.pt
+  Saved source paths    → data/processed/processed/sources.json
+  Saved categories      → data/processed/processed/categories.json
+Done!
+      192 graphs loaded.
+      Dataset: 192 graphs | mean nodes=26.9 | mean edges=81.1 | categories: Bench_vice=54 C_Clamps=31 Crane_hook=16 Gate_Valve=20 Pipe_vice=42 Press_Tool=21 Tool_Post=8
+
+[2/4] Building model …  (5-fold CV)
+
+  Resuming from fold 3 — loading prior checkpoints …
+Model built on mps  |  total params: 2,441,809
+    [DIAG] graph 44: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+    [DIAG] graph 60: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 63: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 71: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 119: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+  Fold 1/5 — train: 136  val: 35  test: 21
+  Fold 1: AUC=0.6938  AP=0.6777  (from checkpoint, random=0.5000)
+Model built on mps  |  total params: 2,441,809
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+    [DIAG] graph 63: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 119: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 44: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 60: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 71: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+  Fold 2/5 — train: 137  val: 34  test: 21
+  Fold 2: AUC=0.6759  AP=0.6665  (from checkpoint, random=0.5000)
+Model built on mps  |  total params: 2,441,809
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+    [DIAG] graph 44: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 60: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 71: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 119: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 63: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+  Fold 3/5 — train: 137  val: 34  test: 21
+  Fold 3: AUC=0.6971  AP=0.6924  (from checkpoint, random=0.5000)
+
+[3/4] Training (5 folds) …
+
+=======================================================
+  FOLD 4 / 5
+=======================================================
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+    [DIAG] graph 44: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 60: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 63: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 71: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 119: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+  Fold 4/5 — train: 137  val: 34  test: 21
+Model built on mps  |  total params: 2,441,809
+    batch 1/9
+    batch 6/9
+  Ep   1/200  loss=1.5397  AUC=0.5485  AP=0.5598  smoothAUC=0.5485  (48.7s)
+  ✓ Fold 4 new best smoothed AUC=0.5485  saved.
+    batch 1/9
+    batch 6/9
+  Ep   2/200  loss=1.4969  AUC=0.5456  AP=0.5878  smoothAUC=0.5470  (37.2s)
+    batch 1/9
+    batch 6/9
+  Ep   3/200  loss=1.4422  AUC=0.5253  AP=0.5618  smoothAUC=0.5398  (38.8s)
+    batch 1/9
+    batch 6/9
+  Ep   4/200  loss=1.4157  AUC=0.5213  AP=0.5295  smoothAUC=0.5307  (44.1s)
+    batch 1/9
+    batch 6/9
+  Ep   5/200  loss=1.3565  AUC=0.5291  AP=0.5199  smoothAUC=0.5252  (46.9s)
+    batch 1/9
+    batch 6/9
+  Ep   6/200  loss=1.3242  AUC=0.5613  AP=0.5543  smoothAUC=0.5372  (35.8s)
+    batch 1/9
+    batch 6/9
+  Ep   7/200  loss=1.2895  AUC=0.5778  AP=0.5777  smoothAUC=0.5561  (45.0s)
+  ✓ Fold 4 new best smoothed AUC=0.5561  saved.
+    batch 1/9
+    batch 6/9
+  Ep   8/200  loss=1.2124  AUC=0.5793  AP=0.5711  smoothAUC=0.5728  (41.4s)
+  ✓ Fold 4 new best smoothed AUC=0.5728  saved.
+    batch 1/9
+    batch 6/9
+  Ep   9/200  loss=1.2723  AUC=0.6165  AP=0.6275  smoothAUC=0.5912  (45.0s)
+  ✓ Fold 4 new best smoothed AUC=0.5912  saved.
+    batch 1/9
+    batch 6/9
+  Ep  10/200  loss=1.2143  AUC=0.6351  AP=0.6408  smoothAUC=0.6103  (36.0s)
+  ✓ Fold 4 new best smoothed AUC=0.6103  saved.
+    batch 1/9
+    batch 6/9
+  Ep  11/200  loss=1.2155  AUC=0.6212  AP=0.6159  smoothAUC=0.6243  (55.8s)
+  ✓ Fold 4 new best smoothed AUC=0.6243  saved.
+    batch 1/9
+    batch 6/9
+  Ep  12/200  loss=1.1444  AUC=0.6114  AP=0.6052  smoothAUC=0.6226  (42.0s)
+    batch 1/9
+    batch 6/9
+  Ep  13/200  loss=1.1094  AUC=0.6038  AP=0.6015  smoothAUC=0.6121  (50.8s)
+    batch 1/9
+    batch 6/9
+  Ep  14/200  loss=1.0910  AUC=0.6101  AP=0.5905  smoothAUC=0.6084  (58.4s)
+    batch 1/9
+    batch 6/9
+  Ep  15/200  loss=1.0684  AUC=0.6139  AP=0.5889  smoothAUC=0.6092  (38.0s)
+    batch 1/9
+    batch 6/9
+  Ep  16/200  loss=1.0649  AUC=0.6275  AP=0.6040  smoothAUC=0.6172  (42.9s)
+    batch 1/9
+    batch 6/9
+  Ep  17/200  loss=1.0169  AUC=0.5997  AP=0.5879  smoothAUC=0.6137  (42.1s)
+    batch 1/9
+    batch 6/9
+  Ep  18/200  loss=1.0015  AUC=0.6031  AP=0.5951  smoothAUC=0.6101  (46.1s)
+    batch 1/9
+    batch 6/9
+  Ep  19/200  loss=0.9857  AUC=0.6216  AP=0.5973  smoothAUC=0.6081  (44.2s)
+    batch 1/9
+    batch 6/9
+  Ep  20/200  loss=0.9725  AUC=0.6387  AP=0.6421  smoothAUC=0.6212  (55.7s)
+    batch 1/9
+    batch 6/9
+  Ep  21/200  loss=0.9127  AUC=0.6412  AP=0.6316  smoothAUC=0.6339  (40.8s)
+  ✓ Fold 4 new best smoothed AUC=0.6339  saved.
+    batch 1/9
+    batch 6/9
+  Ep  22/200  loss=0.9272  AUC=0.6342  AP=0.6181  smoothAUC=0.6381  (61.7s)
+  ✓ Fold 4 new best smoothed AUC=0.6381  saved.
+    batch 1/9
+    batch 6/9
+  Ep  23/200  loss=0.9034  AUC=0.6411  AP=0.6332  smoothAUC=0.6389  (57.7s)
+  ✓ Fold 4 new best smoothed AUC=0.6389  saved.
+    batch 1/9
+    batch 6/9
+  Ep  24/200  loss=0.8425  AUC=0.6481  AP=0.6479  smoothAUC=0.6411  (53.9s)
+  ✓ Fold 4 new best smoothed AUC=0.6411  saved.
+    batch 1/9
+    batch 6/9
+  Ep  25/200  loss=0.8521  AUC=0.6424  AP=0.6400  smoothAUC=0.6438  (37.8s)
+  ✓ Fold 4 new best smoothed AUC=0.6438  saved.
+    batch 1/9
+    batch 6/9
+  Ep  26/200  loss=0.8628  AUC=0.6419  AP=0.6342  smoothAUC=0.6441  (46.9s)
+  ✓ Fold 4 new best smoothed AUC=0.6441  saved.
+    batch 1/9
+    batch 6/9
+  Ep  27/200  loss=0.8161  AUC=0.6599  AP=0.6462  smoothAUC=0.6481  (53.7s)
+  ✓ Fold 4 new best smoothed AUC=0.6481  saved.
+    batch 1/9
+    batch 6/9
+  Ep  28/200  loss=0.8202  AUC=0.6671  AP=0.6395  smoothAUC=0.6563  (53.0s)
+  ✓ Fold 4 new best smoothed AUC=0.6563  saved.
+    batch 1/9
+    batch 6/9
+  Ep  29/200  loss=0.8064  AUC=0.6726  AP=0.6463  smoothAUC=0.6665  (49.6s)
+  ✓ Fold 4 new best smoothed AUC=0.6665  saved.
+    batch 1/9
+    batch 6/9
+  Ep  30/200  loss=0.7361  AUC=0.6662  AP=0.6441  smoothAUC=0.6686  (60.7s)
+  ✓ Fold 4 new best smoothed AUC=0.6686  saved.
+    batch 1/9
+    batch 6/9
+  Ep  31/200  loss=0.7526  AUC=0.6576  AP=0.6386  smoothAUC=0.6655  (46.9s)
+    batch 1/9
+    batch 6/9
+  Ep  32/200  loss=0.7477  AUC=0.6560  AP=0.6437  smoothAUC=0.6599  (54.0s)
+    batch 1/9
+    batch 6/9
+  Ep  33/200  loss=0.7283  AUC=0.6633  AP=0.6455  smoothAUC=0.6589  (65.0s)
+    batch 1/9
+    batch 6/9
+  Ep  34/200  loss=0.7366  AUC=0.6789  AP=0.6690  smoothAUC=0.6660  (50.1s)
+    batch 1/9
+    batch 6/9
+  Ep  35/200  loss=0.6785  AUC=0.6865  AP=0.6701  smoothAUC=0.6762  (54.9s)
+  ✓ Fold 4 new best smoothed AUC=0.6762  saved.
+    batch 1/9
+    batch 6/9
+  Ep  36/200  loss=0.7276  AUC=0.6679  AP=0.6608  smoothAUC=0.6778  (56.2s)
+  ✓ Fold 4 new best smoothed AUC=0.6778  saved.
+    batch 1/9
+    batch 6/9
+  Ep  37/200  loss=0.7405  AUC=0.6641  AP=0.6616  smoothAUC=0.6728  (56.1s)
+    batch 1/9
+    batch 6/9
+  Ep  38/200  loss=0.7328  AUC=0.6580  AP=0.6451  smoothAUC=0.6633  (58.0s)
+    batch 1/9
+    batch 6/9
+  Ep  39/200  loss=0.6837  AUC=0.6660  AP=0.6453  smoothAUC=0.6627  (55.4s)
+    batch 1/9
+    batch 6/9
+  Ep  40/200  loss=0.7772  AUC=0.6651  AP=0.6321  smoothAUC=0.6630  (59.9s)
+    batch 1/9
+    batch 6/9
+  Ep  41/200  loss=0.6948  AUC=0.6601  AP=0.6233  smoothAUC=0.6637  (65.9s)
+    batch 1/9
+    batch 6/9
+  Ep  42/200  loss=0.7091  AUC=0.6695  AP=0.6477  smoothAUC=0.6649  (75.3s)
+    batch 1/9
+    batch 6/9
+  Ep  43/200  loss=0.6887  AUC=0.6708  AP=0.6569  smoothAUC=0.6668  (73.4s)
+    batch 1/9
+    batch 6/9
+  Ep  44/200  loss=0.6950  AUC=0.6738  AP=0.6519  smoothAUC=0.6714  (54.2s)
+    batch 1/9
+    batch 6/9
+  Ep  45/200  loss=0.6592  AUC=0.6746  AP=0.6571  smoothAUC=0.6731  (53.5s)
+    batch 1/9
+    batch 6/9
+  Ep  46/200  loss=0.6708  AUC=0.6792  AP=0.6642  smoothAUC=0.6759  (69.8s)
+    batch 1/9
+    batch 6/9
+  Ep  47/200  loss=0.6256  AUC=0.6752  AP=0.6580  smoothAUC=0.6763  (73.7s)
+    batch 1/9
+    batch 6/9
+  Ep  48/200  loss=0.6670  AUC=0.6749  AP=0.6566  smoothAUC=0.6765  (67.5s)
+    batch 1/9
+    batch 6/9
+  Ep  49/200  loss=0.6724  AUC=0.6720  AP=0.6517  smoothAUC=0.6741  (61.2s)
+    batch 1/9
+    batch 6/9
+  Ep  50/200  loss=0.6098  AUC=0.6682  AP=0.6496  smoothAUC=0.6717  (64.4s)
+    batch 1/9
+    batch 6/9
+  Ep  51/200  loss=0.6020  AUC=0.6715  AP=0.6540  smoothAUC=0.6706  (68.5s)
+    batch 1/9
+    batch 6/9
+  Ep  52/200  loss=0.6111  AUC=0.6848  AP=0.6626  smoothAUC=0.6748  (75.9s)
+    batch 1/9
+    batch 6/9
+  Ep  53/200  loss=0.6142  AUC=0.6838  AP=0.6590  smoothAUC=0.6800  (81.5s)
+  ✓ Fold 4 new best smoothed AUC=0.6800  saved.
+    batch 1/9
+    batch 6/9
+  Ep  54/200  loss=0.5940  AUC=0.6724  AP=0.6505  smoothAUC=0.6803  (70.7s)
+  ✓ Fold 4 new best smoothed AUC=0.6803  saved.
+    batch 1/9
+    batch 6/9
+  Ep  55/200  loss=0.5665  AUC=0.6706  AP=0.6477  smoothAUC=0.6756  (70.7s)
+    batch 1/9
+    batch 6/9
+  Ep  56/200  loss=0.5638  AUC=0.6762  AP=0.6516  smoothAUC=0.6731  (66.6s)
+    batch 1/9
+    batch 6/9
+  Ep  57/200  loss=0.5840  AUC=0.6778  AP=0.6512  smoothAUC=0.6749  (109.0s)
+    batch 1/9
+    batch 6/9
+  Ep  58/200  loss=0.5755  AUC=0.6830  AP=0.6564  smoothAUC=0.6790  (65.4s)
+    batch 1/9
+    batch 6/9
+  Ep  59/200  loss=0.5619  AUC=0.6873  AP=0.6617  smoothAUC=0.6827  (83.3s)
+  ✓ Fold 4 new best smoothed AUC=0.6827  saved.
+    batch 1/9
+    batch 6/9
+  Ep  60/200  loss=0.5330  AUC=0.6855  AP=0.6630  smoothAUC=0.6853  (70.6s)
+  ✓ Fold 4 new best smoothed AUC=0.6853  saved.
+    batch 1/9
+    batch 6/9
+  Ep  61/200  loss=0.5663  AUC=0.6870  AP=0.6665  smoothAUC=0.6866  (58.4s)
+  ✓ Fold 4 new best smoothed AUC=0.6866  saved.
+    batch 1/9
+    batch 6/9
+  Ep  62/200  loss=0.5395  AUC=0.6777  AP=0.6610  smoothAUC=0.6834  (72.8s)
+    batch 1/9
+    batch 6/9
+  Ep  63/200  loss=0.5137  AUC=0.6745  AP=0.6577  smoothAUC=0.6797  (63.5s)
+    batch 1/9
+    batch 6/9
+  Ep  64/200  loss=0.5193  AUC=0.6703  AP=0.6579  smoothAUC=0.6742  (68.4s)
+    batch 1/9
+    batch 6/9
+  Ep  65/200  loss=0.5413  AUC=0.6699  AP=0.6601  smoothAUC=0.6716  (65.5s)
+    batch 1/9
+    batch 6/9
+  Ep  66/200  loss=0.5478  AUC=0.6708  AP=0.6632  smoothAUC=0.6703  (74.2s)
+    batch 1/9
+    batch 6/9
+  Ep  67/200  loss=0.5082  AUC=0.6697  AP=0.6624  smoothAUC=0.6701  (67.1s)
+    batch 1/9
+    batch 6/9
+  Ep  68/200  loss=0.5183  AUC=0.6660  AP=0.6602  smoothAUC=0.6688  (84.2s)
+    batch 1/9
+    batch 6/9
+  Ep  69/200  loss=0.4872  AUC=0.6576  AP=0.6515  smoothAUC=0.6644  (73.5s)
+    batch 1/9
+    batch 6/9
+  Ep  70/200  loss=0.5538  AUC=0.6548  AP=0.6454  smoothAUC=0.6595  (82.1s)
+    batch 1/9
+    batch 6/9
+  Ep  71/200  loss=0.4991  AUC=0.6604  AP=0.6518  smoothAUC=0.6576  (79.0s)
+    batch 1/9
+    batch 6/9
+  Ep  72/200  loss=0.5416  AUC=0.6644  AP=0.6539  smoothAUC=0.6599  (81.0s)
+    batch 1/9
+    batch 6/9
+  Ep  73/200  loss=0.5384  AUC=0.6651  AP=0.6498  smoothAUC=0.6633  (72.7s)
+    batch 1/9
+    batch 6/9
+  Ep  74/200  loss=0.5228  AUC=0.6709  AP=0.6500  smoothAUC=0.6668  (76.2s)
+    batch 1/9
+    batch 6/9
+  Ep  75/200  loss=0.5576  AUC=0.6768  AP=0.6510  smoothAUC=0.6709  (74.3s)
+    batch 1/9
+    batch 6/9
+  Ep  76/200  loss=0.4881  AUC=0.6771  AP=0.6528  smoothAUC=0.6749  (66.0s)
+    batch 1/9
+    batch 6/9
+  Ep  77/200  loss=0.4843  AUC=0.6783  AP=0.6578  smoothAUC=0.6774  (95.5s)
+    batch 1/9
+    batch 6/9
+  Ep  78/200  loss=0.4989  AUC=0.6694  AP=0.6530  smoothAUC=0.6750  (72.7s)
+    batch 1/9
+    batch 6/9
+  Ep  79/200  loss=0.5092  AUC=0.6704  AP=0.6540  smoothAUC=0.6727  (73.8s)
+    batch 1/9
+    batch 6/9
+  Ep  80/200  loss=0.4931  AUC=0.6712  AP=0.6543  smoothAUC=0.6703  (72.7s)
+    batch 1/9
+    batch 6/9
+  Ep  81/200  loss=0.5047  AUC=0.6676  AP=0.6525  smoothAUC=0.6697  (89.6s)
+
+  Early stopping at epoch 81.
+
+  Fold 4 test — AUC=0.6123  AP=0.6141  (random=0.5000)
+
+=======================================================
+  FOLD 5 / 5
+=======================================================
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+    [DIAG] graph 44: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 60: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 63: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 71: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 119: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+  Fold 5/5 — train: 137  val: 34  test: 21
+Model built on mps  |  total params: 2,441,809
+    batch 1/9
+    batch 6/9
+  Ep   1/200  loss=1.5844  AUC=0.5250  AP=0.5279  smoothAUC=0.5250  (84.9s)
+  ✓ Fold 5 new best smoothed AUC=0.5250  saved.
+    batch 1/9
+    batch 6/9
+  Ep   2/200  loss=1.5176  AUC=0.4909  AP=0.5083  smoothAUC=0.5080  (89.9s)
+    batch 1/9
+    batch 6/9
+  Ep   3/200  loss=1.4713  AUC=0.5237  AP=0.5490  smoothAUC=0.5132  (94.0s)
+    batch 1/9
+    batch 6/9
+  Ep   4/200  loss=1.4380  AUC=0.5424  AP=0.5667  smoothAUC=0.5190  (97.5s)
+    batch 1/9
+    batch 6/9
+  Ep   5/200  loss=1.3525  AUC=0.5383  AP=0.5600  smoothAUC=0.5348  (66.8s)
+  ✓ Fold 5 new best smoothed AUC=0.5348  saved.
+    batch 1/9
+    batch 6/9
+  Ep   6/200  loss=1.2919  AUC=0.5742  AP=0.6014  smoothAUC=0.5516  (81.6s)
+  ✓ Fold 5 new best smoothed AUC=0.5516  saved.
+    batch 1/9
+    batch 6/9
+  Ep   7/200  loss=1.3066  AUC=0.5817  AP=0.6053  smoothAUC=0.5647  (107.3s)
+  ✓ Fold 5 new best smoothed AUC=0.5647  saved.
+    batch 1/9
+    batch 6/9
+  Ep   8/200  loss=1.2725  AUC=0.5317  AP=0.5552  smoothAUC=0.5625  (91.8s)
+    batch 1/9
+    batch 6/9
+  Ep   9/200  loss=1.2125  AUC=0.5782  AP=0.5922  smoothAUC=0.5639  (94.9s)
+    batch 1/9
+    batch 6/9
+  Ep  10/200  loss=1.2180  AUC=0.5702  AP=0.5935  smoothAUC=0.5600  (99.6s)
+    batch 1/9
+    batch 6/9
+  Ep  11/200  loss=1.2208  AUC=0.5646  AP=0.5724  smoothAUC=0.5710  (78.4s)
+  ✓ Fold 5 new best smoothed AUC=0.5710  saved.
+    batch 1/9
+    batch 6/9
+  Ep  12/200  loss=1.1667  AUC=0.5636  AP=0.5587  smoothAUC=0.5661  (69.4s)
+    batch 1/9
+    batch 6/9
+  Ep  13/200  loss=1.1473  AUC=0.5749  AP=0.5743  smoothAUC=0.5677  (93.9s)
+    batch 1/9
+    batch 6/9
+  Ep  14/200  loss=1.1107  AUC=0.5874  AP=0.5670  smoothAUC=0.5753  (98.3s)
+  ✓ Fold 5 new best smoothed AUC=0.5753  saved.
+    batch 1/9
+    batch 6/9
+  Ep  15/200  loss=1.0511  AUC=0.6140  AP=0.5993  smoothAUC=0.5921  (69.7s)
+  ✓ Fold 5 new best smoothed AUC=0.5921  saved.
+    batch 1/9
+    batch 6/9
+  Ep  16/200  loss=1.0021  AUC=0.6349  AP=0.6110  smoothAUC=0.6121  (89.7s)
+  ✓ Fold 5 new best smoothed AUC=0.6121  saved.
+    batch 1/9
+    batch 6/9
+  Ep  17/200  loss=0.9885  AUC=0.6120  AP=0.5977  smoothAUC=0.6203  (102.5s)
+  ✓ Fold 5 new best smoothed AUC=0.6203  saved.
+    batch 1/9
+    batch 6/9
+  Ep  18/200  loss=0.9628  AUC=0.6158  AP=0.6033  smoothAUC=0.6209  (86.3s)
+  ✓ Fold 5 new best smoothed AUC=0.6209  saved.
+    batch 1/9
+    batch 6/9
+  Ep  19/200  loss=0.9919  AUC=0.6338  AP=0.6081  smoothAUC=0.6205  (114.5s)
+    batch 1/9
+    batch 6/9
+  Ep  20/200  loss=0.9106  AUC=0.6165  AP=0.6094  smoothAUC=0.6220  (78.9s)
+  ✓ Fold 5 new best smoothed AUC=0.6220  saved.
+    batch 1/9
+    batch 6/9
+  Ep  21/200  loss=0.9072  AUC=0.6080  AP=0.5942  smoothAUC=0.6194  (96.1s)
+    batch 1/9
+    batch 6/9
+  Ep  22/200  loss=0.9400  AUC=0.6289  AP=0.6153  smoothAUC=0.6178  (94.7s)
+    batch 1/9
+    batch 6/9
+  Ep  23/200  loss=0.8838  AUC=0.6209  AP=0.6155  smoothAUC=0.6192  (97.5s)
+    batch 1/9
+    batch 6/9
+  Ep  24/200  loss=0.8539  AUC=0.6032  AP=0.6060  smoothAUC=0.6177  (94.9s)
+    batch 1/9
+    batch 6/9
+  Ep  25/200  loss=0.8595  AUC=0.6278  AP=0.6271  smoothAUC=0.6173  (95.6s)
+    batch 1/9
+    batch 6/9
+  Ep  26/200  loss=0.8224  AUC=0.5947  AP=0.5823  smoothAUC=0.6086  (122.5s)
+    batch 1/9
+    batch 6/9
+  Ep  27/200  loss=0.7798  AUC=0.6123  AP=0.5934  smoothAUC=0.6116  (88.7s)
+    batch 1/9
+    batch 6/9
+  Ep  28/200  loss=0.8378  AUC=0.6080  AP=0.6178  smoothAUC=0.6050  (91.2s)
+    batch 1/9
+    batch 6/9
+  Ep  29/200  loss=0.7819  AUC=0.6261  AP=0.6294  smoothAUC=0.6154  (128.9s)
+    batch 1/9
+    batch 6/9
+  Ep  30/200  loss=0.8042  AUC=0.6385  AP=0.6402  smoothAUC=0.6242  (122.9s)
+  ✓ Fold 5 new best smoothed AUC=0.6242  saved.
+    batch 1/9
+    batch 6/9
+  Ep  31/200  loss=0.7632  AUC=0.6388  AP=0.6507  smoothAUC=0.6344  (83.9s)
+  ✓ Fold 5 new best smoothed AUC=0.6344  saved.
+    batch 1/9
+    batch 6/9
+  Ep  32/200  loss=0.7135  AUC=0.6488  AP=0.6641  smoothAUC=0.6420  (124.9s)
+  ✓ Fold 5 new best smoothed AUC=0.6420  saved.
+    batch 1/9
+    batch 6/9
+  Ep  33/200  loss=0.6653  AUC=0.6543  AP=0.6704  smoothAUC=0.6473  (91.9s)
+  ✓ Fold 5 new best smoothed AUC=0.6473  saved.
+    batch 1/9
+    batch 6/9
+  Ep  34/200  loss=0.6910  AUC=0.6582  AP=0.6801  smoothAUC=0.6538  (112.1s)
+  ✓ Fold 5 new best smoothed AUC=0.6538  saved.
+    batch 1/9
+    batch 6/9
+  Ep  35/200  loss=0.6568  AUC=0.6507  AP=0.6662  smoothAUC=0.6544  (115.3s)
+  ✓ Fold 5 new best smoothed AUC=0.6544  saved.
+    batch 1/9
+    batch 6/9
+  Ep  36/200  loss=0.7197  AUC=0.6358  AP=0.6430  smoothAUC=0.6483  (119.2s)
+    batch 1/9
+    batch 6/9
+  Ep  37/200  loss=0.7042  AUC=0.6420  AP=0.6349  smoothAUC=0.6429  (109.1s)
+    batch 1/9
+    batch 6/9
+  Ep  38/200  loss=0.6826  AUC=0.6455  AP=0.6336  smoothAUC=0.6411  (99.9s)
+    batch 1/9
+    batch 6/9
+  Ep  39/200  loss=0.6613  AUC=0.6399  AP=0.6218  smoothAUC=0.6425  (112.0s)
+    batch 1/9
+    batch 6/9
+  Ep  40/200  loss=0.6629  AUC=0.6504  AP=0.6390  smoothAUC=0.6453  (94.9s)
+    batch 1/9
+    batch 6/9
+  Ep  41/200  loss=0.6488  AUC=0.6577  AP=0.6589  smoothAUC=0.6493  (133.7s)
+    batch 1/9
+    batch 6/9
+  Ep  42/200  loss=0.6353  AUC=0.6532  AP=0.6639  smoothAUC=0.6538  (137.6s)
+    batch 1/9
+    batch 6/9
+  Ep  43/200  loss=0.6025  AUC=0.6352  AP=0.6409  smoothAUC=0.6487  (99.5s)
+    batch 1/9
+    batch 6/9
+  Ep  44/200  loss=0.6250  AUC=0.6421  AP=0.6392  smoothAUC=0.6435  (110.4s)
+    batch 1/9
+    batch 6/9
+  Ep  45/200  loss=0.6616  AUC=0.6467  AP=0.6423  smoothAUC=0.6414  (99.5s)
+    batch 1/9
+    batch 6/9
+  Ep  46/200  loss=0.6123  AUC=0.6483  AP=0.6410  smoothAUC=0.6457  (126.4s)
+    batch 1/9
+    batch 6/9
+  Ep  47/200  loss=0.6099  AUC=0.6575  AP=0.6464  smoothAUC=0.6508  (114.2s)
+    batch 1/9
+    batch 6/9
+  Ep  48/200  loss=0.5884  AUC=0.6600  AP=0.6399  smoothAUC=0.6553  (110.6s)
+  ✓ Fold 5 new best smoothed AUC=0.6553  saved.
+    batch 1/9
+    batch 6/9
+  Ep  49/200  loss=0.6146  AUC=0.6558  AP=0.6329  smoothAUC=0.6578  (105.4s)
+  ✓ Fold 5 new best smoothed AUC=0.6578  saved.
+    batch 1/9
+    batch 6/9
+  Ep  50/200  loss=0.6182  AUC=0.6563  AP=0.6337  smoothAUC=0.6574  (112.6s)
+    batch 1/9
+    batch 6/9
+  Ep  51/200  loss=0.5712  AUC=0.6640  AP=0.6364  smoothAUC=0.6587  (102.1s)
+  ✓ Fold 5 new best smoothed AUC=0.6587  saved.
+    batch 1/9
+    batch 6/9
+  Ep  52/200  loss=0.5609  AUC=0.6724  AP=0.6480  smoothAUC=0.6642  (140.1s)
+  ✓ Fold 5 new best smoothed AUC=0.6642  saved.
+    batch 1/9
+    batch 6/9
+  Ep  53/200  loss=0.5763  AUC=0.6733  AP=0.6508  smoothAUC=0.6699  (123.1s)
+  ✓ Fold 5 new best smoothed AUC=0.6699  saved.
+    batch 1/9
+    batch 6/9
+  Ep  54/200  loss=0.5390  AUC=0.6711  AP=0.6525  smoothAUC=0.6722  (101.5s)
+  ✓ Fold 5 new best smoothed AUC=0.6722  saved.
+    batch 1/9
+    batch 6/9
+  Ep  55/200  loss=0.5444  AUC=0.6788  AP=0.6523  smoothAUC=0.6744  (136.9s)
+  ✓ Fold 5 new best smoothed AUC=0.6744  saved.
+    batch 1/9
+    batch 6/9
+  Ep  56/200  loss=0.5653  AUC=0.6892  AP=0.6614  smoothAUC=0.6797  (114.3s)
+  ✓ Fold 5 new best smoothed AUC=0.6797  saved.
+    batch 1/9
+    batch 6/9
+  Ep  57/200  loss=0.5483  AUC=0.6953  AP=0.6744  smoothAUC=0.6878  (146.3s)
+  ✓ Fold 5 new best smoothed AUC=0.6878  saved.
+    batch 1/9
+    batch 6/9
+  Ep  58/200  loss=0.4887  AUC=0.6968  AP=0.6839  smoothAUC=0.6938  (142.2s)
+  ✓ Fold 5 new best smoothed AUC=0.6938  saved.
+    batch 1/9
+    batch 6/9
+  Ep  59/200  loss=0.5132  AUC=0.6924  AP=0.6814  smoothAUC=0.6948  (121.3s)
+  ✓ Fold 5 new best smoothed AUC=0.6948  saved.
+    batch 1/9
+    batch 6/9
+  Ep  60/200  loss=0.5590  AUC=0.6932  AP=0.6810  smoothAUC=0.6941  (141.5s)
+    batch 1/9
+    batch 6/9
+  Ep  61/200  loss=0.5195  AUC=0.6918  AP=0.6764  smoothAUC=0.6925  (139.1s)
+    batch 1/9
+    batch 6/9
+  Ep  62/200  loss=0.4947  AUC=0.6950  AP=0.6784  smoothAUC=0.6933  (118.2s)
+    batch 1/9
+    batch 6/9
+  Ep  63/200  loss=0.5074  AUC=0.6927  AP=0.6734  smoothAUC=0.6932  (143.2s)
+    batch 1/9
+    batch 6/9
+  Ep  64/200  loss=0.5427  AUC=0.6957  AP=0.6781  smoothAUC=0.6945  (154.7s)
+    batch 1/9
+    batch 6/9
+  Ep  65/200  loss=0.5116  AUC=0.6974  AP=0.6793  smoothAUC=0.6953  (124.4s)
+  ✓ Fold 5 new best smoothed AUC=0.6953  saved.
+    batch 1/9
+    batch 6/9
+  Ep  66/200  loss=0.5015  AUC=0.6998  AP=0.6727  smoothAUC=0.6976  (137.8s)
+  ✓ Fold 5 new best smoothed AUC=0.6976  saved.
+    batch 1/9
+    batch 6/9
+  Ep  67/200  loss=0.5183  AUC=0.6909  AP=0.6676  smoothAUC=0.6960  (109.8s)
+    batch 1/9
+    batch 6/9
+  Ep  68/200  loss=0.5234  AUC=0.6918  AP=0.6715  smoothAUC=0.6942  (104.0s)
+    batch 1/9
+    batch 6/9
+  Ep  69/200  loss=0.4771  AUC=0.6932  AP=0.6825  smoothAUC=0.6920  (145.5s)
+    batch 1/9
+    batch 6/9
+  Ep  70/200  loss=0.4694  AUC=0.6876  AP=0.6781  smoothAUC=0.6909  (130.8s)
+    batch 1/9
+    batch 6/9
+  Ep  71/200  loss=0.4915  AUC=0.6794  AP=0.6663  smoothAUC=0.6867  (115.9s)
+    batch 1/9
+    batch 6/9
+  Ep  72/200  loss=0.5361  AUC=0.6750  AP=0.6599  smoothAUC=0.6807  (136.2s)
+    batch 1/9
+    batch 6/9
+  Ep  73/200  loss=0.4703  AUC=0.6736  AP=0.6530  smoothAUC=0.6760  (140.0s)
+    batch 1/9
+    batch 6/9
+  Ep  74/200  loss=0.5147  AUC=0.6707  AP=0.6465  smoothAUC=0.6731  (128.8s)
+    batch 1/9
+    batch 6/9
+  Ep  75/200  loss=0.5042  AUC=0.6789  AP=0.6604  smoothAUC=0.6744  (147.2s)
+    batch 1/9
+    batch 6/9
+  Ep  76/200  loss=0.4651  AUC=0.6814  AP=0.6630  smoothAUC=0.6770  (117.7s)
+    batch 1/9
+    batch 6/9
+  Ep  77/200  loss=0.4507  AUC=0.6859  AP=0.6742  smoothAUC=0.6821  (167.1s)
+    batch 1/9
+    batch 6/9
+  Ep  78/200  loss=0.4559  AUC=0.6870  AP=0.6800  smoothAUC=0.6848  (143.0s)
+    batch 1/9
+    batch 6/9
+  Ep  79/200  loss=0.4616  AUC=0.6821  AP=0.6779  smoothAUC=0.6850  (160.6s)
+    batch 1/9
+    batch 6/9
+  Ep  80/200  loss=0.4765  AUC=0.6803  AP=0.6754  smoothAUC=0.6831  (133.8s)
+    batch 1/9
+    batch 6/9
+  Ep  81/200  loss=0.4623  AUC=0.6804  AP=0.6755  smoothAUC=0.6809  (123.7s)
+    batch 1/9
+    batch 6/9
+  Ep  82/200  loss=0.5367  AUC=0.6784  AP=0.6675  smoothAUC=0.6797  (167.6s)
+    batch 1/9
+    batch 6/9
+  Ep  83/200  loss=0.4764  AUC=0.6781  AP=0.6720  smoothAUC=0.6790  (154.9s)
+    batch 1/9
+    batch 6/9
+  Ep  84/200  loss=0.4621  AUC=0.6760  AP=0.6658  smoothAUC=0.6775  (121.1s)
+    batch 1/9
+    batch 6/9
+  Ep  85/200  loss=0.4632  AUC=0.6762  AP=0.6655  smoothAUC=0.6768  (142.2s)
+    batch 1/9
+    batch 6/9
+  Ep  86/200  loss=0.4606  AUC=0.6752  AP=0.6644  smoothAUC=0.6758  (126.1s)
+
+  Early stopping at epoch 86.
+
+  Fold 5 test — AUC=0.7034  AP=0.6970  (random=0.5000)
+
+=======================================================
+  5-Fold CV Summary
+=======================================================
+  Fold 1: AUC=0.6938  AP=0.6777  (random=0.5000)
+  Fold 2: AUC=0.6759  AP=0.6665  (random=0.5000)
+  Fold 3: AUC=0.6971  AP=0.6924  (random=0.5000)
+  Fold 4: AUC=0.6123  AP=0.6141  (random=0.5000)
+  Fold 5: AUC=0.7034  AP=0.6970  (random=0.5000)
+  ─────────────────────────────────────────
+  Mean AUC        = 0.6765 ± 0.0373
+  Mean AP         = 0.6696 ± 0.0333
+  Mean random AP  = 0.5000 ± 0.0000  (chance baseline — AP lift over this is the real signal)
+  Best overall fold: 1  (val AUC=0.7390)
+
+[4/4] Final test evaluation (best_overall.pt) …
+Model built on mps  |  total params: 2,441,809
+    [DIAG] graph 44: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+    [DIAG] graph 60: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 63: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 71: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 119: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+  Fold 1/5 — train: 136  val: 35  test: 21
+
+  ── Test results (best overall model) ─────
+     auc         : 0.6938
+     ap          : 0.6777
+     random_ap   : 0.5000
+
+  Results saved        → results
+  Best overall ckpt    → checkpoints/best_overall.pt
+  Trained model export → ../trained_models/assembly_gnn_20260811_200026_auc07390.pt
+
+  ✓ best_serving.pt updated — AUC=0.6765, AP=0.6696
+
+  Building assembly template cache …
+  [TemplateDB] Built 7 category templates from 192 training assemblies.
+    Bench Vice                                bodies≈22  dist={'long_shaft': 2, 'short_shaft': 2, 'thick_plate': 2, 'thin_plate': 3, 'bolt': 2, 'washer': 2, 'nut': 4, 'body': 12}
+    C Clamps                                  bodies≈7  dist={'long_shaft': 1, 'short_shaft': 1, 'thick_plate': 1, 'thin_plate': 1, 'bolt': 1, 'washer': 1, 'nut': 2, 'body': 2}
+    Crane Hook                                bodies≈40  dist={'long_shaft': 2, 'short_shaft': 3, 'thick_plate': 5, 'thin_plate': 2, 'bolt': 1, 'washer': 7, 'nut': 12, 'body': 7}
+    Gate Valve                                bodies≈49  dist={'long_shaft': 2, 'short_shaft': 4, 'thick_plate': 2, 'thin_plate': 4, 'bolt': 4, 'washer': 3, 'nut': 18, 'body': 16}
+    Pipe Vice                                 bodies≈8  dist={'long_shaft': 1, 'short_shaft': 1, 'thick_plate': 1, 'thin_plate': 2, 'bolt': 1, 'washer': 1, 'nut': 2, 'body': 4}
+    Press Tool                                bodies≈14  dist={'long_shaft': 4, 'short_shaft': 4, 'thick_plate': 2, 'thin_plate': 18, 'bolt': 10, 'washer': 4, 'nut': 4, 'body': 5}
+    Tool Post                                 bodies≈30  dist={'long_shaft': 2, 'short_shaft': 8, 'thick_plate': 2, 'thin_plate': 1, 'bolt': 8, 'washer': 2, 'nut': 2, 'body': 11}
+  [TemplateDB] Saved 7 templates → data/assembly_templates.json

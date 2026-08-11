@@ -1,0 +1,279 @@
+
+[1/4] Loading dataset …
+Processing...
+  Category filter: ['Bench_vice', 'C_Clamps', 'Pipe_vice', 'Gate_Valve', 'Press_Tool', 'Tool_Post', 'Crane_hook']
+  193 STEP files after category filter
+  Found 193 STEP file(s) in /Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Source_3d_models/Best_models_for_training
+  [1/193] [CACHED] Bench_Vice_02/Bench_Vice_02.STEP — 26 nodes
+  [2/193] [CACHED] Bench_Vice_03/Bench_Vice_03.step — 18 nodes
+  [3/193] [CACHED] Bench_Vice_04/Bench_Vice_04.STEP — 47 nodes
+  [4/193] [CACHED] Bench_Vice_06/Bench_Vice_06.stp — 16 nodes
+  [5/193] [CACHED] Bench_Vice_07/Bench_Vice_07.STEP — 12 nodes
+  [6/193] [CACHED] Bench_Vice_08/Bench_Vice_08.step — 55 nodes
+  [7/193] [CACHED] Bench_Vice_09/Bench_Vice_09.stp — 22 nodes
+  [8/193] [CACHED] Bench_Vice_11/Bench_Vice_11.STEP — 20 nodes
+  [9/193] [CACHED] Bench_Vice_12/Bench_Vice_12.stp — 31 nodes
+  [10/193] [CACHED] Bench_Vice_13/Bench_Vice_13.STEP — 27 nodes
+  [11/193] [CACHED] Bench_Vice_14/Bench_Vice_14.STEP — 24 nodes
+  [12/193] [CACHED] Bench_Vice_17/Bench_Vice_17.STEP — 25 nodes
+  [13/193] [CACHED] Bench_Vice_18/Bench_Vice_18.stp — 7 nodes
+  [14/193] [CACHED] Bench_Vice_20/Bench_Vice_20.stp — 21 nodes
+  [15/193] [CACHED] Bench_Vice_21/Bench_Vice_21.STEP — 12 nodes
+  [16/193] [CACHED] Bench_Vice_22/Bench_Vice_22.stp — 22 nodes
+  [17/193] [CACHED] Bench_Vice_23/Bench_Vice_23.stp — 27 nodes
+  [18/193] [CACHED] Bench_Vice_26/Bench_Vice_26.step — 17 nodes
+  [19/193] [CACHED] Bench_Vice_27/Bench_Vice_27.stp — 10 nodes
+  [20/193] [CACHED] Bench_Vice_28/Bench_Vice_28.stp — 46 nodes
+  [21/193] [CACHED] Bench_Vice_31/Bench_Vice_31.stp — 20 nodes
+  [22/193] [CACHED] Bench_Vice_34/Bench_Vice_34.stp — 23 nodes
+  [23/193] [CACHED] Bench_Vice_38/Bench_Vice_38.step — 20 nodes
+  [24/193] [CACHED] Bench_Vice_39/Bench_Vice_39.step — 14 nodes
+  [25/193] [CACHED] Bench_Vice_41/Bench_Vice_41.stp — 22 nodes
+  [26/193] [CACHED] Bench_Vice_42/Bench_Vice_42.stp — 15 nodes
+  [27/193] [CACHED] Bench_Vice_43/Bench_Vice_43.step — 16 nodes
+  [28/193] [CACHED] Bench_Vice_45/Bench_Vice_45.step — 25 nodes
+  [29/193] [CACHED] Bench_Vice_46/Bench_Vice_46.stp — 18 nodes
+  [30/193] [CACHED] Bench_Vice_47/Bench_Vice_47.STEP — 21 nodes
+  [31/193] [CACHED] Bench_Vice_50/Bench_Vice_50.STEP — 31 nodes
+  [32/193] [CACHED] Bench_Vice_51/Bench_Vice_51.STEP — 13 nodes
+  [33/193] [CACHED] Bench_Vice_52/Bench_Vice_52.stp — 57 nodes
+  [34/193] [CACHED] Bench_Vice_53/Bench_Vice_53.STEP — 27 nodes
+  [35/193] [CACHED] Bench_Vice_58/Bench_Vice_58.stp — 6 nodes
+  [36/193] [CACHED] Bench_Vice_59/Bench_Vice_59.STEP — 97 nodes
+  [37/193] [CACHED] Bench_Vice_60/Bench_Vice_60.stp — 24 nodes
+  [38/193] [CACHED] Bench_Vice_61/Bench_Vice_61.stp — 48 nodes
+  [39/193] [CACHED] Bench_Vice_65/Bench_Vice_65.stp — 28 nodes
+  [40/193] [CACHED] Bench_Vice_66/Bench_Vice_66.step — 26 nodes
+  [41/193] [CACHED] Bench_Vice_67/Bench_Vice_67.stp — 26 nodes
+  [42/193] [CACHED] Bench_Vice_68/Bench_Vice_68.stp — 24 nodes
+  [43/193] [CACHED] Bench_Vice_69/Bench_Vice_69.stp — 22 nodes
+  [44/193] [CACHED] Bench_Vice_72/Bench_Vice_72.stp — 25 nodes
+  [45/193] [CACHED] Bench_Vice_73/Bench_Vice_73.stp — 2 nodes
+  [46/193] [CACHED] Bench_Vice_74/Bench_Vice_74.stp — 15 nodes
+  [47/193] [CACHED] Bench_Vice_75/Bench_Vice_75.STEP — 33 nodes
+  [48/193] [CACHED] Bench_Vice_76/Bench_Vice_76.stp — 37 nodes
+  [49/193] [CACHED] Bench_Vice_77/Bench_Vice_77.STEP — 6 nodes
+  [50/193] [CACHED] Bench_Vice_78/Bench_Vice_78.STEP — 35 nodes
+  [51/193] [CACHED] Bench_Vice_79/Bench_Vice_79.STEP — 19 nodes
+  [52/193] [CACHED] Bench_Vice_80/Bench_Vice_80.STEP — 16 nodes
+  [53/193] [CACHED] Bench_Vice_81/Bench_Vice_81.stp — 36 nodes
+  [54/193] [CACHED] Bench_Vice_82/Bench_Vice_82.stp — 41 nodes
+  [55/193] [CACHED] C_Clamps_01/C_Clamps_01.stp — 8 nodes
+  [56/193] [CACHED] C_Clamps_03/C_Clamps_03.STEP — 10 nodes
+  [57/193] [CACHED] C_Clamps_04/C_Clamps_04.stp — 10 nodes
+  [58/193] [CACHED] C_Clamps_05/C_Clamps_05.STEP — 5 nodes
+  [59/193] [CACHED] C_Clamps_06/C_Clamps_06.stp — 9 nodes
+  [60/193] [CACHED] C_Clamps_07/C_Clamps_07.stp — 7 nodes
+  [61/193] [CACHED] C_Clamps_08/C_Clamps_08.stp — 2 nodes
+  [62/193] [CACHED] C_Clamps_09/C_Clamps_09.STEP — 9 nodes
+  [63/193] [CACHED] C_Clamps_10/C_Clamps_10.stp — 7 nodes
+  [64/193] [CACHED] C_Clamps_11/C_Clamps_11.STEP — 2 nodes
+  [65/193] [CACHED] C_Clamps_12/C_Clamps_12.stp — 5 nodes
+  [66/193] [CACHED] C_Clamps_13/C_Clamps_13.STEP — 6 nodes
+  [67/193] [CACHED] C_Clamps_14/C_Clamps_14.STEP — 4 nodes
+  [68/193] [CACHED] C_Clamps_15/C_Clamps_15.stp — 4 nodes
+  [69/193] [CACHED] C_Clamps_16/C_Clamps_16.stp — 10 nodes
+  [70/193] [CACHED] C_Clamps_18/C_Clamps_18.stp — 3 nodes
+  [71/193] [CACHED] C_Clamps_19/C_Clamps_19.stp — 6 nodes
+  [72/193] [CACHED] C_Clamps_20/C_Clamps_20.stp — 2 nodes
+  [73/193] [CACHED] C_Clamps_21/C_Clamps_21.STEP — 6 nodes
+  [74/193] [CACHED] C_Clamps_22/C_Clamps_22.stp — 7 nodes
+  [75/193] [CACHED] C_Clamps_23/C_Clamps_23.STEP — 16 nodes
+  [76/193] [CACHED] C_Clamps_26/C_Clamps_26.stp — 11 nodes
+  [77/193] [CACHED] C_Clamps_28/C_Clamps_28.step — 10 nodes
+  [78/193] [CACHED] C_Clamps_29/C_Clamps_29.stp — 7 nodes
+  [79/193] [CACHED] C_Clamps_31/C_Clamps_31.stp — 6 nodes
+  [80/193] [CACHED] C_Clamps_32/C_Clamps_32.step — 10 nodes
+  [81/193] [CACHED] C_Clamps_33/C_Clamps_33.stp — 9 nodes
+  [82/193] [CACHED] C_Clamps_36/C_Clamps_36.STEP — 5 nodes
+  [83/193] [CACHED] C_Clamps_37/C_Clamps_37.step — 5 nodes
+  [84/193] [CACHED] C_Clamps_38/C_Clamps_38.STEP — 8 nodes
+  [85/193] [CACHED] C_Clamps_40/C_Clamps_40.stp — 4 nodes
+  [86/193] [CACHED] Crane_Hook_01/Crane_Hook_01.stp — 33 nodes
+  [87/193] [CACHED] Crane_Hook_02/Crane_Hook_02.STEP — 35 nodes
+  [88/193] [CACHED] Crane_Hook_04/Crane_Hook_04.STEP — 44 nodes
+  [89/193] [CACHED] Crane_Hook_05/Crane_Hook_05.STEP — 15 nodes
+  [90/193] [CACHED] Crane_Hook_06/Crane_Hook_06.step — 20 nodes
+  [91/193] [CACHED] Crane_Hook_07/Crane_Hook_07.stp — 46 nodes
+  [92/193] [CACHED] Crane_Hook_09/Crane_Hook_09.step — 28 nodes
+  [93/193] [CACHED] Crane_Hook_10/Crane_Hook_10.stp — 46 nodes
+  [94/193] [CACHED] Crane_Hook_11/Crane_Hook_11.stp — 19 nodes
+  [95/193] [CACHED] Crane_Hook_12/Crane_Hook_12.stp — 53 nodes
+  [96/193] [CACHED] Crane_Hook_13/Crane_Hook_13.stp — 28 nodes
+  [97/193] [CACHED] Crane_Hook_15/Crane_Hook_15.STEP — 86 nodes
+  [98/193] [CACHED] Crane_Hook_17/Crane_Hook_17.stp — 49 nodes
+  [99/193] [CACHED] Crane_Hook_21/Crane_Hook_21.STEP — 57 nodes
+  [100/193] [CACHED] Crane_Hook_22/Crane_Hook_22.STEP — 66 nodes
+  [101/193] [CACHED] Crane_Hook_23/Crane_Hook_23.step — 24 nodes
+  [102/193] [CACHED] Gate_Valve_02/Gate_Valve_02.STEP — 4 nodes
+  [103/193] [CACHED] Gate_Valve_03/Gate_Valve_03.stp — 40 nodes
+  [104/193] [CACHED] Gate_Valve_04/Gate_Valve_04.stp — 63 nodes
+  [105/193] [CACHED] Gate_Valve_05/Gate_Valve_05.stp — 87 nodes
+  [106/193] [CACHED] Gate_Valve_06/Gate_Valve_06.stp — 41 nodes
+  [107/193] [CACHED] Gate_Valve_07/Gate_Valve_07.stp — 69 nodes
+  [108/193] [CACHED] Gate_Valve_10/Gate_Valve_10.stp — 61 nodes
+  [109/193] [CACHED] Gate_Valve_11/Gate_Valve_11.STEP — 47 nodes
+  [110/193] Parsing: Gate_Valve_12/Gate_Valve_12.stp
+    [skip] Gate_Valve_12.stp: timeout after 300s
+  [TIMEOUT] Gate_Valve_12/Gate_Valve_12.stp (302.0s)
+  [111/193] [CACHED] Gate_Valve_14/Gate_Valve_14.stp — 59 nodes
+  [112/193] [CACHED] Gate_Valve_15/Gate_Valve_15.stp — 51 nodes
+  [113/193] [CACHED] Gate_Valve_23/Gate_Valve_23.STEP — 35 nodes
+  [114/193] [CACHED] Gate_Valve_24/Gate_Valve_24.STEP — 81 nodes
+  [115/193] [CACHED] Gate_Valve_25/Gate_Valve_25.STEP — 22 nodes
+  [116/193] [CACHED] Gate_Valve_27/Gate_Valve_27.stp — 5 nodes
+  [117/193] [CACHED] Gate_Valve_31/Gate_Valve_31.STEP — 4 nodes
+  [118/193] [CACHED] Gate_Valve_34/Gate_Valve_34.stp — 62 nodes
+  [119/193] [CACHED] Gate_Valve_35/Gate_Valve_35.step — 43 nodes
+  [120/193] [CACHED] Gate_Valve_36/Gate_Valve_36.STEP — 93 nodes
+  [121/193] [CACHED] Gate_Valve_37/Gate_Valve_37.stp — 2 nodes
+  [122/193] [CACHED] Gate_Valve_38/Gate_Valve_38.stp — 176 nodes
+  [123/193] [CACHED] Pipe_Vice_01/Pipe_Vice_01.stp — 10 nodes
+  [124/193] [CACHED] Pipe_Vice_03/Pipe_Vice_03.STEP — 6 nodes
+  [125/193] [CACHED] Pipe_Vice_04/Pipe_Vice_04.stp — 6 nodes
+  [126/193] [CACHED] Pipe_Vice_07/Pipe_Vice_07.STEP — 20 nodes
+  [127/193] [CACHED] Pipe_Vice_08/Pipe_Vice_08.STEP — 5 nodes
+  [128/193] [CACHED] Pipe_Vice_09/Pipe_Vice_09.STEP — 7 nodes
+  [129/193] [CACHED] Pipe_Vice_10/Pipe_Vice_10.stp — 11 nodes
+  [130/193] [CACHED] Pipe_Vice_11/Pipe_Vice_11.STEP — 36 nodes
+  [131/193] [CACHED] Pipe_Vice_14/Pipe_Vice_14.stp — 10 nodes
+  [132/193] [CACHED] Pipe_Vice_15/Pipe_Vice_15.STEP — 6 nodes
+  [133/193] [CACHED] Pipe_Vice_16/Pipe_Vice_16.stp — 21 nodes
+  [134/193] [CACHED] Pipe_Vice_17/Pipe_Vice_17.step — 16 nodes
+  [135/193] [CACHED] Pipe_Vice_19/Pipe_Vice_19.stp — 16 nodes
+  [136/193] [CACHED] Pipe_Vice_20/Pipe_Vice_20.stp — 20 nodes
+  [137/193] [CACHED] Pipe_Vice_21/Pipe_Vice_21.step — 3 nodes
+  [138/193] [CACHED] Pipe_Vice_22/Pipe_Vice_22.stp — 8 nodes
+  [139/193] [CACHED] Pipe_Vice_23/Pipe_Vice_23.STEP — 21 nodes
+  [140/193] [CACHED] Pipe_Vice_24/Pipe_Vice_24.stp — 10 nodes
+  [141/193] [CACHED] Pipe_Vice_25/Pipe_Vice_25.stp — 16 nodes
+  [142/193] [CACHED] Pipe_Vice_27/Pipe_Vice_27.STEP — 17 nodes
+  [143/193] [CACHED] Pipe_Vice_28/Pipe_Vice_28.stp — 7 nodes
+  [144/193] [CACHED] Pipe_Vice_29/Pipe_Vice_29.stp — 6 nodes
+  [145/193] [CACHED] Pipe_Vice_30/Pipe_Vice_30.STEP — 6 nodes
+  [146/193] [CACHED] Pipe_Vice_31/Pipe_Vice_31.stp — 7 nodes
+  [147/193] [CACHED] Pipe_Vice_32/Pipe_Vice_32.stp — 9 nodes
+  [148/193] [CACHED] Pipe_Vice_33/Pipe_Vice_33.stp — 6 nodes
+  [149/193] [CACHED] Pipe_Vice_35/Pipe_Vice_35.stp — 10 nodes
+  [150/193] [CACHED] Pipe_Vice_36/Pipe_Vice_36.STEP — 7 nodes
+  [151/193] [CACHED] Pipe_Vice_37/Pipe_Vice_37.stp — 8 nodes
+  [152/193] [CACHED] Pipe_Vice_38/Pipe_Vice_38.stp — 10 nodes
+  [153/193] [CACHED] Pipe_Vice_40/Pipe_Vice_40.stp — 39 nodes
+  [154/193] [CACHED] Pipe_Vice_41/Pipe_Vice_41.stp — 5 nodes
+  [155/193] [CACHED] Pipe_Vice_42/Pipe_Vice_42.stp — 6 nodes
+  [156/193] [CACHED] Pipe_Vice_43/Pipe_Vice_43.stp — 15 nodes
+  [157/193] [CACHED] Pipe_Vice_44/Pipe_Vice_44.STEP — 39 nodes
+  [158/193] [CACHED] Pipe_Vice_45/Pipe_Vice_45.STEP — 30 nodes
+  [159/193] [CACHED] Pipe_Vice_46/Pipe_Vice_46.stp — 6 nodes
+  [160/193] [CACHED] Pipe_Vice_48/Pipe_Vice_48.step — 8 nodes
+  [161/193] [CACHED] Pipe_Vice_49/Pipe_Vice_49.STEP — 19 nodes
+  [162/193] [CACHED] Pipe_Vice_50/Pipe_Vice_50.stp — 8 nodes
+  [163/193] [CACHED] Pipe_Vice_51/Pipe_Vice_51.step — 6 nodes
+  [164/193] [CACHED] Pipe_Vice_53/Pipe_Vice_53.step — 5 nodes
+  [165/193] [CACHED] Press_Tool_02/Press_Tool_02.stp — 10 nodes
+  [166/193] [CACHED] Press_Tool_04/Press_Tool_04.stp — 98 nodes
+  [167/193] [CACHED] Press_Tool_05/Press_Tool_05.stp — 14 nodes
+  [168/193] [CACHED] Press_Tool_06/Press_Tool_06.STEP — 10 nodes
+  [169/193] [CACHED] Press_Tool_07/Press_Tool_07.stp — 170 nodes
+  [170/193] [CACHED] Press_Tool_08/Press_Tool_08.step — 178 nodes
+  [171/193] [CACHED] Press_Tool_09/Press_Tool_09.STEP — 89 nodes
+  [172/193] [CACHED] Press_Tool_10/Press_Tool_10.step — 145 nodes
+  [173/193] [CACHED] Press_Tool_12/Press_Tool_12.STEP — 198 nodes
+  [174/193] [CACHED] Press_Tool_13/Press_Tool_13.stp — 10 nodes
+  [175/193] [CACHED] Press_Tool_14/Press_Tool_14.stp — 10 nodes
+  [176/193] [CACHED] Press_Tool_15/Press_Tool_15.stp — 10 nodes
+  [177/193] [CACHED] Press_Tool_16/Press_Tool_16.stp — 10 nodes
+  [178/193] [CACHED] Press_Tool_17/Press_Tool_17.step — 10 nodes
+  [179/193] [CACHED] Press_Tool_18/Press_Tool_18.step — 8 nodes
+  [180/193] [CACHED] Press_Tool_19/Press_Tool_19.step — 37 nodes
+  [181/193] [CACHED] Press_Tool_21/Press_Tool_21.stp — 43 nodes
+  [182/193] [CACHED] Press_Tool_23/Press_Tool_23.stp — 10 nodes
+  [183/193] [CACHED] Press_Tool_24/Press_Tool_24.STEP — 10 nodes
+  [184/193] [CACHED] Press_Tool_25/Press_Tool_25.stp — 14 nodes
+  [185/193] [CACHED] Press_Tool_26/Press_Tool_26.step — 16 nodes
+  [186/193] [CACHED] Tool_Post_01/Tool_Post_01.step — 31 nodes
+  [187/193] [CACHED] Tool_Post_02/Tool_Post_02.stp — 28 nodes
+  [188/193] [CACHED] Tool_Post_05/Tool_Post_05.STEP — 54 nodes
+  [189/193] [CACHED] Tool_Post_08/Tool_Post_08.stp — 15 nodes
+  [190/193] [CACHED] Tool_Post_10/Tool_Post_10.stp — 50 nodes
+  [191/193] [CACHED] Tool_Post_13/Tool_Post_13.stp — 27 nodes
+  [192/193] [CACHED] Tool_Post_14/Tool_Post_14.stp — 24 nodes
+  [193/193] [CACHED] Tool_Post_17/Tool_Post_17.STEP — 31 nodes
+  Parsed 0 new  |  cached: 192  errors: 0  timeouts: 1
+
+  Retrying 1 timed-out file(s) with 600s budget …
+  [RETRY] Parsing: Gate_Valve_12/Gate_Valve_12.stp
+    [detail] Gate_Valve_12.stp: worker process crashed (no output)
+  [RETRY-ERROR]   Gate_Valve_12/Gate_Valve_12.stp — parse failed
+  Recovered 0/1 previously-timed-out file(s)  |  remaining timeouts: 1
+  Using 192 real assembly graph(s) — no synthetic data.
+  Saved 192 graphs → data/processed/processed/data.pt
+  Saved source paths    → data/processed/processed/sources.json
+  Saved categories      → data/processed/processed/categories.json
+Done!
+      192 graphs loaded.
+      Dataset: 192 graphs | mean nodes=26.9 | mean edges=81.1 | categories: Bench_vice=54 C_Clamps=31 Crane_hook=16 Gate_Valve=20 Pipe_vice=42 Press_Tool=21 Tool_Post=8
+
+[2/4] Building model …  (5-fold CV)
+
+  Resuming from fold 4 — loading prior checkpoints …
+Model built on mps  |  total params: 2,441,809
+    [DIAG] graph 44: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+    [DIAG] graph 60: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 63: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 71: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 119: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+  Fold 1/5 — train: 136  val: 35  test: 21
+  Fold 1: AUC=0.6938  AP=0.6777  (from checkpoint, random=0.5000)
+Model built on mps  |  total params: 2,441,809
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+    [DIAG] graph 63: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 119: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 44: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 60: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 71: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+  Fold 2/5 — train: 137  val: 34  test: 21
+  Fold 2: AUC=0.6759  AP=0.6665  (from checkpoint, random=0.5000)
+Model built on mps  |  total params: 2,441,809
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+    [DIAG] graph 44: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 60: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 71: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 119: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 63: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+  Fold 3/5 — train: 137  val: 34  test: 21
+  Fold 3: AUC=0.6971  AP=0.6924  (from checkpoint, random=0.5000)
+Model built on mps  |  total params: 2,441,809
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+    [DIAG] graph 44: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 60: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 63: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 71: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 119: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+  Fold 4/5 — train: 137  val: 34  test: 21
+  Fold 4: AUC=0.5476  AP=0.5486  (from checkpoint, random=0.5000)
+
+[3/4] Training (5 folds) …
+
+=======================================================
+  FOLD 5 / 5
+=======================================================
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+    [DIAG] graph 44: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 60: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 63: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 71: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 119: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+  Fold 5/5 — train: 137  val: 34  test: 21
+Model built on mps  |  total params: 2,441,809
+    batch 1/9
+    batch 6/9
+  Ep   1/200  loss=1.5735  AUC=0.5519  AP=0.5693  smoothAUC=0.5519  (59.6s)
+  ✓ Fold 5 new best smoothed AUC=0.5519  saved.
+    batch 1/9
