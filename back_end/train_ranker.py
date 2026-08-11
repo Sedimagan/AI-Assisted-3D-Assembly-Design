@@ -31,7 +31,8 @@ from torch_geometric.data import Data
 
 from dataset  import AssemblyDataset, graph_level_indices, COMP_TYPES
 from model    import build_model, build_ranker
-from evaluate import ranking_metrics, majority_baseline_hit1, per_class_ranking_metrics
+from evaluate import (ranking_metrics, majority_baseline_hit1, per_class_ranking_metrics,
+                       corpus_majority_baseline_hit1, corpus_majority_type)
 
 
 # ── Type prototypes ────────────────────────────────────────────────────────────
@@ -280,7 +281,17 @@ def main():
     nr.load_state_dict(best_state)
     test_metrics, test_true_idx, test_scores = epoch_pass(
         nr, gnn, prototypes_raw, test_samples, device, opt=None, return_raw=True)
+    # Two baselines, deliberately both reported: majority_baseline_hit1 is
+    # computed from the leave-one-out SAMPLE pool (capped at n_per_graph per
+    # graph) -- kept for continuity with every prior run's saved numbers, but
+    # it moves whenever n_per_graph/seed/corpus changes, undermining "did we
+    # beat baseline" comparisons across runs. corpus_majority_baseline_hit1
+    # uses the TRUE corpus-wide node-type frequency instead -- stable, and
+    # the one that should actually be compared run-to-run.
     baseline_hit1 = majority_baseline_hit1(train_true_idx, [t for _, t in test_samples])
+    corpus_baseline_hit1 = corpus_majority_baseline_hit1(
+        train_graphs, [t for _, t in test_samples], len(COMP_TYPES))
+    corpus_majority = COMP_TYPES[corpus_majority_type(train_graphs, len(COMP_TYPES))]
     per_class = per_class_ranking_metrics(test_true_idx, test_scores, COMP_TYPES)
 
     print(f"\n{'='*55}")
@@ -288,7 +299,9 @@ def main():
     print(f"{'='*55}")
     for k, v in test_metrics.items():
         print(f"     {k:10s}: {v:.4f}")
-    print(f"     majority-class baseline Hit@1: {baseline_hit1:.4f}")
+    print(f"     majority-class baseline Hit@1 (sample-pool, legacy):  {baseline_hit1:.4f}")
+    print(f"     majority-class baseline Hit@1 (corpus-wide, stable):  {corpus_baseline_hit1:.4f}  "
+          f"(majority type: {corpus_majority})")
     print(f"  (best val MRR={best_mrr:.4f} at selection time)")
 
     print(f"\n  Per-class breakdown (test set, n={len(test_true_idx)}):")
@@ -308,7 +321,9 @@ def main():
         json.dump({
             "test_metrics":  {k: round(v, 4) for k, v in test_metrics.items()},
             "val_metrics":   {k: round(v, 4) for k, v in best_metrics.items()},
-            "baseline_hit1": round(baseline_hit1, 4),
+            "baseline_hit1":                round(baseline_hit1, 4),
+            "baseline_hit1_corpus_wide":     round(corpus_baseline_hit1, 4),
+            "corpus_majority_type":          corpus_majority,
             "per_class":     per_class,
         }, f, indent=2)
 
@@ -317,6 +332,7 @@ def main():
         "val_metrics":        best_metrics,
         "test_metrics":       test_metrics,
         "baseline_hit1":      baseline_hit1,
+        "baseline_hit1_corpus_wide": corpus_baseline_hit1,
         "trained_at":         datetime.now().isoformat(),
         "encoder_ckpt":       str(ckpt_path),
         "encoder_trained_at": ckpt.get("trained_at"),

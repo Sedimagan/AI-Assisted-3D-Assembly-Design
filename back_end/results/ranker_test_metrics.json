@@ -12,6 +12,8 @@
     "ndcg@5": 0.6856
   },
   "baseline_hit1": 0.4286,
+  "baseline_hit1_corpus_wide": 0.4286,
+  "corpus_majority_type": "body",
   "per_class": {
     "per_class": {
       "long_shaft": {

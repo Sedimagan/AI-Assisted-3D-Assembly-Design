@@ -107,10 +107,45 @@ def ranking_metrics(
 
 
 def majority_baseline_hit1(train_true_idx: Sequence[int], eval_true_idx: Sequence[int]) -> float:
-    """Hit@1 if we always predict the most frequent type seen in training."""
+    """Hit@1 if we always predict the most frequent type in the leave-one-out
+    SAMPLE pool (capped at n_per_graph per graph, so this is a subsampled
+    estimate of the true corpus distribution, not the distribution itself).
+
+    Kept for continuity with prior runs' reported numbers, but this makes the
+    baseline a moving target across runs whenever n_per_graph, the sampling
+    seed, or corpus composition changes -- see corpus_majority_baseline_hit1
+    for the stable version. Report both, don't silently swap one for the
+    other, since old logs/results.json only have this one."""
     if not train_true_idx or not eval_true_idx:
         return 0.0
     majority = Counter(train_true_idx).most_common(1)[0][0]
+    return sum(1 for t in eval_true_idx if t == majority) / len(eval_true_idx)
+
+
+def corpus_majority_type(graphs: Sequence, n_types: int) -> int:
+    """The single most common COMP_TYPES index across every node in every
+    given graph -- the TRUE corpus-wide frequency, not a leave-one-out
+    sample's subsampled approximation of it. Stable across n_per_graph
+    changes, sampling-seed changes, and (for a fixed corpus) across runs --
+    the honest majority-baseline yardstick to hold constant when comparing
+    Hit@1 "did we beat baseline" across different training runs."""
+    counts = [0] * n_types
+    for g in graphs:
+        type_idx = g.x[:, :n_types].argmax(dim=1)
+        for t in type_idx.tolist():
+            counts[t] += 1
+    return int(max(range(n_types), key=lambda t: counts[t]))
+
+
+def corpus_majority_baseline_hit1(
+    train_graphs: Sequence, eval_true_idx: Sequence[int], n_types: int,
+) -> float:
+    """Hit@1 if we always predict corpus_majority_type(train_graphs) --
+    the stable, corpus-wide-frequency version of majority_baseline_hit1.
+    This is the number that should actually be compared run-to-run."""
+    if not eval_true_idx:
+        return 0.0
+    majority = corpus_majority_type(train_graphs, n_types)
     return sum(1 for t in eval_true_idx if t == majority) / len(eval_true_idx)
 
 
