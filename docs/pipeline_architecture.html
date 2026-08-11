@@ -129,6 +129,7 @@
   /* Run-provenance badges — color marks generation (r36 = current/latest run,
      r35 = the run before it), text is always the run id itself so this
      scheme extends to r37/r38/... without new CSS. See #provenance. */
+  .badge.r37 { background: var(--tint-accent); color: var(--accent); border-color: var(--accent); }
   .badge.r36 { background: var(--tint-warn); color: var(--warn); border-color: var(--warn); }
   .badge.r35 { background: var(--tint-accent2); color: var(--accent2); border-color: var(--accent2); }
   .badge.pending { background: transparent; color: var(--muted); border-color: var(--border); border-style: dashed; }
@@ -271,13 +272,15 @@
 <div class="doc-header" id="overview">
   <div class="kicker">AI-Assisted 3D Assembly Design</div>
   <div class="last-updated" id="last-updated">
-    <span class="dot"></span>Last updated <b>2026-08-11 07:56 IST</b> — Phase 3 shape-gen second retrain
-    (tasks 19–22: loss breakdown, LR scheduler, retrieval-gated metric, occupancy-jitter fix) completed:
-    test IoU=0.5352/chamfer=0.0746, a mixed result vs the first R36 retrain (IoU up, chamfer worse) — see
-    <a href="#phase3" style="color:inherit;text-decoration:underline;">Phase 3</a>. Three Phase 1 fixes also
-    landed this session (code only, retrain pending, see <a href="#phase1" style="color:inherit;text-decoration:underline;">Phase 1</a>):
-    <code>neg_ratio</code> 0.5→1.0 + <code>random_ap</code> baseline, <code>RandomLinkSplit</code> per-graph
-    seeding, and a 2×-timeout retry for STEP parse timeouts.
+    <span class="dot"></span>Last updated <b>2026-08-11 20:07 IST</b> — <b>R37</b> landed: Mean
+    AUC=0.6765±0.0373 vs R36's 0.6277±0.0516, <b>promoted to <code>best_serving.pt</code></b> — see
+    <a href="#phase1" style="color:inherit;text-decoration:underline;">Phase 1</a>. Validated the
+    <code>neg_ratio</code>/<code>random_ap</code>, <code>RandomLinkSplit</code>-seeding, and timeout-retry
+    fixes on real numbers, and caught+fixed a real promotion-gate bug in the process (lexicographic tuple
+    comparison meant AP was never actually checked when AUC won — see
+    <a href="#p1-eval" style="color:inherit;text-decoration:underline;">Evaluation &amp; Promotion Gate</a>).
+    Crashed once mid-fold and needed a resume correction, detailed in the
+    <a href="#changelog" style="color:inherit;text-decoration:underline;">changelog</a>.
   </div>
   <h1>End-to-End Pipeline Architecture</h1>
   <p class="sub">
@@ -343,14 +346,18 @@
   <p>Each STEP file is parsed independently in a spawned subprocess with a 300s wall-clock timeout (polled in
   short increments rather than one blocking join — a single OpenCASCADE call can be uninterruptible, and
   macOS has been observed to hold up SIGKILL reaping for large C++ processes).</p>
-  <p style="font-size:0.82rem;color:var(--muted);"><b>Timeout retry</b> <span class="badge pending">retrain pending</span>:
+  <p style="font-size:0.82rem;color:var(--muted);"><b>Timeout retry</b> <span class="badge r37">R37</span>:
   comparing R35 vs R36 parse logs showed the <i>same</i> file timing out in one run and parsing in under a
   minute in another (e.g. <code>Gate_Valve_15</code>: 34.1s in R35, 512s timeout in R36) — since parsing is
   strictly sequential (one subprocess at a time, no internal parallelism here), that variance points to
   transient external system load at the moment a given file's turn came up, not deterministically-too-complex
   geometry. Files that time out on the first pass now get a single retry at 2× the budget (600s) after the
   main pass finishes, on the theory that whatever contention caused the first failure has likely cleared by
-  then. Code only — not yet exercised by a full <code>--force-reload</code> reparse.</p>
+  then. Exercised for real in R37: <code>Gate_Valve_12</code> timed out on one launch and triggered the retry
+  pass, though the retry itself hit a different failure (a worker-process crash, not another timeout) and
+  didn't recover — the retry mechanism fired correctly, this particular file is just genuinely flaky across
+  every run so far (crashed in R35, timed out in R36, crashed again in R37's first attempt, timed out then
+  crashed-on-retry in R37's second). Corpus settled at 192/193, still the best coverage yet.</p>
   <ol>
     <li><code>gmsh.merge(step_path)</code> loads the file; requires ≥2 solid volumes to count as an assembly.</li>
     <li><code>gmsh.model.occ.fragment(volumes, [])</code> — the key step: booleans all volumes together so that
@@ -518,21 +525,20 @@
   <ol>
     <li><b>5-fold cross-validation</b> — a fresh <code>gnn</code>+<code>lp</code> per fold, Adam optimizer, <code>ReduceLROnPlateau</code> scheduler.</li>
     <li><b>Per-graph edge split</b> via PyG's <code>RandomLinkSplit</code> (10% val / 10% test edges per graph,
-      <code>neg_sampling_ratio=1.0</code> <span class="badge pending">retrain pending</span> — raised from 0.5,
+      <code>neg_sampling_ratio=1.0</code> <span class="badge r37">R37</span> — raised from 0.5,
       the standard link-prediction convention; see the AP-honesty note below).
       <span class="badge r35">R35</span> <code>disjoint_train_ratio=0.25</code> — without this (PyG's default 0.0), train supervision edges were
       identical to train message-passing edges, so the encoder could see the very edges it was being scored
       on during training; val/test never had this leak. 25% of each graph's training edges are now held out
       of message passing too, closing most of that train/eval task mismatch.</li>
-    <li><b>Split reproducibility</b> <span class="badge pending">retrain pending</span> — <code>RandomLinkSplit</code>
+    <li><b>Split reproducibility</b> <span class="badge r37">R37</span> — <code>RandomLinkSplit</code>
       and its underlying <code>negative_sampling()</code> draw from global torch/Python RNG state with no
       generator param exposed anywhere in that chain; left unseeded, re-evaluating the same fold's same graphs
       (e.g. reloading a checkpoint to re-check its reported AUC) redrew a different val/test edge split every
       call — the root cause of R36's resume-fold AUC mismatch. Now seeded deterministically per
       <code>(fold_idx, graph)</code> using the same md5-hash pattern as the test carve-out, with RNG state
       restored afterward so it doesn't leak into model init or sample shuffling. Verified directly (two
-      <code>get_splits()</code> calls at the same fold now produce bit-identical edge labels); code only, not
-      yet exercised by a full retrain.</li>
+      <code>get_splits()</code> calls at the same fold now produce bit-identical edge labels).</li>
     <li><b>Loss</b>: BCE on positive+negative edges, plus a hard-negative term — the most similar
       non-neighbour node to each positive edge's source is mined via embedding cosine similarity each batch
       and penalised at 0.3× weight.</li>
@@ -553,16 +559,40 @@
   automatic, evidence-based gate that has correctly held back multiple retrains this project (R32 vs R30, R35 vs R34)
   when they didn't actually improve — and correctly promoted <span class="badge r36">R36</span> when it did
   (Mean AUC 0.6277±0.0516 vs R34's 0.5561±0.0257).</p>
-  <p style="font-size:0.82rem;color:var(--muted);"><b>Reading AP honestly</b> <span class="badge pending">retrain pending</span>:
+  <p style="font-size:0.82rem;color:var(--muted);"><b>Reading AP honestly</b> <span class="badge r37">R37</span>:
   with the old <code>neg_ratio=0.5</code>, a random classifier's expected AP was <code>1/(1+0.5) ≈ 0.667</code>,
   not the usual 0.5 — so an AP of 0.74 was only ~0.07 above chance, not the "74%" it superficially looked
   like. Rather than keep mentally re-deriving that correction, <code>evaluate.py</code>'s <code>link_metrics()</code>
   now returns <code>random_ap = mean(y_true)</code> directly (the exact expected AP of a random/constant
   scorer on that eval set) alongside <code>auc</code>/<code>ap</code>, threaded through <code>train.py</code>'s
   per-fold prints and <code>cv_summary.json</code>. <code>neg_ratio</code> was also raised 0.5→1.0 (the
-  standard link-prediction convention), so going forward random_ap should sit near 0.5 and any gap above it
-  is genuine model skill, not dataset skew. AUC (chance = 0.5 regardless of class ratio) remains the more
-  robust single number when comparing across runs with different neg_ratio history.</p>
+  standard link-prediction convention), so random_ap now sits at exactly 0.5000 every fold — confirmed in
+  R37 — and any gap above it is genuine model skill, not dataset skew. AUC (chance = 0.5 regardless of class
+  ratio) remains the more robust single number when comparing across runs with different neg_ratio history.</p>
+  <div class="callout">
+    <p><span class="badge r37">R37</span> <b>Promotion-gate bug, caught and fixed</b>: the gate used to compare
+    <code>(mean_auc, mean_ap) &lt;= (prev_auc, prev_ap)</code> — Python tuple comparison, which is
+    <i>lexicographic</i>: it only ever consults <code>mean_ap</code> when <code>mean_auc</code> is an exact
+    tie. Any AUC improvement promoted regardless of what AP did, silently contradicting the "beats on both"
+    behavior described above. Caught when R37 (Mean AUC=0.6765, Mean AP=0.6696) promoted over R36 (Mean
+    AUC=0.6277, Mean AP=0.7747) despite a lower raw AP — substantively the right call once read honestly (see
+    below), but the gate got there by luck, not by actually checking AP. Now explicitly requires
+    <code>mean_auc &gt; prev_auc AND mean_ap_lift &gt; prev_ap_lift</code>, comparing AP-lift-over-chance
+    (using the now-stored <code>mean_random_ap</code>) instead of raw AP, so the gate stays valid across
+    future <code>neg_ratio</code> changes too.</p>
+  </div>
+  <div class="callout good">
+    <p><span class="badge r37">R37</span> <b>Retrained to validate the three fixes above</b>: Mean
+    AUC=<b>0.6765±0.0373</b>, Mean AP=<b>0.6696±0.0333</b> (random_ap=0.5000 exactly, confirming the
+    neg_ratio fix) — vs <span class="badge r36">R36</span>'s Mean AUC=0.6277±0.0516, Mean AP=0.7747±0.0378
+    (random≈0.667 under the old ratio). AUC: clear win (+0.049). Raw AP looks lower but isn't comparable
+    across the neg_ratio change — the honest comparison is lift-over-chance: R37 +0.170 vs R36 +0.108, also
+    a win. Fold-to-fold variance also came in tighter (±0.037 vs R36's ±0.052) despite fold 4 landing
+    noticeably weaker than the other four (AUC=0.6123 vs 0.61–0.70 elsewhere — a real val→test generalization
+    gap, not a bug: it peaked at smoothed val AUC=0.68 during training). <b>Promoted to
+    <code>best_serving.pt</code></b> — this is now the live, deployed model. Corpus: 192/193 graphs, tying
+    R37's own timeout-retry result above (only <code>Gate_Valve_12</code> unrecovered).</p>
+  </div>
 </section>
 
 <!-- ══════════════════════════ PHASE 2 ══════════════════════════ -->
@@ -872,15 +902,22 @@
     <tr>
       <td><b>R36</b> <span class="badge r36">R36</span></td><td><code>6aa2776</code></td><td>2026-08-10 11:39 IST</td><td>191/193 graphs<br><span style="color:var(--muted);font-size:0.78rem;">(2 timeouts)</span></td>
       <td><b>Mean AUC 0.6277±0.0516</b><br>Mean AP 0.7747±0.0378<br><span style="color:var(--muted);font-size:0.78rem;">final test (best-overall): AUC=0.6231, AP=0.7787</span></td>
-      <td style="color:var(--good);">✓ <b>Promoted</b> — beats R34 by +0.0716 AUC with lower variance than R35. Original 5-fold run was killed mid-Fold-5 (likely OOM, swap hit 30.7/31.7GB), recovered via <code>--start-fold 4</code> resume rather than a full redo — folds 1–4 checkpoints were intact</td>
+      <td style="color:var(--good);">✓ Promoted at the time — beats R34 by +0.0716 AUC with lower variance than R35. Original 5-fold run was killed mid-Fold-5 (likely OOM, swap hit 30.7/31.7GB), recovered via <code>--start-fold 4</code> resume rather than a full redo — folds 1–4 checkpoints were intact. <b>Superseded by R37.</b></td>
+    </tr>
+    <tr>
+      <td><b>R37</b> <span class="badge r37">R37</span></td><td><code>062de56</code></td><td>2026-08-11 20:02 IST</td><td>192/193 graphs<br><span style="color:var(--muted);font-size:0.78rem;">(1 error — <code>Gate_Valve_12</code>, flaky across every run so far)</span></td>
+      <td><b>Mean AUC 0.6765±0.0373</b><br>Mean AP 0.6696±0.0333<br><span style="color:var(--muted);font-size:0.78rem;">random_ap=0.5000 exactly every fold (neg_ratio=1.0 fix confirmed); AP-lift-over-chance=+0.170 vs R36's +0.108</span></td>
+      <td style="color:var(--good);">✓ <b>Promoted</b> — beats R36 on AUC (+0.049) and on the honest AP-lift comparison. Validated tasks 7/9/24 (timeout retry, neg_ratio+random_ap, RandomLinkSplit seeding) on real numbers. Crashed once mid-Fold-4 (same silent-kill signature as R36) and needed a resume correction — see <a href="#changelog" style="color:var(--accent);">changelog</a>. Also surfaced and fixed a real promotion-gate bug (lexicographic tuple comparison meant AP was never actually checked when AUC won) — this run's own promotion was substantively correct despite the bug, but future runs now go through the corrected gate.</td>
     </tr>
   </table></div>
-  <p style="font-size:0.82rem;color:var(--muted);"><b>Reproducibility caveat on R36's numbers:</b> the resume re-evaluated folds 1–4 from their saved checkpoints
-  to build the final mean, and <code>get_splits()</code>'s per-graph edge-level val/test split (via <code>RandomLinkSplit</code>)
-  isn't seeded — confirmed those re-evaluated numbers differ from what the same folds would report on a fresh pass.
-  The graph-level split (which graphs are train/val/test) is deterministic; the edge-level split within a test
-  graph isn't yet. Doesn't affect the promotion decision (still an internally consistent comparison), but the
-  exact per-fold AUC digits above aren't perfectly reproducible until this is fixed (tracked as an open item).</p>
+  <p style="font-size:0.82rem;color:var(--muted);"><b>Reproducibility caveat on R36's numbers (fixed in <span class="badge r37">R37</span>):</b>
+  the resume re-evaluated folds 1–4 from their saved checkpoints to build the final mean, and
+  <code>get_splits()</code>'s per-graph edge-level val/test split (via <code>RandomLinkSplit</code>) wasn't
+  seeded — confirmed those re-evaluated numbers differed from what the same folds would report on a fresh
+  pass. Didn't affect R36's promotion decision (still an internally consistent comparison), but the exact
+  per-fold AUC digits weren't perfectly reproducible. R37 lands the fix — <code>RandomLinkSplit</code> and its
+  negative sampling are now seeded deterministically per <code>(fold, graph)</code>, verified to give
+  bit-identical edge labels across repeated <code>get_splits()</code> calls at the same fold.</p>
   <p style="font-size:0.82rem;color:var(--muted);">R34 predates this diagnostic cycle (per-hole fastener detection,
   <code>max_fastener_extent</code> classifier gate, part-bank meshing-resilience fix — see
   <a href="#support-surface" style="color:var(--accent);">surface_analyzer.py</a> and
@@ -938,16 +975,44 @@
   </div>
   <div class="changelog-item">
     <div class="tag">model.py<br>infer.py</div>
-    <div class="body"><p><b>NodeRanker temperature scaling</b> <span class="badge pending">retrain pending</span> — CLIP-style learnable <code>logit_scale</code>; loads existing checkpoints with <code>strict=False</code> for backward compatibility. Code only — Phase 2 hasn't been retrained since this landed.</p></div>
+    <div class="body"><p><b>NodeRanker temperature scaling</b> — CLIP-style learnable <code>logit_scale</code>; loads existing checkpoints with <code>strict=False</code> for backward compatibility. Retrained against R36 since — see <a href="#phase2" style="color:var(--accent);">Phase 2</a> (Hit@1 exactly ties the majority baseline; the bottleneck traced to majority-class collapse, not this change).</p></div>
   </div>
   <div class="changelog-item">
     <div class="tag">train_shape_gen.py</div>
-    <div class="body"><p><b>Seeded chamfer metric + chamfer-aware checkpoint selection</b> <span class="badge pending">retrain pending</span> — removes ~110% coefficient-of-variation measurement noise from an unseeded point-subsampling call, and stops checkpoint selection from ignoring chamfer entirely. Code only — Phase 3 hasn't been retrained since this landed.</p></div>
+    <div class="body"><p><b>Seeded chamfer metric + chamfer-aware checkpoint selection</b> — removes ~110% coefficient-of-variation measurement noise from an unseeded point-subsampling call, and stops checkpoint selection from ignoring chamfer entirely. Retrained against R36 twice since — see <a href="#phase3" style="color:var(--accent);">Phase 3</a> for both results.</p></div>
   </div>
   <div class="changelog-item">
     <div class="tag">Result</div>
     <div class="body"><p><b>Mean AUC 0.6277±0.0516, Mean AP 0.7747±0.0378</b> on 191/193 graphs (2 timeouts, an improvement over R35's 13) —
       beats R34 by +0.0716 AUC. <b>Promoted to <code>best_serving.pt</code></b>. See <a href="#provenance" style="color:var(--accent);">Run Provenance</a> for the reproducibility caveat on these numbers (original run crashed mid-fold, recovered via resume).</p></div>
+  </div>
+
+  <h3><span class="badge r37">R37</span> commit <code>062de56</code> — 2026-08-11 20:02 IST</h3>
+  <div class="changelog-item">
+    <div class="tag">config.yaml<br>evaluate.py<br>train.py</div>
+    <div class="body"><p><b>neg_ratio 0.5→1.0 + random_ap baseline</b> — the old ratio meant a random classifier's expected AP was ≈0.667, not 0.5, so raw AP numbers overstated model skill by dataset skew alone. <code>evaluate.py</code>'s <code>link_metrics()</code> now returns <code>random_ap</code> alongside <code>auc</code>/<code>ap</code>; threaded through <code>train.py</code>'s per-fold prints and <code>cv_summary.json</code>.</p></div>
+  </div>
+  <div class="changelog-item">
+    <div class="tag">dataset.py</div>
+    <div class="body"><p><b><code>RandomLinkSplit</code> seeded per-graph</b> — fixes the R36 reproducibility gap noted above. Both torch's and Python's global RNG state are seeded deterministically per <code>(fold_idx, graph)</code> and restored afterward.</p></div>
+  </div>
+  <div class="changelog-item">
+    <div class="tag">dataset.py</div>
+    <div class="body"><p><b>Single retry at 2× timeout</b> for STEP files that time out on the first parse pass — same-file variance across runs (e.g. <code>Gate_Valve_15</code>: 34.1s in R35, 512s timeout in R36) pointed to transient system load, not bad geometry.</p></div>
+  </div>
+  <div class="changelog-item">
+    <div class="tag">train.py</div>
+    <div class="body"><p><b>Promotion-gate bug fix</b> — the gate's tuple comparison was lexicographic, so it only ever checked AP when AUC was an exact tie; any AUC win promoted regardless of AP. Now explicitly requires both AUC and AP-lift-over-chance to improve. Caught while this exact run was promoting — see <a href="#p1-eval" style="color:var(--accent);">Evaluation &amp; Promotion Gate</a>.</p></div>
+  </div>
+  <div class="changelog-item">
+    <div class="tag">Result</div>
+    <div class="body"><p><b>Mean AUC 0.6765±0.0373, Mean AP 0.6696±0.0333</b> on 192/193 graphs (1 error, the best coverage yet) —
+      beats R36 by +0.049 AUC and by +0.062 AP-lift-over-chance (raw AP looks lower but isn't comparable across
+      the neg_ratio change). <b>Promoted to <code>best_serving.pt</code></b>. Crashed once mid-Fold-4 (same
+      silent-kill signature as R36) and needed a resume correction — first attempt (<code>--start-fold 4</code>,
+      copying the R36 precedent) incorrectly replayed a mid-crash checkpoint snapshot as a finished fold
+      (AUC=0.5476, an obvious outlier); caught before fold 5 wasted much time and corrected to
+      <code>--start-fold 3</code> to properly retrain the interrupted fold.</p></div>
   </div>
 </section>
 
