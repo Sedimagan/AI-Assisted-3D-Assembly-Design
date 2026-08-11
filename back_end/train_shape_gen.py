@@ -20,10 +20,12 @@ import argparse
 import gc
 import json
 import random
+import time
 from datetime import datetime
 from pathlib import Path
 
 import numpy as np
+import psutil
 import torch
 import torch.nn.functional as F
 import yaml
@@ -195,6 +197,30 @@ def augment_voxel(vox: np.ndarray, rng: random.Random, max_angle: float = 20.0,
     return np.clip(out, 0.0, 1.0).astype(np.float32)
 
 
+# System swap-pressure check, same mitigation as train.py's swap_guard() --
+# see that function's comment for the full rationale (R36/R37 crash pattern).
+_SWAP_WARN_PCT = 90.0
+_SWAP_THROTTLE_SECS = 3.0
+
+
+def swap_guard(device, context: str = "") -> None:
+    try:
+        pct = psutil.swap_memory().percent
+    except Exception:
+        return
+    if pct < _SWAP_WARN_PCT:
+        return
+    print(f"    [swap-guard] {pct:.1f}% swap used{' (' + context + ')' if context else ''} "
+          f"-- pausing {_SWAP_THROTTLE_SECS:.0f}s for extra cleanup", flush=True)
+    gc.collect()
+    if device.type == "mps":
+        torch.mps.empty_cache()
+    time.sleep(_SWAP_THROTTLE_SECS)
+    gc.collect()
+    if device.type == "mps":
+        torch.mps.empty_cache()
+
+
 # ── Conditioning + context ───────────────────────────────────────────────────────
 
 @torch.no_grad()
@@ -314,11 +340,13 @@ def epoch_pass(vae, gnn, samples, device, opt=None, augment=False, rng=None,
         if device.type == "mps" and (_i + 1) % 10 == 0:
             gc.collect()
             torch.mps.empty_cache()
+            swap_guard(device, context=f"sample {_i+1}")
 
     n_seen = max(1, n_seen)
     if device.type == "mps":
         gc.collect()
         torch.mps.empty_cache()
+        swap_guard(device, context="pass end")
     loss_parts_avg = {k: v / n_seen for k, v in loss_parts_sum.items()}
     if is_train:
         return total_loss / n_seen, loss_parts_avg

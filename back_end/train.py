@@ -13,6 +13,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+import psutil
 import torch
 import torch.nn.functional as F
 import yaml
@@ -92,6 +93,41 @@ def link_loss(lp, z, batch, device, sample_weight=1.0):
 
 # ── Training loop ─────────────────────────────────────────────────────────────
 
+# R36 was silently killed mid-fold by the OS once swap crossed ~97% (30.7/31.7GB)
+# -- the existing gc.collect()/empty_cache() clears run on a fixed batch-count
+# schedule regardless of whether pressure is actually building, so a run can
+# still climb straight into an OOM kill between scheduled clears if a
+# particularly large batch of shapes lands badly. This adds a real check of
+# system swap pressure (not just this process's own view of its tensors) at
+# the same checkpoints, and reacts *before* the kill: extra GC/cache-clear
+# passes plus a short sleep to give the kernel a real chance to reclaim pages
+# before more allocation resumes. This can't guarantee a kill never happens
+# (a big enough single allocation can still exceed available memory instantly),
+# but it closes the "climbing steadily toward the edge without anything
+# reacting" gap that both R36 and R37 exhibited.
+_SWAP_WARN_PCT  = 90.0
+_SWAP_THROTTLE_SECS = 3.0
+
+
+def swap_guard(device, context: str = "") -> None:
+    """Check system swap pressure; if high, do extra cleanup + a brief pause
+    before returning control to the caller. Cheap (~1ms) when swap is fine."""
+    try:
+        pct = psutil.swap_memory().percent
+    except Exception:
+        return  # psutil unsupported on this platform -- fail open, not fatal
+    if pct < _SWAP_WARN_PCT:
+        return
+    print(f"    [swap-guard] {pct:.1f}% swap used{' (' + context + ')' if context else ''} "
+          f"-- pausing {_SWAP_THROTTLE_SECS:.0f}s for extra cleanup", flush=True)
+    gc.collect()
+    if device.type == "mps":
+        torch.mps.empty_cache()
+    time.sleep(_SWAP_THROTTLE_SECS)
+    gc.collect()
+    if device.type == "mps":
+        torch.mps.empty_cache()
+
 def train_epoch(gnn, lp, loader, opt, device):
     gnn.train(); lp.train()
     total_loss = 0.0
@@ -141,6 +177,7 @@ def train_epoch(gnn, lp, loader, opt, device):
         if device.type == "mps" and (i + 1) % 3 == 0:
             gc.collect()
             torch.mps.empty_cache()
+            swap_guard(device, context=f"batch {i+1}/{n_batches}")
     # MPS caches a compiled graph executable per distinct tensor shape it
     # sees, with no automatic eviction. PyG batches variable-sized graphs
     # and `shuffle=True` reshuffles batch composition every epoch, so on a
@@ -154,6 +191,7 @@ def train_epoch(gnn, lp, loader, opt, device):
     if device.type == "mps":
         gc.collect()
         torch.mps.empty_cache()
+        swap_guard(device, context="epoch end")
     return total_loss / len(loader)
 
 
@@ -305,6 +343,7 @@ def main():
             if device.type == "mps":
                 gc.collect()
                 torch.mps.empty_cache()
+                swap_guard(device, context=f"fold {fold+1} epoch {epoch} val")
 
             val_auc_history.append(val_metrics["auc"])
             smoothed_auc = (sum(val_auc_history[-SMOOTH_WINDOW:])
@@ -377,6 +416,7 @@ def main():
         if device.type == "mps":
             gc.collect()
             torch.mps.empty_cache()
+            swap_guard(device, context=f"fold {fold+1} boundary")
 
     # ── CV summary ────────────────────────────────────────────────────────
     import statistics
