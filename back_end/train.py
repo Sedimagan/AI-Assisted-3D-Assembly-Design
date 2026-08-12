@@ -9,6 +9,7 @@ import argparse
 import gc
 import json
 import os
+import random
 import time
 from datetime import datetime
 from pathlib import Path
@@ -221,6 +222,12 @@ def main():
                         help="Override model.dropout from config.yaml (task 11 capacity ablation)")
     parser.add_argument("--weight-decay", type=float, default=None,
                         help="Override training.weight_decay from config.yaml (task 11 capacity ablation)")
+    parser.add_argument("--train-frac", type=float, default=None,
+                        help="Randomly subsample this fraction of the TRAINING graphs only "
+                             "each fold (val/test untouched, so eval stays apples-to-apples "
+                             "across different corpus sizes) -- task 23 learning-curve "
+                             "experiment. Seeded deterministically (fixed seed 42) so the "
+                             "same fraction gives the same subsample across runs.")
     parser.add_argument("--no-promote", action="store_true",
                         help="Never touch best_serving.pt regardless of the promotion-gate "
                              "check's outcome -- for exploratory/benchmark runs (e.g. a "
@@ -338,6 +345,13 @@ def main():
         train_data, val_data, test_data = get_splits(dataset, cfg,
                                                       fold_idx=fold,
                                                       n_folds=N_FOLDS)
+
+        if args.train_frac and args.train_frac < 1.0:
+            orig_n = len(train_data)
+            k = max(1, round(orig_n * args.train_frac))
+            train_data = random.Random(42).sample(train_data, k)
+            print(f"      [learning-curve] fold {fold+1}: subsampled train set to "
+                  f"{len(train_data)}/{orig_n} graphs ({args.train_frac:.0%})")
 
         train_loader = DataLoader(train_data, batch_size=bs, shuffle=True)
         val_loader   = DataLoader(val_data,   batch_size=bs)
