@@ -129,6 +129,7 @@
   /* Run-provenance badges — color marks generation (r36 = current/latest run,
      r35 = the run before it), text is always the run id itself so this
      scheme extends to r37/r38/... without new CSS. See #provenance. */
+  .badge.r38 { background: var(--tint-good); color: var(--good); border-color: var(--good); }
   .badge.r37 { background: var(--tint-accent); color: var(--accent); border-color: var(--accent); }
   .badge.r36 { background: var(--tint-warn); color: var(--warn); border-color: var(--warn); }
   .badge.r35 { background: var(--tint-accent2); color: var(--accent2); border-color: var(--accent2); }
@@ -272,14 +273,17 @@
 <div class="doc-header" id="overview">
   <div class="kicker">AI-Assisted 3D Assembly Design</div>
   <div class="last-updated" id="last-updated">
-    <span class="dot"></span>Last updated <b>2026-08-11 20:07 IST</b> — <b>R37</b> landed: Mean
-    AUC=0.6765±0.0373 vs R36's 0.6277±0.0516, <b>promoted to <code>best_serving.pt</code></b> — see
-    <a href="#phase1" style="color:inherit;text-decoration:underline;">Phase 1</a>. Validated the
-    <code>neg_ratio</code>/<code>random_ap</code>, <code>RandomLinkSplit</code>-seeding, and timeout-retry
-    fixes on real numbers, and caught+fixed a real promotion-gate bug in the process (lexicographic tuple
-    comparison meant AP was never actually checked when AUC won — see
-    <a href="#p1-eval" style="color:inherit;text-decoration:underline;">Evaluation &amp; Promotion Gate</a>).
-    Crashed once mid-fold and needed a resume correction, detailed in the
+    <span class="dot"></span>Last updated <b>2026-08-12 19:30 IST</b> — <b>R38</b> landed on
+    <code>ph2-post-r37-experiments</code>: Mean AUC=0.6875±0.0274 (dropout=0.3) vs R37's 0.6765±0.0373,
+    <b>promoted to <code>best_serving.pt</code></b> — see
+    <a href="#phase1" style="color:inherit;text-decoration:underline;">Phase 1</a>. Four tasks landed
+    together: the encoder re-benchmark (SAGE looked better at a 2-fold screen, tied RGAT at full
+    validation — RGAT stays production), the capacity ablation that found dropout=0.3 (R38 itself), a
+    part-bank quality-gate rebuild (3,843 parts from 193 assemblies, was 4,500 ungated), and a
+    learning-curve experiment showing Phase 1 AUC still climbs with corpus size, no plateau. Two
+    near-misses caught along the way: a 2-fold screening run auto-promoted itself before
+    <code>--no-promote</code> existed, and the quality gate's first version over-rejected ~40% of
+    legitimate parts (signed vs. absolute volume) — both detailed in the
     <a href="#changelog" style="color:inherit;text-decoration:underline;">changelog</a>.
   </div>
   <h1>End-to-End Pipeline Architecture</h1>
@@ -593,6 +597,43 @@
     <code>best_serving.pt</code></b> — this is now the live, deployed model. Corpus: 192/193 graphs, tying
     R37's own timeout-retry result above (only <code>Gate_Valve_12</code> unrecovered).</p>
   </div>
+
+  <div class="callout">
+    <p><span class="badge r37">R37 follow-ups</span> — four more tasks landed on a separate branch,
+    <code>ph2-post-r37-experiments</code> (branched from post-R37 HEAD, kept apart from
+    <code>ph2-scoped-fasteners-only</code> per explicit request):</p>
+  </div>
+  <div class="callout">
+    <p><b>Encoder re-benchmark</b> — added a swappable <code>encoder_type</code> to
+    <code>AssemblyGNN</code> (rgat/gatv2/sage/gin, default rgat unchanged, per-stage width held constant
+    across all four so the comparison isolates the aggregation mechanism). A 2-fold screen suggested
+    <b>SAGE</b> (topology + node features, <i>zero</i> edge features) clearly beat RGAT (0.6882 vs
+    0.6358 Mean AUC) — but a full 5-fold validation at R37's rigor essentially <b>tied</b> them
+    (SAGE=0.6717 vs RGAT=0.6765 AUC; SAGE ahead on AP-lift by +0.024). The 2-fold screen substantially
+    overstated SAGE's advantage — concrete evidence that lean/reduced-fold protocols are a first-pass
+    filter only, not a final call. <b>No architecture change</b> — RGAT stays production. A near-miss
+    also surfaced here: the 2-fold SAGE run's numbers legitimately beat R37 on both metrics and
+    auto-promoted itself before this was caught — <code>train.py</code> gained <code>--no-promote</code>
+    so exploratory/benchmark runs can never touch <code>best_serving.pt</code> regardless of outcome.</p>
+  </div>
+  <div class="callout good">
+    <p><span class="badge r38">R38</span> <b>Capacity ablation</b> — one hyperparameter at a time from the
+    R37 baseline (hidden_dim=128, dropout=0.2, weight_decay=5e-4), 2-fold screen: <b>dropout=0.3</b> stood
+    out (0.6938 vs baseline's 0.6358 Mean AUC); <code>hidden_dim=256</code> isn't just worse, it hard-crashes
+    with an MPS out-of-memory error on this hardware (9.1M params, ~4× baseline). Validated dropout=0.3 at
+    full 5-fold rigor: <b>Mean AUC=0.6875±0.0274, Mean AP=0.6696±0.0331</b> — beats R37 by +0.011 AUC with
+    essentially identical AP. <b>Promoted to <code>best_serving.pt</code></b> — this is now the best
+    validated Phase 1 result, live on <code>ph2-post-r37-experiments</code>. Crashed once mid-fold-5 during
+    validation (same silent-kill signature as R36/R37); resumed correctly this time (verified all 4 replayed
+    folds matched their pre-crash numbers exactly before trusting the resume).</p>
+  </div>
+  <div class="callout">
+    <p><b>Learning-curve experiment</b> — added <code>--train-frac</code> (subsamples only the training
+    graphs per fold, val/test held fixed for a clean comparison). 2-fold sweep at dropout=0.3: Mean AUC
+    climbs 0.5736 (25% of training data) → 0.6006 (50%) → 0.6136 (75%) → 0.6627 (100%), no sign of
+    plateauing. Phase 1 is still meaningfully data-limited at the current 192-graph corpus — growing the
+    corpus further would likely keep helping, not hit diminishing returns.</p>
+  </div>
 </section>
 
 <!-- ══════════════════════════ PHASE 2 ══════════════════════════ -->
@@ -697,13 +738,25 @@
   builds a library of real part shapes:</p>
   <ol>
     <li><b>Canonicalize</b> — center at centroid, align to OBB principal axes, scale to unit max-extent.</li>
+    <li><span class="badge r38">R38</span> <b>Quality gate</b> — reject the body if its mesh isn't
+      watertight (voxelize's interior fill gives unpredictable results on a shell with holes) or its
+      enclosed volume is under 0.5% of its own bounding-box volume (a near-zero-volume sliver, not a
+      real part). Both checks are on the mesh itself, independent of the CAD-reported bbox/volume, so a
+      bad triangulation can't slip through by having a plausible bbox.</li>
     <li><b>Voxelize</b> — 32³ occupancy grid, 1.2× padding beyond the part's own extent.</li>
     <li>Index by <code>(component_type, category, bbox)</code> for nearest-neighbour retrieval at inference time.</li>
   </ol>
-  <p style="font-size:0.85rem;color:var(--muted);">4,500 parts from 193 assemblies after a meshing-resilience
-  fix let STEP files with periodic (unmeshable) surfaces contribute their <i>other</i> bodies instead of
-  aborting the whole file — up from 3,221. No quality gate currently exists on these newly-admitted bodies
-  (open item, tracked separately).</p>
+  <p style="font-size:0.85rem;color:var(--muted);"><span class="badge r38">R38</span> Rebuilt with the
+  quality gate: <b>3,843 parts from 193 assemblies</b> (was 4,500 from 187, no gate at all) — a ~15%
+  reduction, proportional across all 8 component types, consistent with genuinely filtering bad geometry
+  rather than over-rejecting. The first version of this gate used trimesh's raw <i>signed</i> volume and
+  rejected ~40% of otherwise-legitimate bodies (4,500→2,554) — negative volume from inward-facing normals
+  is a common, benign CAD-export orientation quirk, not broken geometry; a watertight-but-inside-out mesh
+  is still a valid solid. Caught by comparing the rebuild's per-type counts against the pre-gate bank
+  rather than trusting the first run's numbers, fixed to use <code>abs(volume)</code>. The 4,500-part,
+  no-gate bank predates this and let STEP files with periodic (unmeshable) surfaces contribute their
+  <i>other</i> bodies instead of aborting the whole file — up from 3,221 originally; the gate above is the
+  quality check that meshing-resilience fix always needed but didn't have until now.</p>
 
   <h3 id="p3-vae"><span class="step-num">3.2</span>Conditional Shape VAE <code>shape_generator.py</code></h3>
   <div class="diagram-card">
@@ -907,7 +960,12 @@
     <tr>
       <td><b>R37</b> <span class="badge r37">R37</span></td><td><code>062de56</code></td><td>2026-08-11 20:02 IST</td><td>192/193 graphs<br><span style="color:var(--muted);font-size:0.78rem;">(1 error — <code>Gate_Valve_12</code>, flaky across every run so far)</span></td>
       <td><b>Mean AUC 0.6765±0.0373</b><br>Mean AP 0.6696±0.0333<br><span style="color:var(--muted);font-size:0.78rem;">random_ap=0.5000 exactly every fold (neg_ratio=1.0 fix confirmed); AP-lift-over-chance=+0.170 vs R36's +0.108</span></td>
-      <td style="color:var(--good);">✓ <b>Promoted</b> — beats R36 on AUC (+0.049) and on the honest AP-lift comparison. Validated tasks 7/9/24 (timeout retry, neg_ratio+random_ap, RandomLinkSplit seeding) on real numbers. Crashed once mid-Fold-4 (same silent-kill signature as R36) and needed a resume correction — see <a href="#changelog" style="color:var(--accent);">changelog</a>. Also surfaced and fixed a real promotion-gate bug (lexicographic tuple comparison meant AP was never actually checked when AUC won) — this run's own promotion was substantively correct despite the bug, but future runs now go through the corrected gate.</td>
+      <td style="color:var(--good);">✓ Promoted at the time — beats R36 on AUC (+0.049) and on the honest AP-lift comparison. Validated tasks 7/9/24 (timeout retry, neg_ratio+random_ap, RandomLinkSplit seeding) on real numbers. Crashed once mid-Fold-4 (same silent-kill signature as R36) and needed a resume correction — see <a href="#changelog" style="color:var(--accent);">changelog</a>. Also surfaced and fixed a real promotion-gate bug (lexicographic tuple comparison meant AP was never actually checked when AUC won) — this run's own promotion was substantively correct despite the bug, but future runs now go through the corrected gate. <b>Superseded by R38.</b></td>
+    </tr>
+    <tr>
+      <td><b>R38</b> <span class="badge r38">R38</span></td><td><code>db5c86c</code></td><td>2026-08-12 15:24 IST<br><span style="color:var(--muted);font-size:0.78rem;">branch: <code>ph2-post-r37-experiments</code></span></td><td>192/193 graphs</td>
+      <td><b>Mean AUC 0.6875±0.0274</b><br>Mean AP 0.6696±0.0331<br><span style="color:var(--muted);font-size:0.78rem;">dropout=0.3 (task 11 capacity ablation), all else identical to R37</span></td>
+      <td style="color:var(--good);">✓ <b>Promoted</b> — beats R37 by +0.011 AUC with essentially identical AP, validated at full 5-fold rigor after a 2-fold screen first flagged dropout=0.3 as a candidate. Crashed once mid-Fold-5 (same signature as R36/R37); resumed correctly this time — verified all 4 replayed folds matched their pre-crash numbers before trusting the resume. This is the current best validated Phase 1 result, live on <code>ph2-post-r37-experiments</code> (kept separate from <code>ph2-scoped-fasteners-only</code> per explicit request — no merge yet).</td>
     </tr>
   </table></div>
   <p style="font-size:0.82rem;color:var(--muted);"><b>Reproducibility caveat on R36's numbers (fixed in <span class="badge r37">R37</span>):</b>
@@ -1013,6 +1071,40 @@
       copying the R36 precedent) incorrectly replayed a mid-crash checkpoint snapshot as a finished fold
       (AUC=0.5476, an obvious outlier); caught before fold 5 wasted much time and corrected to
       <code>--start-fold 3</code> to properly retrain the interrupted fold.</p></div>
+  </div>
+
+  <h3><span class="badge r38">R38</span> commit <code>db5c86c</code> — 2026-08-12 15:24 IST — branch <code>ph2-post-r37-experiments</code></h3>
+  <div class="changelog-item">
+    <div class="tag">model.py</div>
+    <div class="body"><p><b>Swappable <code>encoder_type</code></b> (task 12) — rgat/gatv2/sage/gin, default rgat unchanged (verified byte-identical param count to R37 with no argument passed). Per-stage width held constant across all four so the comparison isolates the aggregation mechanism, not a width confound.</p></div>
+  </div>
+  <div class="changelog-item">
+    <div class="tag">train.py</div>
+    <div class="body"><p><b><code>--encoder-type</code>/<code>--n-folds</code>/<code>--epochs</code>/<code>--patience</code>/<code>--hidden-dim</code>/<code>--dropout</code>/<code>--weight-decay</code>/<code>--train-frac</code>/<code>--no-promote</code></b> CLI overrides — infrastructure for tasks 11/12/23's benchmark sweeps without editing config.yaml between runs.</p></div>
+  </div>
+  <div class="changelog-item">
+    <div class="tag">train.py</div>
+    <div class="body"><p><b><code>--no-promote</code> flag added after a near-miss</b> — a 2-fold encoder-benchmark screening run legitimately beat R37 on both metrics and auto-promoted itself before this was caught. Unconditionally skips the promotion check for exploratory/benchmark runs.</p></div>
+  </div>
+  <div class="changelog-item">
+    <div class="tag">part_bank.py</div>
+    <div class="body"><p><b>Quality gate</b> (task 18) — rejects non-watertight or near-zero-volume bodies. First version used signed volume and over-rejected ~40% of legitimate bodies; fixed to <code>abs(volume)</code> after comparing rebuild counts against the pre-gate bank. See <a href="#p3-bank" style="color:var(--accent);">Part Bank</a>.</p></div>
+  </div>
+  <div class="changelog-item">
+    <div class="tag">Result — encoder benchmark</div>
+    <div class="body"><p>2-fold screen: SAGE beat RGAT (0.6882 vs 0.6358 Mean AUC). Full 5-fold validation: essentially <b>tied</b> (SAGE=0.6717 vs RGAT=0.6765). <b>No architecture change</b> — RGAT stays production. The 2-fold/5-fold discrepancy is the key finding here.</p></div>
+  </div>
+  <div class="changelog-item">
+    <div class="tag">Result — capacity ablation</div>
+    <div class="body"><p>2-fold screen flagged <code>dropout=0.3</code> (0.6938 vs 0.6358 baseline); <code>hidden_dim=256</code> hard-crashes with MPS OOM. Full 5-fold validation: <b>Mean AUC=0.6875±0.0274, Mean AP=0.6696±0.0331</b> — beats R37 by +0.011 AUC. <b>Promoted to <code>best_serving.pt</code></b> — current best Phase 1 result.</p></div>
+  </div>
+  <div class="changelog-item">
+    <div class="tag">Result — part bank</div>
+    <div class="body"><p>Rebuilt with the quality gate: <b>3,843 parts from 193 assemblies</b> (was 4,500 from 187, no gate). Not yet validated against a fresh shape-gen retrain.</p></div>
+  </div>
+  <div class="changelog-item">
+    <div class="tag">Result — learning curve</div>
+    <div class="body"><p>Mean AUC climbs 0.5736 (25% training data) → 0.6006 (50%) → 0.6136 (75%) → 0.6627 (100%), no plateau — Phase 1 is still meaningfully data-limited at 192 graphs.</p></div>
   </div>
 </section>
 
