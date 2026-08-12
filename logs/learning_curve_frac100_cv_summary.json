@@ -1,0 +1,22 @@
+{
+  "n_folds": 2,
+  "fold_aucs": [
+    0.6953,
+    0.6302
+  ],
+  "fold_aps": [
+    0.6875,
+    0.6115
+  ],
+  "fold_random_aps": [
+    0.5,
+    0.5
+  ],
+  "mean_auc": 0.6627,
+  "std_auc": 0.046,
+  "mean_ap": 0.6495,
+  "std_ap": 0.0538,
+  "mean_random_ap": 0.5,
+  "std_random_ap": 0.0,
+  "best_fold": 0
+}

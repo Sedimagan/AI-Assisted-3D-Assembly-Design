@@ -1,0 +1,195 @@
+
+[1/4] Loading dataset …
+      192 graphs loaded.
+      Dataset: 192 graphs | mean nodes=26.9 | mean edges=81.1 | categories: Bench_vice=54 C_Clamps=31 Crane_hook=16 Gate_Valve=20 Pipe_vice=42 Press_Tool=21 Tool_Post=8
+
+[2/4] Building model …  (2-fold CV)
+
+[3/4] Training (2 folds) …
+
+=======================================================
+  FOLD 1 / 2
+=======================================================
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+    [DIAG] graph 119: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 44: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 60: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 63: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 71: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+  Fold 1/2 — train: 85  val: 86  test: 21
+      [learning-curve] fold 1: subsampled train set to 42/85 graphs (50%)
+Model built on mps  |  total params: 2,441,809
+    batch 1/3
+  Ep   1/60  loss=1.4948  AUC=0.5270  AP=0.5595  smoothAUC=0.5270  (7.2s)
+  ✓ Fold 1 new best smoothed AUC=0.5270  saved.
+    batch 1/3
+  Ep   2/60  loss=1.3973  AUC=0.5563  AP=0.5873  smoothAUC=0.5417  (6.0s)
+  ✓ Fold 1 new best smoothed AUC=0.5417  saved.
+    batch 1/3
+  Ep   3/60  loss=1.4159  AUC=0.5818  AP=0.6087  smoothAUC=0.5550  (6.0s)
+  ✓ Fold 1 new best smoothed AUC=0.5550  saved.
+    batch 1/3
+  Ep   4/60  loss=1.3398  AUC=0.6013  AP=0.6255  smoothAUC=0.5798  (9.6s)
+  ✓ Fold 1 new best smoothed AUC=0.5798  saved.
+    batch 1/3
+  Ep   5/60  loss=1.2715  AUC=0.6127  AP=0.6283  smoothAUC=0.5986  (6.0s)
+  ✓ Fold 1 new best smoothed AUC=0.5986  saved.
+    batch 1/3
+  Ep   6/60  loss=1.3404  AUC=0.6113  AP=0.6287  smoothAUC=0.6084  (6.2s)
+  ✓ Fold 1 new best smoothed AUC=0.6084  saved.
+    batch 1/3
+  Ep   7/60  loss=1.2710  AUC=0.6090  AP=0.6296  smoothAUC=0.6110  (9.0s)
+  ✓ Fold 1 new best smoothed AUC=0.6110  saved.
+    batch 1/3
+  Ep   8/60  loss=1.3105  AUC=0.6084  AP=0.6337  smoothAUC=0.6096  (6.6s)
+    batch 1/3
+  Ep   9/60  loss=1.2761  AUC=0.6047  AP=0.6398  smoothAUC=0.6074  (5.9s)
+    batch 1/3
+  Ep  10/60  loss=1.2912  AUC=0.6008  AP=0.6371  smoothAUC=0.6046  (6.4s)
+    batch 1/3
+  Ep  11/60  loss=1.1961  AUC=0.5941  AP=0.6316  smoothAUC=0.5999  (6.0s)
+    batch 1/3
+  Ep  12/60  loss=1.1362  AUC=0.5880  AP=0.6294  smoothAUC=0.5943  (10.6s)
+    batch 1/3
+  Ep  13/60  loss=1.1712  AUC=0.5892  AP=0.6349  smoothAUC=0.5904  (6.9s)
+    batch 1/3
+  Ep  14/60  loss=1.1692  AUC=0.5877  AP=0.6390  smoothAUC=0.5883  (6.9s)
+    batch 1/3
+  Ep  15/60  loss=1.0711  AUC=0.5868  AP=0.6425  smoothAUC=0.5879  (9.0s)
+    batch 1/3
+  Ep  16/60  loss=1.0926  AUC=0.5899  AP=0.6451  smoothAUC=0.5881  (9.8s)
+    batch 1/3
+  Ep  17/60  loss=1.1079  AUC=0.5923  AP=0.6427  smoothAUC=0.5897  (7.0s)
+    batch 1/3
+  Ep  18/60  loss=1.0521  AUC=0.5947  AP=0.6424  smoothAUC=0.5923  (6.5s)
+    batch 1/3
+  Ep  19/60  loss=1.0594  AUC=0.5938  AP=0.6411  smoothAUC=0.5936  (9.8s)
+    batch 1/3
+  Ep  20/60  loss=1.0283  AUC=0.5962  AP=0.6424  smoothAUC=0.5949  (5.8s)
+    batch 1/3
+  Ep  21/60  loss=1.0054  AUC=0.5993  AP=0.6435  smoothAUC=0.5965  (6.7s)
+    batch 1/3
+  Ep  22/60  loss=1.0001  AUC=0.6044  AP=0.6468  smoothAUC=0.6000  (6.7s)
+
+  Early stopping at epoch 22.
+
+  Fold 1 test — AUC=0.6031  AP=0.6326  (random=0.5000)
+
+=======================================================
+  FOLD 2 / 2
+=======================================================
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+    [DIAG] graph 44: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 60: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 63: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 71: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 119: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+  Fold 2/2 — train: 86  val: 85  test: 21
+      [learning-curve] fold 2: subsampled train set to 43/86 graphs (50%)
+Model built on mps  |  total params: 2,441,809
+    batch 1/3
+    [swap-guard] 91.3% swap used (batch 3/3) -- pausing 3s for extra cleanup
+    [swap-guard] 90.1% swap used (epoch end) -- pausing 3s for extra cleanup
+  Ep   1/60  loss=1.6078  AUC=0.5365  AP=0.5203  smoothAUC=0.5365  (18.1s)
+  ✓ Fold 2 new best smoothed AUC=0.5365  saved.
+    batch 1/3
+  Ep   2/60  loss=1.5678  AUC=0.5562  AP=0.5323  smoothAUC=0.5464  (9.8s)
+  ✓ Fold 2 new best smoothed AUC=0.5464  saved.
+    batch 1/3
+  Ep   3/60  loss=1.5028  AUC=0.5739  AP=0.5444  smoothAUC=0.5555  (10.1s)
+  ✓ Fold 2 new best smoothed AUC=0.5555  saved.
+    batch 1/3
+  Ep   4/60  loss=1.4361  AUC=0.5847  AP=0.5466  smoothAUC=0.5716  (13.2s)
+  ✓ Fold 2 new best smoothed AUC=0.5716  saved.
+    batch 1/3
+  Ep   5/60  loss=1.4388  AUC=0.5829  AP=0.5485  smoothAUC=0.5805  (11.2s)
+  ✓ Fold 2 new best smoothed AUC=0.5805  saved.
+    batch 1/3
+  Ep   6/60  loss=1.4298  AUC=0.5847  AP=0.5618  smoothAUC=0.5841  (10.5s)
+  ✓ Fold 2 new best smoothed AUC=0.5841  saved.
+    batch 1/3
+  Ep   7/60  loss=1.3922  AUC=0.5820  AP=0.5705  smoothAUC=0.5832  (12.7s)
+    batch 1/3
+  Ep   8/60  loss=1.3121  AUC=0.5792  AP=0.5740  smoothAUC=0.5820  (11.5s)
+    batch 1/3
+  Ep   9/60  loss=1.2869  AUC=0.5741  AP=0.5741  smoothAUC=0.5784  (14.0s)
+    batch 1/3
+  Ep  10/60  loss=1.3255  AUC=0.5695  AP=0.5605  smoothAUC=0.5743  (11.7s)
+    batch 1/3
+  Ep  11/60  loss=1.2492  AUC=0.5662  AP=0.5506  smoothAUC=0.5700  (12.1s)
+    batch 1/3
+  Ep  12/60  loss=1.2855  AUC=0.5708  AP=0.5535  smoothAUC=0.5689  (12.1s)
+    batch 1/3
+  Ep  13/60  loss=1.1819  AUC=0.5640  AP=0.5495  smoothAUC=0.5670  (9.7s)
+    batch 1/3
+  Ep  14/60  loss=1.1535  AUC=0.5566  AP=0.5452  smoothAUC=0.5638  (12.4s)
+    batch 1/3
+  Ep  15/60  loss=1.2074  AUC=0.5563  AP=0.5432  smoothAUC=0.5590  (13.8s)
+    batch 1/3
+  Ep  16/60  loss=1.1850  AUC=0.5568  AP=0.5454  smoothAUC=0.5566  (11.5s)
+    batch 1/3
+  Ep  17/60  loss=1.1413  AUC=0.5543  AP=0.5451  smoothAUC=0.5558  (11.3s)
+    batch 1/3
+  Ep  18/60  loss=1.1818  AUC=0.5613  AP=0.5535  smoothAUC=0.5575  (10.3s)
+    batch 1/3
+    [swap-guard] 92.0% swap used (batch 3/3) -- pausing 3s for extra cleanup
+    [swap-guard] 91.3% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 91.3% swap used (fold 2 epoch 19 val) -- pausing 3s for extra cleanup
+  Ep  19/60  loss=1.1598  AUC=0.5686  AP=0.5626  smoothAUC=0.5614  (19.9s)
+    batch 1/3
+    [swap-guard] 91.0% swap used (batch 3/3) -- pausing 3s for extra cleanup
+    [swap-guard] 90.8% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 90.4% swap used (fold 2 epoch 20 val) -- pausing 3s for extra cleanup
+  Ep  20/60  loss=1.1527  AUC=0.5758  AP=0.5625  smoothAUC=0.5686  (21.6s)
+    batch 1/3
+  Ep  21/60  loss=1.1389  AUC=0.5830  AP=0.5621  smoothAUC=0.5758  (11.5s)
+
+  Early stopping at epoch 21.
+
+  Fold 2 test — AUC=0.5982  AP=0.5876  (random=0.5000)
+
+=======================================================
+  2-Fold CV Summary
+=======================================================
+  Fold 1: AUC=0.6031  AP=0.6326  (random=0.5000)
+  Fold 2: AUC=0.5982  AP=0.5876  (random=0.5000)
+  ─────────────────────────────────────────
+  Mean AUC        = 0.6006 ± 0.0035
+  Mean AP         = 0.6101 ± 0.0318
+  Mean random AP  = 0.5000 ± 0.0000  (chance baseline — AP lift over this is the real signal)
+  Best overall fold: 1  (val AUC=0.6110)
+
+[4/4] Final test evaluation (best_overall.pt) …
+Model built on mps  |  total params: 2,441,809
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+    [DIAG] graph 119: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 44: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 60: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 63: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 71: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+  Fold 1/2 — train: 85  val: 86  test: 21
+
+  ── Test results (best overall model) ─────
+     auc         : 0.6031
+     ap          : 0.6326
+     random_ap   : 0.5000
+
+  Results saved        → results
+  Best overall ckpt    → checkpoints/best_overall.pt
+  Trained model export → ../trained_models/assembly_gnn_20260812_180151_auc06110.pt
+
+  ⊘ Serving model NOT updated — run launched with --no-promote (this run: AUC=0.6006, AP-lift=0.1101)
+
+  Building assembly template cache …
+  [TemplateDB] Built 7 category templates from 192 training assemblies.
+    Bench Vice                                bodies≈22  dist={'long_shaft': 2, 'short_shaft': 2, 'thick_plate': 2, 'thin_plate': 3, 'bolt': 2, 'washer': 2, 'nut': 4, 'body': 12}
+    C Clamps                                  bodies≈7  dist={'long_shaft': 1, 'short_shaft': 1, 'thick_plate': 1, 'thin_plate': 1, 'bolt': 1, 'washer': 1, 'nut': 2, 'body': 2}
+    Crane Hook                                bodies≈40  dist={'long_shaft': 2, 'short_shaft': 3, 'thick_plate': 5, 'thin_plate': 2, 'bolt': 1, 'washer': 7, 'nut': 12, 'body': 7}
+    Gate Valve                                bodies≈49  dist={'long_shaft': 2, 'short_shaft': 4, 'thick_plate': 2, 'thin_plate': 4, 'bolt': 4, 'washer': 3, 'nut': 18, 'body': 16}
+    Pipe Vice                                 bodies≈8  dist={'long_shaft': 1, 'short_shaft': 1, 'thick_plate': 1, 'thin_plate': 2, 'bolt': 1, 'washer': 1, 'nut': 2, 'body': 4}
+    Press Tool                                bodies≈14  dist={'long_shaft': 4, 'short_shaft': 4, 'thick_plate': 2, 'thin_plate': 18, 'bolt': 10, 'washer': 4, 'nut': 4, 'body': 5}
+    Tool Post                                 bodies≈30  dist={'long_shaft': 2, 'short_shaft': 8, 'thick_plate': 2, 'thin_plate': 1, 'bolt': 8, 'washer': 2, 'nut': 2, 'body': 11}
+  [TemplateDB] Saved 7 templates → data/assembly_templates.json
