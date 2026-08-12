@@ -14,6 +14,25 @@ Run:
 
 Note: node_ranker.pt is fit to the *current* best_serving.pt's latent space.
 If Phase 1 is retrained/re-promoted, re-run this script.
+
+Task 30 — train/inference distribution-mismatch caveat: leave-one-out
+training here gives NodeRanker an anchor_weight derived from the removed
+node's actual former neighbours (see remove_node/sample_leave_one_out
+below), so context pooling can emphasize "what usually sits next to this
+specific gap" instead of averaging the whole assembly. Real inference
+(infer.py's predict_next_component, api.py's /predict/next-component) has
+no such anchor — it asks "what's missing from this assembly" globally, not
+"what belongs at this specific location," and calls NodeRanker without an
+anchor_weight (falling back to the old flat mean, per model.py's default).
+That's a genuine train/inference mismatch this implementation does not
+resolve: the model is trained expecting a sharper, location-conditioned
+signal it will never receive at serving time. Retrain metrics below should
+be read with that caveat in mind — a win here is evidence the *pooling
+mechanism* helps, not proof the deployed (anchor-free) inference path
+benefits equally. Closing that gap for real would mean restructuring the
+inference call sites to query per-candidate-location (e.g. anchored on
+surface_analyzer.py's flagged open-joint bodies), which is out of scope
+for this pass.
 """
 
 from __future__ import annotations
@@ -65,14 +84,30 @@ def embed_prototypes(gnn, prototypes_raw: torch.Tensor, device) -> torch.Tensor:
 
 # ── Leave-one-node-out sampling ────────────────────────────────────────────────
 
-def remove_node(data: Data, idx: int) -> Data:
-    """Return a copy of data with node idx (and its incident edges) removed."""
+# Task 30: weight a former neighbour of the removed node this much more than
+# a non-neighbour when pooling context. A fixed heuristic multiplier, not
+# learned -- moderate emphasis (sharpens the signal toward "what usually
+# sits next to this gap") without fully discarding the rest of the assembly,
+# same "capped heuristic constant" spirit as the hard-negative loss weight
+# (0.3) in train.py and the class-weight cap (5.0) below.
+NEIGHBOR_BOOST = 3.0
+
+
+def remove_node(data: Data, idx: int):
+    """Return (partial_graph, anchor_weight) with node idx (and its incident
+    edges) removed. anchor_weight is a (N_partial,) tensor: NEIGHBOR_BOOST
+    for nodes that were idx's direct neighbours before removal, 1.0 for
+    everything else -- task 30's removed-node-aware pooling signal."""
     n = data.num_nodes
     keep = torch.tensor([i for i in range(n) if i != idx], dtype=torch.long)
     old_to_new = -torch.ones(n, dtype=torch.long)
     old_to_new[keep] = torch.arange(keep.size(0))
 
     src, dst = data.edge_index
+    incident = (src == idx) | (dst == idx)
+    former_neighbors = set(src[incident].tolist()) | set(dst[incident].tolist())
+    former_neighbors.discard(idx)
+
     edge_mask = (src != idx) & (dst != idx)
     new_edge_index = torch.stack([
         old_to_new[src[edge_mask]],
@@ -80,16 +115,21 @@ def remove_node(data: Data, idx: int) -> Data:
     ])
     new_edge_attr = data.edge_attr[edge_mask] if data.edge_attr is not None else None
 
-    return Data(
+    anchor_weight = torch.ones(keep.size(0))
+    for old_i in former_neighbors:
+        anchor_weight[old_to_new[old_i]] = NEIGHBOR_BOOST
+
+    partial = Data(
         x=data.x[keep],
         edge_index=new_edge_index,
         edge_attr=new_edge_attr,
     )
+    return partial, anchor_weight
 
 
 def sample_leave_one_out(graphs: list, n_per_graph: int, rng: random.Random):
     """For each graph with >=2 nodes, sample up to n_per_graph node indices
-    and return [(partial_graph, true_type_idx), ...]."""
+    and return [(partial_graph, true_type_idx, anchor_weight), ...]."""
     samples = []
     for g in graphs:
         n = g.num_nodes
@@ -99,7 +139,8 @@ def sample_leave_one_out(graphs: list, n_per_graph: int, rng: random.Random):
         rng.shuffle(idxs)
         for i in idxs[:min(n_per_graph, n)]:
             true_type = int(g.x[i, :len(COMP_TYPES)].argmax().item())
-            samples.append((remove_node(g, i), true_type))
+            partial, anchor_weight = remove_node(g, i)
+            samples.append((partial, true_type, anchor_weight))
     return samples
 
 
@@ -119,7 +160,7 @@ def compute_class_weights(samples, n_types: int, cap: float = 5.0) -> torch.Tens
     Phase 1's per-category CATEGORY_WEIGHTS in train.py.
     """
     counts = torch.zeros(n_types)
-    for _, t in samples:
+    for _, t, _ in samples:
         counts[t] += 1
     n = max(1, len(samples))
     counts = counts.clamp(min=1)  # a class with 0 samples just gets the cap, not div-by-zero
@@ -152,7 +193,7 @@ def epoch_pass(nr, gnn, prototypes_raw, samples, device, opt=None, return_raw=Fa
     total_loss = 0.0
     true_idx_all, scores_all = [], []
 
-    for partial, true_type in samples:
+    for partial, true_type, anchor_weight in samples:
         with torch.no_grad():
             z = gnn(partial.x.to(device), partial.edge_index.to(device),
                     partial.edge_attr.to(device) if partial.edge_attr is not None else None)
@@ -161,7 +202,7 @@ def epoch_pass(nr, gnn, prototypes_raw, samples, device, opt=None, return_raw=Fa
 
         if is_train:
             opt.zero_grad()
-            scores = nr(z, protos)  # (8,) cosine similarities, uses nr.proj internally
+            scores = nr(z, protos, anchor_weight)  # (8,) cosine similarities, uses nr.proj internally
             pos = scores[true_type]
             neg_mask = torch.ones(len(COMP_TYPES), dtype=torch.bool)
             neg_mask[true_type] = False
@@ -174,7 +215,7 @@ def epoch_pass(nr, gnn, prototypes_raw, samples, device, opt=None, return_raw=Fa
             total_loss += loss.item()
         else:
             with torch.no_grad():
-                scores = nr(z, protos)
+                scores = nr(z, protos, anchor_weight)
             true_idx_all.append(true_type)
             scores_all.append(scores.cpu().numpy())
 
@@ -248,7 +289,7 @@ def main():
     train_samples = sample_leave_one_out(train_graphs, n_per_graph, rng)
     val_samples   = sample_leave_one_out(val_graphs,   n_per_graph, rng)
     test_samples  = sample_leave_one_out(test_graphs,  n_per_graph, rng)
-    train_true_idx = [t for _, t in train_samples]
+    train_true_idx = [t for _, t, _ in train_samples]
     print(f"      Leave-one-out samples — train: {len(train_samples)}  "
           f"val: {len(val_samples)}  test: {len(test_samples)}")
 
@@ -289,9 +330,9 @@ def main():
     # beat baseline" comparisons across runs. corpus_majority_baseline_hit1
     # uses the TRUE corpus-wide node-type frequency instead -- stable, and
     # the one that should actually be compared run-to-run.
-    baseline_hit1 = majority_baseline_hit1(train_true_idx, [t for _, t in test_samples])
+    baseline_hit1 = majority_baseline_hit1(train_true_idx, [t for _, t, _ in test_samples])
     corpus_baseline_hit1 = corpus_majority_baseline_hit1(
-        train_graphs, [t for _, t in test_samples], len(COMP_TYPES))
+        train_graphs, [t for _, t, _ in test_samples], len(COMP_TYPES))
     corpus_majority = COMP_TYPES[corpus_majority_type(train_graphs, len(COMP_TYPES))]
     per_class = per_class_ranking_metrics(test_true_idx, test_scores, COMP_TYPES)
 

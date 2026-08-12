@@ -1190,9 +1190,25 @@ def _stable_bucket(key: str, n_buckets: int) -> int:
     return int(h, 16) % n_buckets
 
 
-def graph_level_indices(dataset: AssemblyDataset, cfg: dict, fold_idx: int = 0, n_folds: int = 5):
+def graph_level_indices(dataset: AssemblyDataset, cfg: dict, fold_idx: int = 0, n_folds: int = 5,
+                         true_5way: bool = False):
     """
-    Train/val/test graph-index partition, split into two halves with
+    Train/val/test graph-index partition.
+
+    true_5way (task 10, opt-in — default False, zero behavior change unless
+    explicitly requested): every graph is used as test exactly once across
+    the n_folds runs, instead of one fixed 15% test set reused for every
+    fold's test evaluation. This is the textbook definition of k-fold CV,
+    but it comes at a real cost flagged when this was scoped: each fold's
+    test numbers are no longer measuring the *same* held-out graphs, so
+    "does run B beat run A" stops being a clean apples-to-apples comparison
+    the way it is with the fixed test set below (R37/R38's reported numbers
+    all depend on that fixed-set property to mean what they say). Use this
+    mode to characterize how much fold-to-fold test-set composition itself
+    drives variance -- not as a drop-in replacement for the default split
+    in an ongoing comparison series.
+
+    Default (true_5way=False) split, unchanged, into two halves with
     different stability requirements:
 
     1. Test carve-out — hash-based on each graph's own (category, source
@@ -1227,28 +1243,61 @@ def graph_level_indices(dataset: AssemblyDataset, cfg: dict, fold_idx: int = 0, 
     sources = (dataset.graph_sources if len(dataset.graph_sources) == n
                else [str(i) for i in range(n)])
 
-    test_pct = max(1, min(99, round(cfg["data"]["test_ratio"] * 100)))
-    test_idx:  List[int] = []
-    train_val: List[int] = []
-    for i in range(n):
-        key = f"{cats[i]}::{sources[i]}"
-        if _stable_bucket("test::" + key, 100) < test_pct:
-            test_idx.append(i)
-        else:
-            train_val.append(i)
+    if true_5way:
+        # Task 10: every graph is test exactly once. Outer stratified split
+        # of ALL n graphs into n_folds -- fold[fold_idx] is this run's test
+        # set, the other n_folds-1 folds are the train_val pool. Inner
+        # split of that pool (fresh StratifiedKFold call, always taking its
+        # first fold as val) gives train/val -- deterministic and simple
+        # rather than trying to vary val selection with fold_idx too, since
+        # the property actually being asked for is the rotating TEST set.
+        all_idx = list(range(n))
+        try:
+            outer = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=42)
+            outer_folds = list(outer.split(all_idx, cats))
+        except ValueError as e:
+            print(f"  [split] true_5way outer StratifiedKFold failed ({e}) — falling back to plain KFold")
+            outer = KFold(n_splits=n_folds, shuffle=True, random_state=42)
+            outer_folds = list(outer.split(all_idx))
 
-    tv_cats = [cats[i] for i in train_val]
-    try:
-        skf   = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=42)
-        folds = list(skf.split(train_val, tv_cats))
-    except ValueError as e:
-        print(f"  [split] StratifiedKFold failed ({e}) — falling back to plain KFold")
-        kf    = KFold(n_splits=n_folds, shuffle=True, random_state=42)
-        folds = list(kf.split(train_val))
+        train_val_rel, test_rel = outer_folds[fold_idx]
+        test_idx  = [all_idx[i] for i in test_rel]
+        train_val = [all_idx[i] for i in train_val_rel]
 
-    train_rel_idx, val_rel_idx = folds[fold_idx]
-    train_idx = [train_val[i] for i in train_rel_idx]
-    val_idx   = [train_val[i] for i in val_rel_idx]
+        tv_cats = [cats[i] for i in train_val]
+        try:
+            inner = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=43)
+            inner_train_rel, inner_val_rel = list(inner.split(train_val, tv_cats))[0]
+        except ValueError as e:
+            print(f"  [split] true_5way inner StratifiedKFold failed ({e}) — falling back to plain KFold")
+            inner = KFold(n_splits=n_folds, shuffle=True, random_state=43)
+            inner_train_rel, inner_val_rel = list(inner.split(train_val))[0]
+
+        train_idx = [train_val[i] for i in inner_train_rel]
+        val_idx   = [train_val[i] for i in inner_val_rel]
+    else:
+        test_pct = max(1, min(99, round(cfg["data"]["test_ratio"] * 100)))
+        test_idx:  List[int] = []
+        train_val: List[int] = []
+        for i in range(n):
+            key = f"{cats[i]}::{sources[i]}"
+            if _stable_bucket("test::" + key, 100) < test_pct:
+                test_idx.append(i)
+            else:
+                train_val.append(i)
+
+        tv_cats = [cats[i] for i in train_val]
+        try:
+            skf   = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=42)
+            folds = list(skf.split(train_val, tv_cats))
+        except ValueError as e:
+            print(f"  [split] StratifiedKFold failed ({e}) — falling back to plain KFold")
+            kf    = KFold(n_splits=n_folds, shuffle=True, random_state=42)
+            folds = list(kf.split(train_val))
+
+        train_rel_idx, val_rel_idx = folds[fold_idx]
+        train_idx = [train_val[i] for i in train_rel_idx]
+        val_idx   = [train_val[i] for i in val_rel_idx]
 
     cat_counts = {}
     for i in val_idx:
@@ -1260,14 +1309,18 @@ def graph_level_indices(dataset: AssemblyDataset, cfg: dict, fold_idx: int = 0, 
     return train_idx, val_idx, test_idx
 
 
-def get_splits(dataset: AssemblyDataset, cfg: dict, fold_idx: int = 0, n_folds: int = 5):
+def get_splits(dataset: AssemblyDataset, cfg: dict, fold_idx: int = 0, n_folds: int = 5,
+                true_5way: bool = False):
     """
-    Fixed test set (15%) + KFold cross-validation on the remaining 85%.
+    Fixed test set (15%) + KFold cross-validation on the remaining 85%
+    (default), or a true 5-way rotating test partition when true_5way=True
+    -- see graph_level_indices' docstring for the tradeoff.
 
     fold_idx selects which of the n_folds splits is used as validation;
     the rest form the training set.  RandomLinkSplit is applied per-graph.
     """
-    train_idx, val_idx, test_idx = graph_level_indices(dataset, cfg, fold_idx, n_folds)
+    train_idx, val_idx, test_idx = graph_level_indices(dataset, cfg, fold_idx, n_folds,
+                                                        true_5way=true_5way)
 
     splitter = RandomLinkSplit(
         num_val                    = 0.1,

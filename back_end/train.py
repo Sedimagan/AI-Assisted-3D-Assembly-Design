@@ -222,6 +222,12 @@ def main():
                         help="Override model.dropout from config.yaml (task 11 capacity ablation)")
     parser.add_argument("--weight-decay", type=float, default=None,
                         help="Override training.weight_decay from config.yaml (task 11 capacity ablation)")
+    parser.add_argument("--true-5way-test", action="store_true",
+                        help="Task 10: every graph is test exactly once across the n_folds "
+                             "runs, instead of one fixed test set reused for every fold. "
+                             "Textbook k-fold CV, but breaks cross-run comparability with "
+                             "runs that used the default fixed test set (R37/R38 included) "
+                             "-- opt-in, not the default.")
     parser.add_argument("--train-frac", type=float, default=None,
                         help="Randomly subsample this fraction of the TRAINING graphs only "
                              "each fold (val/test untouched, so eval stays apples-to-apples "
@@ -322,7 +328,8 @@ def main():
             gnn_tmp.load_state_dict(ck["gnn"])
             lp_tmp.load_state_dict(ck["lp"])
             _, _, test_data_prev = get_splits(dataset, cfg,
-                                              fold_idx=prev, n_folds=N_FOLDS)
+                                              fold_idx=prev, n_folds=N_FOLDS,
+                                              true_5way=args.true_5way_test)
             test_loader_prev = DataLoader(test_data_prev, batch_size=bs)
             prev_metrics = evaluate(gnn_tmp, lp_tmp, test_loader_prev, dev_tmp)
             fold_aucs.append(prev_metrics["auc"])
@@ -344,7 +351,8 @@ def main():
 
         train_data, val_data, test_data = get_splits(dataset, cfg,
                                                       fold_idx=fold,
-                                                      n_folds=N_FOLDS)
+                                                      n_folds=N_FOLDS,
+                                                      true_5way=args.true_5way_test)
 
         if args.train_frac and args.train_frac < 1.0:
             orig_n = len(train_data)
@@ -516,7 +524,8 @@ def main():
     # Use fixed test set from the best fold
     _, _, test_data = get_splits(dataset, cfg,
                                  fold_idx=best_overall_fold,
-                                 n_folds=N_FOLDS)
+                                 n_folds=N_FOLDS,
+                                 true_5way=args.true_5way_test)
     test_loader = DataLoader(test_data, batch_size=bs)
     test_metrics = evaluate(gnn, lp, test_loader, device)
     print("\n  ── Test results (best overall model) ─────")

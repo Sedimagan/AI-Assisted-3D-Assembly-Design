@@ -219,7 +219,7 @@ class LinkPredictor(nn.Module):
 class NodeRanker(nn.Module):
     """
     Ranks candidate components by cosine similarity to the partial-assembly
-    context vector (mean-pooled node embeddings).
+    context vector (pooled node embeddings).
 
     logit_scale is a learnable temperature (CLIP-style: scores = cosine_sim *
     exp(logit_scale)) — plain cosine similarity is bounded in [-1, 1], so raw
@@ -228,6 +228,30 @@ class NodeRanker(nn.Module):
     in `proj` alone). Initialised to exp(0)=1.0, i.e. identical to the old
     unscaled behaviour at the start of training — it only starts sharpening
     or softening the ranking once gradients say to.
+
+    Task 16 — `self.proj` is now applied to BOTH sides of the cosine
+    comparison (context AND candidates/prototypes), not just the context.
+    Previously the prototype table sat exactly where the frozen encoder put
+    it while only the context vector was free to move via `proj` — an
+    asymmetric comparison space where cosine similarity was measuring
+    "does the learned context land near the encoder's raw, untouched
+    prototype," not a jointly-learned metric space. Reusing the same
+    `proj` for both sides keeps this a single tiny linear map (no new
+    params) while letting training actually shape where prototypes sit
+    relative to context, not just the reverse.
+
+    Task 30 — optional `anchor_weight` lets pooling emphasize specific
+    nodes instead of a flat mean over every remaining node. During
+    leave-one-out training this is set from the removed node's actual
+    former neighbours (see train_ranker.py's remove_node) — the intuition
+    being "what usually sits next to a bolt hole" is a much sharper signal
+    than "the average of this whole assembly," which is what plain
+    mean-pooling was diluting the majority class (Body, by far the largest
+    and most numerous type) into. Defaults to uniform (identical to the
+    old flat mean) when not supplied, which is what every current
+    inference call site still does — see the module-level note in
+    train_ranker.py for the train/inference distribution-mismatch this
+    leaves open.
     """
 
     def __init__(self, in_dim: int = 64):
@@ -237,11 +261,18 @@ class NodeRanker(nn.Module):
 
     def forward(
         self,
-        z_partial:    torch.Tensor,   # (N_partial, D) — embeddings of known nodes
-        z_candidates: torch.Tensor,   # (N_cand, D)   — embeddings of candidate nodes
+        z_partial:     torch.Tensor,           # (N_partial, D) — embeddings of known nodes
+        z_candidates:  torch.Tensor,            # (N_cand, D)   — embeddings of candidate nodes
+        anchor_weight: torch.Tensor | None = None,  # (N_partial,) optional pooling weights
     ) -> torch.Tensor:
-        ctx    = self.proj(z_partial.mean(0, keepdim=True))  # (1, D)
-        cos    = F.cosine_similarity(ctx, z_candidates, dim=-1)  # (N_cand,)
+        if anchor_weight is None:
+            pooled = z_partial.mean(0, keepdim=True)              # (1, D) -- old behaviour
+        else:
+            w = anchor_weight.to(z_partial.device).unsqueeze(-1)  # (N_partial, 1)
+            pooled = (z_partial * w).sum(0, keepdim=True) / w.sum().clamp(min=1e-9)
+        ctx    = self.proj(pooled)             # (1, D)
+        protos = self.proj(z_candidates)       # (N_cand, D) -- task 16
+        cos    = F.cosine_similarity(ctx, protos, dim=-1)  # (N_cand,)
         scores = cos * self.logit_scale.exp()
         return scores
 
