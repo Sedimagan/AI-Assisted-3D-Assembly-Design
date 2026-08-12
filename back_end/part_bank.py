@@ -90,6 +90,28 @@ def _extract_bodies_worker(step_path: str, result_queue: "_mp.Queue") -> None:
                     tm = _build_trimesh(surf_tags)
                     if tm is None or len(tm.faces) < 4:
                         continue
+                    # Quality gate (task 18): reject bodies that build a
+                    # trimesh but aren't a reliable solid. Added after the
+                    # meshing-resilience fix let an assembly's OTHER bodies
+                    # survive even when one body failed to mesh -- some of
+                    # those newly-admitted bodies build a trimesh from
+                    # whatever faces did mesh but aren't watertight (holes
+                    # where a periodic/unmeshable face was skipped), which
+                    # gives voxelize()'s fill() unpredictable interior
+                    # results (a non-watertight shell can fill "inside out"
+                    # or not fill at all). A watertight mesh with near-zero
+                    # enclosed volume relative to its own bounding box is
+                    # the other failure mode this catches -- a numerically
+                    # degenerate sliver, not a real part to retrieve or
+                    # train a generator on. Both checks are on the mesh
+                    # itself, independent of the CAD-reported `vol`/`bbox`
+                    # computed below, so a bad triangulation can't slip
+                    # through by having a plausible bbox.
+                    if not tm.is_watertight:
+                        continue
+                    bbox_vol = dx * dy * dz
+                    if bbox_vol <= 0 or tm.volume <= 0 or (tm.volume / bbox_vol) < 0.005:
+                        continue
                     exact_sa = float(tm.area)
                     sdf_m, sdf_v = _compute_sdf_stats(tm)
                     signals = _compute_shape_signals(
