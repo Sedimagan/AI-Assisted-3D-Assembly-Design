@@ -109,8 +109,19 @@ def _extract_bodies_worker(step_path: str, result_queue: "_mp.Queue") -> None:
                     # through by having a plausible bbox.
                     if not tm.is_watertight:
                         continue
+                    # trimesh.volume is SIGNED (negative for inward-facing
+                    # normals) -- a watertight-but-inside-out mesh is still
+                    # a perfectly valid solid (inside/outside fill doesn't
+                    # depend on winding direction), just a common CAD-export
+                    # orientation quirk. Use the magnitude here; only the
+                    # sign-agnostic size matters for "is this a real,
+                    # non-degenerate part." (First version of this check
+                    # used the raw signed value and rejected ~40% of
+                    # otherwise-legitimate bodies on real corpus data --
+                    # caught by comparing rebuild counts against the
+                    # pre-gate bank before treating the rebuild as final.)
                     bbox_vol = dx * dy * dz
-                    if bbox_vol <= 0 or tm.volume <= 0 or (tm.volume / bbox_vol) < 0.005:
+                    if bbox_vol <= 0 or abs(tm.volume) < 1e-9 or (abs(tm.volume) / bbox_vol) < 0.005:
                         continue
                     exact_sa = float(tm.area)
                     sdf_m, sdf_v = _compute_sdf_stats(tm)
