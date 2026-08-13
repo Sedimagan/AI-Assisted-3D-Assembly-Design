@@ -196,6 +196,12 @@ def main():
     parser.add_argument("--epochs",       type=int, default=None)
     parser.add_argument("--n-per-graph",  type=int, default=None)
     parser.add_argument("--lr",           type=float, default=None)
+    parser.add_argument("--true-5way-test", action="store_true",
+                        help="Task 10, ported to Phase 2: use graph_level_indices' true_5way "
+                             "split (this fold's test graphs are exclusive to it, not the "
+                             "one fixed test set reused by fold_idx=0..4) instead of the "
+                             "default fixed test set. Opt-in, matches train.py's flag of "
+                             "the same name.")
     args = parser.parse_args()
 
     with open(args.config) as f:
@@ -215,7 +221,8 @@ def main():
     )
     print(f"      {len(dataset)} graphs loaded.")
 
-    train_idx, val_idx, test_idx = graph_level_indices(dataset, cfg, fold_idx=fold_idx)
+    train_idx, val_idx, test_idx = graph_level_indices(dataset, cfg, fold_idx=fold_idx,
+                                                        true_5way=args.true_5way_test)
     train_graphs = [dataset[i] for i in train_idx]
     val_graphs   = [dataset[i] for i in val_idx]
     test_graphs  = [dataset[i] for i in test_idx]
