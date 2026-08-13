@@ -1,0 +1,73 @@
+{
+  "test_metrics": {
+    "hit@1": 0.3231,
+    "hit@5": 0.8462,
+    "mrr": 0.5335,
+    "ndcg@5": 0.5937
+  },
+  "val_metrics": {
+    "hit@1": 0.3907,
+    "hit@5": 0.8344,
+    "mrr": 0.5701,
+    "ndcg@5": 0.6177
+  },
+  "baseline_hit1": 0.3897,
+  "baseline_hit1_corpus_wide": 0.3897,
+  "corpus_majority_type": "body",
+  "per_class": {
+    "per_class": {
+      "long_shaft": {
+        "n": 18,
+        "hit@1": 0.0
+      },
+      "short_shaft": {
+        "n": 6,
+        "hit@1": 0.0
+      },
+      "thick_plate": {
+        "n": 35,
+        "hit@1": 0.02857142857142857
+      },
+      "thin_plate": {
+        "n": 14,
+        "hit@1": 0.0
+      },
+      "bolt": {
+        "n": 22,
+        "hit@1": 0.045454545454545456
+      },
+      "washer": {
+        "n": 8,
+        "hit@1": 0.0
+      },
+      "nut": {
+        "n": 16,
+        "hit@1": 0.125
+      },
+      "body": {
+        "n": 76,
+        "hit@1": 0.7763157894736842
+      }
+    },
+    "true_distribution": {
+      "long_shaft": 18,
+      "short_shaft": 6,
+      "thick_plate": 35,
+      "thin_plate": 14,
+      "bolt": 22,
+      "washer": 8,
+      "nut": 16,
+      "body": 76
+    },
+    "predicted_distribution": {
+      "long_shaft": 4,
+      "short_shaft": 0,
+      "thick_plate": 9,
+      "thin_plate": 0,
+      "bolt": 4,
+      "washer": 6,
+      "nut": 10,
+      "body": 162
+    }
+  }
+}

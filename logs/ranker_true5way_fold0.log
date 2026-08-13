@@ -1,0 +1,73 @@
+
+[1/5] Loading dataset …
+      192 graphs loaded.
+      train: 122  val: 31  test: 39
+
+[2/5] Loading frozen Phase-1 encoder …
+Model built on mps  |  total params: 2,441,809
+      Encoder frozen (val AUC=0.7362, trained_at=2026-08-12T14:14:20.835588)
+
+[3/5] Computing type prototypes …
+      Prototype table: (8, 22)
+
+[4/5] Building NodeRanker …
+      Leave-one-out samples — train: 588  val: 155  test: 193
+      Class weights (inverse-frequency, capped at 5.0): long_shaft=1.07, short_shaft=2.16, thick_plate=0.85, thin_plate=3.06, bolt=0.94, washer=4.32, nut=1.39, body=0.32
+
+[5/5] Training (30 epochs) …
+  Ep   1/30  loss=4.6806  Hit@1=0.3677  Hit@5=0.7226  MRR=0.5322  NDCG@5=0.5500
+  Ep   2/30  loss=4.2720  Hit@1=0.4065  Hit@5=0.7484  MRR=0.5611  NDCG@5=0.5802
+  Ep   3/30  loss=4.0189  Hit@1=0.3871  Hit@5=0.7548  MRR=0.5536  NDCG@5=0.5762
+  Ep   4/30  loss=3.7831  Hit@1=0.4000  Hit@5=0.7677  MRR=0.5571  NDCG@5=0.5828
+  Ep   5/30  loss=3.5838  Hit@1=0.3935  Hit@5=0.7871  MRR=0.5533  NDCG@5=0.5879
+  Ep   6/30  loss=3.3829  Hit@1=0.2645  Hit@5=0.8000  MRR=0.4556  NDCG@5=0.5170
+  Ep   7/30  loss=3.2646  Hit@1=0.3161  Hit@5=0.8129  MRR=0.5093  NDCG@5=0.5631
+  Ep   8/30  loss=3.1386  Hit@1=0.3742  Hit@5=0.7935  MRR=0.5440  NDCG@5=0.5823
+  Ep   9/30  loss=3.0863  Hit@1=0.3419  Hit@5=0.8000  MRR=0.5254  NDCG@5=0.5705
+  Ep  10/30  loss=2.9895  Hit@1=0.3484  Hit@5=0.7935  MRR=0.5324  NDCG@5=0.5739
+  Ep  11/30  loss=2.9579  Hit@1=0.4129  Hit@5=0.8129  MRR=0.5703  NDCG@5=0.6087
+  Ep  12/30  loss=2.8945  Hit@1=0.3161  Hit@5=0.8065  MRR=0.5175  NDCG@5=0.5673
+  Ep  13/30  loss=2.8661  Hit@1=0.3484  Hit@5=0.8000  MRR=0.5344  NDCG@5=0.5781
+  Ep  14/30  loss=2.8350  Hit@1=0.3677  Hit@5=0.8258  MRR=0.5501  NDCG@5=0.5991
+  Ep  15/30  loss=2.8079  Hit@1=0.4065  Hit@5=0.8000  MRR=0.5660  NDCG@5=0.6010
+  Ep  16/30  loss=2.8045  Hit@1=0.3871  Hit@5=0.8000  MRR=0.5598  NDCG@5=0.5975
+  Ep  17/30  loss=2.7769  Hit@1=0.3548  Hit@5=0.8000  MRR=0.5369  NDCG@5=0.5795
+  Ep  18/30  loss=2.7064  Hit@1=0.2710  Hit@5=0.8000  MRR=0.4799  NDCG@5=0.5363
+  Ep  19/30  loss=2.7143  Hit@1=0.3806  Hit@5=0.8129  MRR=0.5515  NDCG@5=0.5954
+  Ep  20/30  loss=2.7127  Hit@1=0.3290  Hit@5=0.8065  MRR=0.5230  NDCG@5=0.5716
+  Ep  21/30  loss=2.6600  Hit@1=0.3290  Hit@5=0.8387  MRR=0.5265  NDCG@5=0.5860
+  Ep  22/30  loss=2.6788  Hit@1=0.3032  Hit@5=0.7871  MRR=0.5057  NDCG@5=0.5516
+  Ep  23/30  loss=2.6093  Hit@1=0.3161  Hit@5=0.8258  MRR=0.5058  NDCG@5=0.5652
+  Ep  24/30  loss=2.6302  Hit@1=0.2839  Hit@5=0.8258  MRR=0.4964  NDCG@5=0.5589
+  Ep  25/30  loss=2.6057  Hit@1=0.3032  Hit@5=0.8000  MRR=0.5099  NDCG@5=0.5603
+  Ep  26/30  loss=2.6362  Hit@1=0.2774  Hit@5=0.8065  MRR=0.4921  NDCG@5=0.5487
+  Ep  27/30  loss=2.5910  Hit@1=0.3742  Hit@5=0.8129  MRR=0.5457  NDCG@5=0.5911
+  Ep  28/30  loss=2.5540  Hit@1=0.2645  Hit@5=0.8065  MRR=0.4809  NDCG@5=0.5400
+  Ep  29/30  loss=2.5305  Hit@1=0.3871  Hit@5=0.7871  MRR=0.5599  NDCG@5=0.5927
+  Ep  30/30  loss=2.5683  Hit@1=0.3355  Hit@5=0.8065  MRR=0.5225  NDCG@5=0.5711
+
+=======================================================
+  NodeRanker — Test Results
+=======================================================
+     hit@1     : 0.2850
+     hit@5     : 0.8290
+     mrr       : 0.5165
+     ndcg@5    : 0.5764
+     majority-class baseline Hit@1 (sample-pool, legacy):  0.4301
+     majority-class baseline Hit@1 (corpus-wide, stable):  0.4301  (majority type: body)
+  (best val MRR=0.5703 at selection time)
+
+  Per-class breakdown (test set, n=193):
+  type            n   hit@1   true%   pred%
+  long_shaft     19   0.211    9.8%   10.4%
+  short_shaft     7   0.000    3.6%    2.1%
+  thick_plate    25   0.080   13.0%    8.8%
+  thin_plate      5   0.000    2.6%    2.6%
+  bolt           25   0.240   13.0%   12.4%
+  washer         11   0.000    5.7%    0.0%
+  nut            18   0.056    9.3%    6.2%
+  body           83   0.506   43.0%   57.5%
+  (true% vs pred% far apart for a type = the model is over/under-predicting it relative to how often it's actually the answer — a sign of majority-class collapse if e.g. 'body' pred% >> true%)
+
+  Saved → checkpoints/node_ranker.pt
+  Saved → results/ranker_test_metrics.json
