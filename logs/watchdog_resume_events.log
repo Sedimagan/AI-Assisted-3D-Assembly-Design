@@ -2,3 +2,5 @@
 2026-08-15 22:37:20  [watchdog] train.py not running, 4 fold(s) confirmed complete — resuming with --start-fold 4
 2026-08-15 22:37:20  [watchdog] relaunched, PID 46034
 2026-08-16 05:37:34  [watchdog] Mean AUC summary found — run complete, exiting watchdog.
+2026-08-16 17:01:57  [watchdog-p2] started, watching ../logs/ph2_final_phase2.log
+2026-08-17 00:46:25  [watchdog-p2] completion marker found — run complete, exiting watchdog.
