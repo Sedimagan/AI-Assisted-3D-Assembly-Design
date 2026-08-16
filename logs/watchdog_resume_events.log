@@ -4,3 +4,5 @@
 2026-08-16 05:37:34  [watchdog] Mean AUC summary found — run complete, exiting watchdog.
 2026-08-16 17:01:57  [watchdog-p2] started, watching ../logs/ph2_final_phase2.log
 2026-08-17 00:46:25  [watchdog-p2] completion marker found — run complete, exiting watchdog.
+2026-08-17 00:48:20  [watchdog-pb] started, watching ../logs/ph2_final_partbank.log
+2026-08-17 02:51:25  [watchdog-pb] completion marker found — run complete, exiting watchdog.
