@@ -421,10 +421,22 @@ def constrain_bolt_radii(mesh: trimesh.Trimesh, n: np.ndarray, head_base: float,
 
     n must already be unit length and head-outward-oriented (see
     _bolt_head_base_proj); head_base is the shaft/head transition along n,
-    same convention as shape_bolt_head. Widest point of each region is
-    used as that region's effective radius, so the corrected shaft is
-    guaranteed not to exceed the hole anywhere along its length, not just
-    on average.
+    same convention as shape_bolt_head.
+
+    The shaft is forced to a true constant-diameter cylinder: every shaft
+    cross-section is normalized to exactly target_shaft_radius, not scaled
+    by one factor derived from its widest point (which preserves whatever
+    radius PROFILE the retrieved part's shaft happened to have). Several
+    real bank parts have a continuously tapering shaft baked in (a self-
+    tapping/wood-screw-style lead-in, not just a small tip chamfer) --
+    uniform scaling keeps that taper, just resized, and stretching the
+    shaft's length (see app.py's "extra thread" fixup) makes an already-
+    subtle taper span a much longer, more visible distance. Reported as
+    "the screw portion is tapering towards the end" instead of a proper
+    cylinder. The head keeps a single uniform scale off its own widest
+    point -- unlike the shaft, its on-axis proportions (e.g. a hex head's
+    flats-vs-corners shape) are worth preserving rather than forcing
+    circular.
 
     First recenters the whole mesh onto the shaft's own true centerline
     (its cross-sectional centroid, not local-origin/n itself) before
@@ -451,18 +463,22 @@ def constrain_bolt_radii(mesh: trimesh.Trimesh, n: np.ndarray, head_base: float,
     perp = perp0 - shaft_center
     radii = np.linalg.norm(perp, axis=1)
 
-    shaft_radius = float(radii[shaft_mask].max())
     target_shaft_radius = target_shaft_diam / 2.0
-    shaft_scale = target_shaft_radius / shaft_radius if shaft_radius > 1e-9 else 1.0
 
     head_mask = ~shaft_mask
     head_radius = float(radii[head_mask].max()) if head_mask.any() else 0.0
     target_head_radius = target_shaft_radius * _BOLT_HEAD_DIAM_RATIO
-    head_scale = target_head_radius / head_radius if head_radius > 1e-9 else shaft_scale
+    head_scale = target_head_radius / head_radius if head_radius > 1e-9 else 1.0
 
-    scale = np.where(shaft_mask, shaft_scale, head_scale)
+    safe_radii = np.where(radii > 1e-9, radii, 1.0)
+    unit_perp = perp / safe_radii[:, None]
+    new_perp = np.where(
+        shaft_mask[:, None],
+        unit_perp * target_shaft_radius,
+        perp * head_scale,
+    )
     mesh = mesh.copy()
-    mesh.vertices = np.outer(proj, n) + perp * scale[:, None]
+    mesh.vertices = np.outer(proj, n) + new_perp
     return mesh
 
 
