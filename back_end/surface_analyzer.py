@@ -258,6 +258,18 @@ HOLE_MIN_PATTERN_COUNT = 2
 # into one hole candidate instead of double-counting the same physical hole.
 HOLE_MERGE_TOLERANCE = 3.0
 
+# Combined axial span (across a hole's coaxial B-Rep faces) needed, as a
+# fraction of the parent body's own thickness along the bore axis, to call a
+# hole "through" rather than blind. Calibrated against a real STEP file's
+# corner mounting holes on a 34mm plate: their measurable combined depth
+# only reaches ~73.5% of the plate thickness (the last few mm at the very
+# entry face are apparently a non-cylindrical face -- a chamfer or flare --
+# so they don't get picked up by the Cylinder-type face scan), even though
+# they're unambiguously through-holes by design. A genuinely blind hole
+# measured only ~18% on the same file, so there's wide margin either
+# direction -- 0.65 isn't cutting it close for either case.
+HOLE_THROUGH_DEPTH_RATIO = 0.65
+
 
 def _hole_diameter_depth(dims: List[float]) -> Tuple[float, float]:
     """Given a cylindrical face's 3 bbox extents, split into (diameter, depth).
@@ -341,6 +353,23 @@ def analyze_open_surfaces(
       normal_hint  : [nx, ny, nz] approximate surface normal / bore-axis direction
       bbox         : [xmin,ymin,zmin,xmax,ymax,zmax] surface bounding box
       is_hole      : bool         True for individual fastener-hole candidates
+      is_through   : bool         hole candidates only -- True if the hole's
+                                   combined axial span (across its merged
+                                   coaxial faces) covers >=HOLE_THROUGH_DEPTH_RATIO (65%) of the parent
+                                   body's own thickness along the bore axis,
+                                   i.e. it likely goes all the way through
+                                   rather than dead-ending partway (a blind
+                                   hole). Approximate -- no exit-face
+                                   verification, just a depth-vs-thickness
+                                   ratio. Always False for whole-face entries.
+      exit_face_coord : float|None  hole candidates only -- the parent body's
+                                   own coordinate (along the bore axis's
+                                   dominant world component) at its far
+                                   extreme, opposite the entry face. Lets a
+                                   caller place something at the far side of
+                                   a through-hole without needing the body's
+                                   own bbox. None on error or for whole-face
+                                   entries.
     """
     import gmsh
 
@@ -485,15 +514,15 @@ def analyze_open_surfaces(
         # as the representative "opening").
         hole_reps: List[Dict] = []
         if hole_raw:
-            by_diam: Dict[Tuple[int, float], List[Dict]] = {}
+            # _hole_axis needed for every raw candidate now, not just the
+            # pattern-filtered ones below -- the unfiltered set is reused for
+            # the is_through depth check (see below), specifically because a
+            # hole's true clearance bore can be a one-off, non-repeating
+            # diameter that the pattern filter is *supposed* to reject when
+            # picking bolt-hole candidates (that filter's job, unchanged
+            # here), but which is still real geometry worth counting toward
+            # how deep the hole actually goes.
             for h in hole_raw:
-                key = (h["body_idx"], round(h["diameter"] * 2) / 2)
-                by_diam.setdefault(key, []).append(h)
-            patterned = [h for group in by_diam.values()
-                         if len(group) >= HOLE_MIN_PATTERN_COUNT
-                         for h in group]
-
-            for h in patterned:
                 try:
                     h["normal"] = _hole_axis(h["stag"])
                 except Exception:
@@ -503,20 +532,89 @@ def analyze_open_surfaces(
                     min_ax = dims.index(min(dims))
                     h["normal"] = [1.0 if i == min_ax else 0.0 for i in range(3)]
 
-            # Merge coaxial duplicates: group by body + position projected onto
-            # the plane perpendicular to the bore axis (axis-aligned holes are
-            # the norm in this corpus, matching the existing normal_hint
-            # convention used for whole-face candidates above).
-            merge_groups: Dict[Tuple, List[Dict]] = {}
-            for h in patterned:
+            def _perp_key(h: Dict) -> Tuple:
                 axis = h["normal"]
                 perp = [round(v / HOLE_MERGE_TOLERANCE)
                         for i, v in enumerate(h["centroid"]) if abs(axis[i]) < 0.5]
-                key = (h["body_idx"], tuple(perp))
-                merge_groups.setdefault(key, []).append(h)
+                return (h["body_idx"], tuple(perp))
 
-            for group in merge_groups.values():
-                hole_reps.append(max(group, key=lambda h: h["diameter"]))
+            # Unfiltered lookup: every raw candidate face (any diameter, any
+            # repeat count) bucketed by body + coaxial position -- used only
+            # for the depth/is_through measurement below, never for deciding
+            # which holes are real bolt-pattern candidates.
+            raw_by_perp: Dict[Tuple, List[Dict]] = {}
+            for h in hole_raw:
+                raw_by_perp.setdefault(_perp_key(h), []).append(h)
+
+            by_diam: Dict[Tuple[int, float], List[Dict]] = {}
+            for h in hole_raw:
+                key = (h["body_idx"], round(h["diameter"] * 2) / 2)
+                by_diam.setdefault(key, []).append(h)
+            patterned = [h for group in by_diam.values()
+                         if len(group) >= HOLE_MIN_PATTERN_COUNT
+                         for h in group]
+
+            # Merge coaxial duplicates (pattern-filtered set only -- this
+            # selects which hole *candidates* get returned, unchanged from
+            # before): group by body + position projected onto the plane
+            # perpendicular to the bore axis (axis-aligned holes are the norm
+            # in this corpus, matching the existing normal_hint convention
+            # used for whole-face candidates above).
+            merge_groups: Dict[Tuple, List[Dict]] = {}
+            for h in patterned:
+                merge_groups.setdefault(_perp_key(h), []).append(h)
+
+            # Through vs blind: compare the COMBINED axial span across ALL
+            # raw coaxial faces at this position (not just the pattern-
+            # filtered ones -- see raw_by_perp above) against the parent
+            # body's own extent along the bore axis -- see
+            # HOLE_THROUGH_DEPTH_RATIO for the threshold and its calibration.
+            # An approximation (no exit-face topology verification), since
+            # this project doesn't have exact material-thickness data to
+            # check against directly for a body that isn't itself
+            # axis-aligned.
+            body_bbox: Dict[int, list] = {}
+
+            def _body_bbox(body_idx: int) -> list:
+                if body_idx not in body_bbox:
+                    dim, tag = vols[body_idx]
+                    body_bbox[body_idx] = list(gmsh.model.occ.getBoundingBox(dim, tag))
+                return body_bbox[body_idx]
+
+            def _body_extent_along(body_idx: int, axis: List[float]) -> float:
+                bb = _body_bbox(body_idx)
+                dom = max(range(3), key=lambda i: abs(axis[i]))
+                return bb[dom + 3] - bb[dom]
+
+            for key, group in merge_groups.items():
+                rep = max(group, key=lambda h: h["diameter"])
+                axis = rep["normal"]
+                dom = max(range(3), key=lambda i: abs(axis[i]))
+                depth_group = raw_by_perp.get(key, group)  # unfiltered if available
+                near = min(h["bbox"][dom] for h in depth_group)
+                far  = max(h["bbox"][dom + 3] for h in depth_group)
+                combined_depth = far - near
+                try:
+                    body_extent = _body_extent_along(rep["body_idx"], axis)
+                except Exception:
+                    body_extent = combined_depth  # can't compare -- assume blind
+                rep["is_through"] = (body_extent > 1e-6
+                                      and (combined_depth / body_extent) >= HOLE_THROUGH_DEPTH_RATIO)
+                # Exit-face coordinate (parent body's own far extreme along
+                # the bore axis, on the OPPOSITE side from the entry -- entry
+                # sits at the body/hole's extreme in the +normal_hint
+                # direction, matching app.py's own entry-centroid fix, so
+                # exit is the body's extreme in the -normal_hint direction).
+                # Only meaningful when is_through, but harmless to compute
+                # either way. Lets a caller place a nut/washer at the far
+                # side of a through-bolt without needing the body's own
+                # bbox itself.
+                try:
+                    bb = _body_bbox(rep["body_idx"])
+                    rep["exit_face_coord"] = bb[dom] if axis[dom] > 0 else bb[dom + 3]
+                except Exception:
+                    rep["exit_face_coord"] = None
+                hole_reps.append(rep)
 
             hole_reps = hole_reps[:max_hole_surfaces]
 
@@ -571,6 +669,8 @@ def analyze_open_surfaces(
                 "normal_hint": rep["normal"],
                 "bbox":        rep["bbox"],
                 "is_hole":     True,
+                "is_through":  bool(rep.get("is_through", False)),
+                "exit_face_coord": rep.get("exit_face_coord"),
             })
 
         return results

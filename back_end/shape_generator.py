@@ -312,6 +312,26 @@ def stretch_bolt_head(mesh: trimesh.Trimesh, n: np.ndarray, head_base: float) ->
     return mesh
 
 
+def flush_near_face_offset(mesh: trimesh.Trimesh, normal_hint) -> np.ndarray:
+    """Placement offset so a mesh's *near* face (its minimum extent along
+    normal_hint) sits at the local origin, with the rest extending along
+    +normal_hint -- i.e. "back flush against a surface, whole part
+    extending outward from there". For simple, non-composite fastener
+    parts (washer, nut) where the entire mesh IS the feature, unlike a
+    bolt's head+shaft composite (see shape_bolt_head, which needs the
+    head/shaft transition specifically, not just the mesh's overall
+    extent). Used for placing a washer/nut sequence at a through-hole's
+    exit face, each flush against whatever's already there. Returns a
+    zero vector for a degenerate normal_hint."""
+    n = np.asarray(normal_hint, dtype=np.float64)
+    norm = np.linalg.norm(n)
+    if norm < 1e-6:
+        return np.zeros(3)
+    n = n / norm
+    proj = mesh.vertices @ n
+    return -n * float(proj.min())
+
+
 def shape_bolt_head(mesh: trimesh.Trimesh, normal_hint,
                      comp_type: Optional[str]) -> tuple[trimesh.Trimesh, np.ndarray]:
     """For a bolt already oriented head-outward (fit_to_bbox/rotate_to_target_axis

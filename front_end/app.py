@@ -710,6 +710,7 @@ def _run_inference(step_bytes: bytes,
                 and os.path.exists(os.path.join(_pbank_dir, "index.json"))):
             try:
                 from infer import load_shape_generator, generate_missing_shape
+                from shape_generator import flush_near_face_offset
 
                 with contextlib.redirect_stdout(io.StringIO()):
                     _hsg = load_shape_generator(_pbank_dir, _svae_path, device,
@@ -718,19 +719,36 @@ def _run_inference(step_bytes: bytes,
                 if _hsg is not None:
                     _bank = _hsg.retriever.bank
                     _gen_category = _tmpl_match["category"] if _tmpl_match else None
-                    # "nut" deliberately excluded: a hole surface is where a
-                    # bolt/screw *shaft* passes through, not where a nut sits --
-                    # a nut threads onto a bolt already in place, on the far
-                    # face of whatever it's clamping, not co-located with the
-                    # hole itself. Pure bbox-fit querying (no mechanical
-                    # reasoning) was occasionally letting "nut" win the fit
-                    # score against a hole's extents since a nut's own bore
-                    # can size-match a hole reasonably well too -- fixed
-                    # 2026-08-22 per user report of nuts being suggested
-                    # directly at hole surfaces on a Tool_Post upload.
-                    _FASTENER_TYPES = {{"bolt", "washer"}}
                     _hole_surfs = [s for s in _open_surfs if s.get("is_hole")]
                     _hole_surfs.sort(key=lambda s: s.get("area_ratio", 0), reverse=True)
+
+                    # Fastener sequence, per user spec (2026-08-22): a hole
+                    # gets a bolt, full stop -- never an independently-best-
+                    # fit-scored nut or washer sitting alone at the hole
+                    # itself (nuts/washers don't occupy a hole; a nut threads
+                    # onto a bolt already in place, a washer sits under it).
+                    # If (and only if) the hole is a through-hole, ALSO add a
+                    # washer immediately beyond the exit face, then a nut
+                    # immediately beyond the washer -- both threaded onto the
+                    # same bolt's shaft, in that fixed order. A blind hole
+                    # gets the bolt alone.
+                    def _unit(_v):
+                        _len_sq = sum(_c * _c for _c in _v)
+                        if _len_sq <= 1e-12:
+                            return None
+                        _len = _len_sq ** 0.5
+                        return [_c / _len for _c in _v]
+
+                    def _face_centroid(_centroid, _bbox, _normal_u, _use_max):
+                        # In-plane (XY) coords from _centroid; the along-
+                        # normal coordinate replaced with the bbox's own
+                        # extreme on the requested side -- same fix as the
+                        # entry-centroid correction below, generalised to
+                        # pick either extreme.
+                        _c = list(_centroid)
+                        _dom = max(range(3), key=lambda _i: abs(_normal_u[_i]))
+                        _c[_dom] = _bbox[_dom + 3] if _use_max else _bbox[_dom]
+                        return _c
 
                     for _surf in _hole_surfs:
                         _bbox = _surf.get("bbox")
@@ -738,13 +756,10 @@ def _run_inference(step_bytes: bytes,
                             continue
                         _extents = [_bbox[3] - _bbox[0], _bbox[4] - _bbox[1], _bbox[5] - _bbox[2]]
 
-                        _best_t, _best_score = None, _MIN_FASTENER_FIT
-                        for _t in _FASTENER_TYPES:
-                            _hits = _bank.query(_t, _gen_category, _extents, top_k=1)
-                            if _hits and _hits[0].fit_score > _best_score:
-                                _best_t, _best_score = _t, _hits[0].fit_score
-                        if _best_t is None:
+                        _hits = _bank.query("bolt", _gen_category, _extents, top_k=1)
+                        if not _hits or _hits[0].fit_score <= _MIN_FASTENER_FIT:
                             continue
+                        _bolt_score = _hits[0].fit_score
 
                         # "centroid" is the MIDDLE of the hole recess's own
                         # depth (bbox midpoint along the bore axis), not its
@@ -763,33 +778,27 @@ def _run_inference(step_bytes: bytes,
                         # positive along that axis, min if negative); the
                         # other two in-plane coordinates stay as centroid's,
                         # since those should already be reasonably centered.
-                        _entry_centroid = list(_surf["centroid"])
                         _nrm = _surf.get("normal_hint")
-                        if _nrm:
-                            _nrm_len_sq = sum(_c * _c for _c in _nrm)
-                            if _nrm_len_sq > 1e-12:
-                                _nrm_len = _nrm_len_sq ** 0.5
-                                _nrm_u = [_c / _nrm_len for _c in _nrm]
-                                _dom_axis = max(range(3), key=lambda _i: abs(_nrm_u[_i]))
-                                _entry_centroid[_dom_axis] = (
-                                    _bbox[_dom_axis + 3] if _nrm_u[_dom_axis] > 0
-                                    else _bbox[_dom_axis]
-                                )
+                        _nrm_u = _unit(_nrm) if _nrm else None
+                        _entry_centroid = (
+                            _face_centroid(_surf["centroid"], _bbox, _nrm_u, _nrm_u[max(range(3), key=lambda _i: abs(_nrm_u[_i]))] > 0)
+                            if _nrm_u else list(_surf["centroid"])
+                        )
 
                         _sr = generate_missing_shape(
-                            _hsg, gnn, graph, _best_t,
+                            _hsg, gnn, graph, "bolt",
                             open_joint_extents=_extents,
                             open_joint_centroid=_entry_centroid,
                             category=_gen_category, device=device,
-                            normal_hint=_surf.get("normal_hint"),
+                            normal_hint=_nrm,
                         )
                         if _sr is None:
                             continue
                         _verts = (_sr.mesh.vertices + _sr.placement).tolist()
                         _faces = _sr.mesh.faces.tolist()
                         _generated_parts.append({{
-                            "type":        _best_t,
-                            "fit_score":   round(float(_best_score), 3),
+                            "type":        "bolt",
+                            "fit_score":   round(float(_bolt_score), 3),
                             "source":      _sr.source,
                             "confidence":  round(float(_sr.confidence), 3),
                             "part_id":     _sr.part_id,
@@ -797,6 +806,51 @@ def _run_inference(step_bytes: bytes,
                             "triangles":   _faces,
                             "surface_body_idx": _surf.get("body_idx", 0),
                         }})
+
+                        if not _surf.get("is_through") or not _nrm_u:
+                            continue
+                        _exit_coord = _surf.get("exit_face_coord")
+                        if _exit_coord is None:
+                            continue
+                        _exit_normal = [-_c for _c in _nrm_u]
+                        _dom = max(range(3), key=lambda _i: abs(_nrm_u[_i]))
+                        _cursor = list(_surf["centroid"])
+                        _cursor[_dom] = _exit_coord  # start right at the exit face
+
+                        for _seq_type in ("washer", "nut"):
+                            _seq_hits = _bank.query(_seq_type, _gen_category, _extents, top_k=1)
+                            if not _seq_hits:
+                                break  # bank has nothing for this type -- stop the sequence here
+                            _seq_sr = generate_missing_shape(
+                                _hsg, gnn, graph, _seq_type,
+                                open_joint_extents=_extents,
+                                open_joint_centroid=_cursor,
+                                category=_gen_category, device=device,
+                                normal_hint=_exit_normal,
+                            )
+                            if _seq_sr is None:
+                                break
+                            _flush = flush_near_face_offset(_seq_sr.mesh, _exit_normal)
+                            _placement = _seq_sr.placement + _flush
+                            _seq_verts = (_seq_sr.mesh.vertices + _placement).tolist()
+                            _generated_parts.append({{
+                                "type":        _seq_type,
+                                "fit_score":   round(float(_seq_hits[0].fit_score), 3),
+                                "source":      _seq_sr.source,
+                                "confidence":  round(float(_seq_sr.confidence), 3),
+                                "part_id":     _seq_sr.part_id,
+                                "vertices":    _seq_verts,
+                                "triangles":   _seq_sr.mesh.faces.tolist(),
+                                "surface_body_idx": _surf.get("body_idx", 0),
+                            }})
+                            # Advance the cursor past this part's own thickness
+                            # (measured post-generation, in local coords) so
+                            # the next part in the sequence starts flush
+                            # against THIS one's far face, not overlapping it.
+                            import numpy as _np_seq
+                            _seq_proj = _seq_sr.mesh.vertices @ _np_seq.array(_exit_normal)
+                            _thickness = float(_seq_proj.max() - _seq_proj.min())
+                            _cursor[_dom] = _cursor[_dom] + _exit_normal[_dom] * _thickness
             except Exception:
                 _generated_parts = []
 
@@ -1170,8 +1224,10 @@ def _build_panel_sections(result: dict) -> tuple[str, list[dict]]:
         if gen_parts:
             _sec_html = (
                 '<p style="font-size:0.65rem;color:#0284c7;margin:0 0 6px;">'
-                'Red ghost mesh in 3D viewer — best-effort shape + location, not verified</p>'
+                'Ghost mesh in 3D viewer (bolt=red, nut=dark red, washer=brown)'
+                ' — best-effort shape + location, not verified</p>'
             )
+            _GP_COLORS_PANEL = {"bolt": "#ef4444", "nut": "#7f1d1d", "washer": "#92400e"}
             for _gp in gen_parts:
                 _gp_type = str(_gp.get("type", "component")).capitalize()
                 _gp_src  = _gp.get("source", "generated")
@@ -1180,11 +1236,12 @@ def _build_panel_sections(result: dict) -> tuple[str, list[dict]]:
                 _gp_icon = "🔄" if _gp_src == "retrieved" else "✨"
                 _gp_badge_txt = "Retrieved from part bank" if _gp_src == "retrieved" else "AI-generated (VAE)"
                 _gp_pct = int(max(0.0, min(1.0, _gp_conf)) * 100)
+                _gp_swatch = _GP_COLORS_PANEL.get(str(_gp.get("type", "")).lower(), "#38bdf8")
                 _sec_html += (
                     f'<div style="display:flex;align-items:flex-start;gap:6px;'
                     f'font-size:0.72rem;margin-bottom:6px;">'
                     f'<span style="display:inline-block;width:10px;height:10px;'
-                    f'background:#38bdf8;border-radius:2px;margin-top:2px;flex-shrink:0;"></span>'
+                    f'background:{_gp_swatch};border-radius:2px;margin-top:2px;flex-shrink:0;"></span>'
                     f'<div>'
                     f'<span style="color:#0369a1;font-weight:600;">'
                     f'{_gp_icon} {_gp_type}</span>'
@@ -2202,10 +2259,16 @@ with col_right:
                 _gp_conf = _gp.get("confidence", 0.0)
                 _gp_fit  = _gp.get("fit_score", 0.0)
                 _gp_icon = "🔄" if _gp_src == "retrieved" else "✨"
+                # Fastener sequence color coding (user spec, 2026-08-22):
+                # bolt=red, nut=dark red, washer=brown; anything else keeps
+                # the original red so non-fastener suggested shapes are
+                # unaffected.
+                _GP_COLORS = {"bolt": "#ef4444", "nut": "#7f1d1d", "washer": "#92400e"}
+                _gp_color = _GP_COLORS.get(str(_gp.get("type", "")).lower(), "#ef4444")
                 fig.add_trace(go.Mesh3d(
                     x=_gpv_arr[:, 0], y=_gpv_arr[:, 1], z=_gpv_arr[:, 2],
                     i=_gpt_arr[:, 0], j=_gpt_arr[:, 1], k=_gpt_arr[:, 2],
-                    color="#ef4444",
+                    color=_gp_color,
                     opacity=0.40,
                     flatshading=True,
                     name=f"{_gp_icon} Suggested {_gp_type}",
