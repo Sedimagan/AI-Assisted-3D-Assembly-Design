@@ -172,17 +172,25 @@ BOLT_PROTRUSION_FACTOR = 1.6
 
 # A blind hole's detected depth is a real physical ceiling (the shaft tip
 # can't pass it without visibly entering material past the hole's own
-# floor), but exactly matching it reads as too short -- real screws in a
-# blind hole visibly extend a bit past the hole's own visible recess into
-# the surrounding solid (the shaft is inside opaque material there, not
-# poking out of it). Calibrated 2026-08-22 against the two real blind-hole
-# groups on Tool_post_No_bolts.step: a small factor here reproduces the
-# ~9% extra length the user confirmed as correct for the 30mm-deep holes
-# (shaft ~32.8mm) while keeping the smaller 16mm-deep holes' overlap far
-# below what was reported as objectionable at the old BOLT_PROTRUSION_
-# FACTOR=1.6 (which was being applied to the whole head+shaft length, not
-# shaft alone, and produced ~33% relative overlap there).
+# floor), but exactly matching it read as too short on a big (30mm-deep,
+# 13.8mm-diameter) hole -- real screws there visibly extend a bit past the
+# hole's own visible recess into the surrounding solid. Calibrated
+# 2026-08-22 to reproduce the ~9% extra length confirmed correct there
+# (shaft ~32.8mm). Only applied at or above BOLT_BLIND_SMALL_DIAM_THRESHOLD
+# -- the same relative (15% of depth) overshoot read as clearly visible
+# "overlapping the plate" on a smaller (10mm-diameter, 16mm-deep) hole,
+# since that overshoot is a much bigger fraction of the SMALLER bolt's own
+# diameter (2.4mm =~ 24% of a 10mm shaft, vs the same relative depth
+# overshoot being a smaller fraction of the bigger bolt's chunkier shaft).
+# Below the threshold: exact fit, no overshoot at all.
 BOLT_BLIND_SHAFT_FACTOR = 1.15
+
+# Below this hole diameter, BOLT_BLIND_SHAFT_FACTOR is NOT applied -- the
+# shaft fits the hole's depth exactly instead. Set between the two
+# calibration points (10mm diameter: exact fit; 13.8mm diameter: factor
+# applies), closer to the larger one since it's the one confirmed to need
+# the extra length.
+BOLT_BLIND_SMALL_DIAM_THRESHOLD = 12.0
 
 
 def _bolt_end_spreads(mesh: trimesh.Trimesh, joint_axis: int) -> tuple[float, float]:
@@ -646,16 +654,38 @@ def fit_to_bbox(mesh: trimesh.Trimesh, target_extents, normal_hint=None,
 
         if comp_type == "bolt" and not is_through:
             # Blind hole: the SHAFT alone must fill (BOLT_BLIND_SHAFT_FACTOR
-            # times) the hole's own depth -- scale by the mesh's pre-scale
-            # shaft length (excluding head, see _bolt_shaft_length), not its
-            # whole head+shaft extent, so the head is added on top in its
-            # natural proportion instead of being carved out of the
-            # hole-depth budget (which left the shaft short of the hole's
-            # bottom).
+            # times, for holes at or above BOLT_BLIND_SMALL_DIAM_THRESHOLD;
+            # exactly, no overshoot, for smaller ones -- see below) the
+            # hole's own depth -- scale by the mesh's pre-scale shaft length
+            # (excluding head, see _bolt_shaft_length), not its whole
+            # head+shaft extent, so the head is added on top in its natural
+            # proportion instead of being carved out of the hole-depth
+            # budget (which left the shaft short of the hole's bottom).
+            #
+            # BOLT_BLIND_SHAFT_FACTOR's small deliberate overshoot (confirmed
+            # correct on a 30mm-deep/13.8mm-diameter hole -- see its own
+            # docstring) reads as excessive on a smaller, shallower hole:
+            # the same 15% depth overshoot is a much bigger fraction of a
+            # small bolt's own diameter (on a 10mm-diameter/16mm-deep hole,
+            # 15% of depth is 2.4mm -- 24% of the bolt's own diameter,
+            # clearly visible as poking into the plate, vs. the same 4.5mm
+            # on the bigger bolt being only 17mm/13.8mm~=32%... but the
+            # bigger bolt's own shaft is visually chunkier, so the same
+            # relative overshoot reads as fine there and not on the small
+            # one). Reported 2026-08-22 ("the 4 [small] bolts ... overlapping
+            # on the thick plate -- let it fill only the hole length").
+            # Below the threshold, skip the factor entirely (exact fit,
+            # tip flush with the blind bottom, matching 93e92af's original
+            # exact-fit fix, which BOLT_BLIND_SHAFT_FACTOR was layered on
+            # top of for the *larger* holes only).
             n_local = np.zeros(3)
             n_local[joint_axis] = head_sign
             shaft_len = _bolt_shaft_length(mesh, n_local)
-            blind_depth_value = depth_value * BOLT_BLIND_SHAFT_FACTOR
+            hole_diam = float(np.mean(np.delete(target, depth_axis)))
+            blind_factor = (BOLT_BLIND_SHAFT_FACTOR
+                             if hole_diam >= BOLT_BLIND_SMALL_DIAM_THRESHOLD
+                             else 1.0)
+            blind_depth_value = depth_value * blind_factor
             scale_per_axis[joint_axis] = blind_depth_value / max(shaft_len, 1e-9)
         else:
             scale_per_axis[joint_axis] = depth_value / max(extents[joint_axis], 1e-9)
