@@ -746,10 +746,40 @@ def _run_inference(step_bytes: bytes,
                         if _best_t is None:
                             continue
 
+                        # "centroid" is the MIDDLE of the hole recess's own
+                        # depth (bbox midpoint along the bore axis), not its
+                        # outer/entry face -- confirmed directly: a hole with
+                        # bbox z=[85,115] (normal_hint=[0,0,1], i.e. pointing
+                        # +z/outward) has centroid z=100, not 115. Anchoring
+                        # bolt placement to the centroid put the head/shaft
+                        # transition at the recess's midpoint, burying the
+                        # head partway into the hole instead of resting it on
+                        # the true surface -- reported as "the head is inside
+                        # the hole" even after shape_bolt_head's flush-to-
+                        # -centroid placement was verified numerically
+                        # correct *relative to that (wrong) reference point*.
+                        # Replace just the along-normal coordinate with the
+                        # bbox's own outer extreme (max if normal points
+                        # positive along that axis, min if negative); the
+                        # other two in-plane coordinates stay as centroid's,
+                        # since those should already be reasonably centered.
+                        _entry_centroid = list(_surf["centroid"])
+                        _nrm = _surf.get("normal_hint")
+                        if _nrm:
+                            _nrm_len_sq = sum(_c * _c for _c in _nrm)
+                            if _nrm_len_sq > 1e-12:
+                                _nrm_len = _nrm_len_sq ** 0.5
+                                _nrm_u = [_c / _nrm_len for _c in _nrm]
+                                _dom_axis = max(range(3), key=lambda _i: abs(_nrm_u[_i]))
+                                _entry_centroid[_dom_axis] = (
+                                    _bbox[_dom_axis + 3] if _nrm_u[_dom_axis] > 0
+                                    else _bbox[_dom_axis]
+                                )
+
                         _sr = generate_missing_shape(
                             _hsg, gnn, graph, _best_t,
                             open_joint_extents=_extents,
-                            open_joint_centroid=_surf["centroid"],
+                            open_joint_centroid=_entry_centroid,
                             category=_gen_category, device=device,
                             normal_hint=_surf.get("normal_hint"),
                         )
