@@ -219,6 +219,28 @@ def _bolt_shaft_radius(mesh: trimesh.Trimesh, joint_axis: int, head_sign: int) -
     return bot_spread if head_sign >= 0 else top_spread
 
 
+def _bolt_shaft_length(mesh: trimesh.Trimesh, n: np.ndarray) -> float:
+    """Pre-scale length of a bolt's shaft ALONE (excluding the head), along
+    the already head-outward-oriented unit vector n -- see
+    _bolt_head_base_proj for how the head/shaft transition is located.
+
+    Used to scale a blind-hole bolt so the *shaft* fills the hole's own
+    depth exactly, with the head added on top in its natural proportion,
+    rather than scaling the whole head+shaft mesh to the hole depth (which
+    eats into that budget with head length and leaves the shaft short of
+    the hole's bottom -- reported as bolts now looking "too short" in a
+    blind hole right after the opposite bug (shaft overshooting past the
+    blind bottom into solid material) was fixed by no longer stretching
+    the whole mesh by BOLT_PROTRUSION_FACTOR for blind holes. Both bugs
+    trace to the same root cause: scaling head+shaft together as one
+    length, when only the shaft length is actually constrained by the
+    hole's depth.
+    """
+    proj = mesh.vertices @ n
+    head_base = _bolt_head_base_proj(mesh, n)
+    return float(head_base - proj.min())
+
+
 def _bolt_head_base_proj(mesh: trimesh.Trimesh, n: np.ndarray, n_bins: int = 12) -> float:
     """Position, along the (already head-outward-oriented) unit vector n,
     of the flat annular face where a bolt's head ends and its narrower
@@ -476,7 +498,20 @@ def fit_to_bbox(mesh: trimesh.Trimesh, target_extents, normal_hint=None,
             # blind holes, which have no far side for the extra length to
             # protrude out of.
             depth_value = depth_value * BOLT_PROTRUSION_FACTOR
-        scale_per_axis[joint_axis] = depth_value / max(extents[joint_axis], 1e-9)
+
+        if comp_type == "bolt" and not is_through:
+            # Blind hole: the SHAFT alone must fill the hole's own depth --
+            # scale by the mesh's pre-scale shaft length (excluding head,
+            # see _bolt_shaft_length), not its whole head+shaft extent, so
+            # the head is added on top in its natural proportion instead of
+            # being carved out of the hole-depth budget (which left the
+            # shaft short of the hole's bottom).
+            n_local = np.zeros(3)
+            n_local[joint_axis] = head_sign
+            shaft_len = _bolt_shaft_length(mesh, n_local)
+            scale_per_axis[joint_axis] = depth_value / max(shaft_len, 1e-9)
+        else:
+            scale_per_axis[joint_axis] = depth_value / max(extents[joint_axis], 1e-9)
 
         inplane_target = np.sort(np.delete(target, depth_axis))     # 2 values, ascending
         inplane_mesh_axes = [a for a in order if a != joint_axis]   # already ascending
