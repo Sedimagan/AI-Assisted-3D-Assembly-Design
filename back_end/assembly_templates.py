@@ -21,6 +21,7 @@ Workflow
 from __future__ import annotations
 
 import json
+import math
 import statistics
 from collections import Counter
 from pathlib import Path
@@ -198,10 +199,25 @@ class AssemblyTemplateDB:
         Find the best-matching template for a partial assembly described by a
         list of inferred component-type strings.
 
-        Scoring:
-          overlap / max(total_present, total_expected)
-          + 25 % bonus when every present type fits inside the template
-            (no unexpected components)
+        Scoring: cosine similarity between the present-type count vector and
+        each template's expected-type count vector (across COMP_TYPES), +25%
+        bonus when every present type fits inside the template (no unexpected
+        components). Cosine compares *proportions*, not absolute counts, so
+        it doesn't care how large a category's template is in total —
+        essential here since uploads are frequently partial (missing
+        components is the whole point of this feature) and templates vary
+        ~4x in total expected body count (C_Clamps ≈10 vs Gate_Valve ≈58).
+
+        Previously used overlap / max(total_present, total_expected): for
+        any partial upload, total_present < total_expected for every
+        template, so that denominator reduced to total_expected — which
+        systematically favoured small-total templates (e.g. C_Clamps,
+        Pipe_Vice) over large-total ones (e.g. Tool_Post) even when the
+        large template's raw overlap was actually higher. Confirmed this
+        reproduced a real user-reported bug: a partial Tool_Post upload
+        matched to "Pipe Vice" (score 0.538) over the correct "Tool Post"
+        (score 0.430) despite Tool Post having more overlapping components
+        (11 vs 7) — fixed 2026-08-17.
 
         Returns (template_dict, confidence ∈ [0,1]) or (None, 0.0).
         """
@@ -209,6 +225,8 @@ class AssemblyTemplateDB:
             return None, 0.0
 
         present_counts = Counter(present_types)
+        present_vec = [present_counts.get(t, 0) for t in COMP_TYPES]
+        present_norm = math.sqrt(sum(v * v for v in present_vec))
         best_tmpl, best_score = None, 0.0
 
         for tmpl in self.templates:
@@ -216,19 +234,19 @@ class AssemblyTemplateDB:
             if not expected:
                 continue
 
-            overlap = sum(
-                min(present_counts.get(t, 0), expected.get(t, 0))
-                for t in COMP_TYPES
-            )
-            union = max(sum(present_counts.values()), sum(expected.values()))
-            score = overlap / union if union > 0 else 0.0
+            expected_vec = [expected.get(t, 0) for t in COMP_TYPES]
+            expected_norm = math.sqrt(sum(v * v for v in expected_vec))
+            if present_norm == 0 or expected_norm == 0:
+                continue
+            dot = sum(p * e for p, e in zip(present_vec, expected_vec))
+            score = dot / (present_norm * expected_norm)
 
             # Bonus: all present components are expected in this assembly type
             extra = sum(
                 max(0, present_counts.get(t, 0) - expected.get(t, 0))
                 for t in COMP_TYPES
             )
-            if extra == 0 and overlap > 0:
+            if extra == 0 and dot > 0:
                 score = min(score * 1.25, 1.0)
 
             if score > best_score:
