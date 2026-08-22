@@ -836,12 +836,28 @@ def _run_inference(step_bytes: bytes,
                         _cursor[_dom] = _exit_coord  # start right at the exit face
 
                         for _seq_type in ("washer", "nut"):
-                            _seq_hits = _bank.query(_seq_type, _gen_category, _extents, top_k=1)
+                            _seq_extents = list(_extents)
+                            if _seq_type == "washer":
+                                # A washer's thickness is a small fraction of
+                                # its diameter (real DIN125 washers run
+                                # roughly 8-15% of OD). Reusing the hole's own
+                                # recess-depth dimension as the depth-axis
+                                # target -- as bolt/nut do, where it happens
+                                # to land close to real part proportions --
+                                # targets a thickness of the FULL hole depth
+                                # (16-30mm in practice) for a part that's
+                                # really only ~1-3mm thick, so the part-bank
+                                # match gets stretched into a visibly too-
+                                # -thick disc, noticeably thicker than the nut
+                                # next to it. Reported 2026-08-22.
+                                _inplane = [_seq_extents[_a] for _a in range(3) if _a != _dom]
+                                _seq_extents[_dom] = 0.12 * (sum(_inplane) / len(_inplane))
+                            _seq_hits = _bank.query(_seq_type, _gen_category, _seq_extents, top_k=1)
                             if not _seq_hits:
                                 break  # bank has nothing for this type -- stop the sequence here
                             _seq_sr = generate_missing_shape(
                                 _hsg, gnn, graph, _seq_type,
-                                open_joint_extents=_extents,
+                                open_joint_extents=_seq_extents,
                                 open_joint_centroid=_cursor,
                                 category=_gen_category, device=device,
                                 normal_hint=_exit_normal,
