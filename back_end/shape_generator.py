@@ -175,20 +175,17 @@ BOLT_PROTRUSION_FACTOR = 1.6
 _BOLT_HEAD_CLEARANCE_FRACTION = 0.15
 
 
-def _bolt_head_sign(mesh: trimesh.Trimesh, joint_axis: int) -> int:
-    """Which end of a rod-like mesh, along its joint_axis local coordinate,
-    is the wider "head" end vs the narrower shaft/thread end -- a bolt head
-    is flanged/wider than its shaft. Compares the RMS spread of vertices
-    (perpendicular to joint_axis) in the top vs bottom 20% of the mesh's
-    extent along joint_axis. Returns +1 if the head is on the positive-axis
-    side, -1 if on the negative side. Used to orient a bolt head-outward
-    (see rotate_to_target_axis's head_sign param) rather than leaving head
-    vs tip to whatever canonicalize() happened to produce."""
+def _bolt_end_spreads(mesh: trimesh.Trimesh, joint_axis: int) -> tuple[float, float]:
+    """RMS spread of vertices (perpendicular to joint_axis -- i.e. their
+    typical radius from the joint axis) in the top vs bottom 20% band of
+    the mesh's extent along joint_axis. Shared basis for both
+    _bolt_head_sign (which end is wider) and _bolt_shaft_radius (how wide
+    the narrow end actually is, in absolute terms)."""
     coords = mesh.vertices[:, joint_axis]
     lo, hi = float(coords.min()), float(coords.max())
     span = hi - lo
     if span < 1e-9:
-        return 1
+        return 0.0, 0.0
     band = 0.2 * span
     other_axes = [a for a in range(3) if a != joint_axis]
 
@@ -198,9 +195,32 @@ def _bolt_head_sign(mesh: trimesh.Trimesh, joint_axis: int) -> int:
             return 0.0
         return float(np.sqrt((pts ** 2).sum(axis=1)).mean())
 
-    top_spread = _spread(coords >= hi - band)
-    bot_spread = _spread(coords <= lo + band)
+    return _spread(coords >= hi - band), _spread(coords <= lo + band)  # (top, bottom)
+
+
+def _bolt_head_sign(mesh: trimesh.Trimesh, joint_axis: int) -> int:
+    """Which end of a rod-like mesh, along its joint_axis local coordinate,
+    is the wider "head" end vs the narrower shaft/thread end -- a bolt head
+    is flanged/wider than its shaft. Returns +1 if the head is on the
+    positive-axis side, -1 if on the negative side. Used to orient a bolt
+    head-outward (see rotate_to_target_axis's head_sign param) rather than
+    leaving head vs tip to whatever canonicalize() happened to produce."""
+    top_spread, bot_spread = _bolt_end_spreads(mesh, joint_axis)
     return 1 if top_spread >= bot_spread else -1
+
+
+def _bolt_shaft_radius(mesh: trimesh.Trimesh, joint_axis: int, head_sign: int) -> float:
+    """Typical cross-sectional radius of a bolt's *shaft* specifically (not
+    its head), measured at the tip end -- the band opposite head_sign.
+    Used so fit_to_bbox scales a bolt by its shaft diameter matching the
+    hole diameter (the physically correct constraint: the shaft is what
+    passes through the hole), rather than by its overall bounding-box
+    width, which is dominated by the head and would size the head to
+    exactly the hole's diameter instead of visibly wider than it -- the
+    bug reported after the first orientation fix ("bolts still look like
+    they're inside the hole")."""
+    top_spread, bot_spread = _bolt_end_spreads(mesh, joint_axis)
+    return bot_spread if head_sign >= 0 else top_spread
 
 
 def bolt_head_clearance_offset(mesh: trimesh.Trimesh, normal_hint,
@@ -323,6 +343,11 @@ def fit_to_bbox(mesh: trimesh.Trimesh, target_extents, normal_hint=None,
             depth_axis = int(np.argmax(np.abs(n)))  # dominant world axis
 
     joint_axis = _joint_axis_index(extents, comp_type)  # from PRE-scale extents
+    # head_sign must be read off the mesh's local vertex layout before
+    # scaling changes it -- scaling is per-axis-positive so it can't flip
+    # which end is which, but easiest to keep this unambiguous by computing
+    # it right alongside joint_axis, from the same pre-scale mesh.
+    head_sign = _bolt_head_sign(mesh, joint_axis) if comp_type == "bolt" else None
 
     if depth_axis is not None:
         depth_value = target[depth_axis]
@@ -335,18 +360,39 @@ def fit_to_bbox(mesh: trimesh.Trimesh, target_extents, normal_hint=None,
 
         inplane_target = np.sort(np.delete(target, depth_axis))     # 2 values, ascending
         inplane_mesh_axes = [a for a in order if a != joint_axis]   # already ascending
-        for rank, axis in enumerate(inplane_mesh_axes):
-            scale_per_axis[axis] = inplane_target[rank] / max(extents[axis], 1e-9)
+
+        if comp_type == "bolt":
+            # A bolt's HEAD must end up wider than the hole (so it can't
+            # pass through and rests on the surface) -- but the shaft must
+            # match the hole's diameter (so it passes through). Matching
+            # the mesh's overall bounding-box width (dominated by the
+            # head) to the hole's diameter, as the else-branch below does,
+            # sizes the head to *exactly* the hole's diameter instead of
+            # visibly wider -- confirmed as the cause of a real "the bolts
+            # still look like they're inside the hole" report after the
+            # first orientation fix. Scale instead by the shaft's own
+            # (narrower) radius specifically, applying the SAME factor to
+            # both in-plane axes (a uniform, non-distorting scale) so the
+            # mesh's natural head:shaft width ratio is preserved rather
+            # than flattened out -- the head then naturally comes out
+            # wider than the hole by whatever margin the retrieved part's
+            # own geometry has.
+            shaft_radius = _bolt_shaft_radius(mesh, joint_axis, head_sign)
+            target_shaft_diam = float(np.mean(inplane_target))  # hole is ~round
+            if shaft_radius > 1e-9:
+                uniform_scale = target_shaft_diam / (2.0 * shaft_radius)
+                for axis in inplane_mesh_axes:
+                    scale_per_axis[axis] = uniform_scale
+            else:
+                for rank, axis in enumerate(inplane_mesh_axes):
+                    scale_per_axis[axis] = inplane_target[rank] / max(extents[axis], 1e-9)
+        else:
+            for rank, axis in enumerate(inplane_mesh_axes):
+                scale_per_axis[axis] = inplane_target[rank] / max(extents[axis], 1e-9)
     else:
         target_sorted = np.sort(target)  # shortest..longest
         for rank, axis in enumerate(order):
             scale_per_axis[axis] = target_sorted[rank] / max(extents[axis], 1e-9)
-
-    # head_sign must be read off the mesh's local vertex layout before
-    # scaling changes it -- scaling is per-axis-positive so it can't flip
-    # which end is which, but easiest to keep this unambiguous by computing
-    # it right alongside joint_axis, from the same pre-scale mesh.
-    head_sign = _bolt_head_sign(mesh, joint_axis) if comp_type == "bolt" else None
 
     mesh.apply_transform(np.diag([*scale_per_axis, 1.0]))
 
