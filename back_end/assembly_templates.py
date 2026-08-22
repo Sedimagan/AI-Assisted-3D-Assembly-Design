@@ -88,6 +88,32 @@ def _friendly_label(category: str) -> str:
     )
 
 
+# Spelling variants worth checking alongside the literal category name when
+# matching it against a filename/part name (see AssemblyTemplateDB.match's
+# name_hints) -- "vice" is the corpus's own spelling, "vise" is the common US
+# alternate a real upload's filename might use instead.
+_SPELLING_ALIASES = {"vice": "vise"}
+
+
+def _normalize_hint_text(text: str) -> str:
+    """Lowercase + collapse separators, so 'Tool_post_No_bolts.step' and
+    'Tool-Post' both compare equal to the category phrase 'tool post'."""
+    for ch in "_-.":
+        text = text.replace(ch, " ")
+    return " ".join(text.lower().split())
+
+
+def _category_phrase_variants(category: str) -> List[str]:
+    """The category's own name as a normalized phrase, plus any spelling
+    alias variant (e.g. 'pipe vice' -> also 'pipe vise')."""
+    base = category.replace("_", " ").lower()
+    variants = {base}
+    for a, b in _SPELLING_ALIASES.items():
+        if a in base:
+            variants.add(base.replace(a, b))
+    return list(variants)
+
+
 class AssemblyTemplateDB:
     """
     Database of per-category component-type distribution templates.
@@ -193,7 +219,9 @@ class AssemblyTemplateDB:
     def match(
         self,
         present_types: List[str],
+        name_hints: Optional[List[str]] = None,
         min_confidence: float = 0.10,
+        min_parts_for_type_signal: int = 5,
     ) -> Tuple[Optional[Dict], float]:
         """
         Find the best-matching template for a partial assembly described by a
@@ -219,6 +247,30 @@ class AssemblyTemplateDB:
         (score 0.430) despite Tool Post having more overlapping components
         (11 vs 7) — fixed 2026-08-17.
 
+        name_hints: optional list of strings (real part names, the uploaded
+        filename) — checked for the category's own name appearing as a
+        phrase (e.g. "tool post", "gate valve", underscore/hyphen-insensitive,
+        with vice/vise as an alias pair) as a secondary signal. A hit adds a
+        large flat bonus, decisive enough to override a weak/ambiguous
+        geometric signal — real filenames and part names are often literally
+        named after the assembly type, which is a far more direct and
+        reliable signal than component-type composition alone, especially
+        for the sparse-upload case min_parts_for_type_signal exists for.
+
+        min_parts_for_type_signal: below this many detected components, the
+        type-composition signal alone is too sparse to trust for a confident
+        classification — returns (None, 0.0) unless the winning template also
+        has a name_hints hit. Added 2026-08-17 after a real 4-body upload
+        (Test_3D_models/Tool_post_No_bolts.step — Tool Holder/washer/plate/nut,
+        no shafts or bolts survived) confidently (cosine bonus capped at 1.0)
+        matched "Crane Hook" instead of "Tool Post": Crane Hook's template
+        happens to be heavily washer/nut-dominated, which coincidentally
+        aligned in *direction* with this sparse 4-part vector even though the
+        absolute signal was far too thin to discriminate reliably. Rather than
+        chase ever-more-specific geometric heuristics for one file, this makes
+        the system honestly represent uncertainty when there isn't enough
+        signal — unless the filename/part-names hint rescues it directly.
+
         Returns (template_dict, confidence ∈ [0,1]) or (None, 0.0).
         """
         if not self.templates or not present_types:
@@ -227,7 +279,9 @@ class AssemblyTemplateDB:
         present_counts = Counter(present_types)
         present_vec = [present_counts.get(t, 0) for t in COMP_TYPES]
         present_norm = math.sqrt(sum(v * v for v in present_vec))
-        best_tmpl, best_score = None, 0.0
+        hint_text = _normalize_hint_text(" ".join(name_hints)) if name_hints else ""
+
+        best_tmpl, best_score, best_had_hint = None, 0.0, False
 
         for tmpl in self.templates:
             expected = tmpl["component_counts"]
@@ -255,9 +309,20 @@ class AssemblyTemplateDB:
             if extra == 0 and dot > 0:
                 score = score * 1.25
 
+            has_hint = bool(hint_text) and any(
+                phrase in hint_text
+                for phrase in _category_phrase_variants(tmpl["category"])
+            )
+            if has_hint:
+                score += 1.0   # decisive -- see name_hints docstring above
+
             if score > best_score:
-                best_score = score
-                best_tmpl  = tmpl
+                best_score    = score
+                best_tmpl     = tmpl
+                best_had_hint = has_hint
+
+        if len(present_types) < min_parts_for_type_signal and not best_had_hint:
+            return None, 0.0
 
         if best_score < min_confidence:
             return None, 0.0

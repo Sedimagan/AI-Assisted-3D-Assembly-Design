@@ -345,7 +345,9 @@ def _run_inference(step_bytes: bytes,
                 from assembly_templates import AssemblyTemplateDB as _ATDB
                 _db_sb = _ATDB({repr(str(_TMPL_DB_PATH))})
                 if _db_sb.load():
-                    _tm_sb, _tc_sb = _db_sb.match([_sb_type])
+                    _tm_sb, _tc_sb = _db_sb.match(
+                        [_sb_type], name_hints=[_sb_name, {repr(uploaded_name)}],
+                    )
                     if _tm_sb:
                         _tmpl_sb = {{"label": _tm_sb["label"], "category": _tm_sb["category"],
                                      "confidence": round(_tc_sb, 3),
@@ -666,7 +668,8 @@ def _run_inference(step_bytes: bytes,
             if _db2.load():
                 _tidxs  = graph.x[:, :8].argmax(dim=1).tolist()
                 _ptypes = [_CT2[int(j)] for j in _tidxs]
-                _tm2, _tc2 = _db2.match(_ptypes)
+                _name_hints = part_names + [{repr(uploaded_name)}]
+                _tm2, _tc2 = _db2.match(_ptypes, name_hints=_name_hints)
                 if _tm2:
                     _tmpl_match = {{"label": _tm2["label"], "category": _tm2["category"],
                                     "confidence": round(_tc2, 3),
