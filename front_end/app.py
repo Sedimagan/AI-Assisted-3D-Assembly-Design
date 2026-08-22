@@ -1549,11 +1549,37 @@ with st.sidebar:
             ["git", "status", "--porcelain"],
             cwd=_git_dir, capture_output=True, text=True, timeout=5,
         ).stdout.strip()
+        _branch = _sp.run(
+            ["git", "branch", "--show-current"],
+            cwd=_git_dir, capture_output=True, text=True, timeout=5,
+        ).stdout.strip()
+        _remote_url = _sp.run(
+            ["git", "remote", "get-url", "origin"],
+            cwd=_git_dir, capture_output=True, text=True, timeout=5,
+        ).stdout.strip()
+        # Normalise to a clickable https URL regardless of how origin is
+        # configured (https://...git, git@host:owner/repo.git, etc.)
+        _repo_url = _remote_url
+        if _repo_url.startswith("git@"):
+            _repo_url = _repo_url.replace(":", "/", 1).replace("git@", "https://", 1)
+        if _repo_url.endswith(".git"):
+            _repo_url = _repo_url[:-4]
+
         if _commit_ts and _commit_hash:
             _dirty_note = " · uncommitted changes present" if _dirty else ""
             st.markdown(
-                f'<div style="font-size:0.6rem;color:#9ca3af;margin:0 0 4px;">'
+                f'<div style="font-size:0.6rem;color:#9ca3af;margin:0 0 2px;">'
                 f'Code last updated: {_commit_ts}  (commit {_commit_hash}){_dirty_note}'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+        if _repo_url:
+            _branch_note = f' · branch <code>{_branch}</code>' if _branch else ""
+            st.markdown(
+                f'<div style="font-size:0.6rem;color:#9ca3af;margin:0 0 4px;">'
+                f'Hosted from <a href="{_repo_url}" target="_blank" '
+                f'style="color:#6b7280;">{_repo_url.split("github.com/")[-1]}</a>'
+                f'{_branch_note}'
                 f'</div>',
                 unsafe_allow_html=True,
             )
