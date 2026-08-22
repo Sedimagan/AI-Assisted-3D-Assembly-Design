@@ -218,7 +218,7 @@ def _bolt_head_base_proj(mesh: trimesh.Trimesh, n: np.ndarray, n_bins: int = 12)
     """Position, along the (already head-outward-oriented) unit vector n,
     of the flat annular face where a bolt's head ends and its narrower
     shaft begins -- the face that must sit flush against the plate's
-    surface (see bolt_head_clearance_offset). The head is on the +n side
+    surface (see shape_bolt_head). The head is on the +n side
     (rotate_to_target_axis already oriented it that way).
 
     Bins the mesh along n and finds the WIDEST bin first, then scans from
@@ -271,31 +271,76 @@ def _bolt_head_base_proj(mesh: trimesh.Trimesh, n: np.ndarray, n_bins: int = 12)
     return edges[widest_i]  # no clear narrowing found past the widest point
 
 
-def bolt_head_clearance_offset(mesh: trimesh.Trimesh, normal_hint,
-                                comp_type: Optional[str]) -> np.ndarray:
+# Target head height as a fraction of the head's own diameter -- real bolt
+# heads (hex or socket-cap) are typically in the ~0.4-0.6 range. Only
+# stretches a head that's *shorter* than this; never shrinks one that's
+# already tall enough.
+_BOLT_HEAD_HEIGHT_RATIO = 0.5
+
+
+def stretch_bolt_head(mesh: trimesh.Trimesh, n: np.ndarray, head_base: float) -> trimesh.Trimesh:
+    """If the head (the region beyond head_base along n -- see
+    _bolt_head_base_proj) is disproportionately flat relative to its own
+    diameter, stretch it taller along n so it reads as a distinct raised
+    feature instead of a thin disc. Only the head region moves; everything
+    at or below head_base (the shaft) is untouched, so this doesn't affect
+    the shaft's already-correct diameter/length/placement.
+
+    Confirmed necessary on the real Tool_Post repro's retrieved part: its
+    head was only ~4 units tall against a ~34-unit diameter (ratio 0.12) --
+    numerically "fully above the surface" per shape_bolt_head,
+    but too flat to visually register as a prominent, clearly separate
+    head. Reported as "head has to be out visible" after the placement fix
+    alone still wasn't enough.
+    """
+    proj = mesh.vertices @ n
+    head_mask = proj > head_base
+    if not head_mask.any():
+        return mesh
+
+    perp = mesh.vertices - np.outer(proj, n)
+    head_radius = float(np.sqrt((perp[head_mask] ** 2).sum(axis=1)).max())
+    current_height = float(proj[head_mask].max() - head_base)
+    target_height = 2.0 * head_radius * _BOLT_HEAD_HEIGHT_RATIO
+    if current_height < 1e-9 or target_height <= current_height:
+        return mesh  # already tall enough (or degenerate) -- leave as-is
+
+    scale = target_height / current_height
+    mesh = mesh.copy()
+    new_proj = np.where(head_mask, head_base + (proj - head_base) * scale, proj)
+    mesh.vertices = mesh.vertices + (new_proj - proj)[:, None] * n[None, :]
+    return mesh
+
+
+def shape_bolt_head(mesh: trimesh.Trimesh, normal_hint,
+                     comp_type: Optional[str]) -> tuple[trimesh.Trimesh, np.ndarray]:
     """For a bolt already oriented head-outward (fit_to_bbox/rotate_to_target_axis
-    orient it that way when comp_type == "bolt"), how far to shift its placement
-    along normal_hint so the head's *base* -- the flat face where it meets
-    the shaft -- sits flush against the hole's entry surface, with the
-    entire head above it (fully visible) and only the shaft inside the
-    hole. canonicalize() centers every part at its own centroid, which by
-    default puts that centroid (roughly the shaft's middle) at the hole's
-    surface centroid, burying most of the head below the surface instead.
-    Returns a zero vector for non-bolt types or a degenerate normal_hint
-    (nothing to add to placement)."""
+    orient it that way when comp_type == "bolt"): stretch a disproportionately
+    flat head taller (stretch_bolt_head) if needed, then compute how far to
+    shift its placement along normal_hint so the head's *base* -- the flat
+    face where it meets the shaft -- sits flush against the hole's entry
+    surface, with the entire head above it (fully visible) and only the
+    shaft inside the hole. canonicalize() centers every part at its own
+    centroid, which by default puts that centroid (roughly the shaft's
+    middle) at the hole's surface centroid, burying most of the head below
+    the surface instead.
+
+    Returns (mesh, offset) -- mesh unchanged and offset zero for non-bolt
+    types or a degenerate normal_hint."""
     if comp_type != "bolt" or normal_hint is None:
-        return np.zeros(3)
+        return mesh, np.zeros(3)
     n = np.asarray(normal_hint, dtype=np.float64)
     norm = np.linalg.norm(n)
     if norm < 1e-6:
-        return np.zeros(3)
+        return mesh, np.zeros(3)
     n = n / norm
     head_base = _bolt_head_base_proj(mesh, n)
+    mesh = stretch_bolt_head(mesh, n, head_base)
     # Shift the whole mesh back by head_base along n, so the point currently
     # at local proj == head_base lands exactly on the surface (world proj ==
     # surface's own proj): everything above it (the head) ends up above the
     # surface; everything below (shaft, tip) extends into and through it.
-    return -n * head_base
+    return mesh, -n * head_base
 
 
 def _joint_axis_index(extents: np.ndarray, comp_type: Optional[str] = None) -> int:
@@ -585,7 +630,7 @@ class HybridShapeGenerator:
                 comp_type, category, target_extents, normal_hint=normal_hint,
             )
             if mesh is not None and (mode == "retrieve" or conf >= tau):
-                head_offset = bolt_head_clearance_offset(mesh, normal_hint, comp_type)
+                mesh, head_offset = shape_bolt_head(mesh, normal_hint, comp_type)
                 return ShapeResult(mesh, "retrieved", conf, part_id, placement + head_offset)
 
         if mode == "retrieve":
@@ -603,5 +648,5 @@ class HybridShapeGenerator:
         # must be done together (no separate rotate_to_target_axis call here).
         mesh = fit_to_bbox(mesh, target_extents, normal_hint=normal_hint, comp_type=comp_type)
         conf = float(occ.max().item())
-        head_offset = bolt_head_clearance_offset(mesh, normal_hint, comp_type)
+        mesh, head_offset = shape_bolt_head(mesh, normal_hint, comp_type)
         return ShapeResult(mesh, "generated", conf, None, placement + head_offset)
