@@ -174,16 +174,18 @@ BOLT_PROTRUSION_FACTOR = 1.6
 # can't pass it without visibly entering material past the hole's own
 # floor), but exactly matching it read as too short on a big (30mm-deep,
 # 13.8mm-diameter) hole -- real screws there visibly extend a bit past the
-# hole's own visible recess into the surrounding solid. Bumped from an
-# initial 1.15 to 1.25 per 2026-08-22 follow-up feedback ("the 8
-# lengthier bolts on the top, increase it by 125%"), once the small-hole
-# group's own overshoot/positioning had been separately fixed and
-# confirmed correct. Only applied at or above BOLT_BLIND_SMALL_DIAM_
-# THRESHOLD -- this same relative overshoot read as clearly visible
-# "overlapping the plate" on a smaller (10mm-diameter, 16mm-deep) hole,
-# since it's a much bigger fraction of the SMALLER bolt's own diameter.
-# Below the threshold: exact fit (or slightly under), no such overshoot.
-BOLT_BLIND_SHAFT_FACTOR = 1.25
+# hole's own visible recess into the surrounding solid. Raised in two
+# steps (1.15 -> 1.25 -> 1.8) per 2026-08-22 feedback, the last one
+# explicitly "a lot" more -- checked against the Tool Holder body's own
+# full extent first (spans 90mm past the hole's entry face on the real
+# corpus file; even a large factor here still lands the tip tens of mm
+# clear of the body's true far side, nowhere near poking through). Only
+# applied at or above BOLT_BLIND_SMALL_DIAM_THRESHOLD -- this same
+# relative overshoot read as clearly visible "overlapping the plate" on a
+# smaller (10mm-diameter, 16mm-deep) hole, since it's a much bigger
+# fraction of the SMALLER bolt's own diameter. Below the threshold: exact
+# fit (or slightly under), no such overshoot.
+BOLT_BLIND_SHAFT_FACTOR = 1.8
 
 # Below this hole diameter, BOLT_BLIND_SHAFT_FACTOR is NOT applied -- the
 # shaft is sized by BOLT_BLIND_SMALL_SHAFT_FACTOR instead. Set between the
