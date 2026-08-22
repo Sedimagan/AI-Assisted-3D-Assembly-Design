@@ -718,7 +718,17 @@ def _run_inference(step_bytes: bytes,
                 if _hsg is not None:
                     _bank = _hsg.retriever.bank
                     _gen_category = _tmpl_match["category"] if _tmpl_match else None
-                    _FASTENER_TYPES = {{"bolt", "washer", "nut"}}
+                    # "nut" deliberately excluded: a hole surface is where a
+                    # bolt/screw *shaft* passes through, not where a nut sits --
+                    # a nut threads onto a bolt already in place, on the far
+                    # face of whatever it's clamping, not co-located with the
+                    # hole itself. Pure bbox-fit querying (no mechanical
+                    # reasoning) was occasionally letting "nut" win the fit
+                    # score against a hole's extents since a nut's own bore
+                    # can size-match a hole reasonably well too -- fixed
+                    # 2026-08-22 per user report of nuts being suggested
+                    # directly at hole surfaces on a Tool_Post upload.
+                    _FASTENER_TYPES = {{"bolt", "washer"}}
                     _hole_surfs = [s for s in _open_surfs if s.get("is_hole")]
                     _hole_surfs.sort(key=lambda s: s.get("area_ratio", 0), reverse=True)
 
