@@ -140,6 +140,7 @@ class ShapeRetriever:
 
     def retrieve(self, comp_type: Optional[str], category: Optional[str],
                  target_extents, exclude_assemblies: Optional[set] = None,
+                 normal_hint=None,
                  ) -> tuple[Optional[trimesh.Trimesh], float, Optional[str]]:
         hits = self.bank.query(comp_type, category, target_extents, top_k=1,
                                 exclude_assemblies=exclude_assemblies)
@@ -147,43 +148,147 @@ class ShapeRetriever:
             return None, 0.0, None
         hit = hits[0]
         mesh = self.bank.load_mesh(hit.part_id)
-        fitted = fit_to_bbox(mesh, target_extents)
+        fitted = fit_to_bbox(mesh, target_extents, normal_hint=normal_hint, comp_type=comp_type)
         return fitted, hit.fit_score, hit.part_id
 
 
-def fit_to_bbox(mesh: trimesh.Trimesh, target_extents) -> trimesh.Trimesh:
+# Types whose meaningful orientation axis is unambiguous from the type alone
+# -- used to skip the geometric rod-vs-disk heuristic entirely when we
+# already know the answer (see _joint_axis_index).
+_FLAT_JOINT_TYPES = {"washer", "thin_plate", "thick_plate"}
+_ROD_JOINT_TYPES  = {"bolt", "long_shaft", "short_shaft"}
+
+
+def _joint_axis_index(extents: np.ndarray, comp_type: Optional[str] = None) -> int:
+    """Which of a mesh's 3 local axes is its "joint axis" -- the one
+    rotate_to_target_axis will align with normal_hint: the longest extent
+    for a rod-like part (bolt/shaft), the shortest for a flat/disk-like part
+    (washer). Shared by fit_to_bbox and rotate_to_target_axis so both agree
+    on which axis is which -- see fit_to_bbox's docstring for why that
+    agreement matters.
+
+    comp_type, when it's one of the unambiguous types above, decides this
+    directly -- the caller already knows whether this is a bolt or a washer,
+    so there's no need to re-infer "rod vs disk" from the mesh's own extent
+    proportions. Falls back to that geometric heuristic (comparing the
+    *middle* extent to shortest/longest, not just shortest-vs-longest, since
+    both a 5x5x20 bolt and a 5x20x20 washer have the same shortest/longest
+    ratio 0.25) only for types not in either set above (e.g. "nut", "body"),
+    where there isn't a clear a-priori answer.
+
+    Using comp_type when available isn't just a convenience -- the
+    geometric heuristic has a real failure mode the type-based path avoids:
+    it ties (and misclassifies a rod as flat) whenever the *other* two
+    extents happen to be close to equal, which is the NORMAL case for any
+    round hole's in-plane footprint (its two in-plane dimensions are both
+    ~diameter). Confirmed on a real Tool_Post upload: a bolt's target bbox
+    was [16, 16, 10.6] (16x16 round footprint, 10.6 deep) -- shortest=10.6,
+    mid=long=16 exactly, so long-mid=0 always loses to mid-short, tripping
+    "is_flat" for every such hole regardless of the true component type.
+    Fixed 2026-08-22.
+    """
+    if comp_type in _FLAT_JOINT_TYPES:
+        order = np.argsort(extents)
+        return order[0]
+    if comp_type in _ROD_JOINT_TYPES:
+        order = np.argsort(extents)
+        return order[-1]
+    order = np.argsort(extents)  # shortest .. longest axis indices
+    short, mid, long = extents[order[0]], extents[order[1]], extents[order[2]]
+    is_flat = (long - mid) < (mid - short)  # middle extent closer to longest => disk
+    return order[0] if is_flat else order[-1]
+
+
+def fit_to_bbox(mesh: trimesh.Trimesh, target_extents, normal_hint=None,
+                 comp_type: Optional[str] = None) -> trimesh.Trimesh:
     """Rescale a canonical (unit-max-extent, origin-centered) part mesh onto a
-    target bounding box, matching sorted extents (longest axis to longest)."""
+    target bounding box, then (if normal_hint is given) rotate it so its
+    joint axis points along that direction — see rotate_to_target_axis.
+    Scaling and rotation are done together, in that order, so both agree on
+    which mesh axis is the "joint axis" (computed once, from the mesh's
+    pristine pre-scale proportions — see the note below on why that
+    agreement matters).
+
+    If normal_hint is given and (as is the norm in this corpus) axis-aligned,
+    the target dimension *along that world axis* is treated as the hole's
+    true depth/bore-axis extent and matched to the mesh's own joint axis
+    (see _joint_axis_index). The other two target dimensions (in-plane,
+    perpendicular to normal_hint) are matched by rank to the mesh's
+    remaining two axes.
+
+    Without normal_hint, falls back to matching purely by numeric rank
+    (shortest target value -> mesh's shortest axis, etc.) -- correct only
+    when the hole's own depth happens to be its largest bbox dimension (a
+    genuinely deep hole/pocket). For a hole that's *wider than it is deep*
+    (a shallow counterbore or a stubby fastener's recess), rank-matching
+    assigns the hole's small depth value to the mesh's shortest axis
+    regardless of whether that's actually the depth-facing axis -- crushing
+    a bolt's shaft length down to the hole's small depth and ballooning its
+    cross-section out to the hole's large diameter: a squat, proportion-
+    inverted part that visibly looks rotated ~90° from correct. Confirmed
+    exactly this on a real Tool_Post upload (a hole 16x16 in-plane but only
+    ~10.6 deep) -- fixed 2026-08-22.
+
+    Why scale and rotate must share one joint-axis decision: computing it
+    separately in each step (as this used to do, calling rotate_to_target_axis
+    as a distinct second pass) re-derives "which axis is longest" from the
+    mesh's extents *after* scaling — but scaling a shallow/wide target can
+    make the joint axis numerically the *shortest* of the three (its true
+    role is depth, and depth was small here), so a second, independent
+    re-derivation picks a different, wrong axis than the one just scaled as
+    the joint axis. Computing it once, before scaling, and reusing that same
+    index for the rotation avoids the two steps disagreeing.
+    """
     mesh = mesh.copy()
     extents = mesh.extents
     order = np.argsort(extents)          # mesh axis indices, shortest..longest
-    target = np.sort(np.asarray(target_extents, dtype=np.float64))  # shortest..longest
-
+    target = np.asarray(target_extents, dtype=np.float64)
     scale_per_axis = np.ones(3)
-    for rank, axis in enumerate(order):
-        scale_per_axis[axis] = target[rank] / max(extents[axis], 1e-9)
+
+    depth_axis = None
+    if normal_hint is not None:
+        n = np.asarray(normal_hint, dtype=np.float64)
+        if np.linalg.norm(n) > 1e-6:
+            depth_axis = int(np.argmax(np.abs(n)))  # dominant world axis
+
+    joint_axis = _joint_axis_index(extents, comp_type)  # from PRE-scale extents
+
+    if depth_axis is not None:
+        scale_per_axis[joint_axis] = target[depth_axis] / max(extents[joint_axis], 1e-9)
+
+        inplane_target = np.sort(np.delete(target, depth_axis))     # 2 values, ascending
+        inplane_mesh_axes = [a for a in order if a != joint_axis]   # already ascending
+        for rank, axis in enumerate(inplane_mesh_axes):
+            scale_per_axis[axis] = inplane_target[rank] / max(extents[axis], 1e-9)
+    else:
+        target_sorted = np.sort(target)  # shortest..longest
+        for rank, axis in enumerate(order):
+            scale_per_axis[axis] = target_sorted[rank] / max(extents[axis], 1e-9)
 
     mesh.apply_transform(np.diag([*scale_per_axis, 1.0]))
+
+    if normal_hint is not None:
+        mesh = rotate_to_target_axis(mesh, normal_hint, joint_axis=joint_axis)
+
     return mesh
 
 
-def rotate_to_target_axis(mesh: trimesh.Trimesh, normal_hint) -> trimesh.Trimesh:
+def rotate_to_target_axis(mesh: trimesh.Trimesh, normal_hint,
+                           comp_type: Optional[str] = None,
+                           joint_axis: Optional[int] = None) -> trimesh.Trimesh:
     """Rotate a canonically OBB-aligned part (see part_bank.canonicalize) so
     it points along the real target joint's axis, instead of keeping
-    whatever orientation it was canonicalized in.
+    whatever orientation it was canonicalized in. See _joint_axis_index for
+    which axis gets aligned (longest for a rod, shortest for a disk, and why
+    passing comp_type through matters). No-op if normal_hint is missing/
+    degenerate.
 
-    Bolts/nuts/shafts: align the mesh's longest extent axis (its "length")
-    with `normal_hint`. Washers (and other flat, disk-like parts): align the
-    shortest extent axis (the flat-face normal) instead, since a washer's
-    meaningful direction is through its face, not its longest in-plane
-    dimension. No-op if normal_hint is missing/degenerate.
-
-    Distinguishing a disk (washer: short, long, long) from a rod (bolt:
-    short, short, long) needs the *middle* extent, not just shortest-vs-
-    longest — both shapes can have the same shortest/longest ratio (e.g. a
-    5x5x20 bolt and a 5x20x20 washer are both 0.25), so comparing only the
-    extremes misclassifies rods as flat. A disk's middle extent sits close
-    to its longest; a rod's middle extent sits close to its shortest.
+    joint_axis: pass this through when the caller already knows which axis
+    is the joint axis (e.g. fit_to_bbox, which must compute it from the
+    mesh's pre-scale proportions to stay consistent with its own scaling —
+    see fit_to_bbox's docstring). Bypasses re-deriving it from this mesh's
+    current extents, which can disagree after scaling has changed which
+    axis numerically reads as longest/shortest.
     """
     if normal_hint is None:
         return mesh
@@ -193,11 +298,8 @@ def rotate_to_target_axis(mesh: trimesh.Trimesh, normal_hint) -> trimesh.Trimesh
         return mesh
     target = target / norm
 
-    extents = mesh.extents
-    order = np.argsort(extents)  # shortest .. longest axis indices
-    short, mid, long = extents[order[0]], extents[order[1]], extents[order[2]]
-    is_flat = (long - mid) < (mid - short)  # middle extent closer to longest => disk
-    align_axis_idx = order[0] if is_flat else order[-1]
+    align_axis_idx = (joint_axis if joint_axis is not None
+                       else _joint_axis_index(mesh.extents, comp_type))
 
     source = np.zeros(3)
     source[align_axis_idx] = 1.0
@@ -288,9 +390,13 @@ class HybridShapeGenerator:
         tau = self.retrieval_tau_fastener if comp_type in FASTENER_TYPES else self.retrieval_tau
 
         if mode in ("auto", "retrieve"):
-            mesh, conf, part_id = self.retriever.retrieve(comp_type, category, target_extents)
+            # retrieve() already scales AND rotates via fit_to_bbox -- no
+            # separate rotate_to_target_axis call needed (or wanted: it
+            # would double-rotate).
+            mesh, conf, part_id = self.retriever.retrieve(
+                comp_type, category, target_extents, normal_hint=normal_hint,
+            )
             if mesh is not None and (mode == "retrieve" or conf >= tau):
-                mesh = rotate_to_target_axis(mesh, normal_hint)
                 return ShapeResult(mesh, "retrieved", conf, part_id, placement)
 
         if mode == "retrieve":
@@ -304,7 +410,8 @@ class HybridShapeGenerator:
         mesh = devoxelize(occ.cpu().numpy(), threshold=0.5)
         if mesh is None:
             return None
-        mesh = fit_to_bbox(mesh, target_extents)
-        mesh = rotate_to_target_axis(mesh, normal_hint)
+        # fit_to_bbox scales AND rotates -- see its docstring for why the two
+        # must be done together (no separate rotate_to_target_axis call here).
+        mesh = fit_to_bbox(mesh, target_extents, normal_hint=normal_hint, comp_type=comp_type)
         conf = float(occ.max().item())
         return ShapeResult(mesh, "generated", conf, None, placement)
