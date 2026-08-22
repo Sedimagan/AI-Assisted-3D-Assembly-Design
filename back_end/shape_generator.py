@@ -170,6 +170,20 @@ _ROD_JOINT_TYPES  = {"bolt", "long_shaft", "short_shaft"}
 # smaller blind holes, 2026-08-22, fixed by gating on is_through).
 BOLT_PROTRUSION_FACTOR = 1.6
 
+# A blind hole's detected depth is a real physical ceiling (the shaft tip
+# can't pass it without visibly entering material past the hole's own
+# floor), but exactly matching it reads as too short -- real screws in a
+# blind hole visibly extend a bit past the hole's own visible recess into
+# the surrounding solid (the shaft is inside opaque material there, not
+# poking out of it). Calibrated 2026-08-22 against the two real blind-hole
+# groups on Tool_post_No_bolts.step: a small factor here reproduces the
+# ~9% extra length the user confirmed as correct for the 30mm-deep holes
+# (shaft ~32.8mm) while keeping the smaller 16mm-deep holes' overlap far
+# below what was reported as objectionable at the old BOLT_PROTRUSION_
+# FACTOR=1.6 (which was being applied to the whole head+shaft length, not
+# shaft alone, and produced ~33% relative overlap there).
+BOLT_BLIND_SHAFT_FACTOR = 1.15
+
 
 def _bolt_end_spreads(mesh: trimesh.Trimesh, joint_axis: int) -> tuple[float, float]:
     """RMS spread of vertices (perpendicular to joint_axis -- i.e. their
@@ -500,16 +514,18 @@ def fit_to_bbox(mesh: trimesh.Trimesh, target_extents, normal_hint=None,
             depth_value = depth_value * BOLT_PROTRUSION_FACTOR
 
         if comp_type == "bolt" and not is_through:
-            # Blind hole: the SHAFT alone must fill the hole's own depth --
-            # scale by the mesh's pre-scale shaft length (excluding head,
-            # see _bolt_shaft_length), not its whole head+shaft extent, so
-            # the head is added on top in its natural proportion instead of
-            # being carved out of the hole-depth budget (which left the
-            # shaft short of the hole's bottom).
+            # Blind hole: the SHAFT alone must fill (BOLT_BLIND_SHAFT_FACTOR
+            # times) the hole's own depth -- scale by the mesh's pre-scale
+            # shaft length (excluding head, see _bolt_shaft_length), not its
+            # whole head+shaft extent, so the head is added on top in its
+            # natural proportion instead of being carved out of the
+            # hole-depth budget (which left the shaft short of the hole's
+            # bottom).
             n_local = np.zeros(3)
             n_local[joint_axis] = head_sign
             shaft_len = _bolt_shaft_length(mesh, n_local)
-            scale_per_axis[joint_axis] = depth_value / max(shaft_len, 1e-9)
+            blind_depth_value = depth_value * BOLT_BLIND_SHAFT_FACTOR
+            scale_per_axis[joint_axis] = blind_depth_value / max(shaft_len, 1e-9)
         else:
             scale_per_axis[joint_axis] = depth_value / max(extents[joint_axis], 1e-9)
 
