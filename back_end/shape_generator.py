@@ -417,15 +417,26 @@ def flush_near_face_offset(mesh: trimesh.Trimesh, normal_hint) -> np.ndarray:
 # different real-world accuracy depending on which part got retrieved).
 _BOLT_HEAD_DIAM_RATIO = 1.25
 
+# On a small hole, a head at the standard 1.25x ratio can overhang past the
+# narrow land of material actually surrounding the hole -- reported as the
+# head "overlapping" the Tool Holder body on its 4 small (10mm-diameter)
+# blind holes, 2026-08-22. Reuses BOLT_BLIND_SMALL_DIAM_THRESHOLD (the same
+# size line already drawn for the blind-hole shaft-overshoot fix just
+# above) rather than inventing a second threshold.
+_BOLT_HEAD_DIAM_RATIO_SMALL = 1.1
+
 
 def constrain_bolt_radii(mesh: trimesh.Trimesh, n: np.ndarray, head_base: float,
-                          target_shaft_diam: float) -> trimesh.Trimesh:
+                          target_shaft_diam: float,
+                          head_diam_ratio: float = _BOLT_HEAD_DIAM_RATIO) -> trimesh.Trimesh:
     """Hard-enforce two thumb-rule bolt proportions on an already fit+rotated
     mesh, radius only (axial length from fit_to_bbox is untouched):
     the shaft must not be wider than the hole it passes through (scaled to
     match target_shaft_diam exactly, not just approximately), and the head
-    diameter is set to _BOLT_HEAD_DIAM_RATIO times the (now-correct) shaft
-    diameter, replacing whatever ratio the retrieved part happened to have.
+    diameter is set to head_diam_ratio times the (now-correct) shaft
+    diameter, replacing whatever ratio the retrieved part happened to have
+    (see _BOLT_HEAD_DIAM_RATIO / _BOLT_HEAD_DIAM_RATIO_SMALL for the two
+    values shape_bolt_head picks between).
 
     n must already be unit length and head-outward-oriented (see
     _bolt_head_base_proj); head_base is the shaft/head transition along n,
@@ -475,7 +486,7 @@ def constrain_bolt_radii(mesh: trimesh.Trimesh, n: np.ndarray, head_base: float,
 
     head_mask = ~shaft_mask
     head_radius = float(radii[head_mask].max()) if head_mask.any() else 0.0
-    target_head_radius = target_shaft_radius * _BOLT_HEAD_DIAM_RATIO
+    target_head_radius = target_shaft_radius * head_diam_ratio
     head_scale = target_head_radius / head_radius if head_radius > 1e-9 else 1.0
 
     safe_radii = np.where(radii > 1e-9, radii, 1.0)
@@ -531,7 +542,10 @@ def shape_bolt_head(mesh: trimesh.Trimesh, normal_hint,
         depth_axis = int(np.argmax(np.abs(normal_hint)))
         inplane = [target_extents[a] for a in range(3) if a != depth_axis]
         target_shaft_diam = float(np.mean(inplane))
-        mesh = constrain_bolt_radii(mesh, n, head_base, target_shaft_diam)
+        head_ratio = (_BOLT_HEAD_DIAM_RATIO_SMALL
+                      if target_shaft_diam < BOLT_BLIND_SMALL_DIAM_THRESHOLD
+                      else _BOLT_HEAD_DIAM_RATIO)
+        mesh = constrain_bolt_radii(mesh, n, head_base, target_shaft_diam, head_ratio)
     mesh = stretch_bolt_head(mesh, n, head_base)
     # Shift the whole mesh back by head_base along n, so the point currently
     # at local proj == head_base lands exactly on the surface (world proj ==
