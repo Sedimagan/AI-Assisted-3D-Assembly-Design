@@ -165,15 +165,6 @@ _ROD_JOINT_TYPES  = {"bolt", "long_shaft", "short_shaft"}
 # hole depth by this factor. Bolt-only; washers/nuts are unaffected.
 BOLT_PROTRUSION_FACTOR = 1.6
 
-# Extra fraction of the head's own reach added on top of "just touching the
-# surface", so the head visibly clears it rather than sitting exactly flush.
-# How far above the surface the head sits, as a fraction of the head's own
-# reach from the mesh's centroid (its "how far the head extends" distance)
-# -- 0.15 means the head pokes out roughly 15% of that distance above the
-# surface, with the shaft's remainder (100% - 15% = 85% of that reach, plus
-# everything on the tip side) pulled back through/below it.
-_BOLT_HEAD_CLEARANCE_FRACTION = 0.15
-
 
 def _bolt_end_spreads(mesh: trimesh.Trimesh, joint_axis: int) -> tuple[float, float]:
     """RMS spread of vertices (perpendicular to joint_axis -- i.e. their
@@ -223,16 +214,75 @@ def _bolt_shaft_radius(mesh: trimesh.Trimesh, joint_axis: int, head_sign: int) -
     return bot_spread if head_sign >= 0 else top_spread
 
 
+def _bolt_head_base_proj(mesh: trimesh.Trimesh, n: np.ndarray, n_bins: int = 12) -> float:
+    """Position, along the (already head-outward-oriented) unit vector n,
+    of the flat annular face where a bolt's head ends and its narrower
+    shaft begins -- the face that must sit flush against the plate's
+    surface (see bolt_head_clearance_offset). The head is on the +n side
+    (rotate_to_target_axis already oriented it that way).
+
+    Bins the mesh along n and finds the WIDEST bin first, then scans from
+    there toward the tip (-n) for the first bin that's narrowed to within
+    25% of the shaft's own radius (measured at the -n/tip end) -- i.e.
+    where the cross-section has stepped down to "shaft-sized". Starting
+    from the widest bin, rather than scanning from the raw +n extreme
+    inward, matters: a real bolt head's very outermost cap is often
+    slightly beveled/rounded and so *narrower* than the head's main body
+    just below it -- scanning from the true geometric tip hit that narrow
+    cap first and mistook it for the head/shaft transition, putting the
+    "head" only a sliver above the surface with the rest of the head
+    buried. Confirmed on the real retrieved part for the Tool_Post repro:
+    its outermost bin had radius 7.7 (narrower than the 11-14 range of the
+    bins just below it, which are the actual head body).
+
+    Falls back to the widest bin's own edge if no clear narrowing is found
+    past it (e.g. a smoothly tapered part with no distinct transition).
+    """
+    proj = mesh.vertices @ n
+    lo, hi = float(proj.min()), float(proj.max())
+    span = hi - lo
+    if span < 1e-9:
+        return hi
+
+    perp = mesh.vertices - np.outer(proj, n)  # component perpendicular to n
+    radii = np.sqrt((perp ** 2).sum(axis=1))
+
+    tip_mask = proj <= lo + 0.2 * span
+    shaft_radius = float(radii[tip_mask].mean()) if np.any(tip_mask) else 0.0
+    shaft_radius = max(shaft_radius, 1e-9)
+
+    edges = np.linspace(hi, lo, n_bins + 1)  # walking from head end toward tip end
+    bin_radius = np.full(n_bins, np.nan)
+    for i in range(n_bins):
+        mask = (proj <= edges[i]) & (proj >= edges[i + 1])
+        if mask.any():
+            bin_radius[i] = radii[mask].mean()
+
+    if np.all(np.isnan(bin_radius)):
+        return hi - 0.2 * span
+
+    widest_i = int(np.nanargmax(bin_radius))
+    for i in range(widest_i, n_bins):
+        if np.isnan(bin_radius[i]):
+            continue
+        if bin_radius[i] <= shaft_radius * 1.25:
+            return edges[i]  # this bin's head-side edge = the transition
+
+    return edges[widest_i]  # no clear narrowing found past the widest point
+
+
 def bolt_head_clearance_offset(mesh: trimesh.Trimesh, normal_hint,
                                 comp_type: Optional[str]) -> np.ndarray:
     """For a bolt already oriented head-outward (fit_to_bbox/rotate_to_target_axis
     orient it that way when comp_type == "bolt"), how far to shift its placement
-    along normal_hint so the head clears the hole's entry surface instead of
-    being centered on it. canonicalize() centers every part at its own
-    centroid, which by default puts that centroid (roughly the shaft's
-    middle) at the hole's surface centroid -- burying about half the head
-    below the surface instead of resting it above. Returns a zero vector for
-    non-bolt types or a degenerate normal_hint (nothing to add to placement)."""
+    along normal_hint so the head's *base* -- the flat face where it meets
+    the shaft -- sits flush against the hole's entry surface, with the
+    entire head above it (fully visible) and only the shaft inside the
+    hole. canonicalize() centers every part at its own centroid, which by
+    default puts that centroid (roughly the shaft's middle) at the hole's
+    surface centroid, burying most of the head below the surface instead.
+    Returns a zero vector for non-bolt types or a degenerate normal_hint
+    (nothing to add to placement)."""
     if comp_type != "bolt" or normal_hint is None:
         return np.zeros(3)
     n = np.asarray(normal_hint, dtype=np.float64)
@@ -240,14 +290,12 @@ def bolt_head_clearance_offset(mesh: trimesh.Trimesh, normal_hint,
     if norm < 1e-6:
         return np.zeros(3)
     n = n / norm
-    proj = mesh.vertices @ n
-    head_extent = float(proj.max())  # how far the head reaches from centroid, now outward
-    # Naive placement (mesh centroid at the surface centroid, zero shift)
-    # puts the head's outer tip at +head_extent above the surface -- pull
-    # the whole mesh back by (most of) that distance so the tip instead
-    # ends up just at/above the surface, dragging the shaft/tip end further
-    # through and past it on the far side.
-    return -n * head_extent * (1.0 - _BOLT_HEAD_CLEARANCE_FRACTION)
+    head_base = _bolt_head_base_proj(mesh, n)
+    # Shift the whole mesh back by head_base along n, so the point currently
+    # at local proj == head_base lands exactly on the surface (world proj ==
+    # surface's own proj): everything above it (the head) ends up above the
+    # surface; everything below (shaft, tip) extends into and through it.
+    return -n * head_base
 
 
 def _joint_axis_index(extents: np.ndarray, comp_type: Optional[str] = None) -> int:
