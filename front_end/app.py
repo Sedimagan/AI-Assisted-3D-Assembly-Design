@@ -897,32 +897,38 @@ def _run_inference(step_bytes: bytes,
                                 _inplane = [_seq_extents[_a] for _a in range(3) if _a != _dom]
                                 _seq_extents[_dom] = 0.12 * (sum(_inplane) / len(_inplane))
                             elif _seq_type == "nut":
-                                # "Wall thickness" turned out to mean the
-                                # RADIAL wall around the bore (outer diameter
-                                # minus bore diameter), not axial height --
-                                # clarified 2026-08-22 ("increased outward
-                                # not inward") after an axial-height-only
-                                # bump (0.55 -> 0.85) still wasn't it. Reusing
-                                # the shaft diameter directly as the nut's
-                                # own in-plane target (as _extents does, same
-                                # issue the washer above already had) leaves
-                                # it barely wider than the bolt it threads
-                                # onto -- almost no wall at all. Widen the
-                                # in-plane components outward the same way
-                                # the washer does (real hex nuts run roughly
-                                # 1.5-1.7x their bolt's diameter across
-                                # flats), which grows the bore along with the
-                                # outer boundary (proportionally, not
-                                # independently -- there's no separate bore-
-                                # vs-wall control on a uniformly-scaled mesh)
-                                # rather than eating into it. Height stays at
-                                # the ISO 4032-derived 0.85x ratio, now
-                                # computed off the widened diameter.
+                                # "Wall thickness" means the RADIAL wall
+                                # around the bore (outer diameter minus bore
+                                # diameter), not axial height -- clarified
+                                # 2026-08-22 ("increased outward not
+                                # inward"). Reusing the shaft diameter
+                                # directly as the nut's own in-plane target
+                                # (as _extents does, same issue the washer
+                                # above already had) leaves it barely wider
+                                # than the bolt it threads onto -- almost no
+                                # wall at all. Widen the in-plane components
+                                # outward the same way the washer does (real
+                                # hex nuts run roughly 1.5-1.7x their bolt's
+                                # diameter across flats; nudged from an
+                                # initial 1.6x to 1.7x per "slightly
+                                # increased" follow-up feedback), which grows
+                                # the bore along with the outer boundary
+                                # (proportionally, not independently --
+                                # there's no separate bore-vs-wall control on
+                                # a uniformly-scaled mesh) rather than eating
+                                # into it. Height ratio halved from the
+                                # ISO-4032-derived 0.85x to 0.4x per the same
+                                # feedback ("nut height can be half the
+                                # height from the current height") --
+                                # computed off the widened diameter, so the
+                                # net absolute height is 0.4*1.7 / (0.85*1.6)
+                                # =~ half of what it measured before this
+                                # change, as intended.
                                 for _a in range(3):
                                     if _a != _dom:
-                                        _seq_extents[_a] *= 1.6
+                                        _seq_extents[_a] *= 1.7
                                 _inplane = [_seq_extents[_a] for _a in range(3) if _a != _dom]
-                                _seq_extents[_dom] = 0.85 * (sum(_inplane) / len(_inplane))
+                                _seq_extents[_dom] = 0.4 * (sum(_inplane) / len(_inplane))
                             _seq_hits = _bank.query(_seq_type, _gen_category, _seq_extents, top_k=1)
                             if not _seq_hits:
                                 break  # bank has nothing for this type -- stop the sequence here
