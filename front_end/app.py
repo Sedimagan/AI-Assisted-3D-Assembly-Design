@@ -841,23 +841,26 @@ def _run_inference(step_bytes: bytes,
                         )
                         if _sr is None:
                             continue
-                        _verts = (_sr.mesh.vertices + _sr.placement).tolist()
-                        _faces = _sr.mesh.faces.tolist()
-                        _generated_parts.append({{
+                        _bolt_verts = _sr.mesh.vertices + _sr.placement
+                        _bolt_entry = {{
                             "type":        "bolt",
                             "fit_score":   round(float(_bolt_score), 3),
                             "source":      _sr.source,
                             "confidence":  round(float(_sr.confidence), 3),
                             "part_id":     _sr.part_id,
-                            "vertices":    _verts,
-                            "triangles":   _faces,
+                            "vertices":    None,   # filled in below, after any shaft-length fixup
+                            "triangles":   _sr.mesh.faces.tolist(),
                             "surface_body_idx": _surf.get("body_idx", 0),
-                        }})
+                        }}
 
                         if not _surf.get("is_through") or not _nrm_u:
+                            _bolt_entry["vertices"] = _bolt_verts.tolist()
+                            _generated_parts.append(_bolt_entry)
                             continue
                         _exit_coord = _surf.get("exit_face_coord")
                         if _exit_coord is None:
+                            _bolt_entry["vertices"] = _bolt_verts.tolist()
+                            _generated_parts.append(_bolt_entry)
                             continue
                         _exit_normal = [-_c for _c in _nrm_u]
                         _dom = max(range(3), key=lambda _i: abs(_nrm_u[_i]))
@@ -881,6 +884,23 @@ def _run_inference(step_bytes: bytes,
                                 # next to it. Reported 2026-08-22.
                                 _inplane = [_seq_extents[_a] for _a in range(3) if _a != _dom]
                                 _seq_extents[_dom] = 0.12 * (sum(_inplane) / len(_inplane))
+                            elif _seq_type == "nut":
+                                # Same problem as the washer above, different
+                                # ratio: reusing the hole's own recess depth
+                                # as the nut's height target only matches a
+                                # real nut's proportions by coincidence.
+                                # Real hex nuts run roughly height ~= 0.5x
+                                # their own across-flats width (ISO 4032:
+                                # M10 8.4/16.5=0.51, M16 14.8/24=0.62) --
+                                # reported as the generated nut "doesn't look
+                                # like a nut" (came out cube-proportioned on
+                                # a hole where recess depth happened to equal
+                                # the diameter). Nut's ORIENTATION (which
+                                # axis is the bore) was a separate bug, fixed
+                                # by adding "nut" to shape_generator.py's
+                                # _FLAT_JOINT_TYPES.
+                                _inplane = [_seq_extents[_a] for _a in range(3) if _a != _dom]
+                                _seq_extents[_dom] = 0.55 * (sum(_inplane) / len(_inplane))
                             _seq_hits = _bank.query(_seq_type, _gen_category, _seq_extents, top_k=1)
                             if not _seq_hits:
                                 break  # bank has nothing for this type -- stop the sequence here
@@ -914,6 +934,38 @@ def _run_inference(step_bytes: bytes,
                             _seq_proj = _seq_sr.mesh.vertices @ _np_seq.array(_exit_normal)
                             _thickness = float(_seq_proj.max() - _seq_proj.min())
                             _cursor[_dom] = _cursor[_dom] + _exit_normal[_dom] * _thickness
+
+                        # Extra screw length: a real assembled bolt shows a
+                        # bit of visible thread past the nut, but
+                        # BOLT_PROTRUSION_FACTOR is a rough per-hole guess
+                        # made before the washer/nut stack above was even
+                        # generated, and can leave the shaft tip short of
+                        # reaching the nut's own far face (measured on a
+                        # real upload: tip ended up partway INSIDE the nut,
+                        # nowhere near its far side). _cursor now sits at
+                        # that far face (or the exit face itself, if no
+                        # washer/nut got generated) -- stretch the shaft
+                        # (below the head, which is untouched) so its tip
+                        # reaches a bit past that point. Only ever
+                        # stretches, never shortens an already-long-enough
+                        # shaft.
+                        import numpy as _np_ext
+                        _extra_thread = 0.25 * (_shaft_diam if _shaft_diam else _extents[_dom0])
+                        _head_ref = _entry_centroid[_dom]  # head_base always lands exactly here
+                        _exit_n_val = _exit_normal[_dom]
+                        _signed = (_bolt_verts[:, _dom] - _head_ref) * _exit_n_val
+                        _target_signed = (_cursor[_dom] - _head_ref) * _exit_n_val + _extra_thread
+                        _cur_max = float(_signed.max())
+                        if _cur_max > 1e-6 and _target_signed > _cur_max:
+                            _scale = _target_signed / _cur_max
+                            _shaft_pts = _signed >= 0
+                            _bolt_verts = _bolt_verts.copy()
+                            _bolt_verts[:, _dom] = _head_ref + _np_ext.where(
+                                _shaft_pts, _signed * _scale, _signed
+                            ) * _exit_n_val
+
+                        _bolt_entry["vertices"] = _bolt_verts.tolist()
+                        _generated_parts.append(_bolt_entry)
             except Exception:
                 _generated_parts = []
 

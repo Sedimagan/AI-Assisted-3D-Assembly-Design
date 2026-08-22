@@ -156,7 +156,7 @@ class ShapeRetriever:
 # Types whose meaningful orientation axis is unambiguous from the type alone
 # -- used to skip the geometric rod-vs-disk heuristic entirely when we
 # already know the answer (see _joint_axis_index).
-_FLAT_JOINT_TYPES = {"washer", "thin_plate", "thick_plate"}
+_FLAT_JOINT_TYPES = {"washer", "thin_plate", "thick_plate", "nut"}
 _ROD_JOINT_TYPES  = {"bolt", "long_shaft", "short_shaft"}
 
 # A THROUGH hole's own bbox depth is usually just its visible recess/
@@ -525,13 +525,16 @@ def _joint_axis_index(extents: np.ndarray, comp_type: Optional[str] = None) -> i
     agreement matters.
 
     comp_type, when it's one of the unambiguous types above, decides this
-    directly -- the caller already knows whether this is a bolt or a washer,
+    directly -- the caller already knows whether this is a bolt or a washer
+    (or a nut, whose bore axis is its own short dimension same as a washer's
+    -- added 2026-08-22 after the geometric heuristic below misjudged a
+    retrieved nut's axis often enough to read as "doesn't look like a nut"),
     so there's no need to re-infer "rod vs disk" from the mesh's own extent
     proportions. Falls back to that geometric heuristic (comparing the
     *middle* extent to shortest/longest, not just shortest-vs-longest, since
     both a 5x5x20 bolt and a 5x20x20 washer have the same shortest/longest
-    ratio 0.25) only for types not in either set above (e.g. "nut", "body"),
-    where there isn't a clear a-priori answer.
+    ratio 0.25) only for types not in either set above (e.g. "body"), where
+    there isn't a clear a-priori answer.
 
     Using comp_type when available isn't just a convenience -- the
     geometric heuristic has a real failure mode the type-based path avoids:
