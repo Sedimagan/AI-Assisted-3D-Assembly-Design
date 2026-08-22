@@ -1530,6 +1530,36 @@ with st.sidebar:
         except Exception:
             pass
 
+    # ── Code version badge — last commit + working-tree state, so a stale
+    # browser session (cached inference_result, see _run_inference's
+    # "once per file" gate) is visibly distinguishable from a fresh code
+    # change. Recomputed on every rerun, not cached, so it's always current.
+    try:
+        import subprocess as _sp
+        _git_dir = str(_PROJ_ROOT)
+        _commit_ts = _sp.run(
+            ["git", "log", "-1", "--format=%cd", "--date=format:%Y-%m-%d %H:%M"],
+            cwd=_git_dir, capture_output=True, text=True, timeout=5,
+        ).stdout.strip()
+        _commit_hash = _sp.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=_git_dir, capture_output=True, text=True, timeout=5,
+        ).stdout.strip()
+        _dirty = _sp.run(
+            ["git", "status", "--porcelain"],
+            cwd=_git_dir, capture_output=True, text=True, timeout=5,
+        ).stdout.strip()
+        if _commit_ts and _commit_hash:
+            _dirty_note = " · uncommitted changes present" if _dirty else ""
+            st.markdown(
+                f'<div style="font-size:0.6rem;color:#9ca3af;margin:0 0 4px;">'
+                f'Code last updated: {_commit_ts}  (commit {_commit_hash}){_dirty_note}'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+    except Exception:
+        pass
+
     st.markdown("---")
 
     # Training can still run from the terminal (see CLAUDE.md); this keeps
