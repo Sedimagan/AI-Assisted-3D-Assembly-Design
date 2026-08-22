@@ -897,20 +897,30 @@ def _run_inference(step_bytes: bytes,
                                 _inplane = [_seq_extents[_a] for _a in range(3) if _a != _dom]
                                 _seq_extents[_dom] = 0.12 * (sum(_inplane) / len(_inplane))
                             elif _seq_type == "nut":
-                                # Same problem as the washer above, different
-                                # ratio: reusing the hole's own recess depth
-                                # as the nut's height target only matches a
-                                # real nut's proportions by coincidence.
-                                # Real hex nuts run roughly height ~= 0.5x
-                                # their own across-flats width (ISO 4032:
-                                # M10 8.4/16.5=0.51, M16 14.8/24=0.62), but
-                                # that read as too thin once the bolt/washer
-                                # were corrected -- bumped to 0.85 per
-                                # 2026-08-22 feedback ("increase the nut wall
-                                # thickness more"). Nut's ORIENTATION (which
-                                # axis is the bore) was a separate bug, fixed
-                                # by adding "nut" to shape_generator.py's
-                                # _FLAT_JOINT_TYPES.
+                                # "Wall thickness" turned out to mean the
+                                # RADIAL wall around the bore (outer diameter
+                                # minus bore diameter), not axial height --
+                                # clarified 2026-08-22 ("increased outward
+                                # not inward") after an axial-height-only
+                                # bump (0.55 -> 0.85) still wasn't it. Reusing
+                                # the shaft diameter directly as the nut's
+                                # own in-plane target (as _extents does, same
+                                # issue the washer above already had) leaves
+                                # it barely wider than the bolt it threads
+                                # onto -- almost no wall at all. Widen the
+                                # in-plane components outward the same way
+                                # the washer does (real hex nuts run roughly
+                                # 1.5-1.7x their bolt's diameter across
+                                # flats), which grows the bore along with the
+                                # outer boundary (proportionally, not
+                                # independently -- there's no separate bore-
+                                # vs-wall control on a uniformly-scaled mesh)
+                                # rather than eating into it. Height stays at
+                                # the ISO 4032-derived 0.85x ratio, now
+                                # computed off the widened diameter.
+                                for _a in range(3):
+                                    if _a != _dom:
+                                        _seq_extents[_a] *= 1.6
                                 _inplane = [_seq_extents[_a] for _a in range(3) if _a != _dom]
                                 _seq_extents[_dom] = 0.85 * (sum(_inplane) / len(_inplane))
                             _seq_hits = _bank.query(_seq_type, _gen_category, _seq_extents, top_k=1)
