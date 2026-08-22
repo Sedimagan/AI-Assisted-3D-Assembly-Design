@@ -241,13 +241,19 @@ class AssemblyTemplateDB:
             dot = sum(p * e for p, e in zip(present_vec, expected_vec))
             score = dot / (present_norm * expected_norm)
 
-            # Bonus: all present components are expected in this assembly type
+            # Bonus: all present components are expected in this assembly type.
+            # Not clamped to 1.0 here -- two templates can both legitimately
+            # earn the bonus (both cosine >= 0.8, both extra == 0), and
+            # clamping during comparison collapsed their real difference into
+            # an artificial tie decided by iteration order (alphabetical by
+            # category) rather than which is the closer match. Only the final
+            # returned confidence is clamped, below.
             extra = sum(
                 max(0, present_counts.get(t, 0) - expected.get(t, 0))
                 for t in COMP_TYPES
             )
             if extra == 0 and dot > 0:
-                score = min(score * 1.25, 1.0)
+                score = score * 1.25
 
             if score > best_score:
                 best_score = score

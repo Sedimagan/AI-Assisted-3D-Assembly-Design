@@ -173,7 +173,14 @@ _TYPE_THRESHOLDS = {
     "nut_elong":        1.80,   # l/m — nut must be compact
     "nut_flat_min":     0.12,   # s/l — thinner than this + ring → washer, not nut
     "round_min":        0.60,   # s/m — round cross-section gate (bolt/shaft)
-    "bolt_elong_min":   2.0,
+    "bolt_elong_min":   1.7,    # was 2.0 — real stubby screws (e.g. BS 4183
+                                 # cheese-head M16, elong~1.81-1.83) were
+                                 # falling through to "body" just under the
+                                 # old cutoff; 1.7 gives headroom below the
+                                 # lowest observed real bolt while still
+                                 # requiring round_min (0.60) to gate out
+                                 # non-round chunky shapes. See
+                                 # assembly_match_scoring_fix memory (2026-08-17).
     "bolt_elong_max":   8.0,
     "head_fill":        0.65,   # bounding-cylinder fill below this → head vote
     "head_com":         0.06,   # |COM offset|/l above this → head vote
@@ -290,6 +297,17 @@ def _classify_component_type(signals: dict) -> Tuple[int, int, int, list]:
     has_hole = hv >= 2
     if hv == 1:
         notes.append("hole-votes-split")
+    # A chunky, large-diameter nut (e.g. a big hex clamping nut) can have a
+    # real threaded bore that doesn't dent the convex-hull volume ratio
+    # enough to trigger that vote (bore is small relative to the nut's
+    # bulk), even though the direct ray-cast probe correctly detects it
+    # (ray_hits==0). For nut-proportioned candidates specifically, trust
+    # that direct probe alone rather than requiring both votes — the
+    # washer branch is untouched since washers are thin enough that their
+    # bore reliably shows up in hull_ratio too. See assembly_match_scoring_fix
+    # memory (2026-08-17): "Clamping Nut" (elong=1.01, flat=0.75) was falling
+    # through to "body" on this gate alone.
+    nut_has_hole = has_hole or signals["ray_hits"] == 0
 
     is_fastener_scale = l < T["max_fastener_extent"]
     if not is_fastener_scale and (
@@ -300,7 +318,7 @@ def _classify_component_type(signals: dict) -> Tuple[int, int, int, list]:
 
     if has_hole and is_fastener_scale and flat < T["washer_flat"] and plan > T["washer_plan"]:
         return COMP_TYPES.index("washer"), hv, 0, notes
-    if has_hole and is_fastener_scale and elong < T["nut_elong"] and flat >= T["nut_flat_min"]:
+    if nut_has_hole and is_fastener_scale and elong < T["nut_elong"] and flat >= T["nut_flat_min"]:
         return COMP_TYPES.index("nut"), hv, 0, notes
 
     headv = 0
