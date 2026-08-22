@@ -158,6 +158,77 @@ class ShapeRetriever:
 _FLAT_JOINT_TYPES = {"washer", "thin_plate", "thick_plate"}
 _ROD_JOINT_TYPES  = {"bolt", "long_shaft", "short_shaft"}
 
+# A hole's own bbox depth is usually just its visible recess/counterbore,
+# not the full material thickness a bolt's shaft needs to span to protrude
+# out the far side -- true thickness isn't threaded through this far, so
+# this is a deliberate approximation: make the shaft longer than the raw
+# hole depth by this factor. Bolt-only; washers/nuts are unaffected.
+BOLT_PROTRUSION_FACTOR = 1.6
+
+# Extra fraction of the head's own reach added on top of "just touching the
+# surface", so the head visibly clears it rather than sitting exactly flush.
+# How far above the surface the head sits, as a fraction of the head's own
+# reach from the mesh's centroid (its "how far the head extends" distance)
+# -- 0.15 means the head pokes out roughly 15% of that distance above the
+# surface, with the shaft's remainder (100% - 15% = 85% of that reach, plus
+# everything on the tip side) pulled back through/below it.
+_BOLT_HEAD_CLEARANCE_FRACTION = 0.15
+
+
+def _bolt_head_sign(mesh: trimesh.Trimesh, joint_axis: int) -> int:
+    """Which end of a rod-like mesh, along its joint_axis local coordinate,
+    is the wider "head" end vs the narrower shaft/thread end -- a bolt head
+    is flanged/wider than its shaft. Compares the RMS spread of vertices
+    (perpendicular to joint_axis) in the top vs bottom 20% of the mesh's
+    extent along joint_axis. Returns +1 if the head is on the positive-axis
+    side, -1 if on the negative side. Used to orient a bolt head-outward
+    (see rotate_to_target_axis's head_sign param) rather than leaving head
+    vs tip to whatever canonicalize() happened to produce."""
+    coords = mesh.vertices[:, joint_axis]
+    lo, hi = float(coords.min()), float(coords.max())
+    span = hi - lo
+    if span < 1e-9:
+        return 1
+    band = 0.2 * span
+    other_axes = [a for a in range(3) if a != joint_axis]
+
+    def _spread(mask: np.ndarray) -> float:
+        pts = mesh.vertices[mask][:, other_axes]
+        if len(pts) == 0:
+            return 0.0
+        return float(np.sqrt((pts ** 2).sum(axis=1)).mean())
+
+    top_spread = _spread(coords >= hi - band)
+    bot_spread = _spread(coords <= lo + band)
+    return 1 if top_spread >= bot_spread else -1
+
+
+def bolt_head_clearance_offset(mesh: trimesh.Trimesh, normal_hint,
+                                comp_type: Optional[str]) -> np.ndarray:
+    """For a bolt already oriented head-outward (fit_to_bbox/rotate_to_target_axis
+    orient it that way when comp_type == "bolt"), how far to shift its placement
+    along normal_hint so the head clears the hole's entry surface instead of
+    being centered on it. canonicalize() centers every part at its own
+    centroid, which by default puts that centroid (roughly the shaft's
+    middle) at the hole's surface centroid -- burying about half the head
+    below the surface instead of resting it above. Returns a zero vector for
+    non-bolt types or a degenerate normal_hint (nothing to add to placement)."""
+    if comp_type != "bolt" or normal_hint is None:
+        return np.zeros(3)
+    n = np.asarray(normal_hint, dtype=np.float64)
+    norm = np.linalg.norm(n)
+    if norm < 1e-6:
+        return np.zeros(3)
+    n = n / norm
+    proj = mesh.vertices @ n
+    head_extent = float(proj.max())  # how far the head reaches from centroid, now outward
+    # Naive placement (mesh centroid at the surface centroid, zero shift)
+    # puts the head's outer tip at +head_extent above the surface -- pull
+    # the whole mesh back by (most of) that distance so the tip instead
+    # ends up just at/above the surface, dragging the shaft/tip end further
+    # through and past it on the far side.
+    return -n * head_extent * (1.0 - _BOLT_HEAD_CLEARANCE_FRACTION)
+
 
 def _joint_axis_index(extents: np.ndarray, comp_type: Optional[str] = None) -> int:
     """Which of a mesh's 3 local axes is its "joint axis" -- the one
@@ -254,7 +325,13 @@ def fit_to_bbox(mesh: trimesh.Trimesh, target_extents, normal_hint=None,
     joint_axis = _joint_axis_index(extents, comp_type)  # from PRE-scale extents
 
     if depth_axis is not None:
-        scale_per_axis[joint_axis] = target[depth_axis] / max(extents[joint_axis], 1e-9)
+        depth_value = target[depth_axis]
+        if comp_type == "bolt":
+            # See BOLT_PROTRUSION_FACTOR -- the hole's own depth is usually
+            # just its visible recess, not the full material thickness a
+            # shaft needs to span to protrude out the far side.
+            depth_value = depth_value * BOLT_PROTRUSION_FACTOR
+        scale_per_axis[joint_axis] = depth_value / max(extents[joint_axis], 1e-9)
 
         inplane_target = np.sort(np.delete(target, depth_axis))     # 2 values, ascending
         inplane_mesh_axes = [a for a in order if a != joint_axis]   # already ascending
@@ -265,17 +342,25 @@ def fit_to_bbox(mesh: trimesh.Trimesh, target_extents, normal_hint=None,
         for rank, axis in enumerate(order):
             scale_per_axis[axis] = target_sorted[rank] / max(extents[axis], 1e-9)
 
+    # head_sign must be read off the mesh's local vertex layout before
+    # scaling changes it -- scaling is per-axis-positive so it can't flip
+    # which end is which, but easiest to keep this unambiguous by computing
+    # it right alongside joint_axis, from the same pre-scale mesh.
+    head_sign = _bolt_head_sign(mesh, joint_axis) if comp_type == "bolt" else None
+
     mesh.apply_transform(np.diag([*scale_per_axis, 1.0]))
 
     if normal_hint is not None:
-        mesh = rotate_to_target_axis(mesh, normal_hint, joint_axis=joint_axis)
+        mesh = rotate_to_target_axis(mesh, normal_hint, joint_axis=joint_axis,
+                                      head_sign=head_sign)
 
     return mesh
 
 
 def rotate_to_target_axis(mesh: trimesh.Trimesh, normal_hint,
                            comp_type: Optional[str] = None,
-                           joint_axis: Optional[int] = None) -> trimesh.Trimesh:
+                           joint_axis: Optional[int] = None,
+                           head_sign: Optional[int] = None) -> trimesh.Trimesh:
     """Rotate a canonically OBB-aligned part (see part_bank.canonicalize) so
     it points along the real target joint's axis, instead of keeping
     whatever orientation it was canonicalized in. See _joint_axis_index for
@@ -289,6 +374,15 @@ def rotate_to_target_axis(mesh: trimesh.Trimesh, normal_hint,
     see fit_to_bbox's docstring). Bypasses re-deriving it from this mesh's
     current extents, which can disagree after scaling has changed which
     axis numerically reads as longest/shortest.
+
+    head_sign: for a bolt (see _bolt_head_sign), which end of joint_axis is
+    the head. Without this, aligning the joint axis to normal_hint only
+    fixes *which line* the shaft lies along, not which end points which way
+    -- the head could just as easily end up pointing into the hole as out of
+    it, since align_vectors has no notion of "head" or "tip". normal_hint
+    points outward (away from material, see surface_analyzer.py), so when
+    given, the head is rotated to face +normal_hint specifically, not just
+    "aligned with its line".
     """
     if normal_hint is None:
         return mesh
@@ -302,7 +396,7 @@ def rotate_to_target_axis(mesh: trimesh.Trimesh, normal_hint,
                        else _joint_axis_index(mesh.extents, comp_type))
 
     source = np.zeros(3)
-    source[align_axis_idx] = 1.0
+    source[align_axis_idx] = head_sign if head_sign is not None else 1.0
 
     rot = trimesh.geometry.align_vectors(source, target)
     mesh = mesh.copy()
@@ -397,7 +491,8 @@ class HybridShapeGenerator:
                 comp_type, category, target_extents, normal_hint=normal_hint,
             )
             if mesh is not None and (mode == "retrieve" or conf >= tau):
-                return ShapeResult(mesh, "retrieved", conf, part_id, placement)
+                head_offset = bolt_head_clearance_offset(mesh, normal_hint, comp_type)
+                return ShapeResult(mesh, "retrieved", conf, part_id, placement + head_offset)
 
         if mode == "retrieve":
             return None  # forced retrieval requested but nothing found
@@ -414,4 +509,5 @@ class HybridShapeGenerator:
         # must be done together (no separate rotate_to_target_axis call here).
         mesh = fit_to_bbox(mesh, target_extents, normal_hint=normal_hint, comp_type=comp_type)
         conf = float(occ.max().item())
-        return ShapeResult(mesh, "generated", conf, None, placement)
+        head_offset = bolt_head_clearance_offset(mesh, normal_hint, comp_type)
+        return ShapeResult(mesh, "generated", conf, None, placement + head_offset)
