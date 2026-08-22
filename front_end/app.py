@@ -870,18 +870,30 @@ def _run_inference(step_bytes: bytes,
                         for _seq_type in ("washer", "nut"):
                             _seq_extents = list(_extents)
                             if _seq_type == "washer":
-                                # A washer's thickness is a small fraction of
-                                # its diameter (real DIN125 washers run
-                                # roughly 8-15% of OD). Reusing the hole's own
-                                # recess-depth dimension as the depth-axis
-                                # target -- as bolt/nut do, where it happens
-                                # to land close to real part proportions --
-                                # targets a thickness of the FULL hole depth
-                                # (16-30mm in practice) for a part that's
-                                # really only ~1-3mm thick, so the part-bank
-                                # match gets stretched into a visibly too-
-                                # -thick disc, noticeably thicker than the nut
-                                # next to it. Reported 2026-08-22.
+                                # A washer's OD is meaningfully wider than the
+                                # bolt it rides on (DIN125: M10 bolt ~10mm,
+                                # washer OD ~20mm, ratio ~2x) -- reusing the
+                                # shaft diameter directly as the washer's own
+                                # in-plane target (as _extents does) gives it
+                                # no overhang at all around the hole. Widen
+                                # the in-plane (perpendicular-to-bore)
+                                # components before the depth-axis override
+                                # below. Its thickness is a small fraction of
+                                # ITS OWN (now-widened) diameter -- real
+                                # DIN125 washers run roughly 8-15% of OD.
+                                # Reusing the hole's own recess-depth
+                                # dimension as the depth-axis target -- as
+                                # bolt/nut do, where it happens to land close
+                                # to real part proportions -- targets a
+                                # thickness of the FULL hole depth (16-30mm
+                                # in practice) for a part that's really only
+                                # ~1-3mm thick, so the part-bank match gets
+                                # stretched into a visibly too-thick disc,
+                                # noticeably thicker than the nut next to it.
+                                # Reported 2026-08-22.
+                                for _a in range(3):
+                                    if _a != _dom:
+                                        _seq_extents[_a] *= 1.8
                                 _inplane = [_seq_extents[_a] for _a in range(3) if _a != _dom]
                                 _seq_extents[_dom] = 0.12 * (sum(_inplane) / len(_inplane))
                             elif _seq_type == "nut":
@@ -891,16 +903,16 @@ def _run_inference(step_bytes: bytes,
                                 # real nut's proportions by coincidence.
                                 # Real hex nuts run roughly height ~= 0.5x
                                 # their own across-flats width (ISO 4032:
-                                # M10 8.4/16.5=0.51, M16 14.8/24=0.62) --
-                                # reported as the generated nut "doesn't look
-                                # like a nut" (came out cube-proportioned on
-                                # a hole where recess depth happened to equal
-                                # the diameter). Nut's ORIENTATION (which
+                                # M10 8.4/16.5=0.51, M16 14.8/24=0.62), but
+                                # that read as too thin once the bolt/washer
+                                # were corrected -- bumped to 0.85 per
+                                # 2026-08-22 feedback ("increase the nut wall
+                                # thickness more"). Nut's ORIENTATION (which
                                 # axis is the bore) was a separate bug, fixed
                                 # by adding "nut" to shape_generator.py's
                                 # _FLAT_JOINT_TYPES.
                                 _inplane = [_seq_extents[_a] for _a in range(3) if _a != _dom]
-                                _seq_extents[_dom] = 0.55 * (sum(_inplane) / len(_inplane))
+                                _seq_extents[_dom] = 0.85 * (sum(_inplane) / len(_inplane))
                             _seq_hits = _bank.query(_seq_type, _gen_category, _seq_extents, top_k=1)
                             if not _seq_hits:
                                 break  # bank has nothing for this type -- stop the sequence here
