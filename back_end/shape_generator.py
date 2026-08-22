@@ -186,11 +186,21 @@ BOLT_PROTRUSION_FACTOR = 1.6
 BOLT_BLIND_SHAFT_FACTOR = 1.15
 
 # Below this hole diameter, BOLT_BLIND_SHAFT_FACTOR is NOT applied -- the
-# shaft fits the hole's depth exactly instead. Set between the two
-# calibration points (10mm diameter: exact fit; 13.8mm diameter: factor
-# applies), closer to the larger one since it's the one confirmed to need
-# the extra length.
+# shaft is sized by BOLT_BLIND_SMALL_SHAFT_FACTOR instead. Set between the
+# two calibration points (10mm diameter: shaft needs shortening; 13.8mm
+# diameter: factor applies), closer to the larger one since it's the one
+# confirmed to need the extra length.
 BOLT_BLIND_SMALL_DIAM_THRESHOLD = 12.0
+
+# An exact fit (1.0x the hole's own detected depth) still read as crossing
+# into solid material on a small hole -- the detected blind-hole depth is
+# itself only approximate (see HOLE_THROUGH_DEPTH_RATIO's calibration
+# notes: detected span commonly falls well short of the true drilled
+# depth, but there's no guarantee it never overshoots either), so exact
+# fit leaves zero margin against that. Deliberately stops a bit short of
+# the detected bottom instead. Reported 2026-08-22 ("crossed the depth and
+# overlapping ... fill only in the hole position").
+BOLT_BLIND_SMALL_SHAFT_FACTOR = 0.85
 
 
 def _bolt_end_spreads(mesh: trimesh.Trimesh, joint_axis: int) -> tuple[float, float]:
@@ -688,17 +698,23 @@ def fit_to_bbox(mesh: trimesh.Trimesh, target_extents, normal_hint=None,
             # relative overshoot reads as fine there and not on the small
             # one). Reported 2026-08-22 ("the 4 [small] bolts ... overlapping
             # on the thick plate -- let it fill only the hole length").
-            # Below the threshold, skip the factor entirely (exact fit,
-            # tip flush with the blind bottom, matching 93e92af's original
-            # exact-fit fix, which BOLT_BLIND_SHAFT_FACTOR was layered on
-            # top of for the *larger* holes only).
+            # Below the threshold: even an *exact* fit (factor 1.0) still
+            # read as "crossed the depth" -- the hole's own detected bottom
+            # is itself only an approximation of where the solid actually
+            # starts (see HOLE_THROUGH_DEPTH_RATIO's calibration notes on
+            # detected depth vs. true material thickness), so landing
+            # exactly on it leaves no margin against that approximation
+            # error in either direction. BOLT_BLIND_SMALL_SHAFT_FACTOR
+            # (<1.0) leaves the tip a bit short of the detected bottom on
+            # purpose, so small-hole roundoff can't push it past the real
+            # solid boundary the way exact-fit did.
             n_local = np.zeros(3)
             n_local[joint_axis] = head_sign
             shaft_len = _bolt_shaft_length(mesh, n_local)
             hole_diam = float(np.mean(np.delete(target, depth_axis)))
             blind_factor = (BOLT_BLIND_SHAFT_FACTOR
                              if hole_diam >= BOLT_BLIND_SMALL_DIAM_THRESHOLD
-                             else 1.0)
+                             else BOLT_BLIND_SMALL_SHAFT_FACTOR)
             blind_depth_value = depth_value * blind_factor
             scale_per_axis[joint_axis] = blind_depth_value / max(shaft_len, 1e-9)
         else:
