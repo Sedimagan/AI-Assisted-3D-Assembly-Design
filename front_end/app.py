@@ -270,6 +270,7 @@ def _run_inference(step_bytes: bytes,
         from torch_geometric.data import Data
         from dataset import _parse_step
         from infer import load_checkpoint, predict_missing, load_ranker, predict_next_component
+        from explainer import explain_missing_link, explain_next_component
 
         graph = _parse_step({repr(str(_STEP_CACHE))})
         n_bodies = graph.num_nodes if graph is not None else 0
@@ -418,8 +419,22 @@ def _run_inference(step_bytes: bytes,
 
         results = predict_missing(gnn, lp, graph, device, top_k=5)
 
+        # ── GNNExplainer: why is the top missing-link prediction what it is? ──
+        # Post-hoc, no retraining -- optimises a small edge/feature mask against
+        # the already-loaded frozen encoder+head. ~100 steps, a couple seconds.
+        _link_explanation = None
+        if results:
+            try:
+                (_eu, _ev), _ = results[0]
+                _link_explanation = explain_missing_link(
+                    gnn, lp, graph, _eu, _ev, device, epochs=100,
+                )
+            except Exception:
+                _link_explanation = None
+
         # ── Next-component ranking (Phase 2, NodeRanker) ──────────────────────
         _next_comp = []
+        _rank_explanation = None
         if os.path.exists({repr(str(_RANKER_PATH))}):
             try:
                 with contextlib.redirect_stdout(io.StringIO()):
@@ -428,6 +443,13 @@ def _run_inference(step_bytes: bytes,
                     {{"type": t, "score": float(s)}}
                     for t, s in predict_next_component(gnn, _nr, _protos, graph, device, top_k=5)
                 ]
+                if _next_comp:
+                    try:
+                        _rank_explanation = explain_next_component(
+                            gnn, _nr, _protos, graph, _next_comp[0]["type"], device, epochs=100,
+                        )
+                    except Exception:
+                        _rank_explanation = None
             except Exception:
                 _next_comp = []
 
@@ -752,6 +774,8 @@ def _run_inference(step_bytes: bytes,
             "next_component_suggestions": _next_comp,
             "generated_parts":      _generated_parts,
             "single_body_analysis": False,
+            "link_explanation":     _link_explanation,
+            "next_component_explanation": _rank_explanation,
         }}
         print(json.dumps(out))
     """)
@@ -837,6 +861,8 @@ def _build_panel_sections(result: dict) -> tuple[str, list[dict]]:
         open_surfs     = result.get("open_surfaces", [])
         next_comp      = result.get("next_component_suggestions", [])
         gen_parts      = result.get("generated_parts", [])
+        link_expl      = result.get("link_explanation")
+        rank_expl      = result.get("next_component_explanation")
 
         def _basename(s):
             if s and "/" in s:
@@ -999,6 +1025,72 @@ def _build_panel_sections(result: dict) -> tuple[str, list[dict]]:
             sections.append({
                 "key": "next_component", "icon": "🧭",
                 "title": "AI-Ranked Next Component (GNN)", "html": _sec_html,
+            })
+
+        # ── Section 4c/4d: GNNExplainer — why the top predictions came out this
+        # way. Post-hoc explanation of the already-trained model (no retraining):
+        # which prior connections and which geometric features most influenced
+        # the top missing-link / next-component prediction above.
+        def _explanation_html(expl: dict, target_label: str) -> str:
+            html = (
+                f'<div style="font-size:0.72rem;color:#444;font-weight:600;'
+                f'margin-bottom:5px;">{target_label}</div>'
+            )
+            edges = expl.get("contributing_edges", [])
+            if edges:
+                html += (
+                    '<div style="font-size:0.65rem;color:#888;margin-bottom:2px;">'
+                    'Most influential existing connections</div>'
+                )
+                for _e in edges[:5]:
+                    _s, _d = _e["edge"]
+                    html += (
+                        f'<div style="font-size:0.68rem;color:#555;margin-bottom:2px;">'
+                        f'&nbsp;&nbsp;{_pname(_s)} ({_e["src_type"]}) '
+                        f'— {_pname(_d)} ({_e["dst_type"]})'
+                        f'<span style="color:#aaa;"> · importance {_e["importance"]:.2f}</span>'
+                        f'</div>'
+                    )
+            feats = expl.get("contributing_features")
+            if feats:
+                for _node_key, _flist in feats.items():
+                    if not _flist:
+                        continue
+                    html += (
+                        f'<div style="font-size:0.65rem;color:#888;margin:4px 0 2px;">'
+                        f'Most influential features on node {_node_key}</div>'
+                    )
+                    html += '<div style="font-size:0.68rem;color:#555;">&nbsp;&nbsp;' + (
+                        ", ".join(f'{_f["feature"]} ({_f["importance"]:.2f})' for _f in _flist[:5])
+                    ) + '</div>'
+            nodes = expl.get("contributing_nodes")
+            if nodes:
+                html += (
+                    '<div style="font-size:0.65rem;color:#888;margin:4px 0 2px;">'
+                    'Most influential existing components</div>'
+                )
+                html += '<div style="font-size:0.68rem;color:#555;">&nbsp;&nbsp;' + (
+                    ", ".join(f'{_pname(_n["node"])} ({_n["type"]}, {_n["importance"]:.2f})'
+                              for _n in nodes[:5])
+                ) + '</div>'
+            return html
+
+        if link_expl:
+            _lu, _lv = link_expl["target"]["edge"]
+            _lbl = f'Missing link {_pname(_lu)} → {_pname(_lv)}  (confidence {link_expl["target"]["confidence"]:.0%})'
+            sections.append({
+                "key": "link_explanation", "icon": "🧩",
+                "title": "Why This Missing Link? (GNNExplainer)",
+                "html": _explanation_html(link_expl, _lbl),
+            })
+
+        if rank_expl:
+            _rt = str(rank_expl["target"]["type"]).capitalize()
+            _lbl = f'Next component: {_rt}  (score {rank_expl["target"]["score"]:+.3f})'
+            sections.append({
+                "key": "rank_explanation", "icon": "🧩",
+                "title": "Why This Next Component? (GNNExplainer)",
+                "html": _explanation_html(rank_expl, _lbl),
             })
 
         # ── Section 5: Open surface joints (Octree spatial analysis) ─────────
