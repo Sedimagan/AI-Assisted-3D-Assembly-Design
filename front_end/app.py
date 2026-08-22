@@ -831,6 +831,24 @@ def _run_inference(step_bytes: bytes,
                         if _cb_depth and _nrm_u and _dom0 is not None:
                             _entry_centroid[_dom0] -= _nrm_u[_dom0] * _cb_depth
 
+                        # A small blind hole's own DETECTED entry face (the
+                        # cylindrical bore wall's own bbox extreme) can sit
+                        # slightly outside where the real solid surface
+                        # actually is -- e.g. a small deburr/lead-in chamfer
+                        # right at the rim isn't a Cylinder face so the hole
+                        # detector never sees it, leaving the detected entry
+                        # a bit past the true surface. Placing the head
+                        # flush with that overstated entry leaves its base
+                        # sitting proud of the real material, reading as the
+                        # head overlapping the Tool Holder body around the
+                        # rim. Recess the head placement slightly for these
+                        # specifically (same size gate as the other small-
+                        # -blind-hole fixes) -- reported 2026-08-22 ("axial
+                        # position has to be shifted slightly lower").
+                        if (not _surf.get("is_through") and _nrm_u and _dom0 is not None
+                                and _shaft_diam and _shaft_diam < 12.0):
+                            _entry_centroid[_dom0] -= _nrm_u[_dom0] * 2.0
+
                         _sr = generate_missing_shape(
                             _hsg, gnn, graph, "bolt",
                             open_joint_extents=_extents,
