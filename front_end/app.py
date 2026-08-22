@@ -659,15 +659,25 @@ def _run_inference(step_bytes: bytes,
                     if _i not in _used:
                         potentially_missing.append({{"name": _nm, "centroid": _rc}})
 
+        # Per-node predicted component type, needed both for template matching
+        # below and to keep the fastener-generation loop from treating an
+        # existing bolt/nut/washer's own hole-shaped features (thread bore,
+        # hex flats, shaft-clearance hole) as an empty hole needing its own
+        # bolt/nut/washer stack -- reported 2026-08-22: fasteners were being
+        # generated ON TOP OF fasteners already present in the upload.
+        _ptypes = []
+        try:
+            from dataset import COMP_TYPES as _CT2
+            _ptypes = [_CT2[int(j)] for j in graph.x[:, :8].argmax(dim=1).tolist()]
+        except Exception:
+            pass
+
         # ── Template matching ──────────────────────────────────────────────────
         _tmpl_match = None; _tmpl_missing = []
         try:
             from assembly_templates import AssemblyTemplateDB as _ATDB2
-            from dataset import COMP_TYPES as _CT2
             _db2 = _ATDB2({repr(str(_TMPL_DB_PATH))})
             if _db2.load():
-                _tidxs  = graph.x[:, :8].argmax(dim=1).tolist()
-                _ptypes = [_CT2[int(j)] for j in _tidxs]
                 _name_hints = part_names + [{repr(uploaded_name)}]
                 _tm2, _tc2 = _db2.match(_ptypes, name_hints=_name_hints)
                 if _tm2:
@@ -719,7 +729,14 @@ def _run_inference(step_bytes: bytes,
                 if _hsg is not None:
                     _bank = _hsg.retriever.bank
                     _gen_category = _tmpl_match["category"] if _tmpl_match else None
-                    _hole_surfs = [s for s in _open_surfs if s.get("is_hole")]
+                    _FASTENER_COMP_TYPES = {{"bolt", "nut", "washer"}}
+                    _hole_surfs = [
+                        s for s in _open_surfs if s.get("is_hole")
+                        and not (
+                            0 <= s.get("body_idx", -1) < len(_ptypes)
+                            and _ptypes[s.get("body_idx")] in _FASTENER_COMP_TYPES
+                        )
+                    ]
                     _hole_surfs.sort(key=lambda s: s.get("area_ratio", 0), reverse=True)
 
                     # Fastener sequence, per user spec (2026-08-22): a hole
