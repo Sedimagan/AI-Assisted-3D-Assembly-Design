@@ -140,7 +140,7 @@ class ShapeRetriever:
 
     def retrieve(self, comp_type: Optional[str], category: Optional[str],
                  target_extents, exclude_assemblies: Optional[set] = None,
-                 normal_hint=None,
+                 normal_hint=None, is_through: bool = True,
                  ) -> tuple[Optional[trimesh.Trimesh], float, Optional[str]]:
         hits = self.bank.query(comp_type, category, target_extents, top_k=1,
                                 exclude_assemblies=exclude_assemblies)
@@ -148,7 +148,8 @@ class ShapeRetriever:
             return None, 0.0, None
         hit = hits[0]
         mesh = self.bank.load_mesh(hit.part_id)
-        fitted = fit_to_bbox(mesh, target_extents, normal_hint=normal_hint, comp_type=comp_type)
+        fitted = fit_to_bbox(mesh, target_extents, normal_hint=normal_hint, comp_type=comp_type,
+                              is_through=is_through)
         return fitted, hit.fit_score, hit.part_id
 
 
@@ -158,11 +159,15 @@ class ShapeRetriever:
 _FLAT_JOINT_TYPES = {"washer", "thin_plate", "thick_plate"}
 _ROD_JOINT_TYPES  = {"bolt", "long_shaft", "short_shaft"}
 
-# A hole's own bbox depth is usually just its visible recess/counterbore,
-# not the full material thickness a bolt's shaft needs to span to protrude
-# out the far side -- true thickness isn't threaded through this far, so
-# this is a deliberate approximation: make the shaft longer than the raw
-# hole depth by this factor. Bolt-only; washers/nuts are unaffected.
+# A THROUGH hole's own bbox depth is usually just its visible recess/
+# counterbore, not the full material thickness a bolt's shaft needs to
+# span to protrude out the far side, so the shaft is made longer than the
+# raw hole depth by this factor. Bolt-only, and only when the hole is a
+# through-hole -- a blind hole has no far side to protrude out of, and
+# applying this factor there sends the extra shaft length straight into
+# the solid material past the hole's own blind bottom instead (reported
+# as generated bolts "overlapping the model" on a real Tool_Post upload's
+# smaller blind holes, 2026-08-22, fixed by gating on is_through).
 BOLT_PROTRUSION_FACTOR = 1.6
 
 
@@ -404,7 +409,7 @@ def _joint_axis_index(extents: np.ndarray, comp_type: Optional[str] = None) -> i
 
 
 def fit_to_bbox(mesh: trimesh.Trimesh, target_extents, normal_hint=None,
-                 comp_type: Optional[str] = None) -> trimesh.Trimesh:
+                 comp_type: Optional[str] = None, is_through: bool = True) -> trimesh.Trimesh:
     """Rescale a canonical (unit-max-extent, origin-centered) part mesh onto a
     target bounding box, then (if normal_hint is given) rotate it so its
     joint axis points along that direction — see rotate_to_target_axis.
@@ -464,10 +469,12 @@ def fit_to_bbox(mesh: trimesh.Trimesh, target_extents, normal_hint=None,
 
     if depth_axis is not None:
         depth_value = target[depth_axis]
-        if comp_type == "bolt":
+        if comp_type == "bolt" and is_through:
             # See BOLT_PROTRUSION_FACTOR -- the hole's own depth is usually
             # just its visible recess, not the full material thickness a
-            # shaft needs to span to protrude out the far side.
+            # shaft needs to span to protrude out the far side. Skipped for
+            # blind holes, which have no far side for the extra length to
+            # protrude out of.
             depth_value = depth_value * BOLT_PROTRUSION_FACTOR
         scale_per_axis[joint_axis] = depth_value / max(extents[joint_axis], 1e-9)
 
@@ -638,6 +645,7 @@ class HybridShapeGenerator:
         placement_centroid,
         mode: str = "auto",
         normal_hint=None,
+        is_through: bool = True,
     ) -> Optional[ShapeResult]:
         placement = np.asarray(placement_centroid, dtype=np.float32)
         tau = self.retrieval_tau_fastener if comp_type in FASTENER_TYPES else self.retrieval_tau
@@ -648,6 +656,7 @@ class HybridShapeGenerator:
             # would double-rotate).
             mesh, conf, part_id = self.retriever.retrieve(
                 comp_type, category, target_extents, normal_hint=normal_hint,
+                is_through=is_through,
             )
             if mesh is not None and (mode == "retrieve" or conf >= tau):
                 mesh, head_offset = shape_bolt_head(mesh, normal_hint, comp_type)
@@ -666,7 +675,8 @@ class HybridShapeGenerator:
             return None
         # fit_to_bbox scales AND rotates -- see its docstring for why the two
         # must be done together (no separate rotate_to_target_axis call here).
-        mesh = fit_to_bbox(mesh, target_extents, normal_hint=normal_hint, comp_type=comp_type)
+        mesh = fit_to_bbox(mesh, target_extents, normal_hint=normal_hint, comp_type=comp_type,
+                            is_through=is_through)
         conf = float(occ.max().item())
         mesh, head_offset = shape_bolt_head(mesh, normal_hint, comp_type)
         return ShapeResult(mesh, "generated", conf, None, placement + head_offset)

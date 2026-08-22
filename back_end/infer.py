@@ -109,13 +109,19 @@ def load_shape_generator(bank_dir: str, vae_path: str, device, retrieval_tau: fl
 def generate_missing_shape(
     hsg, gnn, graph, comp_type: str, open_joint_extents=None,
     open_joint_centroid=None, category: str | None = None, device=None,
-    mode: str = "auto", normal_hint=None,
+    mode: str = "auto", normal_hint=None, is_through: bool = True,
 ):
     """
     Produce a ShapeResult for an explicitly-given missing-component type
     (e.g. from AssemblyTemplateDB.get_missing(), or a NodeRanker top-1 pick
     the caller has already selected). Returns None if hsg is None (artifacts
     missing), comp_type is falsy, or nothing could be retrieved/generated.
+
+    is_through matters only for comp_type="bolt": it gates whether the
+    shaft is lengthened beyond the hole's own depth to protrude out a far
+    side that a blind hole doesn't have (see BOLT_PROTRUSION_FACTOR in
+    shape_generator.py). Defaults to True (old behavior) for callers that
+    don't know the hole's through/blind status.
     """
     if hsg is None or not comp_type:
         return None
@@ -143,7 +149,7 @@ def generate_missing_shape(
     centroid = open_joint_centroid if open_joint_centroid is not None else [0.0, 0.0, 0.0]
 
     return hsg.generate(comp_type, category, target_bbox, cond_vec, centroid, mode=mode,
-                         normal_hint=normal_hint)
+                         normal_hint=normal_hint, is_through=is_through)
 
 
 # ── Missing component detection ───────────────────────────────────────────────

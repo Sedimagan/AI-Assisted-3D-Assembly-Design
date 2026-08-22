@@ -808,6 +808,7 @@ def _run_inference(step_bytes: bytes,
                             open_joint_centroid=_entry_centroid,
                             category=_gen_category, device=device,
                             normal_hint=_nrm,
+                            is_through=bool(_surf.get("is_through", False)),
                         )
                         if _sr is None:
                             continue
