@@ -255,6 +255,12 @@ def _bolt_shaft_length(mesh: trimesh.Trimesh, n: np.ndarray) -> float:
     return float(head_base - proj.min())
 
 
+# A real bolt head is a modest fraction of the part's overall length
+# (roughly 15-35%) -- used to sanity-clamp _bolt_head_base_proj's detected
+# transition point against a mis-detection (see that function's docstring).
+_MAX_HEAD_LENGTH_FRACTION = 0.45
+
+
 def _bolt_head_base_proj(mesh: trimesh.Trimesh, n: np.ndarray, n_bins: int = 12) -> float:
     """Position, along the (already head-outward-oriented) unit vector n,
     of the flat annular face where a bolt's head ends and its narrower
@@ -278,6 +284,22 @@ def _bolt_head_base_proj(mesh: trimesh.Trimesh, n: np.ndarray, n_bins: int = 12)
 
     Falls back to the widest bin's own edge if no clear narrowing is found
     past it (e.g. a smoothly tapered part with no distinct transition).
+
+    The result is clamped so the head region (beyond the transition) is at
+    most _MAX_HEAD_LENGTH_FRACTION of the mesh's total length -- a real
+    bolt head runs roughly 15-35% of overall length. Confirmed necessary on
+    a real retrieved part where an intermediate bulge partway down the
+    shaft (thread modeling, not the head) had a locally wide cross-section
+    that won the "widest bin" search; scanning from there never found a
+    narrowing back down to shaft-size (the true shaft tip was even
+    narrower, past where the scan started), so it fell through to the
+    widest-bin fallback -- placing the "head" 92% of the way down the
+    mesh, well into what was actually the shaft. That flipped the whole
+    part's visual head/shaft split, since shape_bolt_head anchors
+    placement on this point and constrain_bolt_radii scales each side to
+    its own target diameter using it as the boundary. Reported as the head
+    ending up on the wrong end and the whole part reading tilted/skewed
+    2026-08-22.
     """
     proj = mesh.vertices @ n
     lo, hi = float(proj.min()), float(proj.max())
@@ -299,17 +321,20 @@ def _bolt_head_base_proj(mesh: trimesh.Trimesh, n: np.ndarray, n_bins: int = 12)
         if mask.any():
             bin_radius[i] = radii[mask].mean()
 
+    min_transition = hi - _MAX_HEAD_LENGTH_FRACTION * span
+
     if np.all(np.isnan(bin_radius)):
-        return hi - 0.2 * span
+        return max(hi - 0.2 * span, min_transition)
 
     widest_i = int(np.nanargmax(bin_radius))
     for i in range(widest_i, n_bins):
         if np.isnan(bin_radius[i]):
             continue
         if bin_radius[i] <= shaft_radius * 1.25:
-            return edges[i]  # this bin's head-side edge = the transition
+            transition = edges[i]  # this bin's head-side edge = the transition
+            return transition if transition >= min_transition else min_transition
 
-    return edges[widest_i]  # no clear narrowing found past the widest point
+    return max(edges[widest_i], min_transition)  # no clear narrowing found past the widest point
 
 
 # Target head height as a fraction of the head's own diameter -- real bolt
@@ -400,14 +425,32 @@ def constrain_bolt_radii(mesh: trimesh.Trimesh, n: np.ndarray, head_base: float,
     used as that region's effective radius, so the corrected shaft is
     guaranteed not to exceed the hole anywhere along its length, not just
     on average.
+
+    First recenters the whole mesh onto the shaft's own true centerline
+    (its cross-sectional centroid, not local-origin/n itself) before
+    measuring or scaling anything. Retrieved parts aren't always perfectly
+    centered on n post-canonicalization -- confirmed on a real part where
+    the shaft's own cross-section centroid sat ~0.4x its radius off from
+    local origin, in a DIFFERENT direction than the head's. Scaling shaft
+    and head by different factors (as this function does, to hit two
+    independent target ratios) around that shared-but-wrong origin pulled
+    the two regions' true centers apart from each other, reading as a
+    shaft that's visibly tilted/skewed off the head's own axis -- reported
+    2026-08-22. Recentering on the shaft's centroid first makes the shaft
+    exactly coaxial with the world bore axis (the functionally critical
+    constraint -- it must line up with the hole), and keeps the head at
+    its original offset from the shaft rather than introducing a new one.
     """
     proj = mesh.vertices @ n
-    perp = mesh.vertices - np.outer(proj, n)
-    radii = np.linalg.norm(perp, axis=1)
+    perp0 = mesh.vertices - np.outer(proj, n)
 
     shaft_mask = proj <= head_base
     if not shaft_mask.any() or target_shaft_diam <= 1e-9:
         return mesh
+    shaft_center = perp0[shaft_mask].mean(axis=0)
+    perp = perp0 - shaft_center
+    radii = np.linalg.norm(perp, axis=1)
+
     shaft_radius = float(radii[shaft_mask].max())
     target_shaft_radius = target_shaft_diam / 2.0
     shaft_scale = target_shaft_radius / shaft_radius if shaft_radius > 1e-9 else 1.0
@@ -427,10 +470,12 @@ def shape_bolt_head(mesh: trimesh.Trimesh, normal_hint,
                      comp_type: Optional[str],
                      target_extents=None) -> tuple[trimesh.Trimesh, np.ndarray]:
     """For a bolt already oriented head-outward (fit_to_bbox/rotate_to_target_axis
-    orient it that way when comp_type == "bolt"): stretch a disproportionately
-    flat head taller (stretch_bolt_head) if needed, constrain shaft/head
-    radii to the hole diameter / _BOLT_HEAD_DIAM_RATIO (constrain_bolt_radii,
-    skipped if target_extents isn't given), then compute how far to shift
+    orient it that way when comp_type == "bolt"): constrain shaft/head radii
+    to the hole diameter / _BOLT_HEAD_DIAM_RATIO first (constrain_bolt_radii,
+    skipped if target_extents isn't given), then stretch a disproportionately
+    flat head taller (stretch_bolt_head) if needed -- in that order, since
+    stretch_bolt_head sizes its target height from the head's own radius,
+    which should be the corrected one -- then compute how far to shift
     its placement along normal_hint so the head's *base* -- the flat
     face where it meets the shaft -- sits flush against the hole's entry
     surface, with the entire head above it (fully visible) and only the
@@ -449,12 +494,21 @@ def shape_bolt_head(mesh: trimesh.Trimesh, normal_hint,
         return mesh, np.zeros(3)
     n = n / norm
     head_base = _bolt_head_base_proj(mesh, n)
-    mesh = stretch_bolt_head(mesh, n, head_base)
+    # Radius correction BEFORE the height stretch: stretch_bolt_head decides
+    # how tall the head needs to be from the head's OWN current radius (real
+    # heads run height ~= radius, _BOLT_HEAD_HEIGHT_RATIO). If that radius is
+    # still whatever fit_to_bbox's approximate in-plane scaling produced --
+    # which constrain_bolt_radii exists specifically because it can be
+    # substantially wrong -- the height target is computed from a wrong
+    # number too, and can over-stretch the head well past where the
+    # corrected radius would have called for. Running constrain_bolt_radii
+    # first means the height decision uses the true, hole-derived radius.
     if target_extents is not None:
         depth_axis = int(np.argmax(np.abs(normal_hint)))
         inplane = [target_extents[a] for a in range(3) if a != depth_axis]
         target_shaft_diam = float(np.mean(inplane))
         mesh = constrain_bolt_radii(mesh, n, head_base, target_shaft_diam)
+    mesh = stretch_bolt_head(mesh, n, head_base)
     # Shift the whole mesh back by head_base along n, so the point currently
     # at local proj == head_base lands exactly on the surface (world proj ==
     # surface's own proj): everything above it (the head) ends up above the

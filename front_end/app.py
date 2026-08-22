@@ -773,6 +773,27 @@ def _run_inference(step_bytes: bytes,
                             continue
                         _extents = [_bbox[3] - _bbox[0], _bbox[4] - _bbox[1], _bbox[5] - _bbox[2]]
 
+                        _nrm = _surf.get("normal_hint")
+                        _nrm_u = _unit(_nrm) if _nrm else None
+                        _dom0 = max(range(3), key=lambda _i: abs(_nrm_u[_i])) if _nrm_u else None
+
+                        # A counterbore's wide recess opening is what _bbox/
+                        # _extents reflect (surface_analyzer keeps the wider
+                        # of the counterbore + clearance-bore faces as the
+                        # representative "opening") -- but a bolt's SHAFT
+                        # must be sized to the narrower clearance bore it
+                        # actually passes through, not the counterbore's own
+                        # width, or it comes out visibly too fat (measured:
+                        # 1.7x the true bore diameter on a real counterbore
+                        # hole). Override just the in-plane (perpendicular-
+                        # to-bore) components with shaft_diameter; the
+                        # depth-axis component (shaft length) is untouched.
+                        _shaft_diam = _surf.get("shaft_diameter")
+                        if _shaft_diam and _dom0 is not None:
+                            for _a in range(3):
+                                if _a != _dom0:
+                                    _extents[_a] = _shaft_diam
+
                         _hits = _bank.query("bolt", _gen_category, _extents, top_k=1)
                         if not _hits or _hits[0].fit_score <= _MIN_FASTENER_FIT:
                             continue
@@ -795,12 +816,20 @@ def _run_inference(step_bytes: bytes,
                         # positive along that axis, min if negative); the
                         # other two in-plane coordinates stay as centroid's,
                         # since those should already be reasonably centered.
-                        _nrm = _surf.get("normal_hint")
-                        _nrm_u = _unit(_nrm) if _nrm else None
                         _entry_centroid = (
-                            _face_centroid(_surf["centroid"], _bbox, _nrm_u, _nrm_u[max(range(3), key=lambda _i: abs(_nrm_u[_i]))] > 0)
+                            _face_centroid(_surf["centroid"], _bbox, _nrm_u, _nrm_u[_dom0] > 0)
                             if _nrm_u else list(_surf["centroid"])
                         )
+
+                        # Recess the head INTO the counterbore instead of
+                        # resting it flush on the outer surface -- shift the
+                        # placement reference inward (against the entry
+                        # normal) by the recess's own depth, so shape_bolt_head
+                        # ends up seating the head's base at the counterbore's
+                        # own floor rather than the plate's top face.
+                        _cb_depth = _surf.get("counterbore_depth")
+                        if _cb_depth and _nrm_u and _dom0 is not None:
+                            _entry_centroid[_dom0] -= _nrm_u[_dom0] * _cb_depth
 
                         _sr = generate_missing_shape(
                             _hsg, gnn, graph, "bolt",

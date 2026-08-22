@@ -370,6 +370,24 @@ def analyze_open_surfaces(
                                    a through-hole without needing the body's
                                    own bbox. None on error or for whole-face
                                    entries.
+      shaft_diameter : float      hole candidates only -- diameter of the
+                                   NARROWER coaxial face when this candidate
+                                   is a counterbore (wide recess + narrow
+                                   clearance bore merged into one entry, see
+                                   HOLE_MERGE_TOLERANCE); equals the plain
+                                   diameter when there's no separate
+                                   narrower face. Use this, not the bbox's
+                                   own in-plane extent, to size a bolt's
+                                   shaft -- the merged bbox/diameter reflect
+                                   the counterbore's wide opening, which a
+                                   shaft must NOT be sized to.
+      counterbore_depth : float|None  hole candidates only -- how deep the
+                                   wide recess face itself goes (its own
+                                   bbox extent along the bore axis), i.e.
+                                   how far a bolt head should sink in to sit
+                                   recessed within the counterbore rather
+                                   than resting on the outer surface. None
+                                   when this candidate isn't a counterbore.
     """
     import gmsh
 
@@ -614,6 +632,29 @@ def analyze_open_surfaces(
                     rep["exit_face_coord"] = bb[dom] if axis[dom] > 0 else bb[dom + 3]
                 except Exception:
                     rep["exit_face_coord"] = None
+
+                # A counterbore's wide recess face + its narrower clearance-
+                # bore face merge into one candidate above (rep = the wide
+                # one, kept as the representative "opening" for pattern-
+                # matching/placement purposes -- unchanged). But a bolt's
+                # SHAFT must be sized to the narrow bore it actually passes
+                # through, not the counterbore's own width, and its head
+                # should sit recessed within the counterbore specifically
+                # rather than sized/placed off the merged (wide) opening as
+                # if it were a plain uniform-diameter hole. Expose the
+                # narrow face's diameter and the wide face's own depth
+                # (i.e. how far the recess itself goes) separately so a
+                # caller can size/place a bolt correctly through a
+                # counterbore. Both fields equal the plain single-diameter
+                # case's values when there's no separate narrower face.
+                if len(group) > 1:
+                    narrow = min(group, key=lambda h: h["diameter"])
+                    rep["shaft_diameter"] = narrow["diameter"]
+                    rep["counterbore_depth"] = rep["bbox"][dom + 3] - rep["bbox"][dom]
+                else:
+                    rep["shaft_diameter"] = rep["diameter"]
+                    rep["counterbore_depth"] = None
+
                 hole_reps.append(rep)
 
             hole_reps = hole_reps[:max_hole_surfaces]
@@ -671,6 +712,8 @@ def analyze_open_surfaces(
                 "is_hole":     True,
                 "is_through":  bool(rep.get("is_through", False)),
                 "exit_face_coord": rep.get("exit_face_coord"),
+                "shaft_diameter": rep.get("shaft_diameter", rep["diameter"]),
+                "counterbore_depth": rep.get("counterbore_depth"),
             })
 
         return results
