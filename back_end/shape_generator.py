@@ -373,12 +373,65 @@ def flush_near_face_offset(mesh: trimesh.Trimesh, normal_hint) -> np.ndarray:
     return -n * float(proj.min())
 
 
+# Real bolt heads run roughly 1.2-1.3x their own shaft diameter -- used as
+# a hard final constraint (see constrain_bolt_radii) rather than trusting
+# fit_to_bbox's in-plane scaling alone, which sizes the whole mesh from a
+# single pre-scale shaft-radius estimate (_bolt_shaft_radius) that can be
+# thrown off by a given retrieved part's own geometry (confirmed on a real
+# Tool_Post upload: a through-hole's retrieved bolt came out with its
+# shaft 70% WIDER than the hole itself, while a blind hole's retrieved
+# part for the same request was only ~5-13% off -- same formula, very
+# different real-world accuracy depending on which part got retrieved).
+_BOLT_HEAD_DIAM_RATIO = 1.25
+
+
+def constrain_bolt_radii(mesh: trimesh.Trimesh, n: np.ndarray, head_base: float,
+                          target_shaft_diam: float) -> trimesh.Trimesh:
+    """Hard-enforce two thumb-rule bolt proportions on an already fit+rotated
+    mesh, radius only (axial length from fit_to_bbox is untouched):
+    the shaft must not be wider than the hole it passes through (scaled to
+    match target_shaft_diam exactly, not just approximately), and the head
+    diameter is set to _BOLT_HEAD_DIAM_RATIO times the (now-correct) shaft
+    diameter, replacing whatever ratio the retrieved part happened to have.
+
+    n must already be unit length and head-outward-oriented (see
+    _bolt_head_base_proj); head_base is the shaft/head transition along n,
+    same convention as shape_bolt_head. Widest point of each region is
+    used as that region's effective radius, so the corrected shaft is
+    guaranteed not to exceed the hole anywhere along its length, not just
+    on average.
+    """
+    proj = mesh.vertices @ n
+    perp = mesh.vertices - np.outer(proj, n)
+    radii = np.linalg.norm(perp, axis=1)
+
+    shaft_mask = proj <= head_base
+    if not shaft_mask.any() or target_shaft_diam <= 1e-9:
+        return mesh
+    shaft_radius = float(radii[shaft_mask].max())
+    target_shaft_radius = target_shaft_diam / 2.0
+    shaft_scale = target_shaft_radius / shaft_radius if shaft_radius > 1e-9 else 1.0
+
+    head_mask = ~shaft_mask
+    head_radius = float(radii[head_mask].max()) if head_mask.any() else 0.0
+    target_head_radius = target_shaft_radius * _BOLT_HEAD_DIAM_RATIO
+    head_scale = target_head_radius / head_radius if head_radius > 1e-9 else shaft_scale
+
+    scale = np.where(shaft_mask, shaft_scale, head_scale)
+    mesh = mesh.copy()
+    mesh.vertices = np.outer(proj, n) + perp * scale[:, None]
+    return mesh
+
+
 def shape_bolt_head(mesh: trimesh.Trimesh, normal_hint,
-                     comp_type: Optional[str]) -> tuple[trimesh.Trimesh, np.ndarray]:
+                     comp_type: Optional[str],
+                     target_extents=None) -> tuple[trimesh.Trimesh, np.ndarray]:
     """For a bolt already oriented head-outward (fit_to_bbox/rotate_to_target_axis
     orient it that way when comp_type == "bolt"): stretch a disproportionately
-    flat head taller (stretch_bolt_head) if needed, then compute how far to
-    shift its placement along normal_hint so the head's *base* -- the flat
+    flat head taller (stretch_bolt_head) if needed, constrain shaft/head
+    radii to the hole diameter / _BOLT_HEAD_DIAM_RATIO (constrain_bolt_radii,
+    skipped if target_extents isn't given), then compute how far to shift
+    its placement along normal_hint so the head's *base* -- the flat
     face where it meets the shaft -- sits flush against the hole's entry
     surface, with the entire head above it (fully visible) and only the
     shaft inside the hole. canonicalize() centers every part at its own
@@ -397,6 +450,11 @@ def shape_bolt_head(mesh: trimesh.Trimesh, normal_hint,
     n = n / norm
     head_base = _bolt_head_base_proj(mesh, n)
     mesh = stretch_bolt_head(mesh, n, head_base)
+    if target_extents is not None:
+        depth_axis = int(np.argmax(np.abs(normal_hint)))
+        inplane = [target_extents[a] for a in range(3) if a != depth_axis]
+        target_shaft_diam = float(np.mean(inplane))
+        mesh = constrain_bolt_radii(mesh, n, head_base, target_shaft_diam)
     # Shift the whole mesh back by head_base along n, so the point currently
     # at local proj == head_base lands exactly on the surface (world proj ==
     # surface's own proj): everything above it (the head) ends up above the
@@ -710,7 +768,7 @@ class HybridShapeGenerator:
                 is_through=is_through,
             )
             if mesh is not None and (mode == "retrieve" or conf >= tau):
-                mesh, head_offset = shape_bolt_head(mesh, normal_hint, comp_type)
+                mesh, head_offset = shape_bolt_head(mesh, normal_hint, comp_type, target_extents)
                 return ShapeResult(mesh, "retrieved", conf, part_id, placement + head_offset)
 
         if mode == "retrieve":
@@ -729,5 +787,5 @@ class HybridShapeGenerator:
         mesh = fit_to_bbox(mesh, target_extents, normal_hint=normal_hint, comp_type=comp_type,
                             is_through=is_through)
         conf = float(occ.max().item())
-        mesh, head_offset = shape_bolt_head(mesh, normal_hint, comp_type)
+        mesh, head_offset = shape_bolt_head(mesh, normal_hint, comp_type, target_extents)
         return ShapeResult(mesh, "generated", conf, None, placement + head_offset)
