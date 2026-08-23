@@ -29,19 +29,22 @@ from evaluate import evaluate
 
 CATEGORY_WEIGHTS = {
     # Weights are inverse-frequency (relative to the largest category,
-    # Bench_vice=54 graphs), capped at 3.0. Real counts from the R32
-    # corpus overhaul (193 folders total, 2026-07-31, after moving
-    # rejected/non_compatible_formats/slow_or_unstable folders out of
-    # Best_models_for_training) — re-derive if the corpus changes again.
-    # Names must match the directory names under
+    # Bench_vice=107 folders), capped at 3.0. Real counts from the
+    # 2026-08-23 corpus expansion (238 -> 474 folders total, roughly
+    # doubled -- see the audit that added and deduped this batch) after
+    # removing 3 exact-duplicate folders found in the process. These are
+    # FOLDER counts, not confirmed post-parse graph counts -- re-derive
+    # from dataset.py's actual per-category graph tally after the next
+    # --force-reload run, since a small number of files can fail to
+    # parse. Names must match the directory names under
     # Source_3d_models/Best_models_for_training/.
-    "Bench_vice":  1.0,   # 54 graphs
-    "Pipe_vice":   1.3,   # 42 graphs
-    "C_Clamps":    1.7,   # 31 graphs
-    "Gate_Valve":  2.6,   # 21 graphs
-    "Press_Tool":  2.6,   # 21 graphs
-    "Crane_hook":  3.0,   # 16 graphs (capped, uncapped 3.4)
-    "Tool_Post":   3.0,   # 8 graphs (capped, uncapped 6.75)
+    "Bench_vice":  1.0,   # 107 folders
+    "Pipe_vice":   1.3,   # 83 folders
+    "C_Clamps":    1.7,   # 62 folders
+    "Press_Tool":  1.7,   # 62 folders
+    "Gate_Valve":  1.8,   # 59 folders
+    "Crane_hook":  2.1,   # 51 folders
+    "Tool_Post":   2.1,   # 50 folders
 }
 
 
