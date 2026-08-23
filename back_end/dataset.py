@@ -83,6 +83,18 @@ COMP_TYPES = ["long_shaft", "short_shaft", "thick_plate", "thin_plate",
               "bolt", "washer", "nut", "body"]
 MATE_TYPES = ["coincident", "concentric", "parallel", "tangent", "fixed", "other"]
 
+# Must match the node feature vector's actual width (see the module
+# docstring above and _parse_step's own copy of the same list) -- used to
+# invalidate the per-graph cache (see get_splits/AssemblyDataset's cache
+# loading below) when it changes. Bump this every time a node feature is
+# added/removed. Without this check, a stale cache built under an older
+# feature set gets silently reused as-is (same filename, no other
+# versioning), producing a dataset with graphs of MIXED, inconsistent
+# widths -- confirmed as a real near-miss 2026-08-24: 235 graphs cached
+# under the pre-hole-feature 22-dim vector were about to get mixed into a
+# fresh 34-dim reparse before this check was added.
+NODE_FEATURE_DIM = 34
+
 # ── Trimesh / SDF helpers ─────────────────────────────────────────────────────
 
 def _build_trimesh(surf_tags: list) -> Optional["trimesh.Trimesh"]:
@@ -1416,6 +1428,13 @@ class AssemblyDataset(InMemoryDataset):
                         g   = cached["data"]
                         cat = cached["category"]
                         src = cached["source"]
+                        if g.x.size(1) != NODE_FEATURE_DIM:
+                            # Stale cache from an older feature set (see
+                            # NODE_FEATURE_DIM's docstring) -- discard and
+                            # re-parse rather than silently mixing widths.
+                            raise ValueError(
+                                f"cached node dim {g.x.size(1)} != current "
+                                f"NODE_FEATURE_DIM {NODE_FEATURE_DIM}")
                         graphs.append(g)
                         graph_categories.append(cat)
                         source_paths.append(src)
