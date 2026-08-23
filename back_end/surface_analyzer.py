@@ -353,10 +353,13 @@ def analyze_open_surfaces(
     Returns
     -------
     List[dict] — one entry per detected open-joint region (whole-face regions
-    followed by individual hole candidates). A non-through candidate whose
-    combined depth is <= HOLE_INDENTATION_MAX_DEPTH is dropped entirely
-    before this list is built — a shallow dimple/indentation isn't a real
-    blind hole, and no bolt/nut/washer should be generated at one:
+    followed by individual hole candidates). Two categories of candidate are
+    dropped entirely before this list is built, neither should get a
+    generated bolt/nut/washer: a non-through candidate whose combined depth
+    is <= HOLE_INDENTATION_MAX_DEPTH (a shallow dimple/indentation, not a
+    real blind hole), and any candidate where another body's own center of
+    mass already sits on the hole's bore axis (see _hole_is_occupied — a
+    fastener, or any other part, already occupies it):
       centroid     : [x, y, z]   centre of the surface bounding box
       area         : float        surface area (gmsh units)
       area_ratio   : float        fraction of parent body's total SA
@@ -617,6 +620,60 @@ def analyze_open_surfaces(
                 dom = max(range(3), key=lambda i: abs(axis[i]))
                 return bb[dom + 3] - bb[dom]
 
+            body_com: Dict[int, List[float]] = {}
+
+            def _body_com(body_idx: int) -> List[float]:
+                if body_idx not in body_com:
+                    dim, tag = vols[body_idx]
+                    try:
+                        body_com[body_idx] = list(gmsh.model.occ.getCenterOfMass(dim, tag))
+                    except Exception:
+                        bb = _body_bbox(body_idx)
+                        body_com[body_idx] = [(bb[k] + bb[k + 3]) / 2 for k in range(3)]
+                return body_com[body_idx]
+
+            def _hole_is_occupied(centroid: List[float], axis: List[float],
+                                   diameter: float, own_body_idx: int) -> bool:
+                """Is a fastener (or any other part) already sitting in this
+                hole, so it isn't actually an empty/missing-component
+                candidate? A bolt/screw genuinely inserted through a hole is
+                coaxial with it, so its own center of mass sits close to the
+                hole's bore AXIS LINE regardless of how far along that axis
+                the part extends (most of a bolt's head can sit proud above
+                the surface, or only a short tip may reach into a blind hole
+                -- axial position varies, but perpendicular offset from the
+                axis stays small either way). Checking perpendicular offset
+                only, not axial position, is deliberate: a clearance-fit
+                bolt (shaft modeled slightly narrower than the hole, common
+                in real CAD) doesn't share an exact mating surface with the
+                hole wall, so it wouldn't already be excluded by this
+                function's caller (free/unmated-surface detection) the way
+                an exact-fit bolt would be.
+
+                Both bounds are relative to the HOLE's own diameter, not the
+                parent body's overall size -- an earlier version bounded the
+                axial check to the parent body's own extent (times 2), which
+                on a real repro file falsely matched a washer sitting at one
+                hole's position against a completely different, unrelated
+                hole ~90mm away on the same body, just because their XY
+                positions happened to coincide (a common occurrence in
+                symmetric/grid mechanical layouts). A real inserted fastener
+                doesn't extend many diameters past the hole it occupies, so
+                bounding both checks to the hole's own diameter avoids that
+                false positive while still catching genuine occupancy."""
+                n = axis
+                for idx in range(len(vols)):
+                    if idx == own_body_idx:
+                        continue
+                    com = _body_com(idx)
+                    v = [com[k] - centroid[k] for k in range(3)]
+                    along = sum(v[k] * n[k] for k in range(3))
+                    perp = [v[k] - along * n[k] for k in range(3)]
+                    perp_dist = sum(p * p for p in perp) ** 0.5
+                    if perp_dist <= diameter * 0.6 and abs(along) <= diameter * 4.0:
+                        return True
+                return False
+
             for key, group in merge_groups.items():
                 rep = max(group, key=lambda h: h["diameter"])
                 axis = rep["normal"]
@@ -634,6 +691,9 @@ def analyze_open_surfaces(
 
                 if not rep["is_through"] and combined_depth <= HOLE_INDENTATION_MAX_DEPTH:
                     continue  # indentation/dimple, not a real blind hole -- no fastener belongs here
+
+                if _hole_is_occupied(rep["centroid"], axis, rep["diameter"], rep["body_idx"]):
+                    continue  # a fastener already sits here -- not an empty/missing-component candidate
 
                 # Exit-face coordinate (parent body's own far extreme along
                 # the bore axis, on the OPPOSITE side from the entry -- entry

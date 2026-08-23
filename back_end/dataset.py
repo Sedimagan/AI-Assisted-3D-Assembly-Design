@@ -12,7 +12,7 @@ Pipeline per body
                          used to infer geometry-driven component type
                          (approximates CGAL SDF via trimesh inward ray casting)
 
-Node feature vector: 30-dim
+Node feature vector: 32-dim
   [0:8]  component-type one-hot  (geometry-driven, 8 classes: long_shaft,
          short_shaft, thick_plate, thin_plate, bolt, washer, nut, body —
          see _classify_component_type())
@@ -41,6 +41,12 @@ Node feature vector: 30-dim
          shallow (<= _INDENTATION_MAX_DEPTH) surface indentations/dimples rather
          than genuine blind holes meant to receive a fastener)
   [29]   has_indentation_holes   (1.0 if frac_indentation_holes > 0, else 0.0)
+  [30]   frac_filled_holes       (fraction of this body's holes that already have
+         another body's own centroid sitting on the bore axis -- a fastener (or
+         other part) already occupies that hole, see _hole_is_occupied)
+  [31]   has_empty_holes         (1.0 if this body has >=1 hole AND not all of
+         them are filled, else 0.0 -- signals a genuine missing-component
+         candidate for shape-gen to target)
 
 Edge feature vector: 6-dim
   [0]    mate type encoded  (0=coincident … 5=other, normalised to [0,1])
@@ -500,7 +506,45 @@ def _hole_axis(tag: int) -> List[float]:
     return axis
 
 
-def _analyze_body_holes(body_surf_tags, bbox_dxdydz: tuple, ext: list) -> dict:
+def _hole_is_occupied(centroid, axis, diameter: float,
+                       own_idx: int, all_coms: list) -> bool:
+    """Is another body already sitting in this hole (a fastener, or
+    anything else), so it isn't actually an empty/missing-component
+    candidate? Same heuristic as surface_analyzer.py's identical helper
+    (duplicated locally, see this module's no-cross-import convention):
+    a part genuinely inserted through a hole is coaxial with it, so its
+    own center of mass sits close to the hole's bore AXIS LINE regardless
+    of how far along that axis it extends -- checked via perpendicular
+    offset only. Deliberately axial-position-agnostic (not just "is the
+    other body's bbox near the hole's own depth range") because a
+    clearance-fit bolt (shaft modeled slightly narrower than the hole,
+    common in real CAD) won't already be excluded as a shared/mated
+    surface the way an exact-fit one would.
+
+    Both bounds are relative to the HOLE's own diameter, not the parent
+    body's overall size -- an earlier version bounded the axial check to
+    the parent body's own extent (times 2), which on a real repro file
+    falsely matched a washer sitting at one hole's position against a
+    completely different, unrelated hole ~90mm away on the same body,
+    just because their XY positions happened to coincide (a common
+    occurrence in symmetric/grid mechanical layouts). A real inserted
+    fastener doesn't extend many diameters past the hole it occupies, so
+    bounding both checks to the hole's own diameter avoids that false
+    positive while still catching genuine occupancy."""
+    for idx, com in enumerate(all_coms):
+        if idx == own_idx or com is None:
+            continue
+        v = com - centroid
+        along = float(np.dot(v, axis))
+        perp = v - along * np.asarray(axis)
+        perp_dist = float(np.linalg.norm(perp))
+        if perp_dist <= diameter * 0.6 and abs(along) <= diameter * 4.0:
+            return True
+    return False
+
+
+def _analyze_body_holes(body_surf_tags, bbox_dxdydz: tuple, ext: list,
+                         own_idx: int = -1, all_coms: Optional[list] = None) -> dict:
     """
     Per-body hole analysis, richer than a raw cylindrical-face count:
     groups coaxial cylindrical faces into distinct physical hole locations
@@ -510,10 +554,12 @@ def _analyze_body_holes(body_surf_tags, bbox_dxdydz: tuple, ext: list) -> dict:
     meant to stay import-independent of the inference-side modules that
     already import classifier logic *from* it), then classifies each
     location as through vs blind (combined depth vs body extent along the
-    bore axis) and simple vs counterbore (one distinct face diameter in
-    the group vs two or more). A non-through hole shallower than
-    _INDENTATION_MAX_DEPTH is reclassified as an indentation rather than
-    counted as blind -- see that constant's docstring for why.
+    bore axis), simple vs counterbore (one distinct face diameter in the
+    group vs two or more), and — if own_idx/all_coms are supplied —
+    empty vs already occupied by another body (see _hole_is_occupied). A
+    non-through hole shallower than _INDENTATION_MAX_DEPTH is
+    reclassified as an indentation rather than counted as blind -- see
+    that constant's docstring for why.
 
     Returns aggregate features for the whole body:
       n_holes           : int    distinct hole locations (not raw faces)
@@ -524,6 +570,8 @@ def _analyze_body_holes(body_surf_tags, bbox_dxdydz: tuple, ext: list) -> dict:
                                   holes (the remaining fraction,
                                   1 - frac_through - frac_indentation, is
                                   genuine blind holes)
+      frac_filled       : float  fraction already occupied by another body
+                                  (0.0 if all_coms wasn't supplied)
       mean_diam         : float  mean of each hole's own representative
                                   (widest) diameter
       max_diam          : float  largest such representative diameter
@@ -531,7 +579,7 @@ def _analyze_body_holes(body_surf_tags, bbox_dxdydz: tuple, ext: list) -> dict:
     """
     import gmsh
     zero = {"n_holes": 0, "frac_through": 0.0, "frac_counterbore": 0.0,
-            "frac_indentation": 0.0, "mean_diam": 0.0, "max_diam": 0.0}
+            "frac_indentation": 0.0, "frac_filled": 0.0, "mean_diam": 0.0, "max_diam": 0.0}
     _, m, _ = ext  # sorted [small, mid, long] body extents
     if m <= 0:
         return zero
@@ -569,12 +617,14 @@ def _analyze_body_holes(body_surf_tags, bbox_dxdydz: tuple, ext: list) -> dict:
     n_through = 0
     n_counterbore = 0
     n_indentation = 0
+    n_filled = 0
     rep_diams = []
     for (dom, _), group in groups.items():
         distinct_diams = {round(g["diameter"], 1) for g in group}
         if len(distinct_diams) >= 2:
             n_counterbore += 1
-        rep_diams.append(max(g["diameter"] for g in group))
+        widest = max(group, key=lambda g: g["diameter"])
+        rep_diams.append(widest["diameter"])
 
         near = min(g["bbox"][dom] for g in group)
         far = max(g["bbox"][dom + 3] for g in group)
@@ -586,9 +636,17 @@ def _analyze_body_holes(body_surf_tags, bbox_dxdydz: tuple, ext: list) -> dict:
         elif combined_depth <= _INDENTATION_MAX_DEPTH:
             n_indentation += 1
 
+        if all_coms is not None:
+            wb = widest["bbox"]
+            centroid = np.array([(wb[k] + wb[k + 3]) / 2 for k in range(3)])
+            if _hole_is_occupied(centroid, np.asarray(widest["axis"]), widest["diameter"],
+                                  own_idx, all_coms):
+                n_filled += 1
+
     n_holes = len(groups)
     return {
         "n_holes": n_holes,
+        "frac_filled": n_filled / n_holes,
         "frac_through": n_through / n_holes,
         "frac_counterbore": n_counterbore / n_holes,
         "frac_indentation": n_indentation / n_holes,
@@ -625,7 +683,7 @@ def _parse_step(step_path: str) -> Optional[Data]:
     """
     Parse a single STEP file into a PyG Data object.
 
-    Node features  (30-dim):
+    Node features  (32-dim):
         [0:8]  component-type one-hot  (geometry-driven via SDF, 8 classes)
         [8]    log1p(volume), clipped at 13.8
         [9]    log1p(surface_area), clipped at 11.5
@@ -649,6 +707,8 @@ def _parse_step(step_path: str) -> Optional[Data]:
         [27]   has_counterbore_holes
         [28]   frac_indentation_holes
         [29]   has_indentation_holes
+        [30]   frac_filled_holes
+        [31]   has_empty_holes
 
     Edge features  (6-dim):
         [0]    mate type encoded  (0=coincident … 5=other, normalised to [0,1])
@@ -796,10 +856,12 @@ def _parse_step(step_path: str) -> Optional[Data]:
                 hole_info_list.append({
                     "n_holes": json_body_hole_counts[vtag_str],
                     "frac_through": 0.0, "frac_counterbore": 0.0,
-                    "frac_indentation": 0.0, "mean_diam": 0.0, "max_diam": 0.0,
+                    "frac_indentation": 0.0, "frac_filled": 0.0,
+                    "mean_diam": 0.0, "max_diam": 0.0,
                 })
             else:
-                hole_info_list.append(_analyze_body_holes(body_surfs[i], bboxes[i], ext_list[i]))
+                hole_info_list.append(_analyze_body_holes(
+                    body_surfs[i], bboxes[i], ext_list[i], own_idx=i, all_coms=coms))
 
         # Affine-invariant normalisation
         elongations = []
@@ -814,7 +876,7 @@ def _parse_step(step_path: str) -> Optional[Data]:
         asp_xy_max = max(aspect_xys)  or 1.0
         asp_yz_max = max(aspect_yzs)  or 1.0
 
-        # ── 30-dim node feature vectors ───────────────────────────────────
+        # ── 32-dim node feature vectors ───────────────────────────────────
         node_feats: List[List[float]] = []
 
         for i in range(n):
@@ -857,7 +919,9 @@ def _parse_step(step_path: str) -> Optional[Data]:
                    hinfo["max_diam"]  / bbox_max,                          # [26]  max hole diameter
                    1.0 if hinfo["frac_counterbore"] > 0 else 0.0,           # [27]  has_counterbore_holes
                    hinfo["frac_indentation"],                               # [28]  frac_indentation_holes
-                   1.0 if hinfo["frac_indentation"] > 0 else 0.0]           # [29]  has_indentation_holes
+                   1.0 if hinfo["frac_indentation"] > 0 else 0.0,           # [29]  has_indentation_holes
+                   hinfo["frac_filled"],                                    # [30]  frac_filled_holes
+                   1.0 if (n_holes > 0 and hinfo["frac_filled"] < 1.0) else 0.0]  # [31]  has_empty_holes
             )
             node_feats.append(feat)
 
@@ -1013,10 +1077,10 @@ def _parse_step_with_timeout(step_path: str, timeout_secs: int = 300) -> tuple:
 # ── Synthetic data fallback ───────────────────────────────────────────────────
 
 def _synthetic_graph(n_nodes: int = None) -> Data:
-    """Generate one structured 30-dim assembly graph using a random template."""
+    """Generate one structured 32-dim assembly graph using a random template."""
     import random as _rng
     r        = _rng.Random()
-    node_dim = 30
+    node_dim = 32
 
     template = r.choice(["bolt", "shaft", "mixed"])
     nodes: List[tuple] = []   # (type_idx, geom_hint)
@@ -1112,6 +1176,8 @@ def _synthetic_graph(n_nodes: int = None) -> Data:
             x[i, 27] = 1.0 if x[i, 24].item() > 0 else 0.0          # has_counterbore_holes
             x[i, 28] = r.uniform(0.0, max(0.0, 1.0 - x[i, 23].item()))  # frac_indentation_holes (bounded by non-through fraction)
             x[i, 29] = 1.0 if x[i, 28].item() > 0 else 0.0          # has_indentation_holes
+            x[i, 30] = r.uniform(0.0, 0.6)                          # frac_filled_holes
+            x[i, 31] = 1.0 if x[i, 30].item() < 1.0 else 0.0        # has_empty_holes
 
     joint_types = [[1,0,0,0], [0,1,0,0], [0,0,1,0], [0,0,0,1], [0,0,0,0]]
     src, dst, eattr = [], [], []
@@ -1137,7 +1203,7 @@ def _synthetic_graph(n_nodes: int = None) -> Data:
 
 
 def _generate_synthetic(n: int = 500) -> List[Data]:
-    print(f"  Generating {n} structured 30-dim assembly graphs…")
+    print(f"  Generating {n} structured 32-dim assembly graphs…")
     graphs = []
     while len(graphs) < n:
         g = _synthetic_graph()
