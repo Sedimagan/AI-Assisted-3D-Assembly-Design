@@ -280,6 +280,15 @@ HOLE_THROUGH_DEPTH_RATIO = 0.65
 # rather than returned as a fastener-worthy is_hole=True candidate.
 HOLE_INDENTATION_MAX_DEPTH = 3.0
 
+# A flat face's own bbox extent along the bore axis, and how close its
+# along-axis coordinate must sit to a hole end's own coordinate, to count
+# as "this hole opens onto a flat face" (mm). Same values and rationale as
+# dataset.py's _FLAT_FACE_THICKNESS_TOL/_FLAT_FACE_LEVEL_TOL (duplicated
+# locally per this module's own no-cross-import relationship with
+# dataset.py).
+HOLE_FLAT_FACE_THICKNESS_TOL = 2.0
+HOLE_FLAT_FACE_LEVEL_TOL = 2.0
+
 
 def _hole_diameter_depth(dims: List[float]) -> Tuple[float, float]:
     """Given a cylindrical face's 3 bbox extents, split into (diameter, depth).
@@ -404,6 +413,14 @@ def analyze_open_surfaces(
                                    recessed within the counterbore rather
                                    than resting on the outer surface. None
                                    when this candidate isn't a counterbore.
+      is_on_flat_surface : bool|None  hole candidates only -- True if
+                                   either end of the hole opens onto a
+                                   planar face rather than a curved one
+                                   (see _hole_end_is_on_flat_face).
+                                   Informational, not filtered on here --
+                                   a hole on a curved surface is unusual
+                                   for a fastener but not impossible.
+                                   None on error.
     """
     import gmsh
 
@@ -674,6 +691,44 @@ def analyze_open_surfaces(
                         return True
                 return False
 
+            def _hole_end_is_on_flat_face(body_idx: int, end_pt: List[float],
+                                           dom_axis: int, hole_radius: float) -> bool:
+                """Does this hole end open onto a flat (planar) face rather
+                than a curved one (a shaft's cylindrical outer wall, a
+                curved housing, a fillet)? Fasteners almost always mount on
+                flat surfaces -- a hole breaking through a curved one is
+                more likely something else (a lubrication port, a vent, a
+                cross-drilled pin hole). Duplicated from dataset.py's
+                identical helper (same no-cross-import relationship);
+                bbox-proximity heuristic rather than exact B-Rep topology,
+                consistent with the rest of this function's hole detection:
+                look for a planar boundary face on the body whose own bbox
+                is thin along the bore axis and sits at this end's own
+                level, with the hole's in-plane position inside that
+                face's footprint."""
+                dim, tag = vols[body_idx]
+                bnd = gmsh.model.getBoundary([(dim, tag)], oriented=False, combined=True)
+                other_axes = [i for i in range(3) if i != dom_axis]
+                for bd, bt in bnd:
+                    if bd != 2:
+                        continue
+                    ftag = abs(bt)
+                    try:
+                        if gmsh.model.getType(2, ftag) != "Plane":
+                            continue
+                        bb = gmsh.model.occ.getBoundingBox(2, ftag)
+                    except Exception:
+                        continue
+                    if (bb[dom_axis + 3] - bb[dom_axis]) > HOLE_FLAT_FACE_THICKNESS_TOL:
+                        continue
+                    face_level = (bb[dom_axis] + bb[dom_axis + 3]) / 2
+                    if abs(face_level - end_pt[dom_axis]) > HOLE_FLAT_FACE_LEVEL_TOL:
+                        continue
+                    if all(bb[a] - hole_radius <= end_pt[a] <= bb[a + 3] + hole_radius
+                           for a in other_axes):
+                        return True
+                return False
+
             for key, group in merge_groups.items():
                 rep = max(group, key=lambda h: h["diameter"])
                 axis = rep["normal"]
@@ -694,6 +749,24 @@ def analyze_open_surfaces(
 
                 if _hole_is_occupied(rep["centroid"], axis, rep["diameter"], rep["body_idx"]):
                     continue  # a fastener already sits here -- not an empty/missing-component candidate
+
+                # Informational only (not filtered out here) -- a hole on a
+                # curved surface is unusual for a fastener but not
+                # impossible (e.g. a bolt threaded radially into a shaft),
+                # unlike the indentation/occupied cases above which are
+                # near-certain exclusions. Left for a caller to weight or
+                # filter on if desired.
+                near_pt = list(rep["centroid"])
+                far_pt = list(rep["centroid"])
+                near_pt[dom], far_pt[dom] = near, far
+                hole_radius = rep["diameter"] / 2.0
+                try:
+                    rep["is_on_flat_surface"] = (
+                        _hole_end_is_on_flat_face(rep["body_idx"], near_pt, dom, hole_radius)
+                        or _hole_end_is_on_flat_face(rep["body_idx"], far_pt, dom, hole_radius)
+                    )
+                except Exception:
+                    rep["is_on_flat_surface"] = None
 
                 # Exit-face coordinate (parent body's own far extreme along
                 # the bore axis, on the OPPOSITE side from the entry -- entry
@@ -791,6 +864,7 @@ def analyze_open_surfaces(
                 "exit_face_coord": rep.get("exit_face_coord"),
                 "shaft_diameter": rep.get("shaft_diameter", rep["diameter"]),
                 "counterbore_depth": rep.get("counterbore_depth"),
+                "is_on_flat_surface": rep.get("is_on_flat_surface"),
             })
 
         return results
