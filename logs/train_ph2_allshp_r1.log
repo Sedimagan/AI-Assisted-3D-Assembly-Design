@@ -1,0 +1,21 @@
+
+[1/4] Loading dataset …
+Processing...
+  Category filter: ['Bench_vice', 'C_Clamps', 'Pipe_vice', 'Gate_Valve', 'Press_Tool', 'Tool_Post', 'Crane_hook']
+  749 STEP files after category filter
+  Found 749 STEP file(s) in /Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/Source_3d_models/Best_models_for_training
+  [1/749] Parsing: Bench_Vice_02/Bench_Vice_02.STEP
+  [OK]  Bench_Vice_02/Bench_Vice_02.STEP — 26 nodes  39 edges  (6.3s)
+  [2/749] Parsing: Bench_Vice_03/Bench_Vice_03.step
+  [OK]  Bench_Vice_03/Bench_Vice_03.step — 18 nodes  22 edges  (5.4s)
+  [3/749] Parsing: Bench_Vice_04/Bench_Vice_04.STEP
+  [OK]  Bench_Vice_04/Bench_Vice_04.STEP — 47 nodes  67 edges  (7.0s)
+  [4/749] Parsing: Bench_Vice_06/Bench_Vice_06.stp
+  [OK]  Bench_Vice_06/Bench_Vice_06.stp — 16 nodes  12 edges  (11.2s)
+  [5/749] Parsing: Bench_Vice_07/Bench_Vice_07.STEP
+  [OK]  Bench_Vice_07/Bench_Vice_07.STEP — 12 nodes  16 edges  (5.0s)
+  [6/749] Parsing: Bench_Vice_08/Bench_Vice_08.step
+  [OK]  Bench_Vice_08/Bench_Vice_08.step — 55 nodes  48 edges  (36.0s)
+  [7/749] Parsing: Bench_Vice_09/Bench_Vice_09.stp
+  [OK]  Bench_Vice_09/Bench_Vice_09.stp — 22 nodes  33 edges  (5.2s)
+  [8/749] Parsing: Bench_Vice_100/Bench_Vice_100.step

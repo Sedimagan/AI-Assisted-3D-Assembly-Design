@@ -74,7 +74,15 @@
       "Bash(echo \"auto_recover PID: $!\")",
       "Skill(update-config)",
       "Skill(loop)",
-      "Bash(awk '{ print length, NR }' Review_files/Phase2-Second_Guidance_call_review.html)"
+      "Bash(awk '{ print length, NR }' Review_files/Phase2-Second_Guidance_call_review.html)",
+      "Bash(git ls-tree *)",
+      "Bash(/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/bin/python3 --version)",
+      "Read(//private/tmp/**)",
+      "Bash(/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/bin/python3 /private/tmp/claude-502/-Users-mbp-Documents-MTECH-Sem4-Individual-project-AI-Assisted-3D-Assembly-Design-AI-Assisted-3D-Assembly-Design/6f21b1fb-5ac0-404e-abc3-3f584930850b/scratchpad/count_params.py)",
+      "Bash(git show *)",
+      "Read(//tmp/**)",
+      "Bash(/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/bin/python3 -c ' *)",
+      "Bash(xargs -I{} du -k {})"
     ],
     "defaultMode": "bypassPermissions"
   }
