@@ -29,24 +29,23 @@ from evaluate import evaluate
 
 CATEGORY_WEIGHTS = {
     # Weights are inverse-frequency (relative to the largest category),
-    # capped at 3.0. Real counts from the 2026-08-24 corpus expansion
-    # (474 -> 746 folders total -- a second batch on top of the
-    # 2026-08-23 one, see the audit that added and deduped both) after
-    # skipping 3 exact-duplicate folders found in Crane_hook during that
-    # audit (left in place at the user's choice, not counted here). The
-    # corpus is now close to perfectly balanced -- six of seven
-    # categories landed at exactly 107 folders, Crane_hook at 104 -- so
-    # every weight is ~1.0. These are FOLDER counts, not confirmed
-    # post-parse graph counts -- re-derive from dataset.py's actual
-    # per-category graph tally after the next --force-reload run, since
-    # a small number of files can fail to parse. Names must match the
-    # directory names under Source_3d_models/Best_models_for_training/.
+    # capped at 3.0. As of the 2026-08-24 corpus expansion (three
+    # batches over two days, 238 -> 474 -> 746 -> 749 folders -- see the
+    # audits that renamed/deduped each), the corpus is now PERFECTLY
+    # balanced: all seven categories sit at exactly 107 folders, so
+    # every weight is 1.0 and this table is currently a no-op. Keep it
+    # (rather than deleting it) since the next corpus addition will very
+    # likely reintroduce some imbalance. These are FOLDER counts, not
+    # confirmed post-parse graph counts -- re-derive from dataset.py's
+    # actual per-category graph tally after the next --force-reload run,
+    # since a small number of files can fail to parse. Names must match
+    # the directory names under Source_3d_models/Best_models_for_training/.
     "Bench_vice":  1.0,   # 107 folders
     "Pipe_vice":   1.0,   # 107 folders
     "C_Clamps":    1.0,   # 107 folders
     "Press_Tool":  1.0,   # 107 folders
     "Gate_Valve":  1.0,   # 107 folders
-    "Crane_hook":  1.0,   # 104 folders (3 exact-duplicate folders left unrenamed, not counted)
+    "Crane_hook":  1.0,   # 107 folders
     "Tool_Post":   1.0,   # 107 folders
 }
 
