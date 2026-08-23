@@ -19,7 +19,7 @@ data:
     - "Crane_hook"
 
 model:
-  in_dim:     28              # node feature dimension (28-dim: 8 type + log-vol + log-SA + 3 bbox + 5 affine-invariant shape + SDF-mean + SDF-var + SA/V + log-holes + has_holes + frac_through + frac_counterbore + mean/max hole diameter + has_counterbore — see dataset.py's module docstring)
+  in_dim:     30              # node feature dimension (30-dim: 8 type + log-vol + log-SA + 3 bbox + 5 affine-invariant shape + SDF-mean + SDF-var + SA/V + log-holes + has_holes + frac_through + frac_counterbore + mean/max hole diameter + has_counterbore + frac/has_indentation — see dataset.py's module docstring)
   edge_dim:   6               # edge feature dimension (2 mate + 4 joint-type one-hot)
   hidden_dim: 128
   out_dim:    64

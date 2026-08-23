@@ -270,6 +270,16 @@ HOLE_MERGE_TOLERANCE = 3.0
 # direction -- 0.65 isn't cutting it close for either case.
 HOLE_THROUGH_DEPTH_RATIO = 0.65
 
+# A non-through hole this shallow (mm) isn't a real blind hole for a
+# fastener to thread into -- it reads as a surface indentation/dimple (a
+# countersink start, a locating dimple, a shallow machining mark), and a
+# generated bolt has no business sitting there. Same threshold and
+# rationale as dataset.py's _INDENTATION_MAX_DEPTH (duplicated locally
+# per this module's own no-cross-import relationship with dataset.py).
+# Candidates at or under this depth are dropped entirely from hole_reps
+# rather than returned as a fastener-worthy is_hole=True candidate.
+HOLE_INDENTATION_MAX_DEPTH = 3.0
+
 
 def _hole_diameter_depth(dims: List[float]) -> Tuple[float, float]:
     """Given a cylindrical face's 3 bbox extents, split into (diameter, depth).
@@ -343,7 +353,10 @@ def analyze_open_surfaces(
     Returns
     -------
     List[dict] — one entry per detected open-joint region (whole-face regions
-    followed by individual hole candidates):
+    followed by individual hole candidates). A non-through candidate whose
+    combined depth is <= HOLE_INDENTATION_MAX_DEPTH is dropped entirely
+    before this list is built — a shallow dimple/indentation isn't a real
+    blind hole, and no bolt/nut/washer should be generated at one:
       centroid     : [x, y, z]   centre of the surface bounding box
       area         : float        surface area (gmsh units)
       area_ratio   : float        fraction of parent body's total SA
@@ -618,6 +631,10 @@ def analyze_open_surfaces(
                     body_extent = combined_depth  # can't compare -- assume blind
                 rep["is_through"] = (body_extent > 1e-6
                                       and (combined_depth / body_extent) >= HOLE_THROUGH_DEPTH_RATIO)
+
+                if not rep["is_through"] and combined_depth <= HOLE_INDENTATION_MAX_DEPTH:
+                    continue  # indentation/dimple, not a real blind hole -- no fastener belongs here
+
                 # Exit-face coordinate (parent body's own far extreme along
                 # the bore axis, on the OPPOSITE side from the entry -- entry
                 # sits at the body/hole's extreme in the +normal_hint
