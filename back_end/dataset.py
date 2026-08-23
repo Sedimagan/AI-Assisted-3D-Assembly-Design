@@ -12,7 +12,7 @@ Pipeline per body
                          used to infer geometry-driven component type
                          (approximates CGAL SDF via trimesh inward ray casting)
 
-Node feature vector: 27-dim
+Node feature vector: 28-dim
   [0:8]  component-type one-hot  (geometry-driven, 8 classes: long_shaft,
          short_shaft, thick_plate, thin_plate, bolt, washer, nut, body —
          see _classify_component_type())
@@ -36,6 +36,7 @@ Node feature vector: 27-dim
          diameters, one for the bolt head to rest in, one narrower for the shaft)
   [25]   mean hole diameter / bbox_max
   [26]   max hole diameter / bbox_max
+  [27]   has_counterbore_holes   (1.0 if frac_counterbore_holes > 0, else 0.0)
 
 Edge feature vector: 6-dim
   [0]    mate type encoded  (0=coincident … 5=other, normalised to [0,1])
@@ -599,7 +600,7 @@ def _parse_step(step_path: str) -> Optional[Data]:
     """
     Parse a single STEP file into a PyG Data object.
 
-    Node features  (27-dim):
+    Node features  (28-dim):
         [0:8]  component-type one-hot  (geometry-driven via SDF, 8 classes)
         [8]    log1p(volume), clipped at 13.8
         [9]    log1p(surface_area), clipped at 11.5
@@ -620,6 +621,7 @@ def _parse_step(step_path: str) -> Optional[Data]:
         [24]   frac_counterbore_holes
         [25]   mean hole diameter / bbox_max
         [26]   max hole diameter / bbox_max
+        [27]   has_counterbore_holes
 
     Edge features  (6-dim):
         [0]    mate type encoded  (0=coincident … 5=other, normalised to [0,1])
@@ -785,7 +787,7 @@ def _parse_step(step_path: str) -> Optional[Data]:
         asp_xy_max = max(aspect_xys)  or 1.0
         asp_yz_max = max(aspect_yzs)  or 1.0
 
-        # ── 27-dim node feature vectors ───────────────────────────────────
+        # ── 28-dim node feature vectors ───────────────────────────────────
         node_feats: List[List[float]] = []
 
         for i in range(n):
@@ -825,7 +827,8 @@ def _parse_step(step_path: str) -> Optional[Data]:
                    hinfo["frac_through"],                                   # [23]  frac_through_holes
                    hinfo["frac_counterbore"],                               # [24]  frac_counterbore_holes
                    hinfo["mean_diam"] / bbox_max,                          # [25]  mean hole diameter
-                   hinfo["max_diam"]  / bbox_max]                          # [26]  max hole diameter
+                   hinfo["max_diam"]  / bbox_max,                          # [26]  max hole diameter
+                   1.0 if hinfo["frac_counterbore"] > 0 else 0.0]           # [27]  has_counterbore_holes
             )
             node_feats.append(feat)
 
@@ -981,10 +984,10 @@ def _parse_step_with_timeout(step_path: str, timeout_secs: int = 300) -> tuple:
 # ── Synthetic data fallback ───────────────────────────────────────────────────
 
 def _synthetic_graph(n_nodes: int = None) -> Data:
-    """Generate one structured 27-dim assembly graph using a random template."""
+    """Generate one structured 28-dim assembly graph using a random template."""
     import random as _rng
     r        = _rng.Random()
-    node_dim = 27
+    node_dim = 28
 
     template = r.choice(["bolt", "shaft", "mixed"])
     nodes: List[tuple] = []   # (type_idx, geom_hint)
@@ -1077,6 +1080,7 @@ def _synthetic_graph(n_nodes: int = None) -> Data:
             x[i, 24] = r.uniform(0.0, 0.4)        # frac_counterbore_holes (less common than simple)
             x[i, 25] = r.uniform(0.02, 0.3)       # mean hole diameter / bbox_max
             x[i, 26] = max(x[i, 25].item(), r.uniform(0.02, 0.3))  # max hole diameter / bbox_max
+            x[i, 27] = 1.0 if x[i, 24].item() > 0 else 0.0          # has_counterbore_holes
 
     joint_types = [[1,0,0,0], [0,1,0,0], [0,0,1,0], [0,0,0,1], [0,0,0,0]]
     src, dst, eattr = [], [], []
@@ -1102,7 +1106,7 @@ def _synthetic_graph(n_nodes: int = None) -> Data:
 
 
 def _generate_synthetic(n: int = 500) -> List[Data]:
-    print(f"  Generating {n} structured 27-dim assembly graphs…")
+    print(f"  Generating {n} structured 28-dim assembly graphs…")
     graphs = []
     while len(graphs) < n:
         g = _synthetic_graph()
