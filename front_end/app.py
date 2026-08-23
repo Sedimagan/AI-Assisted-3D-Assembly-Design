@@ -1015,6 +1015,75 @@ def _run_inference(step_bytes: bytes,
             except Exception:
                 _generated_parts = []
 
+        # ── General (non-fastener) missing-component shape generation ──────
+        # The fastener loop above is entirely hole-driven and only ever
+        # generates bolt/nut/washer. Every OTHER template-predicted missing
+        # type (thick_plate, thin_plate, body, long_shaft, short_shaft) was
+        # previously only ever shown in the text-only "Expected Components
+        # Missing" panel (_tmpl_missing), never actually shape-generated.
+        # Requested 2026-08-24: don't restrict shapegen to fasteners -- and
+        # specifically exercise the VAE (mode="generate", bypassing
+        # part-bank retrieval entirely, since the fastener path above
+        # already leans on retrieval almost exclusively) with a hard 75%
+        # confidence floor, since a low-confidence hallucination is worse
+        # than showing nothing. Placement uses the WHOLE-FACE open-joint
+        # candidates from surface_analyzer (is_hole=False -- "a location
+        # where a missing non-fastener component should be assembled", per
+        # its own docstring), independent of and in a separate try/except
+        # from the fastener block above so a failure here can't wipe out
+        # fasteners that already generated successfully.
+        _VAE_CONFIDENCE_THRESHOLD = 0.75
+        _whole_face_surfs = [s for s in _open_surfs if not s.get("is_hole")]
+        _remaining_missing = [dict(m) for m in _tmpl_missing
+                               if m.get("type") not in ("bolt", "nut", "washer")]
+        if _whole_face_surfs and _remaining_missing and os.path.exists(_svae_path):
+            try:
+                from infer import load_shape_generator as _load_sg2, generate_missing_shape as _gen_ms2
+
+                with contextlib.redirect_stdout(io.StringIO()):
+                    _hsg2 = _load_sg2(_pbank_dir, _svae_path, device)
+
+                if _hsg2 is not None:
+                    _gen_category2 = _tmpl_match["category"] if _tmpl_match else None
+
+                    for _surf2 in _whole_face_surfs:
+                        if not any(m["count"] > 0 for m in _remaining_missing):
+                            break
+                        _bbox2 = _surf2.get("bbox")
+                        if not _bbox2:
+                            continue
+                        _extents2 = [_bbox2[3] - _bbox2[0], _bbox2[4] - _bbox2[1], _bbox2[5] - _bbox2[2]]
+                        _centroid2 = list(_surf2["centroid"])
+
+                        for _miss in _remaining_missing:
+                            if _miss["count"] <= 0:
+                                continue
+                            _sr2 = _gen_ms2(
+                                _hsg2, gnn, graph, _miss["type"],
+                                open_joint_extents=_extents2,
+                                open_joint_centroid=_centroid2,
+                                category=_gen_category2, device=device,
+                                mode="generate",
+                                normal_hint=_surf2.get("normal_hint"),
+                            )
+                            if _sr2 is None or _sr2.confidence <= _VAE_CONFIDENCE_THRESHOLD:
+                                continue
+                            _verts2 = (_sr2.mesh.vertices + _sr2.placement).tolist()
+                            _generated_parts.append({{
+                                "type":        _miss["type"],
+                                "fit_score":   round(float(_surf2.get("area_ratio", 0.0)), 3),
+                                "source":      _sr2.source,
+                                "confidence":  round(float(_sr2.confidence), 3),
+                                "part_id":     _sr2.part_id,
+                                "vertices":    _verts2,
+                                "triangles":   _sr2.mesh.faces.tolist(),
+                                "surface_body_idx": _surf2.get("body_idx", 0),
+                            }})
+                            _miss["count"] -= 1
+                            break  # this surface is spoken for -- move to the next one
+            except Exception:
+                pass
+
         out = {{
             "n_nodes": int(graph.num_nodes),
             "n_edges": int(graph.edge_index.size(1)),
