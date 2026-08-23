@@ -28,23 +28,26 @@ from evaluate import evaluate
 # ── Category sample weights ──────────────────────────────────────────────────
 
 CATEGORY_WEIGHTS = {
-    # Weights are inverse-frequency (relative to the largest category,
-    # Bench_vice=107 folders), capped at 3.0. Real counts from the
-    # 2026-08-23 corpus expansion (238 -> 474 folders total, roughly
-    # doubled -- see the audit that added and deduped this batch) after
-    # removing 3 exact-duplicate folders found in the process. These are
-    # FOLDER counts, not confirmed post-parse graph counts -- re-derive
-    # from dataset.py's actual per-category graph tally after the next
-    # --force-reload run, since a small number of files can fail to
-    # parse. Names must match the directory names under
-    # Source_3d_models/Best_models_for_training/.
+    # Weights are inverse-frequency (relative to the largest category),
+    # capped at 3.0. Real counts from the 2026-08-24 corpus expansion
+    # (474 -> 746 folders total -- a second batch on top of the
+    # 2026-08-23 one, see the audit that added and deduped both) after
+    # skipping 3 exact-duplicate folders found in Crane_hook during that
+    # audit (left in place at the user's choice, not counted here). The
+    # corpus is now close to perfectly balanced -- six of seven
+    # categories landed at exactly 107 folders, Crane_hook at 104 -- so
+    # every weight is ~1.0. These are FOLDER counts, not confirmed
+    # post-parse graph counts -- re-derive from dataset.py's actual
+    # per-category graph tally after the next --force-reload run, since
+    # a small number of files can fail to parse. Names must match the
+    # directory names under Source_3d_models/Best_models_for_training/.
     "Bench_vice":  1.0,   # 107 folders
-    "Pipe_vice":   1.3,   # 83 folders
-    "C_Clamps":    1.7,   # 62 folders
-    "Press_Tool":  1.7,   # 62 folders
-    "Gate_Valve":  1.8,   # 59 folders
-    "Crane_hook":  2.1,   # 51 folders
-    "Tool_Post":   2.1,   # 50 folders
+    "Pipe_vice":   1.0,   # 107 folders
+    "C_Clamps":    1.0,   # 107 folders
+    "Press_Tool":  1.0,   # 107 folders
+    "Gate_Valve":  1.0,   # 107 folders
+    "Crane_hook":  1.0,   # 104 folders (3 exact-duplicate folders left unrenamed, not counted)
+    "Tool_Post":   1.0,   # 107 folders
 }
 
 
