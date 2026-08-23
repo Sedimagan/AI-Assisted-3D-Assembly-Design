@@ -362,13 +362,17 @@ def analyze_open_surfaces(
     Returns
     -------
     List[dict] — one entry per detected open-joint region (whole-face regions
-    followed by individual hole candidates). Two categories of candidate are
-    dropped entirely before this list is built, neither should get a
+    followed by individual hole candidates). Three categories of candidate
+    are dropped entirely before this list is built, none should get a
     generated bolt/nut/washer: a non-through candidate whose combined depth
     is <= HOLE_INDENTATION_MAX_DEPTH (a shallow dimple/indentation, not a
-    real blind hole), and any candidate where another body's own center of
+    real blind hole); any candidate where another body's own center of
     mass already sits on the hole's bore axis (see _hole_is_occupied — a
-    fastener, or any other part, already occupies it):
+    fastener, or any other part, already occupies it); and any candidate
+    that doesn't open onto a flat face at either end (see
+    _hole_end_is_on_flat_face — a chamfer/fillet along a curved bend can
+    itself be a Cylinder-type B-Rep face and pass the diameter/depth
+    filters purely by coincidence, a confirmed real prior bug):
       centroid     : [x, y, z]   centre of the surface bounding box
       area         : float        surface area (gmsh units)
       area_ratio   : float        fraction of parent body's total SA
@@ -413,14 +417,13 @@ def analyze_open_surfaces(
                                    recessed within the counterbore rather
                                    than resting on the outer surface. None
                                    when this candidate isn't a counterbore.
-      is_on_flat_surface : bool|None  hole candidates only -- True if
-                                   either end of the hole opens onto a
-                                   planar face rather than a curved one
-                                   (see _hole_end_is_on_flat_face).
-                                   Informational, not filtered on here --
-                                   a hole on a curved surface is unusual
-                                   for a fastener but not impossible.
-                                   None on error.
+      is_on_flat_surface : bool     hole candidates only -- always True in
+                                   this returned list (a False candidate
+                                   is dropped before it gets here, see
+                                   above); kept as an explicit field
+                                   rather than removed so a caller doesn't
+                                   need to assume it from a candidate's
+                                   mere presence.
     """
     import gmsh
 
@@ -750,12 +753,20 @@ def analyze_open_surfaces(
                 if _hole_is_occupied(rep["centroid"], axis, rep["diameter"], rep["body_idx"]):
                     continue  # a fastener already sits here -- not an empty/missing-component candidate
 
-                # Informational only (not filtered out here) -- a hole on a
-                # curved surface is unusual for a fastener but not
-                # impossible (e.g. a bolt threaded radially into a shaft),
-                # unlike the indentation/occupied cases above which are
-                # near-certain exclusions. Left for a caller to weight or
-                # filter on if desired.
+                # A round chamfer/fillet along a bend can itself be a
+                # Cylinder-type B-Rep face (a partial-revolution surface,
+                # same face type gmsh reports for a real drilled hole) and
+                # pass the diameter/depth filters above purely by
+                # coincidence -- confirmed as a real prior bug: a bolt got
+                # generated on a chamfered bend that was never a hole at
+                # all. A genuine fastener hole always opens onto a flat
+                # face at (at least) one end; a chamfer/fillet along a
+                # curved bend generally doesn't. Hard filter, not just
+                # informational -- reported 2026-08-24 with a concrete
+                # past-bug example, upgraded from the softer treatment
+                # this started with. Falls back to True (don't drop) only
+                # if the check itself errors, since an inconclusive result
+                # shouldn't silently kill a real hole.
                 near_pt = list(rep["centroid"])
                 far_pt = list(rep["centroid"])
                 near_pt[dom], far_pt[dom] = near, far
@@ -766,7 +777,10 @@ def analyze_open_surfaces(
                         or _hole_end_is_on_flat_face(rep["body_idx"], far_pt, dom, hole_radius)
                     )
                 except Exception:
-                    rep["is_on_flat_surface"] = None
+                    rep["is_on_flat_surface"] = True  # inconclusive -- don't drop a possibly-real hole
+
+                if not rep["is_on_flat_surface"]:
+                    continue  # curved surroundings (e.g. a chamfer/fillet along a bend) -- not a real fastener hole
 
                 # Exit-face coordinate (parent body's own far extreme along
                 # the bore axis, on the OPPOSITE side from the entry -- entry
