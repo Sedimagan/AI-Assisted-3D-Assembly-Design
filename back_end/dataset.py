@@ -12,7 +12,7 @@ Pipeline per body
                          used to infer geometry-driven component type
                          (approximates CGAL SDF via trimesh inward ray casting)
 
-Node feature vector: 22-dim
+Node feature vector: 27-dim
   [0:8]  component-type one-hot  (geometry-driven, 8 classes: long_shaft,
          short_shaft, thick_plate, thin_plate, bolt, washer, nut, body —
          see _classify_component_type())
@@ -29,7 +29,13 @@ Node feature vector: 22-dim
   [18]   SDF mean  (normalised)
   [19]   SDF variance (normalised)
   [20]   SA/V ratio (normalised)
-  [21]   log1p(n_holes)
+  [21]   log1p(n_holes)           (distinct hole locations — see _analyze_body_holes)
+  [22]   has_holes                (1.0 if n_holes > 0, else 0.0)
+  [23]   frac_through_holes       (fraction of this body's holes that go all the way through)
+  [24]   frac_counterbore_holes   (fraction that are counterbore-style: two coaxial
+         diameters, one for the bolt head to rest in, one narrower for the shaft)
+  [25]   mean hole diameter / bbox_max
+  [26]   max hole diameter / bbox_max
 
 Edge feature vector: 6-dim
   [0]    mate type encoded  (0=coincident … 5=other, normalised to [0,1])
@@ -438,6 +444,132 @@ def _classify_joint_from_geometry(shared_tags) -> Tuple[list, float]:
 _HOLE_DIAM_FLOOR = 1.0
 _HOLE_MIN_DEPTH  = 0.5
 
+# Coaxial faces within this XY-position tolerance (mm), on the same
+# dominant axis, are treated as one physical hole rather than separate
+# ones — a counterbore's wide recess face and its narrower clearance-bore
+# face are two distinct Cylinder B-Rep faces for the same hole. Same value
+# and rationale as surface_analyzer.py's HOLE_MERGE_TOLERANCE, duplicated
+# locally (see this module's own no-cross-import convention below).
+_HOLE_MERGE_TOLERANCE = 3.0
+
+# A hole's combined axial span (across its merged coaxial faces), as a
+# fraction of the body's own extent along the bore axis, needed to call it
+# a through-hole rather than blind. Same value as surface_analyzer.py's
+# HOLE_THROUGH_DEPTH_RATIO — calibrated there against real through/blind
+# examples (through holes measured ~73.5% combined depth vs body
+# thickness, blind ones ~17.8%); reused here since the same B-Rep-face-
+# depth-vs-body-thickness relationship holds regardless of whether the
+# hole belongs to a complete body (training time, here) or a partial
+# assembly's open joint (inference time, surface_analyzer.py).
+_HOLE_THROUGH_DEPTH_RATIO = 0.65
+
+
+def _hole_axis(tag: int) -> List[float]:
+    """Derive a cylindrical face's true bore axis via two parametric point
+    samples (constant u, differing v). Sign-normalized so the
+    largest-magnitude component is positive. Duplicated from
+    surface_analyzer.py's identical helper — see _analyze_body_holes'
+    docstring for why this module keeps its own copy instead of
+    cross-importing."""
+    import gmsh
+    urange, vrange = gmsh.model.getParametrizationBounds(2, tag)
+    p0 = gmsh.model.getValue(2, tag, [urange[0], vrange[0]])
+    p1 = gmsh.model.getValue(2, tag, [urange[0], vrange[1]])
+    axis = [p1[i] - p0[i] for i in range(3)]
+    norm = sum(a * a for a in axis) ** 0.5
+    if norm < 1e-9:
+        return [0.0, 0.0, 1.0]
+    axis = [a / norm for a in axis]
+    dom = max(range(3), key=lambda i: abs(axis[i]))
+    if axis[dom] < 0:
+        axis = [-a for a in axis]
+    return axis
+
+
+def _analyze_body_holes(body_surf_tags, bbox_dxdydz: tuple, ext: list) -> dict:
+    """
+    Per-body hole analysis, richer than a raw cylindrical-face count:
+    groups coaxial cylindrical faces into distinct physical hole locations
+    (a counterbore's wide + narrow faces are one hole, not two — same
+    coaxial-merge concept as surface_analyzer.py's hole-candidate merge,
+    duplicated locally rather than cross-imported since dataset.py is
+    meant to stay import-independent of the inference-side modules that
+    already import classifier logic *from* it), then classifies each
+    location as through vs blind (combined depth vs body extent along the
+    bore axis) and simple vs counterbore (one distinct face diameter in
+    the group vs two or more).
+
+    Returns aggregate features for the whole body:
+      n_holes           : int    distinct hole locations (not raw faces)
+      frac_through      : float  fraction of those holes that are through
+      frac_counterbore  : float  fraction that are counterbore-style
+      mean_diam         : float  mean of each hole's own representative
+                                  (widest) diameter
+      max_diam          : float  largest such representative diameter
+    All fractions/diameters are 0.0 when the body has no qualifying holes.
+    """
+    import gmsh
+    zero = {"n_holes": 0, "frac_through": 0.0, "frac_counterbore": 0.0,
+            "mean_diam": 0.0, "max_diam": 0.0}
+    _, m, _ = ext  # sorted [small, mid, long] body extents
+    if m <= 0:
+        return zero
+
+    candidates = []
+    for tag in body_surf_tags:
+        try:
+            if gmsh.model.getType(2, tag) != "Cylinder":
+                continue
+            bb = gmsh.model.occ.getBoundingBox(2, tag)
+        except Exception:
+            continue
+        dims = sorted([bb[3] - bb[0], bb[4] - bb[1], bb[5] - bb[2]])
+        diameter = dims[1]
+        depth = dims[0] if (dims[1] - dims[0]) > (dims[2] - dims[1]) else dims[2]
+        if not (_HOLE_DIAM_FLOOR <= diameter < 0.6 * m and depth >= _HOLE_MIN_DEPTH):
+            continue
+        try:
+            axis = _hole_axis(tag)
+        except Exception:
+            continue
+        candidates.append({"bbox": bb, "axis": axis, "diameter": diameter})
+
+    if not candidates:
+        return zero
+
+    groups: dict = {}
+    for c in candidates:
+        dom = max(range(3), key=lambda i: abs(c["axis"][i]))
+        bb = c["bbox"]
+        centroid_perp = [(bb[i] + bb[i + 3]) / 2 for i in range(3) if i != dom]
+        key = (dom, tuple(round(v / _HOLE_MERGE_TOLERANCE) for v in centroid_perp))
+        groups.setdefault(key, []).append(c)
+
+    n_through = 0
+    n_counterbore = 0
+    rep_diams = []
+    for (dom, _), group in groups.items():
+        distinct_diams = {round(g["diameter"], 1) for g in group}
+        if len(distinct_diams) >= 2:
+            n_counterbore += 1
+        rep_diams.append(max(g["diameter"] for g in group))
+
+        near = min(g["bbox"][dom] for g in group)
+        far = max(g["bbox"][dom + 3] for g in group)
+        combined_depth = far - near
+        body_extent = bbox_dxdydz[dom]
+        if body_extent > 1e-6 and (combined_depth / body_extent) >= _HOLE_THROUGH_DEPTH_RATIO:
+            n_through += 1
+
+    n_holes = len(groups)
+    return {
+        "n_holes": n_holes,
+        "frac_through": n_through / n_holes,
+        "frac_counterbore": n_counterbore / n_holes,
+        "mean_diam": sum(rep_diams) / len(rep_diams),
+        "max_diam": max(rep_diams),
+    }
+
 
 def _contact_area_weight(shared_tags, sa_u: float, sa_v: float) -> float:
     """
@@ -461,48 +593,13 @@ def _contact_area_weight(shared_tags, sa_u: float, sa_v: float) -> float:
     return max(0.0, min(1.0, total / denom))
 
 
-def _count_body_holes_from_geometry(body_surf_tags, ext: list) -> int:
-    """
-    Count boundary faces on this body that look like through-holes: cylindrical
-    faces whose diameter is small relative to the body's own mid bounding-box
-    extent (distinguishes a bore/hole from the body's own round exterior —
-    e.g. a shaft's outer surface, whose "diameter" is comparable to the
-    body's own mid extent, not much smaller than it), while excluding
-    sub-millimetre slivers (thread-relief grooves, fillet/chamfer facets)
-    via an absolute diameter/depth floor. Real, always-available substitute
-    for the never-present assembly.json hole list — mirrors the diameter/
-    depth split used by surface_analyzer.py's per-hole detector for
-    consistency, but duplicated locally rather than cross-imported (dataset.py
-    is meant to stay import-independent of the inference-side modules that
-    already import classifier logic *from* it).
-    """
-    import gmsh
-    _, m, _ = ext  # sorted [small, mid, long] body extents
-    if m <= 0:
-        return 0
-    count = 0
-    for tag in body_surf_tags:
-        try:
-            if gmsh.model.getType(2, tag) != "Cylinder":
-                continue
-            bb = gmsh.model.occ.getBoundingBox(2, tag)
-        except Exception:
-            continue
-        dims = sorted([bb[3] - bb[0], bb[4] - bb[1], bb[5] - bb[2]])
-        diameter = dims[1]   # 2 of 3 face-bbox extents bound a cylinder's diameter
-        depth = dims[0] if (dims[1] - dims[0]) > (dims[2] - dims[1]) else dims[2]
-        if _HOLE_DIAM_FLOOR <= diameter < 0.6 * m and depth >= _HOLE_MIN_DEPTH:
-            count += 1
-    return count
-
-
 # ── STEP file parser ──────────────────────────────────────────────────────────
 
 def _parse_step(step_path: str) -> Optional[Data]:
     """
     Parse a single STEP file into a PyG Data object.
 
-    Node features  (22-dim):
+    Node features  (27-dim):
         [0:8]  component-type one-hot  (geometry-driven via SDF, 8 classes)
         [8]    log1p(volume), clipped at 13.8
         [9]    log1p(surface_area), clipped at 11.5
@@ -517,7 +614,12 @@ def _parse_step(step_path: str) -> Optional[Data]:
         [18]   SDF mean  / sdf_mean_max
         [19]   SDF variance / sdf_var_max
         [20]   SA/V ratio / sav_max
-        [21]   log1p(n_holes)
+        [21]   log1p(n_holes)           (see _analyze_body_holes)
+        [22]   has_holes
+        [23]   frac_through_holes
+        [24]   frac_counterbore_holes
+        [25]   mean hole diameter / bbox_max
+        [26]   max hole diameter / bbox_max
 
     Edge features  (6-dim):
         [0]    mate type encoded  (0=coincident … 5=other, normalised to [0,1])
@@ -533,7 +635,7 @@ def _parse_step(step_path: str) -> Optional[Data]:
 
     # ── P4: Extract per-body hole counts from assembly.json, if present ──────
     # (never present in the real corpus — see the geometry-derived fallback
-    # used below, _count_body_holes_from_geometry)
+    # used below, _analyze_body_holes)
     holes = meta.get("holes", {}) or {}
     if not isinstance(holes, dict):
         holes = {}
@@ -653,6 +755,23 @@ def _parse_step(step_path: str) -> Optional[Data]:
         sav_max   = max(sav_vals)  or 1.0
         bbox_max  = max(max(dx, dy, dz) for dx, dy, dz in bboxes) or 1.0
 
+        # ── Per-body hole analysis (through/blind, simple/counterbore) ─────
+        hole_info_list = []
+        for i in range(n):
+            vtag_str = str(volumes[i][1])
+            if vtag_str in json_body_hole_counts:
+                # assembly.json only ever supplies a raw count (never
+                # present in the real corpus, see P4 above) -- no
+                # through/counterbore/diameter info available from it, so
+                # those fields stay at their zero defaults.
+                hole_info_list.append({
+                    "n_holes": json_body_hole_counts[vtag_str],
+                    "frac_through": 0.0, "frac_counterbore": 0.0,
+                    "mean_diam": 0.0, "max_diam": 0.0,
+                })
+            else:
+                hole_info_list.append(_analyze_body_holes(body_surfs[i], bboxes[i], ext_list[i]))
+
         # Affine-invariant normalisation
         elongations = []
         aspect_xys  = []
@@ -666,7 +785,7 @@ def _parse_step(step_path: str) -> Optional[Data]:
         asp_xy_max = max(aspect_xys)  or 1.0
         asp_yz_max = max(aspect_yzs)  or 1.0
 
-        # ── 22-dim node feature vectors ───────────────────────────────────
+        # ── 27-dim node feature vectors ───────────────────────────────────
         node_feats: List[List[float]] = []
 
         for i in range(n):
@@ -679,14 +798,12 @@ def _parse_step(step_path: str) -> Optional[Data]:
                             * ((6 * raw_vols[i]) ** (2 / 3))
                             / (exact_sas[i] + 1e-9))
 
-            # P4: hole count for this body — assembly.json if present (never
-            # is, in practice), else geometry-derived (see module docstring
-            # above _classify_joint_from_geometry for why this exists)
-            vtag_str = str(volumes[i][1])
-            if vtag_str in json_body_hole_counts:
-                n_holes = json_body_hole_counts[vtag_str]
-            else:
-                n_holes = _count_body_holes_from_geometry(body_surfs[i], ext_list[i])
+            # P4 / holes: per-body hole analysis — assembly.json count if
+            # present (never is, in practice), else geometry-derived (see
+            # _analyze_body_holes for the through/blind + simple/counterbore
+            # classification this now includes beyond the original P4 count)
+            hinfo = hole_info_list[i]
+            n_holes = hinfo["n_holes"]
 
             feat = (
                 type_oh                                                     # [0:8]
@@ -703,7 +820,12 @@ def _parse_step(step_path: str) -> Optional[Data]:
                    sdf_means[i] / sdf_m_max,                               # [18]  SDF mean
                    sdf_vars[i]  / sdf_v_max,                               # [19]  SDF variance
                    sav_vals[i]  / sav_max,                                  # [20]  SA/V ratio
-                   math.log1p(n_holes)]                                     # [21]  log1p(n_holes)
+                   math.log1p(n_holes),                                     # [21]  log1p(n_holes)
+                   1.0 if n_holes > 0 else 0.0,                             # [22]  has_holes
+                   hinfo["frac_through"],                                   # [23]  frac_through_holes
+                   hinfo["frac_counterbore"],                               # [24]  frac_counterbore_holes
+                   hinfo["mean_diam"] / bbox_max,                          # [25]  mean hole diameter
+                   hinfo["max_diam"]  / bbox_max]                          # [26]  max hole diameter
             )
             node_feats.append(feat)
 
@@ -859,10 +981,10 @@ def _parse_step_with_timeout(step_path: str, timeout_secs: int = 300) -> tuple:
 # ── Synthetic data fallback ───────────────────────────────────────────────────
 
 def _synthetic_graph(n_nodes: int = None) -> Data:
-    """Generate one structured 22-dim assembly graph using a random template."""
+    """Generate one structured 27-dim assembly graph using a random template."""
     import random as _rng
     r        = _rng.Random()
-    node_dim = 22
+    node_dim = 27
 
     template = r.choice(["bolt", "shaft", "mixed"])
     nodes: List[tuple] = []   # (type_idx, geom_hint)
@@ -947,7 +1069,14 @@ def _synthetic_graph(n_nodes: int = None) -> Data:
 
         x[i, 18] = r.uniform(0.1, 0.8)   # SDF mean
         x[i, 20] = r.uniform(0.1, 0.9)   # SA/V ratio
-        x[i, 21] = math.log1p(r.randint(0, 5))   # log1p(n_holes)
+        _n_holes = r.randint(0, 5)
+        x[i, 21] = math.log1p(_n_holes)           # log1p(n_holes)
+        x[i, 22] = 1.0 if _n_holes > 0 else 0.0   # has_holes
+        if _n_holes > 0:
+            x[i, 23] = r.uniform(0.0, 1.0)        # frac_through_holes
+            x[i, 24] = r.uniform(0.0, 0.4)        # frac_counterbore_holes (less common than simple)
+            x[i, 25] = r.uniform(0.02, 0.3)       # mean hole diameter / bbox_max
+            x[i, 26] = max(x[i, 25].item(), r.uniform(0.02, 0.3))  # max hole diameter / bbox_max
 
     joint_types = [[1,0,0,0], [0,1,0,0], [0,0,1,0], [0,0,0,1], [0,0,0,0]]
     src, dst, eattr = [], [], []
@@ -973,7 +1102,7 @@ def _synthetic_graph(n_nodes: int = None) -> Data:
 
 
 def _generate_synthetic(n: int = 500) -> List[Data]:
-    print(f"  Generating {n} structured 22-dim assembly graphs…")
+    print(f"  Generating {n} structured 27-dim assembly graphs…")
     graphs = []
     while len(graphs) < n:
         g = _synthetic_graph()
