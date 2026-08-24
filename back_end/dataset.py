@@ -1399,7 +1399,16 @@ class AssemblyDataset(InMemoryDataset):
         n_cached   = 0
         timed_out_files: List[Path] = []
 
-        _TIMEOUT = 300
+        # Effectively unlimited per-file budget (was 300s) -- some real,
+        # geometrically complex files (large Gate_Valve assemblies, etc.)
+        # were being abandoned mid-parse purely for running long, not for
+        # being stuck. The SIGTERM/SIGKILL escalation in
+        # _parse_step_with_timeout is left in place as a backstop for a
+        # genuinely infinite-looping file, since parsing is strictly
+        # sequential and a truly-hung worker would otherwise stall every
+        # file behind it forever with no recovery path -- but nothing in
+        # this corpus should realistically approach it.
+        _TIMEOUT = 6 * 3600
         _category_dirs = {
             d.name for d in self.source_dir.iterdir() if d.is_dir()
         }
