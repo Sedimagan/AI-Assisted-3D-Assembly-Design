@@ -401,8 +401,40 @@ def main():
         # noise without needing a bigger val set.
         SMOOTH_WINDOW  = 3
         val_auc_history: list = []
+        start_epoch    = 1
 
-        for epoch in range(1, tc["epochs"] + 1):
+        # Mid-fold resume: if this fold already has a checkpoint on disk
+        # (this exact fold was interrupted -- killed, OOM, power loss --
+        # partway through a previous attempt, and the watchdog relaunched
+        # with --start-fold pointing back at it since it never printed its
+        # "Fold N test" completion line), pick up from the last epoch that
+        # improved on val AUC instead of discarding everything and
+        # retraining from epoch 1. Falls back to a fresh start on any
+        # load error (architecture mismatch from an old/unrelated
+        # checkpoint, corrupt file, etc.) rather than crashing the run.
+        if fold_ckpt.exists():
+            try:
+                resume_ck = torch.load(fold_ckpt, map_location=device,
+                                        weights_only=False)
+                gnn.load_state_dict(resume_ck["gnn"])
+                lp.load_state_dict(resume_ck["lp"])
+                if "opt" in resume_ck:
+                    opt.load_state_dict(resume_ck["opt"])
+                if "sched" in resume_ck:
+                    sched.load_state_dict(resume_ck["sched"])
+                best_auc        = resume_ck.get("auc", 0.0)
+                patience_left   = resume_ck.get("patience_left", tc["patience"])
+                val_auc_history = resume_ck.get("val_auc_history", [])
+                start_epoch     = resume_ck.get("epoch", 0) + 1
+                print(f"  Resuming fold {fold+1} from epoch {start_epoch} "
+                      f"(checkpoint best smoothed AUC={best_auc:.4f}) …")
+            except Exception as resume_err:
+                print(f"  [WARN] Could not resume fold {fold+1} from "
+                      f"{fold_ckpt}: {resume_err} — starting fresh.")
+                best_auc, patience_left, val_auc_history, start_epoch = (
+                    0.0, tc["patience"], [], 1)
+
+        for epoch in range(start_epoch, tc["epochs"] + 1):
             t0          = time.time()
             train_loss  = train_epoch(gnn, lp, train_loader, opt, device)
             val_metrics = evaluate(gnn, lp, val_loader, device)
@@ -439,12 +471,23 @@ def main():
                 best_auc      = smoothed_auc
                 patience_left = tc["patience"]
                 torch.save({
-                    "fold":  fold,
-                    "epoch": epoch,
-                    "auc":   best_auc,
-                    "gnn":   gnn.state_dict(),
-                    "lp":    lp.state_dict(),
-                    "cfg":   cfg,
+                    "fold":            fold,
+                    "epoch":           epoch,
+                    "auc":             best_auc,
+                    "gnn":             gnn.state_dict(),
+                    "lp":              lp.state_dict(),
+                    "cfg":             cfg,
+                    # Needed for a faithful mid-fold resume (see the
+                    # fold_ckpt.exists() block above) -- without these an
+                    # interrupted-and-resumed fold would restart Adam's
+                    # momentum/variance from zero and reset the LR plateau
+                    # scheduler's own patience counter, which quietly
+                    # changes training dynamics rather than truly
+                    # continuing from where it left off.
+                    "opt":             opt.state_dict(),
+                    "sched":           sched.state_dict(),
+                    "patience_left":   patience_left,
+                    "val_auc_history": val_auc_history,
                 }, fold_ckpt)
                 print(f"  ✓ Fold {fold+1} new best smoothed AUC={best_auc:.4f}  saved.")
             else:
