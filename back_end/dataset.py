@@ -877,7 +877,15 @@ def _parse_step(step_path: str) -> Optional[Data]:
 
         for dim, tag in volumes:
             bbox = gmsh.model.occ.getBoundingBox(dim, tag)
-            vol  = gmsh.model.occ.getMass(dim, tag)
+            # getMass can return a negative volume for a solid whose B-Rep
+            # shell has inconsistently-oriented faces (a real defect some
+            # STEP files have, not junk input) -- left signed, sphericity's
+            # (6*vol)**(2/3) silently promotes to a Python complex number
+            # instead of raising, and the later min(1.0, ...) then blows up
+            # with "'<' not supported between complex and float". abs() here
+            # keeps every downstream use (sphericity, vol_max, sav ratios,
+            # the log-volume feature) consistently unsigned.
+            vol  = abs(gmsh.model.occ.getMass(dim, tag))
             dx   = bbox[3] - bbox[0]
             dy   = bbox[4] - bbox[1]
             dz   = bbox[5] - bbox[2]
