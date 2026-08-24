@@ -1120,6 +1120,8 @@ def _parse_step_with_timeout(step_path: str, timeout_secs: int = 300) -> tuple:
 
     Returns (Data | None, status) where status is "ok" | "timeout" | "error".
     """
+    import queue as _queue_mod
+
     ctx = _mp.get_context("spawn")
     q   = ctx.Queue()
     p   = ctx.Process(target=_parse_step_worker, args=(step_path, q), daemon=True)
@@ -1135,11 +1137,41 @@ def _parse_step_with_timeout(step_path: str, timeout_secs: int = 300) -> tuple:
     # in our own logic. A short-increment loop means each individual join()
     # call is small, so even if ONE of them ignores its bound, the outer
     # time.time() check still regains control close to the intended budget.
+    #
+    # Drain the queue on EVERY iteration, not just after the child exits.
+    # Queue.put() hands off to a background feeder thread that pickles the
+    # payload and writes it to the underlying OS pipe -- for a large result
+    # (a big graph's pickled bytes) that write can exceed the pipe's kernel
+    # buffer and block until something reads it. With nothing reading until
+    # is_alive() went False, a big-enough payload deadlocked BOTH sides: the
+    # child's feeder thread stuck in write(), and this parent stuck forever
+    # waiting on a child that could never finish exiting -- a documented
+    # multiprocessing.Queue pitfall (stdlib "Programming guidelines": a
+    # process that has put items on a queue won't terminate until they're
+    # flushed, and joining it before consuming them can deadlock). Confirmed
+    # live via `sample` on a real hang: the worker's feeder thread blocked in
+    # write(), the parent blocked in read() even after the worker was
+    # force-killed (2026-08-24, Bench_Vice_118). Reading here as results
+    # arrive means the pipe never backs up in the first place.
     t_start = time.time()
+    result = None
     while time.time() - t_start < timeout_secs and p.is_alive():
         p.join(1)
+        try:
+            while True:
+                result = q.get_nowait()
+        except _queue_mod.Empty:
+            pass
+        if result is not None:
+            break
 
-    if p.is_alive():
+    if result is None and not q.empty():
+        try:
+            result = q.get_nowait()
+        except _queue_mod.Empty:
+            pass
+
+    if result is None and p.is_alive():
         p.terminate()
         t_term = time.time()
         while time.time() - t_term < 5 and p.is_alive():
@@ -1156,8 +1188,14 @@ def _parse_step_with_timeout(step_path: str, timeout_secs: int = 300) -> tuple:
             print(f"    [skip] {Path(step_path).name}: timeout after {timeout_secs}s")
         return None, "timeout"
 
-    if not q.empty():
-        status, payload = q.get_nowait()
+    # Give an already-drained child a brief window to exit cleanly now that
+    # nothing is blocking its feeder thread, so it doesn't linger as a
+    # zombie -- not required for correctness (daemon process), just tidy.
+    if result is not None and p.is_alive():
+        p.join(2)
+
+    if result is not None:
+        status, payload = result
         if status == "ok":
             if payload is None:
                 return None, "ok"
