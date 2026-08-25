@@ -1437,15 +1437,15 @@ class AssemblyDataset(InMemoryDataset):
         n_cached   = 0
         timed_out_files: List[Path] = []
 
-        # Was raised to 6h (from 300s) to stop abandoning real files that
-        # just ran long (large Gate_Valve assemblies etc.) -- that worked,
-        # but some genuinely-computing files (confirmed via `sample`, not
-        # stuck) still ran 2.5+ hours, which is too much sequential-pipeline
-        # time to spend on one file. 60 minutes is the compromise: generous
-        # enough for the vast majority of real files (nearly everything
-        # observed so far finished well under 15 min), short enough that a
-        # single heavy file can't dominate the whole run.
-        _TIMEOUT = 60 * 60
+        # History: 300s -> 6h (too many real files abandoned) -> 60min
+        # (still let genuinely-computing files run 2.5+ hours) -> 30min.
+        # The large-file Gate_Valve batch mostly fails/times out anyway
+        # regardless of budget (confirmed: 103 and 104 both ran the full
+        # 60min just to time out), so a shorter cap loses little real data
+        # there while roughly halving how long each dead-end file can hold
+        # up the strictly-sequential pipeline. Nearly all real files finish
+        # in well under 15 min regardless of the ceiling.
+        _TIMEOUT = 30 * 60
         _category_dirs = {
             d.name for d in self.source_dir.iterdir() if d.is_dir()
         }
