@@ -34,12 +34,23 @@ while true; do
         fi
     fi
 
-    # Give up if train.py itself is long gone and never produced the marker
-    # (e.g. the run was aborted) -- avoid polling forever unattended.
+    # Give up only after train.py has been gone for several consecutive
+    # checks (a real abort), not on a single missed poll -- a manual
+    # restart (kill old train.py, relaunch fresh) has a brief window where
+    # the process genuinely isn't running yet, and this watcher used to
+    # mistake that gap for the run being aborted and exit permanently,
+    # silently leaving no backup coverage until manually noticed and
+    # relaunched (happened once, 2026-08-25). Five misses (~2.5min) is
+    # comfortably longer than any restart transition seen this session.
     if ! pgrep -f "train.py" > /dev/null 2>&1; then
         if ! grep -q "\[2/4\] Building model" "$LOG" 2>/dev/null; then
-            echo "$(date '+%Y-%m-%d %H:%M:%S')  [backup-watcher] train.py no longer running and parse never completed -- exiting without backup" >> "$MARK_LOG"
-            break
+            miss_count=$((${miss_count:-0} + 1))
+            if [ "$miss_count" -ge 5 ]; then
+                echo "$(date '+%Y-%m-%d %H:%M:%S')  [backup-watcher] train.py gone for $miss_count consecutive checks and parse never completed -- exiting without backup" >> "$MARK_LOG"
+                break
+            fi
         fi
+    else
+        miss_count=0
     fi
 done
