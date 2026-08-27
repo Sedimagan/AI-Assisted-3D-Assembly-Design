@@ -1061,15 +1061,32 @@ def _parse_step(step_path: str) -> Optional[Data]:
             eattr += [ea, ea]
 
         if not src:
+            # Was a full pairwise mesh (O(n^2) edges) for assemblies where
+            # the contact-detection heuristic found zero shared surfaces
+            # between ANY body pair. Harmless for small n, but for a large
+            # no-contact assembly this created thousands of edges in one
+            # batch -- confirmed 2026-08-27: a ~70-body case needed RGATConv
+            # to duplicate its per-relation weight matrix (torch.index_select
+            # in message()) into a 9.26GiB buffer during real training,
+            # crashing the run. Capped to each body's K nearest neighbors by
+            # AABB-center distance instead: still gives every body *some*
+            # fallback connectivity, but bounded to O(n*K) edges regardless
+            # of n.
+            _FALLBACK_K = 6
+            pairs = set()
             for i in range(n):
-                for j in range(n):
-                    if i != j:
-                        vtag_i = str(volumes[i][1])
-                        vtag_j = str(volumes[j][1])
-                        pkey = tuple(sorted([vtag_i, vtag_j]))
-                        joint_oh = json_pair_joint.get(pkey, DEFAULT_JOINT)
-                        src.append(i); dst.append(j)
-                        eattr.append([1.0, 1.0] + joint_oh)
+                order = sorted((j for j in range(n) if j != i),
+                               key=lambda j: np.linalg.norm(centers[i] - centers[j]))
+                for j in order[:min(_FALLBACK_K, n - 1)]:
+                    pairs.add((min(i, j), max(i, j)))
+            for i, j in pairs:
+                vtag_i = str(volumes[i][1])
+                vtag_j = str(volumes[j][1])
+                pkey = tuple(sorted([vtag_i, vtag_j]))
+                joint_oh = json_pair_joint.get(pkey, DEFAULT_JOINT)
+                ea = [1.0, 1.0] + joint_oh
+                src += [i, j]; dst += [j, i]
+                eattr += [ea, ea]
 
         x          = torch.tensor(node_feats, dtype=torch.float)
         edge_index = torch.tensor([src, dst],  dtype=torch.long)
@@ -1456,8 +1473,28 @@ class AssemblyDataset(InMemoryDataset):
                     return part
             return ''
 
+        def _is_degenerate_full_mesh(g: Data) -> bool:
+            # Signature of the pre-fix O(n^2) no-contact fallback: a near-
+            # complete graph (almost every body pairs with almost every
+            # other body) on an assembly large enough for that to matter.
+            # A real physical assembly essentially never has every body
+            # touching every other body, so this only fires on graphs built
+            # under the old buggy fallback -- see the 2026-08-27 RGATConv
+            # 9.26GiB crash this was root-caused from.
+            n = g.num_nodes
+            if n < 20:
+                return False
+            max_possible = n * (n - 1)
+            return g.edge_index.size(1) >= max_possible * 0.9
+
         def _record_success(g: Data, sf: Path, cache_path: Path, elapsed: float,
-                             tag: str = "OK") -> None:
+                             tag: str = "OK") -> bool:
+            if _is_degenerate_full_mesh(g):
+                print(f"  [DEGENERATE] {sf.parent.name}/{sf.name} — "
+                      f"{g.num_nodes} nodes, {g.edge_index.size(1)} edges "
+                      f"(near-complete no-contact fallback graph) — excluded",
+                      flush=True)
+                return False
             cat = _category_of(sf)
             g.category = cat
             torch.save({"data": g, "category": cat, "source": str(sf)}, cache_path)
@@ -1467,6 +1504,7 @@ class AssemblyDataset(InMemoryDataset):
             n_dir = g.edge_index.size(1)
             print(f"  [{tag}]  {sf.parent.name}/{sf.name} — {g.num_nodes} nodes  "
                   f"{n_dir//2} edges  ({elapsed}s)", flush=True)
+            return True
 
         if step_files:
             print(f"  Found {len(step_files)} STEP file(s) in {self.source_dir}",
@@ -1489,6 +1527,16 @@ class AssemblyDataset(InMemoryDataset):
                             raise ValueError(
                                 f"cached node dim {g.x.size(1)} != current "
                                 f"NODE_FEATURE_DIM {NODE_FEATURE_DIM}")
+                        if _is_degenerate_full_mesh(g):
+                            # Cached from before the fallback-edge fix (see
+                            # _is_degenerate_full_mesh) -- invalidate so a
+                            # future reload re-parses it with the bounded
+                            # k-NN fallback instead.
+                            raise ValueError(
+                                f"cached graph is a near-complete no-contact "
+                                f"fallback mesh ({g.num_nodes} nodes, "
+                                f"{g.edge_index.size(1)} edges) — stale, "
+                                f"re-parse with the fixed fallback")
                         graphs.append(g)
                         graph_categories.append(cat)
                         source_paths.append(src)
@@ -1529,7 +1577,8 @@ class AssemblyDataset(InMemoryDataset):
                     n_errors += 1
                     continue
                 if g is not None and g.num_nodes >= 2:
-                    _record_success(g, sf, cache_path, elapsed)
+                    if not _record_success(g, sf, cache_path, elapsed):
+                        n_errors += 1
 
             print(
                 f"  Parsed {len(graphs) - n_cached} new  |  "
@@ -1577,9 +1626,9 @@ class AssemblyDataset(InMemoryDataset):
                         print(f"  [RETRY-ERROR]   {label} — parse failed", flush=True)
                         continue
                     if g is not None and g.num_nodes >= 2:
-                        _record_success(g, sf, cache_path, elapsed, tag="RETRY-OK")
-                        n_timeouts -= 1
-                        n_recovered += 1
+                        if _record_success(g, sf, cache_path, elapsed, tag="RETRY-OK"):
+                            n_timeouts -= 1
+                            n_recovered += 1
                 print(f"  Recovered {n_recovered}/{len(timed_out_files)} "
                       f"previously-timed-out file(s)  |  remaining timeouts: {n_timeouts}",
                       flush=True)

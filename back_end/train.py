@@ -18,11 +18,62 @@ import psutil
 import torch
 import torch.nn.functional as F
 import yaml
+from torch.utils.data import Sampler
 from torch_geometric.loader import DataLoader
 
 from dataset  import AssemblyDataset, get_splits
 from model    import build_model
 from evaluate import evaluate
+
+
+class EdgeBudgetBatchSampler(Sampler):
+    """
+    Packs graphs into batches by cumulative edge count rather than a fixed
+    graph count. Most assemblies are small, so a budgeted batch still packs
+    close to a normal fixed-size batch's worth of graphs -- but the corpus
+    has a handful of genuinely dense assemblies (1000-3500+ edges each,
+    e.g. some Crane_hook/Gate_Valve models), and RGATConv's per-edge
+    relation-weight duplication (torch.index_select in message()) scales
+    with the BATCH's total edge count, not any single graph's. An
+    unbudgeted fixed-size batch that happened to combine a few of these
+    needed a 9.26GiB allocation and crashed a real training run
+    (2026-08-27). A graph whose own edge count alone exceeds the budget
+    still gets included -- alone, in its own batch -- rather than dropped.
+    """
+
+    def __init__(self, data_list, max_edges: int, shuffle: bool = False, seed: int = 0):
+        self.data_list    = data_list
+        self.max_edges    = max_edges
+        self.shuffle      = shuffle
+        self.seed         = seed
+        self._epoch       = 0
+        self._edge_counts = [int(d.edge_index.size(1)) for d in data_list]
+        self._last_batches = self._make_batches()
+
+    def _make_batches(self):
+        order = list(range(len(self.data_list)))
+        if self.shuffle:
+            rng = random.Random(self.seed + self._epoch)
+            rng.shuffle(order)
+            self._epoch += 1
+        batches, cur, cur_edges = [], [], 0
+        for i in order:
+            e = self._edge_counts[i]
+            if cur and cur_edges + e > self.max_edges:
+                batches.append(cur)
+                cur, cur_edges = [], 0
+            cur.append(i)
+            cur_edges += e
+        if cur:
+            batches.append(cur)
+        return batches
+
+    def __iter__(self):
+        self._last_batches = self._make_batches()
+        yield from self._last_batches
+
+    def __len__(self):
+        return len(self._last_batches)
 
 
 # ── Category sample weights ──────────────────────────────────────────────────
@@ -297,6 +348,14 @@ def main():
     mc       = cfg["model"]
     N_FOLDS  = tc.get("n_folds", 5)
     bs       = tc["batch_size"]
+    max_edges_per_batch = tc.get("max_edges_per_batch", 3000)
+
+    def _loader(data, shuffle: bool = False):
+        return DataLoader(
+            data,
+            batch_sampler=EdgeBudgetBatchSampler(
+                data, max_edges=max_edges_per_batch, shuffle=shuffle),
+        )
 
     ckpt_dir = Path(cfg["paths"]["checkpoints"])
     ckpt_dir.mkdir(parents=True, exist_ok=True)
@@ -335,7 +394,7 @@ def main():
             _, _, test_data_prev = get_splits(dataset, cfg,
                                               fold_idx=prev, n_folds=N_FOLDS,
                                               true_5way=args.true_5way_test)
-            test_loader_prev = DataLoader(test_data_prev, batch_size=bs)
+            test_loader_prev = _loader(test_data_prev)
             prev_metrics = evaluate(gnn_tmp, lp_tmp, test_loader_prev, dev_tmp)
             fold_aucs.append(prev_metrics["auc"])
             fold_aps.append(prev_metrics["ap"])
@@ -366,9 +425,9 @@ def main():
             print(f"      [learning-curve] fold {fold+1}: subsampled train set to "
                   f"{len(train_data)}/{orig_n} graphs ({args.train_frac:.0%})")
 
-        train_loader = DataLoader(train_data, batch_size=bs, shuffle=True)
-        val_loader   = DataLoader(val_data,   batch_size=bs)
-        test_loader  = DataLoader(test_data,  batch_size=bs)
+        train_loader = _loader(train_data, shuffle=True)
+        val_loader   = _loader(val_data)
+        test_loader  = _loader(test_data)
 
         # fresh model for each fold
         gnn, lp, device = build_model(
@@ -574,7 +633,7 @@ def main():
                                  fold_idx=best_overall_fold,
                                  n_folds=N_FOLDS,
                                  true_5way=args.true_5way_test)
-    test_loader = DataLoader(test_data, batch_size=bs)
+    test_loader = _loader(test_data)
     test_metrics = evaluate(gnn, lp, test_loader, device)
     print("\n  ── Test results (best overall model) ─────")
     for k, v in test_metrics.items():

@@ -28,6 +28,16 @@ model:
 
 training:
   batch_size:   16
+  # Batches are packed by cumulative edge count (EdgeBudgetBatchSampler in
+  # train.py), not a fixed graph count -- batch_size above is now only a
+  # soft target for typical small graphs. A handful of real assemblies have
+  # 1000-3500+ edges each, and RGATConv's per-edge relation-weight
+  # duplication scales with the BATCH's total edge count -- an unbudgeted
+  # batch that combined a few of these needed a 9.26GiB allocation and
+  # crashed a real run (2026-08-27). 3000 keeps every batch safely under
+  # that failure point (with margin) while still packing typical small
+  # graphs close to batch_size per batch.
+  max_edges_per_batch: 3000
   epochs:       200
   lr:           1.0e-3
   weight_decay: 5.0e-4

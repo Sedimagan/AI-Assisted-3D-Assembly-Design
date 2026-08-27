@@ -30,7 +30,13 @@ while true; do
         continue
     fi
 
-    completed=$(grep -cE "Fold [0-9]+ test — AUC=" "$LOG" 2>/dev/null || echo 0)
+    # grep -c always prints a count (even "0") and still exits 1 when that
+    # count is zero -- the old `|| echo 0` fallback fired on that exit code
+    # too, appending a SECOND "0" and producing a literal two-line "0\n0"
+    # that crashed train.py's argparse (invalid int). Only fall back to 0
+    # when grep produced no output at all (e.g. the log file is missing).
+    completed=$(grep -cE "Fold [0-9]+ test — AUC=" "$LOG" 2>/dev/null)
+    completed=${completed:-0}
     echo "$(date '+%Y-%m-%d %H:%M:%S')  [watchdog] train.py not running, $completed fold(s) confirmed complete — resuming with --start-fold $completed" >> "$RESUME_LOG"
 
     nohup python3 -u train.py --start-fold "$completed" >> "$LOG" 2>&1 &
