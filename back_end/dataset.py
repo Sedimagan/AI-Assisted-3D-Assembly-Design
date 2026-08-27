@@ -1501,6 +1501,18 @@ class AssemblyDataset(InMemoryDataset):
                               f" {cache_err} — re-parsing", flush=True)
                         cache_path.unlink(missing_ok=True)
 
+                # CACHED_ONLY=1 skips attempting any file without an
+                # existing cache entry outright -- for when the priority is
+                # getting to model training on whatever's already parsed,
+                # not spending more time on files that have already proven
+                # difficult (used alongside SKIP_TIMEOUT_RETRY, 2026-08-27).
+                import os as _os_env
+                if _os_env.environ.get("CACHED_ONLY") == "1":
+                    print(f"  [{idx}/{len(step_files)}] [SKIPPED] {label}"
+                          f" (CACHED_ONLY=1, no cache entry)", flush=True)
+                    n_errors += 1
+                    continue
+
                 # ── Parse STEP file ───────────────────────────────────────
                 print(f"  [{idx}/{len(step_files)}] Parsing: {label}", flush=True)
                 t0 = time.time()
