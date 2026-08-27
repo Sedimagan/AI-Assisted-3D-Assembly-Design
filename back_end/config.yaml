@@ -34,10 +34,13 @@ training:
   # 1000-3500+ edges each, and RGATConv's per-edge relation-weight
   # duplication scales with the BATCH's total edge count -- an unbudgeted
   # batch that combined a few of these needed a 9.26GiB allocation and
-  # crashed a real run (2026-08-27). 3000 keeps every batch safely under
-  # that failure point (with margin) while still packing typical small
-  # graphs close to batch_size per batch.
-  max_edges_per_batch: 3000
+  # crashed a real run (2026-08-27). 3000 stopped that specific crash, but
+  # a *different* OOM then hit during loss.backward() at 3000 (MPS wanted
+  # ~23GB total vs this machine's 20.13GB MPS ceiling / 16GB physical RAM,
+  # since backprop's retained-activation memory runs well above the
+  # forward-pass-only cost the 3000 figure was sized for). Cut to 500 for
+  # real headroom under backprop, not just forward inference.
+  max_edges_per_batch: 500
   epochs:       200
   lr:           1.0e-3
   weight_decay: 5.0e-4
