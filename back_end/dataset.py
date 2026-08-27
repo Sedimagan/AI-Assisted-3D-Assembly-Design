@@ -1537,7 +1537,16 @@ class AssemblyDataset(InMemoryDataset):
             # pass has released whatever contention it created, recovers
             # most of these without needing to raise the budget for every
             # file up front.
-            if timed_out_files:
+            # SKIP_TIMEOUT_RETRY=1 bypasses this pass entirely -- useful when
+            # the retry budget itself (2x an already-lowered ceiling) is
+            # still eating hours with a near-zero recovery rate and the
+            # priority is getting to model training with whatever's already
+            # cached, not squeezing out a few more borderline files.
+            import os as _os_env
+            if timed_out_files and _os_env.environ.get("SKIP_TIMEOUT_RETRY") == "1":
+                print(f"\n  Skipping retry pass for {len(timed_out_files)} "
+                      f"timed-out file(s) (SKIP_TIMEOUT_RETRY=1)", flush=True)
+            elif timed_out_files:
                 retry_timeout = _TIMEOUT * 2
                 print(f"\n  Retrying {len(timed_out_files)} timed-out file(s) "
                       f"with {retry_timeout}s budget …", flush=True)
