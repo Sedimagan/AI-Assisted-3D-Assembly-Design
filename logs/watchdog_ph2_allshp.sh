@@ -39,7 +39,7 @@ while true; do
     completed=${completed:-0}
     echo "$(date '+%Y-%m-%d %H:%M:%S')  [watchdog] train.py not running, $completed fold(s) confirmed complete — resuming with --start-fold $completed" >> "$RESUME_LOG"
 
-    nohup python3 -u train.py --start-fold "$completed" >> "$LOG" 2>&1 &
+    nohup python3 -u train.py --start-fold "$completed" --true-5way-test >> "$LOG" 2>&1 &
     echo "$(date '+%Y-%m-%d %H:%M:%S')  [watchdog] relaunched, PID $!" >> "$RESUME_LOG"
 
     sleep 20
