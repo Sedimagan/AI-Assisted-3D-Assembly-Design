@@ -197,3 +197,5 @@
 2026-08-27 18:52:18  [watchdog] relaunched, PID 23290
 2026-08-27 21:55:07  [watchdog] train.py not running, 0 fold(s) confirmed complete — resuming with --start-fold 0
 2026-08-27 21:55:07  [watchdog] relaunched, PID 32799
+2026-08-28 01:37:55  [watchdog] train.py not running, 1 fold(s) confirmed complete — resuming with --start-fold 1
+2026-08-28 01:37:55  [watchdog] relaunched, PID 44626
