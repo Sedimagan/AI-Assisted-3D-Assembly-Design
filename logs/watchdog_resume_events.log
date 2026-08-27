@@ -9,3 +9,187 @@
 2026-08-17 02:52:47  [watchdog-p3] started, watching ../logs/ph2_final_phase3.log
 2026-08-17 10:26:15  [watchdog-p3] completion marker found — run complete, exiting watchdog.
 2026-08-24 02:06:20  [watchdog] started, watching ../logs/train_ph2_allshp_r1.log
+2026-08-24 08:48:01  [watchdog] started, watching ../logs/train_ph2_allshp_r1.log
+2026-08-24 09:59:34  [watchdog] started, watching ../logs/train_ph2_allshp_r1.log
+2026-08-24 11:08:29  [watchdog] started, watching ../logs/train_ph2_allshp_r1.log
+2026-08-24 11:23:39  [watchdog] started, watching ../logs/train_ph2_allshp_r1.log
+2026-08-25 14:51:35  [watchdog] started, watching ../logs/train_ph2_allshp_r1.log
+2026-08-25 20:27:32  [watchdog] started, watching ../logs/train_ph2_allshp_r1.log
+2026-08-27 08:22:20  [watchdog] started, watching ../logs/train_ph2_allshp_r1.log
+2026-08-27 08:27:13  [watchdog] started, watching ../logs/train_ph2_allshp_r1.log
+2026-08-27 08:40:14  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 08:40:14  [watchdog] relaunched, PID 93006
+2026-08-27 08:41:34  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 08:41:34  [watchdog] relaunched, PID 93062
+2026-08-27 08:42:54  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 08:42:54  [watchdog] relaunched, PID 93130
+2026-08-27 08:44:15  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 08:44:15  [watchdog] relaunched, PID 93163
+2026-08-27 08:45:35  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 08:45:35  [watchdog] relaunched, PID 93206
+2026-08-27 08:46:55  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 08:46:55  [watchdog] relaunched, PID 93222
+2026-08-27 08:48:15  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 08:48:15  [watchdog] relaunched, PID 93233
+2026-08-27 08:49:35  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 08:49:35  [watchdog] relaunched, PID 93247
+2026-08-27 08:50:55  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 08:50:55  [watchdog] relaunched, PID 93272
+2026-08-27 08:52:15  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 08:52:15  [watchdog] relaunched, PID 93287
+2026-08-27 08:53:35  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 08:53:35  [watchdog] relaunched, PID 93303
+2026-08-27 08:54:55  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 08:54:55  [watchdog] relaunched, PID 93316
+2026-08-27 08:56:15  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 08:56:15  [watchdog] relaunched, PID 93344
+2026-08-27 08:57:35  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 08:57:35  [watchdog] relaunched, PID 93362
+2026-08-27 08:58:55  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 08:58:55  [watchdog] relaunched, PID 93381
+2026-08-27 09:00:15  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 09:00:15  [watchdog] relaunched, PID 93402
+2026-08-27 09:01:36  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 09:01:36  [watchdog] relaunched, PID 93443
+2026-08-27 09:02:56  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 09:02:56  [watchdog] relaunched, PID 93467
+2026-08-27 09:04:16  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 09:04:16  [watchdog] relaunched, PID 93478
+2026-08-27 09:05:36  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 09:05:36  [watchdog] relaunched, PID 93503
+2026-08-27 09:06:56  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 09:06:56  [watchdog] relaunched, PID 93527
+2026-08-27 09:08:16  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 09:08:16  [watchdog] relaunched, PID 93552
+2026-08-27 09:09:36  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 09:09:36  [watchdog] relaunched, PID 93565
+2026-08-27 09:10:56  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 09:10:56  [watchdog] relaunched, PID 93595
+2026-08-27 09:12:16  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 09:12:16  [watchdog] relaunched, PID 93629
+2026-08-27 09:13:36  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 09:13:36  [watchdog] relaunched, PID 93649
+2026-08-27 09:14:56  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 09:14:56  [watchdog] relaunched, PID 93663
+2026-08-27 09:16:16  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 09:16:16  [watchdog] relaunched, PID 93690
+2026-08-27 09:17:36  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 09:17:36  [watchdog] relaunched, PID 93703
+2026-08-27 09:18:57  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 09:18:57  [watchdog] relaunched, PID 93722
+2026-08-27 09:20:17  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 09:20:17  [watchdog] relaunched, PID 93735
+2026-08-27 09:21:37  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 09:21:37  [watchdog] relaunched, PID 93757
+2026-08-27 09:22:57  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 09:22:57  [watchdog] relaunched, PID 93768
+2026-08-27 09:24:17  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 09:24:17  [watchdog] relaunched, PID 93782
+2026-08-27 09:25:37  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 09:25:37  [watchdog] relaunched, PID 93796
+2026-08-27 09:26:57  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 09:26:57  [watchdog] relaunched, PID 93838
+2026-08-27 09:28:17  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 09:28:17  [watchdog] relaunched, PID 93849
+2026-08-27 09:29:37  [watchdog] train.py not running, 0
+0 fold(s) confirmed complete — resuming with --start-fold 0
+0
+2026-08-27 09:29:37  [watchdog] relaunched, PID 93875
+2026-08-27 09:54:54  [watchdog] started, watching ../logs/train_ph2_allshp_r1.log
+2026-08-27 09:58:54  [watchdog] train.py not running, 0 fold(s) confirmed complete — resuming with --start-fold 0
+2026-08-27 09:58:54  [watchdog] relaunched, PID 94544
+2026-08-27 10:02:14  [watchdog] train.py not running, 0 fold(s) confirmed complete — resuming with --start-fold 0
+2026-08-27 10:02:14  [watchdog] relaunched, PID 94763
+2026-08-27 10:06:35  [watchdog] train.py not running, 0 fold(s) confirmed complete — resuming with --start-fold 0
+2026-08-27 10:06:35  [watchdog] relaunched, PID 94872
+2026-08-27 10:10:56  [watchdog] train.py not running, 0 fold(s) confirmed complete — resuming with --start-fold 0
+2026-08-27 10:10:56  [watchdog] relaunched, PID 95057
+2026-08-27 10:15:16  [watchdog] train.py not running, 0 fold(s) confirmed complete — resuming with --start-fold 0
+2026-08-27 10:15:16  [watchdog] relaunched, PID 95146
+2026-08-27 10:19:36  [watchdog] train.py not running, 0 fold(s) confirmed complete — resuming with --start-fold 0
+2026-08-27 10:19:36  [watchdog] relaunched, PID 95363
+2026-08-27 10:22:57  [watchdog] train.py not running, 0 fold(s) confirmed complete — resuming with --start-fold 0
+2026-08-27 10:22:57  [watchdog] relaunched, PID 95551
+2026-08-27 10:27:19  [watchdog] train.py not running, 0 fold(s) confirmed complete — resuming with --start-fold 0
+2026-08-27 10:27:19  [watchdog] relaunched, PID 95821
+2026-08-27 10:30:41  [watchdog] train.py not running, 0 fold(s) confirmed complete — resuming with --start-fold 0
+2026-08-27 10:30:41  [watchdog] relaunched, PID 96038
+2026-08-27 10:36:06  [watchdog] started, watching ../logs/train_ph2_allshp_r1.log
+2026-08-27 12:56:13  [watchdog] started, watching ../logs/train_ph2_allshp_r1.log
+2026-08-27 12:56:59  [watchdog] started, watching ../logs/train_ph2_allshp_r1.log
+2026-08-27 15:26:21  [watchdog] train.py not running, 0 fold(s) confirmed complete — resuming with --start-fold 0
+2026-08-27 15:26:21  [watchdog] relaunched, PID 11564

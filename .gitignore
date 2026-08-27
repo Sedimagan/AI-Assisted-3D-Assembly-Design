@@ -16,7 +16,9 @@ __pycache__/
 .logs/
 
 # Back-end generated
-back_end/data/processed/
+# back_end/data/processed/ intentionally tracked (2026-08-27): user wants the
+# parsed STEP->graph cache backed up hourly alongside training checkpoints,
+# since a corpus reparse from Source_3d_models/ is slow.
 back_end/data/part_bank/
 back_end/data/part_bank_archive_old_taxonomy/
 back_end/checkpoints/best.pt
