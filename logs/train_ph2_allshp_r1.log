@@ -7352,3 +7352,69 @@ Model built on mps  |  total params: 2,496,433
     [swap-guard] 96.2% swap used (batch 42/76) -- pausing 3s for extra cleanup
     [swap-guard] 97.8% swap used (batch 45/76) -- pausing 3s for extra cleanup
     batch 46/76
+    [swap-guard] 96.2% swap used (batch 48/76) -- pausing 3s for extra cleanup
+    batch 51/76
+    [swap-guard] 96.6% swap used (batch 51/76) -- pausing 3s for extra cleanup
+    [swap-guard] 98.4% swap used (batch 54/76) -- pausing 3s for extra cleanup
+    batch 56/76
+    [swap-guard] 98.6% swap used (batch 57/76) -- pausing 3s for extra cleanup
+    [swap-guard] 96.6% swap used (batch 60/76) -- pausing 3s for extra cleanup
+    batch 61/76
+    [swap-guard] 95.4% swap used (batch 63/76) -- pausing 3s for extra cleanup
+    batch 66/76
+    [swap-guard] 95.5% swap used (batch 66/76) -- pausing 3s for extra cleanup
+    [swap-guard] 98.5% swap used (batch 69/76) -- pausing 3s for extra cleanup
+    batch 71/76
+    [swap-guard] 98.0% swap used (batch 72/76) -- pausing 3s for extra cleanup
+    [swap-guard] 95.9% swap used (batch 75/76) -- pausing 3s for extra cleanup
+    batch 76/76
+    [swap-guard] 94.3% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 98.9% swap used (fold 2 epoch 68 val) -- pausing 3s for extra cleanup
+  Ep  68/200  loss=0.3218  AUC=0.9347  AP=0.9199  smoothAUC=0.9353  (2436.2s)
+  ✓ Fold 2 new best smoothed AUC=0.9353  saved.
+    batch 1/76
+    [swap-guard] 98.0% swap used (batch 3/76) -- pausing 3s for extra cleanup
+    batch 6/76
+    [swap-guard] 97.0% swap used (batch 6/76) -- pausing 3s for extra cleanup
+    [swap-guard] 97.3% swap used (batch 9/76) -- pausing 3s for extra cleanup
+    batch 11/76
+    [swap-guard] 98.1% swap used (batch 12/76) -- pausing 3s for extra cleanup
+    [swap-guard] 97.3% swap used (batch 15/76) -- pausing 3s for extra cleanup
+    batch 16/76
+    [swap-guard] 96.3% swap used (batch 18/76) -- pausing 3s for extra cleanup
+    batch 21/76
+    [swap-guard] 97.3% swap used (batch 21/76) -- pausing 3s for extra cleanup
+    [swap-guard] 98.4% swap used (batch 24/76) -- pausing 3s for extra cleanup
+    batch 26/76
+    [swap-guard] 96.1% swap used (batch 27/76) -- pausing 3s for extra cleanup
+    [swap-guard] 96.2% swap used (batch 30/76) -- pausing 3s for extra cleanup
+    batch 31/76
+    [swap-guard] 98.4% swap used (batch 33/76) -- pausing 3s for extra cleanup
+    batch 36/76
+    [swap-guard] 96.6% swap used (batch 36/76) -- pausing 3s for extra cleanup
+    [swap-guard] 96.2% swap used (batch 39/76) -- pausing 3s for extra cleanup
+    batch 41/76
+    [swap-guard] 95.2% swap used (batch 42/76) -- pausing 3s for extra cleanup
+    [swap-guard] 97.0% swap used (batch 45/76) -- pausing 3s for extra cleanup
+    batch 46/76
+    [swap-guard] 98.1% swap used (batch 48/76) -- pausing 3s for extra cleanup
+    batch 51/76
+    [swap-guard] 94.5% swap used (batch 51/76) -- pausing 3s for extra cleanup
+    [swap-guard] 96.7% swap used (batch 54/76) -- pausing 3s for extra cleanup
+    batch 56/76
+    [swap-guard] 98.3% swap used (batch 57/76) -- pausing 3s for extra cleanup
+    [swap-guard] 96.6% swap used (batch 60/76) -- pausing 3s for extra cleanup
+    batch 61/76
+    [swap-guard] 95.7% swap used (batch 63/76) -- pausing 3s for extra cleanup
+    batch 66/76
+    [swap-guard] 99.0% swap used (batch 66/76) -- pausing 3s for extra cleanup
+    [swap-guard] 96.9% swap used (batch 69/76) -- pausing 3s for extra cleanup
+    batch 71/76
+    [swap-guard] 98.2% swap used (batch 72/76) -- pausing 3s for extra cleanup
+    [swap-guard] 97.3% swap used (batch 75/76) -- pausing 3s for extra cleanup
+    batch 76/76
+    [swap-guard] 95.8% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 97.8% swap used (fold 2 epoch 69 val) -- pausing 3s for extra cleanup
+  Ep  69/200  loss=0.3105  AUC=0.9320  AP=0.9188  smoothAUC=0.9350  (2258.9s)
+    batch 1/77
+    [swap-guard] 98.6% swap used (batch 3/77) -- pausing 3s for extra cleanup
