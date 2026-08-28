@@ -201,3 +201,7 @@
 2026-08-28 01:37:55  [watchdog] relaunched, PID 44626
 2026-08-28 04:25:46  [watchdog] train.py not running, 1 fold(s) confirmed complete — resuming with --start-fold 1
 2026-08-28 04:25:46  [watchdog] relaunched, PID 52599
+2026-08-28 11:47:09  [manual] watchdog process (PID 3589) appears stalled -- train.py crashed (torch.save Operation-not-permitted, likely iCloud sync file lock) at ~epoch29 of fold2, but watchdog did not relaunch within 4+ min of polling. Manually relaunching with --start-fold 1 --true-5way-test.
+2026-08-28 11:47:09  [manual] relaunched, PID 69220
+2026-08-28 11:47:41  [watchdog] started, watching ../logs/train_ph2_allshp_r1.log
+2026-08-28 11:47:43  [manual] restarted watchdog under caffeinate -i (PID 69245) to prevent macOS idle-sleep from stalling its poll loop again
