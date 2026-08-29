@@ -9619,3 +9619,24 @@ Model built on mps  |  total params: 2,496,433
     [swap-guard] 97.4% swap used (batch 24/78) -- pausing 3s for extra cleanup
     batch 26/78
     [swap-guard] 96.3% swap used (batch 27/78) -- pausing 3s for extra cleanup
+    [swap-guard] 98.5% swap used (batch 30/78) -- pausing 3s for extra cleanup
+    batch 31/78
+    [swap-guard] 97.9% swap used (batch 33/78) -- pausing 3s for extra cleanup
+    batch 36/78
+    [swap-guard] 98.3% swap used (batch 36/78) -- pausing 3s for extra cleanup
+    [swap-guard] 97.1% swap used (batch 39/78) -- pausing 3s for extra cleanup
+    batch 41/78
+    [swap-guard] 96.8% swap used (batch 42/78) -- pausing 3s for extra cleanup
+    [swap-guard] 97.3% swap used (batch 45/78) -- pausing 3s for extra cleanup
+    batch 46/78
+    [swap-guard] 98.0% swap used (batch 48/78) -- pausing 3s for extra cleanup
+    batch 51/78
+    [swap-guard] 98.3% swap used (batch 51/78) -- pausing 3s for extra cleanup
+    [swap-guard] 98.0% swap used (batch 54/78) -- pausing 3s for extra cleanup
+    batch 56/78
+    [swap-guard] 96.8% swap used (batch 57/78) -- pausing 3s for extra cleanup
+    [swap-guard] 96.7% swap used (batch 60/78) -- pausing 3s for extra cleanup
+    batch 61/78
+    [swap-guard] 97.0% swap used (batch 63/78) -- pausing 3s for extra cleanup
+    batch 66/78
+    [swap-guard] 97.4% swap used (batch 66/78) -- pausing 3s for extra cleanup
