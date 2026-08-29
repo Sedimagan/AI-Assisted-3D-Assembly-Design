@@ -9640,3 +9640,21 @@ Model built on mps  |  total params: 2,496,433
     [swap-guard] 97.0% swap used (batch 63/78) -- pausing 3s for extra cleanup
     batch 66/78
     [swap-guard] 97.4% swap used (batch 66/78) -- pausing 3s for extra cleanup
+    [swap-guard] 98.7% swap used (batch 69/78) -- pausing 3s for extra cleanup
+    batch 71/78
+    [swap-guard] 98.7% swap used (batch 72/78) -- pausing 3s for extra cleanup
+    [swap-guard] 97.2% swap used (batch 75/78) -- pausing 3s for extra cleanup
+    [swap-guard] 97.2% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 98.2% swap used (fold 2 epoch 121 val) -- pausing 3s for extra cleanup
+  Ep 121/200  loss=0.2381  AUC=0.9400  AP=0.9270  smoothAUC=0.9388  (7123.9s)
+    batch 1/75
+    [swap-guard] 98.7% swap used (batch 3/75) -- pausing 3s for extra cleanup
+    batch 6/75
+    [swap-guard] 97.1% swap used (batch 6/75) -- pausing 3s for extra cleanup
+    [swap-guard] 97.8% swap used (batch 9/75) -- pausing 3s for extra cleanup
+    batch 11/75
+    [swap-guard] 97.1% swap used (batch 12/75) -- pausing 3s for extra cleanup
+    [swap-guard] 98.3% swap used (batch 15/75) -- pausing 3s for extra cleanup
+    batch 16/75
+    [swap-guard] 97.3% swap used (batch 18/75) -- pausing 3s for extra cleanup
+    batch 21/75
