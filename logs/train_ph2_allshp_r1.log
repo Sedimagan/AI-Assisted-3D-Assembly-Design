@@ -9551,3 +9551,36 @@ Model built on mps  |  total params: 2,496,433
     batch 61/77
     [swap-guard] 97.9% swap used (batch 63/77) -- pausing 3s for extra cleanup
     batch 66/77
+    [swap-guard] 96.3% swap used (batch 66/77) -- pausing 3s for extra cleanup
+    [swap-guard] 96.2% swap used (batch 69/77) -- pausing 3s for extra cleanup
+    batch 71/77
+    [swap-guard] 97.9% swap used (batch 72/77) -- pausing 3s for extra cleanup
+    [swap-guard] 95.3% swap used (batch 75/77) -- pausing 3s for extra cleanup
+    [swap-guard] 95.3% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 98.8% swap used (fold 2 epoch 119 val) -- pausing 3s for extra cleanup
+  Ep 119/200  loss=0.2399  AUC=0.9373  AP=0.9242  smoothAUC=0.9385  (4725.4s)
+    batch 1/75
+    [swap-guard] 96.3% swap used (batch 3/75) -- pausing 3s for extra cleanup
+    batch 6/75
+    [swap-guard] 95.0% swap used (batch 6/75) -- pausing 3s for extra cleanup
+    [swap-guard] 97.5% swap used (batch 9/75) -- pausing 3s for extra cleanup
+    batch 11/75
+    [swap-guard] 96.3% swap used (batch 12/75) -- pausing 3s for extra cleanup
+    [swap-guard] 97.0% swap used (batch 15/75) -- pausing 3s for extra cleanup
+    batch 16/75
+    [swap-guard] 96.5% swap used (batch 18/75) -- pausing 3s for extra cleanup
+    batch 21/75
+    [swap-guard] 97.7% swap used (batch 21/75) -- pausing 3s for extra cleanup
+    [swap-guard] 95.4% swap used (batch 24/75) -- pausing 3s for extra cleanup
+    batch 26/75
+    [swap-guard] 97.2% swap used (batch 27/75) -- pausing 3s for extra cleanup
+    [swap-guard] 98.4% swap used (batch 30/75) -- pausing 3s for extra cleanup
+    batch 31/75
+    [swap-guard] 96.1% swap used (batch 33/75) -- pausing 3s for extra cleanup
+    batch 36/75
+    [swap-guard] 94.7% swap used (batch 36/75) -- pausing 3s for extra cleanup
+    [swap-guard] 98.3% swap used (batch 39/75) -- pausing 3s for extra cleanup
+    batch 41/75
+    [swap-guard] 97.4% swap used (batch 42/75) -- pausing 3s for extra cleanup
+    [swap-guard] 95.4% swap used (batch 45/75) -- pausing 3s for extra cleanup
+    batch 46/75
