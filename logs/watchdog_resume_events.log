@@ -207,3 +207,5 @@
 2026-08-28 11:47:43  [manual] restarted watchdog under caffeinate -i (PID 69245) to prevent macOS idle-sleep from stalling its poll loop again
 2026-08-29 04:36:38  [watchdog] train.py not running, 1 fold(s) confirmed complete — resuming with --start-fold 1
 2026-08-29 04:36:38  [watchdog] relaunched, PID 98777
+2026-08-30 00:37:08  [watchdog] train.py not running, 1 fold(s) confirmed complete — resuming with --start-fold 1
+2026-08-30 00:37:08  [watchdog] relaunched, PID 29819
