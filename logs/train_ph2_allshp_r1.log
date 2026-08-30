@@ -14532,3 +14532,90 @@ Model built on mps  |  total params: 2,496,433
     [swap-guard] 95.2% swap used (batch 66/77) -- pausing 3s for extra cleanup
     [swap-guard] 94.2% swap used (batch 69/77) -- pausing 3s for extra cleanup
     batch 71/77
+    [swap-guard] 94.4% swap used (batch 72/77) -- pausing 3s for extra cleanup
+
+[1/4] Loading dataset …
+      648 graphs loaded.
+      Dataset: 648 graphs | mean nodes=38.8 | mean edges=144.3 | categories: Bench_vice=104 C_Clamps=106 Crane_hook=101 Gate_Valve=55 Pipe_vice=98 Press_Tool=96 Tool_Post=88
+
+[2/4] Building model …  (5-fold CV)
+
+  Resuming from fold 2 — loading prior checkpoints …
+Model built on mps  |  total params: 2,496,433
+    [DIAG] graph 35: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+    [DIAG] graph 123: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 138: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 157: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 187: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 78: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 110: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+  Fold 1/5 — train: 414  val: 104  test: 130
+  Fold 1: AUC=0.9370  AP=0.9157  (from checkpoint, random=0.5000)
+Model built on mps  |  total params: 2,496,433
+    [DIAG] graph 78: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+    [DIAG] graph 110: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 123: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 157: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 187: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 35: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 138: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+  Fold 2/5 — train: 414  val: 104  test: 130
+  Fold 2: AUC=0.9050  AP=0.8881  (from checkpoint, random=0.5000)
+
+[3/4] Training (5 folds) …
+
+=======================================================
+  FOLD 3 / 5
+=======================================================
+    [DIAG] graph 35: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+    [DIAG] graph 110: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 123: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 138: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 187: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 78: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 157: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+  Fold 3/5 — train: 414  val: 104  test: 130
+Model built on mps  |  total params: 2,496,433
+  Resuming fold 3 from epoch 77 (checkpoint best smoothed AUC=0.9339) …
+    batch 1/77
+    batch 6/77
+    batch 11/77
+    batch 16/77
+    batch 21/77
+    batch 26/77
+    batch 31/77
+    batch 36/77
+    [swap-guard] 94.2% swap used (batch 36/77) -- pausing 3s for extra cleanup
+    [swap-guard] 92.5% swap used (batch 39/77) -- pausing 3s for extra cleanup
+    batch 41/77
+    [swap-guard] 91.4% swap used (batch 42/77) -- pausing 3s for extra cleanup
+    batch 46/77
+    batch 51/77
+    batch 56/77
+    batch 61/77
+    batch 66/77
+    batch 71/77
+    batch 76/77
+  Ep  77/200  loss=0.2779  AUC=0.9313  AP=0.9129  smoothAUC=0.9329  (185.5s)
+    batch 1/79
+    batch 6/79
+    batch 11/79
+    batch 16/79
+    batch 21/79
+    batch 26/79
+    batch 31/79
+    batch 36/79
+    batch 41/79
+    batch 46/79
+    batch 51/79
+    batch 56/79
+    batch 61/79
+    batch 66/79
+    batch 71/79
+    [swap-guard] 92.6% swap used (batch 75/79) -- pausing 3s for extra cleanup
