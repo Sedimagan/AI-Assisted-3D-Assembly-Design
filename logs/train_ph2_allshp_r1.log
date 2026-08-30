@@ -12884,3 +12884,17 @@ Model built on mps  |  total params: 2,496,433
   Ep  34/200  loss=0.4024  AUC=0.9186  AP=0.9012  smoothAUC=0.9176  (4151.3s)
   ✓ Fold 3 new best smoothed AUC=0.9176  saved.
     batch 1/76
+    [swap-guard] 98.6% swap used (batch 3/76) -- pausing 3s for extra cleanup
+    batch 6/76
+    [swap-guard] 94.4% swap used (batch 6/76) -- pausing 3s for extra cleanup
+    [swap-guard] 96.2% swap used (batch 9/76) -- pausing 3s for extra cleanup
+    batch 11/76
+    [swap-guard] 96.2% swap used (batch 12/76) -- pausing 3s for extra cleanup
+    [swap-guard] 95.1% swap used (batch 15/76) -- pausing 3s for extra cleanup
+    batch 16/76
+    [swap-guard] 97.9% swap used (batch 18/76) -- pausing 3s for extra cleanup
+    batch 21/76
+    [swap-guard] 94.8% swap used (batch 21/76) -- pausing 3s for extra cleanup
+    [swap-guard] 96.8% swap used (batch 24/76) -- pausing 3s for extra cleanup
+    batch 26/76
+    [swap-guard] 96.4% swap used (batch 27/76) -- pausing 3s for extra cleanup
