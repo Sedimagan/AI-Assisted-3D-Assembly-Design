@@ -11384,3 +11384,73 @@ Model built on mps  |  total params: 2,496,433
     batch 1/78
     batch 6/78
     [swap-guard] 94.0% swap used (batch 6/78) -- pausing 3s for extra cleanup
+    batch 11/78
+    batch 16/78
+    batch 21/78
+    batch 26/78
+    batch 31/78
+    batch 36/78
+    batch 41/78
+    batch 46/78
+    batch 51/78
+    batch 56/78
+    batch 61/78
+    batch 66/78
+    [swap-guard] 90.9% swap used (batch 66/78) -- pausing 3s for extra cleanup
+    batch 71/78
+    [swap-guard] 93.9% swap used (batch 72/78) -- pausing 3s for extra cleanup
+    batch 76/78
+  Ep 147/200  loss=0.1842  AUC=0.9388  AP=0.9246  smoothAUC=0.9397  (233.1s)
+    batch 1/76
+    batch 6/76
+    batch 11/76
+    batch 16/76
+    batch 21/76
+    [swap-guard] 94.7% swap used (batch 24/76) -- pausing 3s for extra cleanup
+    batch 26/76
+    [swap-guard] 92.3% swap used (batch 27/76) -- pausing 3s for extra cleanup
+    [swap-guard] 91.3% swap used (batch 30/76) -- pausing 3s for extra cleanup
+    batch 31/76
+    [swap-guard] 90.7% swap used (batch 33/76) -- pausing 3s for extra cleanup
+    batch 36/76
+    batch 41/76
+    [swap-guard] 90.2% swap used (batch 42/76) -- pausing 3s for extra cleanup
+    batch 46/76
+    batch 51/76
+    batch 56/76
+    [swap-guard] 93.5% swap used (batch 57/76) -- pausing 3s for extra cleanup
+    batch 61/76
+    batch 66/76
+    [swap-guard] 91.2% swap used (batch 66/76) -- pausing 3s for extra cleanup
+    batch 71/76
+    [swap-guard] 91.5% swap used (batch 72/76) -- pausing 3s for extra cleanup
+    [swap-guard] 90.7% swap used (epoch end) -- pausing 3s for extra cleanup
+  Ep 148/200  loss=0.1785  AUC=0.9378  AP=0.9239  smoothAUC=0.9387  (264.8s)
+
+  Early stopping at epoch 148.
+
+  Fold 2 test — AUC=0.9050  AP=0.8881  (random=0.5000)
+
+=======================================================
+  FOLD 3 / 5
+=======================================================
+    [DIAG] graph 35: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+    [DIAG] graph 110: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 123: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 138: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 187: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 78: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 157: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+  Fold 3/5 — train: 414  val: 104  test: 130
+Model built on mps  |  total params: 2,496,433
+    batch 1/77
+    batch 6/77
+    batch 11/77
+    [swap-guard] 92.7% swap used (batch 15/77) -- pausing 3s for extra cleanup
+    batch 16/77
+    batch 21/77
+    batch 26/77
+    [swap-guard] 91.2% swap used (batch 30/77) -- pausing 3s for extra cleanup
+    batch 31/77
