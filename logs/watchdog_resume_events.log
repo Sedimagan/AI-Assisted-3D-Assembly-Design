@@ -253,3 +253,4 @@
  2 files changed, 83 insertions(+)
 2026-08-31 03:51:28  [watchdog] train.py not running, 3 fold(s) confirmed complete — resuming with --start-fold 3
 2026-08-31 03:51:28  [watchdog] relaunched, PID 92197
+2026-08-31 04:00:49  [watchdog] fold 4 epoch 31 running 481s (>= 480s), restarting to clear swap/MPS degradation -- committing progress and restarting
