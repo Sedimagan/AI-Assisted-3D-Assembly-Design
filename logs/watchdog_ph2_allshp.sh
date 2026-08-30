@@ -23,14 +23,40 @@ source ../.venv/bin/activate
 # -> 3-6min/epoch) -- restarting isn't just recovery, it's a real speedup.
 # Fold 2 is excluded: it's already being handled by a separate reduced-
 # patience workaround and shouldn't have a second restart mechanism racing
-# it. STALL_TIMEOUT is silence (no new log bytes) in seconds, not epoch
-# duration -- train_epoch() prints a "batch i/n" line every 5 batches, so a
-# healthy-but-slow epoch still writes to the log every couple minutes at
-# worst; 20 minutes of total silence is well above that and only fires on a
-# genuine stall (the observed fold-2 test-eval hang went 1h+ with zero
-# output).
+# it. Two independent triggers, either one fires a restart:
+#   1. STALL_TIMEOUT: total log silence (no new bytes at all) -- catches a
+#      genuine hang like the fold-2 test-eval stall (1h+ with zero output).
+#   2. EPOCH_STALL_TIMEOUT: the CURRENT epoch alone has been running longer
+#      than this, even while the log keeps growing with batch-progress
+#      lines -- added 2026-08-30 per user request, since epochs were
+#      observed climbing from ~5min to 30-70min across a single fold as
+#      swap pressure built up, well before 20min of total silence would
+#      ever trigger. Tracked via a small state file recording the last
+#      completed epoch number and when we first saw it; if that number
+#      hasn't advanced within EPOCH_STALL_TIMEOUT seconds, the epoch
+#      after it is considered stuck.
+# NOTE: with epoch times already reaching 8-30min even during otherwise
+# healthy training later in a fold, an 8min threshold WILL fire repeatedly
+# through the back half of a fold, not just on a truly pathological epoch --
+# accepted as a reasonable trade since every restart this run has been a
+# net win (checkpoint-safe, pace snaps back afterward).
 STALL_TIMEOUT=1200
+EPOCH_STALL_TIMEOUT=480
 STALL_MIN_FOLD=3
+EPOCH_STATE_FILE="../logs/.fold3plus_epoch_watch"
+
+do_stall_restart() {
+    local reason="$1"
+    echo "$(date '+%Y-%m-%d %H:%M:%S')  [watchdog] $reason -- committing progress and restarting" >> "$RESUME_LOG"
+    (
+        cd "$REPO_ROOT" && \
+        git add back_end/checkpoints/ back_end/data/processed/ logs/train_ph2_allshp_r1.log logs/watchdog_resume_events.log 2>/dev/null && \
+        git commit -m "Auto-restart backup: $reason" 2>/dev/null && \
+        git push 2>/dev/null
+    ) >> "$RESUME_LOG" 2>&1
+    pkill -9 -f "train.py" 2>/dev/null
+    sleep 2
+}
 
 echo "$(date '+%Y-%m-%d %H:%M:%S')  [watchdog] started, watching $LOG" >> "$RESUME_LOG"
 
@@ -51,19 +77,33 @@ while true; do
             now_ts=$(date +%s)
             silence=$(( now_ts - log_mtime ))
             if [ "$silence" -ge "$STALL_TIMEOUT" ]; then
-                echo "$(date '+%Y-%m-%d %H:%M:%S')  [watchdog] STALL detected on fold $cur_fold: log silent for ${silence}s (>= ${STALL_TIMEOUT}s) -- committing progress and restarting" >> "$RESUME_LOG"
-                (
-                    cd "$REPO_ROOT" && \
-                    git add back_end/checkpoints/ back_end/data/processed/ logs/train_ph2_allshp_r1.log logs/watchdog_resume_events.log 2>/dev/null && \
-                    git commit -m "Auto-restart backup: fold $cur_fold stalled ${silence}s, restarting to clear swap/MPS degradation" 2>/dev/null && \
-                    git push 2>/dev/null
-                ) >> "$RESUME_LOG" 2>&1
-                pkill -9 -f "train.py" 2>/dev/null
-                sleep 2
+                do_stall_restart "fold $cur_fold stalled ${silence}s (total log silence), restarting to clear swap/MPS degradation"
+                rm -f "$EPOCH_STATE_FILE"
+                continue
+            fi
+
+            cur_epoch=$(grep -oE "Ep +[0-9]+/200" "$LOG" 2>/dev/null | tail -1 | grep -oE "[0-9]+" | head -1)
+            cur_epoch=${cur_epoch:-0}
+            case "$cur_epoch" in ''|*[!0-9]*) cur_epoch=0 ;; esac
+            stored_epoch=""
+            stored_ts="$now_ts"
+            if [ -f "$EPOCH_STATE_FILE" ]; then
+                read -r stored_epoch stored_ts < "$EPOCH_STATE_FILE" 2>/dev/null
+                stored_ts=${stored_ts:-$now_ts}
+            fi
+            if [ "$cur_epoch" != "$stored_epoch" ]; then
+                echo "$cur_epoch $now_ts" > "$EPOCH_STATE_FILE"
+            else
+                epoch_elapsed=$(( now_ts - stored_ts ))
+                if [ "$epoch_elapsed" -ge "$EPOCH_STALL_TIMEOUT" ]; then
+                    do_stall_restart "fold $cur_fold epoch $((cur_epoch + 1)) running ${epoch_elapsed}s (>= ${EPOCH_STALL_TIMEOUT}s), restarting to clear swap/MPS degradation"
+                    echo "$cur_epoch $now_ts" > "$EPOCH_STATE_FILE"
+                fi
             fi
         fi
         continue
     fi
+    rm -f "$EPOCH_STATE_FILE"
 
     # grep -c always prints a count (even "0") and still exits 1 when that
     # count is zero -- the old `|| echo 0` fallback fired on that exit code
