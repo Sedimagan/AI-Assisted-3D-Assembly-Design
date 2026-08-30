@@ -213,3 +213,4 @@
 2026-08-30 08:42:11  [watchdog] relaunched, PID 43855
 2026-08-30 08:50:05  [watchdog] started, watching ../logs/train_ph2_allshp_r1.log
 2026-08-30 17:07:53  [watchdog] started, watching ../logs/train_ph2_allshp_r1.log
+2026-08-30 17:16:54  [watchdog] fold 3 epoch 35 running 481s (>= 480s), restarting to clear swap/MPS degradation -- committing progress and restarting
