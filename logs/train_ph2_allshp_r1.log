@@ -23087,3 +23087,55 @@ Model built on mps  |  total params: 2,496,433
     [swap-guard] 91.6% swap used (batch 54/77) -- pausing 3s for extra cleanup
     batch 56/77
     [swap-guard] 96.9% swap used (batch 57/77) -- pausing 3s for extra cleanup
+    [swap-guard] 96.3% swap used (batch 60/77) -- pausing 3s for extra cleanup
+    batch 61/77
+    [swap-guard] 94.8% swap used (batch 63/77) -- pausing 3s for extra cleanup
+    batch 66/77
+    [swap-guard] 94.0% swap used (batch 66/77) -- pausing 3s for extra cleanup
+    [swap-guard] 93.6% swap used (batch 69/77) -- pausing 3s for extra cleanup
+    batch 71/77
+    [swap-guard] 97.5% swap used (batch 72/77) -- pausing 3s for extra cleanup
+    [swap-guard] 96.0% swap used (batch 75/77) -- pausing 3s for extra cleanup
+    [swap-guard] 95.9% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 94.7% swap used (fold 4 epoch 59 val) -- pausing 3s for extra cleanup
+  Ep  59/200  loss=0.3190  AUC=0.8511  AP=0.8167  smoothAUC=0.8509  (450.7s)
+
+  Early stopping at epoch 59.
+
+  Fold 4 test — AUC=0.9217  AP=0.9025  (random=0.5000)
+    [swap-guard] 96.7% swap used (fold 4 boundary) -- pausing 3s for extra cleanup
+
+=======================================================
+  FOLD 5 / 5
+=======================================================
+    [DIAG] graph 35: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+    [DIAG] graph 78: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 123: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 138: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 157: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 187: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 110: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+  Fold 5/5 — train: 415  val: 104  test: 129
+Model built on mps  |  total params: 2,496,433
+    batch 1/82
+    [swap-guard] 98.0% swap used (batch 3/82) -- pausing 3s for extra cleanup
+    batch 6/82
+    [swap-guard] 95.8% swap used (batch 6/82) -- pausing 3s for extra cleanup
+    [swap-guard] 95.7% swap used (batch 9/82) -- pausing 3s for extra cleanup
+    batch 11/82
+    [swap-guard] 91.1% swap used (batch 12/82) -- pausing 3s for extra cleanup
+    [swap-guard] 95.6% swap used (batch 15/82) -- pausing 3s for extra cleanup
+    batch 16/82
+    [swap-guard] 95.0% swap used (batch 18/82) -- pausing 3s for extra cleanup
+    batch 21/82
+    [swap-guard] 94.6% swap used (batch 21/82) -- pausing 3s for extra cleanup
+    [swap-guard] 94.1% swap used (batch 24/82) -- pausing 3s for extra cleanup
+    batch 26/82
+    [swap-guard] 95.1% swap used (batch 27/82) -- pausing 3s for extra cleanup
+    [swap-guard] 93.2% swap used (batch 30/82) -- pausing 3s for extra cleanup
+    batch 31/82
+    [swap-guard] 92.6% swap used (batch 33/82) -- pausing 3s for extra cleanup
+    batch 36/82
+    [swap-guard] 95.6% swap used (batch 36/82) -- pausing 3s for extra cleanup
