@@ -25088,3 +25088,71 @@ Model built on mps  |  total params: 2,496,433
     [DIAG] graph 78: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
     [DIAG] graph 157: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
   Fold 3/5 — train: 414  val: 104  test: 130
+  Fold 3: AUC=0.9138  AP=0.8919  (from checkpoint, random=0.5000)
+Model built on mps  |  total params: 2,496,433
+    [DIAG] graph 78: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+    [DIAG] graph 138: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 157: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 35: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 110: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 123: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 187: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+  Fold 4/5 — train: 415  val: 104  test: 129
+  Fold 4: AUC=0.9217  AP=0.9025  (from checkpoint, random=0.5000)
+
+[3/4] Training (5 folds) …
+
+=======================================================
+  FOLD 5 / 5
+=======================================================
+    [DIAG] graph 35: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+    [DIAG] graph 78: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 123: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 138: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 157: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 187: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 110: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+  Fold 5/5 — train: 415  val: 104  test: 129
+Model built on mps  |  total params: 2,496,433
+  Resuming fold 5 from epoch 30 (checkpoint best smoothed AUC=0.8911) …
+    batch 1/82
+    batch 6/82
+    batch 11/82
+    batch 16/82
+    batch 21/82
+    batch 26/82
+    batch 31/82
+    batch 36/82
+    batch 41/82
+    batch 46/82
+    batch 51/82
+    batch 56/82
+    batch 61/82
+    batch 66/82
+    batch 71/82
+    batch 76/82
+  Ep  30/200  loss=0.4158  AUC=0.8901  AP=0.8670  smoothAUC=0.8908  (269.4s)
+    batch 1/80
+    batch 6/80
+    batch 11/80
+    batch 16/80
+    batch 21/80
+    batch 26/80
+    batch 31/80
+    batch 36/80
+    batch 41/80
+    batch 46/80
+    batch 51/80
+    batch 56/80
+    batch 61/80
+    batch 66/80
+    batch 71/80
+    batch 76/80
+    batch 81/80
+  Ep  31/200  loss=0.4080  AUC=0.8921  AP=0.8687  smoothAUC=0.8910  (291.2s)
+    batch 1/82
+    batch 6/82
