@@ -20099,3 +20099,18 @@ Model built on mps  |  total params: 2,496,433
 Model built on mps  |  total params: 2,496,433
   Resuming fold 4 from epoch 61 (checkpoint best smoothed AUC=0.8589) …
     batch 1/75
+    [swap-guard] 91.2% swap used (batch 3/75) -- pausing 3s for extra cleanup
+    batch 6/75
+    batch 11/75
+    batch 16/75
+    batch 21/75
+    batch 26/75
+    batch 31/75
+    batch 36/75
+    batch 41/75
+    batch 46/75
+    batch 51/75
+    batch 56/75
+    batch 61/75
+    batch 66/75
+    batch 71/75
