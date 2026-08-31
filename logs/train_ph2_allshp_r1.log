@@ -20364,3 +20364,344 @@ Model built on mps  |  total params: 2,496,433
     batch 61/75
     batch 66/75
     batch 71/75
+
+[1/4] Loading dataset …
+      648 graphs loaded.
+      Dataset: 648 graphs | mean nodes=38.8 | mean edges=144.3 | categories: Bench_vice=104 C_Clamps=106 Crane_hook=101 Gate_Valve=55 Pipe_vice=98 Press_Tool=96 Tool_Post=88
+
+[2/4] Building model …  (5-fold CV)
+
+  Resuming from fold 3 — loading prior checkpoints …
+Model built on mps  |  total params: 2,496,433
+    [DIAG] graph 35: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+    [DIAG] graph 123: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 138: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 157: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 187: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 78: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 110: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+  Fold 1/5 — train: 414  val: 104  test: 130
+  Fold 1: AUC=0.9370  AP=0.9157  (from checkpoint, random=0.5000)
+Model built on mps  |  total params: 2,496,433
+    [DIAG] graph 78: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+    [DIAG] graph 110: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 123: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 157: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 187: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 35: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 138: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+  Fold 2/5 — train: 414  val: 104  test: 130
+  Fold 2: AUC=0.9050  AP=0.8881  (from checkpoint, random=0.5000)
+Model built on mps  |  total params: 2,496,433
+    [DIAG] graph 35: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+    [DIAG] graph 110: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 123: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 138: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 187: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 78: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 157: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+  Fold 3/5 — train: 414  val: 104  test: 130
+  Fold 3: AUC=0.9138  AP=0.8919  (from checkpoint, random=0.5000)
+
+[3/4] Training (5 folds) …
+
+=======================================================
+  FOLD 4 / 5
+=======================================================
+    [DIAG] graph 78: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+    [DIAG] graph 138: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 157: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 35: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 110: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 123: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 187: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+  Fold 4/5 — train: 415  val: 104  test: 129
+Model built on mps  |  total params: 2,496,433
+    batch 1/75
+    batch 6/75
+    batch 11/75
+    batch 16/75
+    batch 21/75
+    batch 26/75
+    batch 31/75
+    batch 36/75
+    batch 41/75
+    batch 46/75
+    batch 51/75
+    batch 56/75
+    batch 61/75
+    batch 66/75
+    batch 71/75
+  Ep   1/200  loss=0.8688  AUC=0.6521  AP=0.6397  smoothAUC=0.6521  (268.0s)
+  ✓ Fold 4 new best smoothed AUC=0.6521  saved.
+    batch 1/75
+    batch 6/75
+    batch 11/75
+    batch 16/75
+    batch 21/75
+    batch 26/75
+    batch 31/75
+    batch 36/75
+    batch 41/75
+    batch 46/75
+    batch 51/75
+    batch 56/75
+    batch 61/75
+    batch 66/75
+    batch 71/75
+    batch 76/75
+  Ep   2/200  loss=0.8238  AUC=0.6834  AP=0.6502  smoothAUC=0.6678  (138.3s)
+  ✓ Fold 4 new best smoothed AUC=0.6678  saved.
+    batch 1/76
+    batch 6/76
+    batch 11/76
+    batch 16/76
+    batch 21/76
+    batch 26/76
+    batch 31/76
+    batch 36/76
+    batch 41/76
+    [swap-guard] 91.5% swap used (batch 45/76) -- pausing 3s for extra cleanup
+    batch 46/76
+    batch 51/76
+    [swap-guard] 92.7% swap used (batch 54/76) -- pausing 3s for extra cleanup
+    batch 56/76
+    batch 61/76
+    batch 66/76
+    batch 71/76
+    [swap-guard] 92.8% swap used (fold 4 epoch 3 val) -- pausing 3s for extra cleanup
+  Ep   3/200  loss=0.7779  AUC=0.7090  AP=0.6745  smoothAUC=0.6815  (178.7s)
+  ✓ Fold 4 new best smoothed AUC=0.6815  saved.
+    batch 1/75
+    batch 6/75
+    batch 11/75
+    batch 16/75
+    batch 21/75
+    batch 26/75
+    batch 31/75
+    batch 36/75
+    batch 41/75
+    batch 46/75
+    batch 51/75
+    batch 56/75
+    batch 61/75
+    batch 66/75
+    batch 71/75
+  Ep   4/200  loss=0.7316  AUC=0.7790  AP=0.7356  smoothAUC=0.7238  (150.2s)
+  ✓ Fold 4 new best smoothed AUC=0.7238  saved.
+    batch 1/74
+    batch 6/74
+    batch 11/74
+    [swap-guard] 90.5% swap used (batch 12/74) -- pausing 3s for extra cleanup
+    batch 16/74
+    batch 21/74
+    batch 26/74
+    batch 31/74
+    batch 36/74
+    batch 41/74
+    batch 46/74
+    batch 51/74
+    batch 56/74
+    batch 61/74
+    batch 66/74
+    batch 71/74
+  Ep   5/200  loss=0.6726  AUC=0.8086  AP=0.7783  smoothAUC=0.7655  (172.4s)
+  ✓ Fold 4 new best smoothed AUC=0.7655  saved.
+    batch 1/75
+    batch 6/75
+    batch 11/75
+    batch 16/75
+    batch 21/75
+    batch 26/75
+    [swap-guard] 96.5% swap used (batch 30/75) -- pausing 3s for extra cleanup
+    batch 31/75
+    [swap-guard] 94.6% swap used (batch 33/75) -- pausing 3s for extra cleanup
+    batch 36/75
+    [swap-guard] 93.6% swap used (batch 36/75) -- pausing 3s for extra cleanup
+    [swap-guard] 93.0% swap used (batch 39/75) -- pausing 3s for extra cleanup
+    batch 41/75
+    [swap-guard] 92.5% swap used (batch 42/75) -- pausing 3s for extra cleanup
+    batch 46/75
+    batch 51/75
+    batch 56/75
+    [swap-guard] 90.9% swap used (batch 60/75) -- pausing 3s for extra cleanup
+    batch 61/75
+    batch 66/75
+    [swap-guard] 90.5% swap used (batch 69/75) -- pausing 3s for extra cleanup
+    batch 71/75
+    batch 76/75
+  Ep   6/200  loss=0.6285  AUC=0.7829  AP=0.7338  smoothAUC=0.7901  (193.5s)
+  ✓ Fold 4 new best smoothed AUC=0.7901  saved.
+    batch 1/76
+    [swap-guard] 90.9% swap used (batch 3/76) -- pausing 3s for extra cleanup
+    batch 6/76
+    [swap-guard] 91.6% swap used (batch 9/76) -- pausing 3s for extra cleanup
+    batch 11/76
+    [swap-guard] 90.7% swap used (batch 12/76) -- pausing 3s for extra cleanup
+    batch 16/76
+    batch 21/76
+    batch 26/76
+    batch 31/76
+    batch 36/76
+    batch 41/76
+    batch 46/76
+    batch 51/76
+    [swap-guard] 92.9% swap used (batch 51/76) -- pausing 3s for extra cleanup
+    [swap-guard] 92.1% swap used (batch 54/76) -- pausing 3s for extra cleanup
+    batch 56/76
+    [swap-guard] 94.6% swap used (batch 57/76) -- pausing 3s for extra cleanup
+    [swap-guard] 94.6% swap used (batch 60/76) -- pausing 3s for extra cleanup
+    batch 61/76
+    [swap-guard] 93.7% swap used (batch 63/76) -- pausing 3s for extra cleanup
+    batch 66/76
+    [swap-guard] 92.8% swap used (batch 66/76) -- pausing 3s for extra cleanup
+    [swap-guard] 92.3% swap used (batch 69/76) -- pausing 3s for extra cleanup
+    batch 71/76
+    [swap-guard] 91.7% swap used (batch 72/76) -- pausing 3s for extra cleanup
+    [swap-guard] 91.0% swap used (batch 75/76) -- pausing 3s for extra cleanup
+    batch 76/76
+  Ep   7/200  loss=0.5980  AUC=0.8233  AP=0.7830  smoothAUC=0.8049  (239.2s)
+  ✓ Fold 4 new best smoothed AUC=0.8049  saved.
+    batch 1/76
+    [swap-guard] 90.5% swap used (batch 3/76) -- pausing 3s for extra cleanup
+    batch 6/76
+    batch 11/76
+    batch 16/76
+    batch 21/76
+    [swap-guard] 95.6% swap used (batch 21/76) -- pausing 3s for extra cleanup
+    batch 26/76
+    batch 31/76
+    batch 36/76
+    batch 41/76
+    [swap-guard] 92.2% swap used (batch 45/76) -- pausing 3s for extra cleanup
+    batch 46/76
+    [swap-guard] 91.6% swap used (batch 48/76) -- pausing 3s for extra cleanup
+    batch 51/76
+    [swap-guard] 91.1% swap used (batch 51/76) -- pausing 3s for extra cleanup
+    [swap-guard] 90.8% swap used (batch 54/76) -- pausing 3s for extra cleanup
+    batch 56/76
+    [swap-guard] 92.0% swap used (batch 60/76) -- pausing 3s for extra cleanup
+    batch 61/76
+    [swap-guard] 90.9% swap used (batch 63/76) -- pausing 3s for extra cleanup
+    batch 66/76
+    batch 71/76
+    [swap-guard] 91.7% swap used (batch 72/76) -- pausing 3s for extra cleanup
+    [swap-guard] 90.7% swap used (batch 75/76) -- pausing 3s for extra cleanup
+    batch 76/76
+    [swap-guard] 90.1% swap used (epoch end) -- pausing 3s for extra cleanup
+  Ep   8/200  loss=0.5638  AUC=0.8142  AP=0.7625  smoothAUC=0.8068  (234.4s)
+  ✓ Fold 4 new best smoothed AUC=0.8068  saved.
+    batch 1/76
+    [swap-guard] 91.3% swap used (batch 3/76) -- pausing 3s for extra cleanup
+    batch 6/76
+    [swap-guard] 90.3% swap used (batch 6/76) -- pausing 3s for extra cleanup
+    batch 11/76
+    batch 16/76
+    batch 21/76
+    batch 26/76
+    batch 31/76
+    [swap-guard] 91.5% swap used (batch 33/76) -- pausing 3s for extra cleanup
+    batch 36/76
+    [swap-guard] 90.9% swap used (batch 36/76) -- pausing 3s for extra cleanup
+    [swap-guard] 90.6% swap used (batch 39/76) -- pausing 3s for extra cleanup
+    batch 41/76
+    [swap-guard] 96.6% swap used (batch 42/76) -- pausing 3s for extra cleanup
+    [swap-guard] 97.1% swap used (batch 45/76) -- pausing 3s for extra cleanup
+    batch 46/76
+    [swap-guard] 96.1% swap used (batch 48/76) -- pausing 3s for extra cleanup
+    batch 51/76
+    [swap-guard] 95.1% swap used (batch 51/76) -- pausing 3s for extra cleanup
+    [swap-guard] 94.2% swap used (batch 54/76) -- pausing 3s for extra cleanup
+    batch 56/76
+    batch 61/76
+    batch 66/76
+    batch 71/76
+    [swap-guard] 94.8% swap used (batch 72/76) -- pausing 3s for extra cleanup
+    batch 76/76
+    [swap-guard] 93.4% swap used (fold 4 epoch 9 val) -- pausing 3s for extra cleanup
+  Ep   9/200  loss=0.5426  AUC=0.8292  AP=0.7793  smoothAUC=0.8222  (264.0s)
+  ✓ Fold 4 new best smoothed AUC=0.8222  saved.
+    batch 1/77
+    [swap-guard] 90.1% swap used (batch 3/77) -- pausing 3s for extra cleanup
+    batch 6/77
+    batch 11/77
+    batch 16/77
+    batch 21/77
+    [swap-guard] 91.5% swap used (batch 21/77) -- pausing 3s for extra cleanup
+    [swap-guard] 90.7% swap used (batch 24/77) -- pausing 3s for extra cleanup
+    batch 26/77
+    batch 31/77
+    batch 36/77
+    batch 41/77
+    batch 46/77
+    batch 51/77
+    [swap-guard] 90.5% swap used (batch 51/77) -- pausing 3s for extra cleanup
+    batch 56/77
+    [swap-guard] 90.5% swap used (batch 60/77) -- pausing 3s for extra cleanup
+    batch 61/77
+    batch 66/77
+    batch 71/77
+    [swap-guard] 90.9% swap used (batch 72/77) -- pausing 3s for extra cleanup
+    batch 76/77
+    [swap-guard] 93.0% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 95.2% swap used (fold 4 epoch 10 val) -- pausing 3s for extra cleanup
+  Ep  10/200  loss=0.5358  AUC=0.8045  AP=0.7524  smoothAUC=0.8160  (224.9s)
+    batch 1/76
+    batch 6/76
+    [swap-guard] 92.4% swap used (batch 9/76) -- pausing 3s for extra cleanup
+    batch 11/76
+    [swap-guard] 91.8% swap used (batch 12/76) -- pausing 3s for extra cleanup
+    [swap-guard] 94.4% swap used (batch 15/76) -- pausing 3s for extra cleanup
+    batch 16/76
+    [swap-guard] 91.9% swap used (batch 18/76) -- pausing 3s for extra cleanup
+    batch 21/76
+    [swap-guard] 91.2% swap used (batch 21/76) -- pausing 3s for extra cleanup
+    [swap-guard] 90.4% swap used (batch 24/76) -- pausing 3s for extra cleanup
+    batch 26/76
+    [swap-guard] 90.0% swap used (batch 27/76) -- pausing 3s for extra cleanup
+    batch 31/76
+    [swap-guard] 90.1% swap used (batch 33/76) -- pausing 3s for extra cleanup
+    batch 36/76
+    batch 41/76
+    batch 46/76
+    [swap-guard] 92.6% swap used (batch 48/76) -- pausing 3s for extra cleanup
+    batch 51/76
+    [swap-guard] 91.5% swap used (batch 51/76) -- pausing 3s for extra cleanup
+    [swap-guard] 90.6% swap used (batch 54/76) -- pausing 3s for extra cleanup
+    batch 56/76
+    [swap-guard] 90.1% swap used (batch 57/76) -- pausing 3s for extra cleanup
+    batch 61/76
+    batch 66/76
+    [swap-guard] 93.3% swap used (batch 69/76) -- pausing 3s for extra cleanup
+    batch 71/76
+    [swap-guard] 92.1% swap used (batch 72/76) -- pausing 3s for extra cleanup
+    [swap-guard] 91.1% swap used (batch 75/76) -- pausing 3s for extra cleanup
+    [swap-guard] 91.1% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 91.5% swap used (fold 4 epoch 11 val) -- pausing 3s for extra cleanup
+  Ep  11/200  loss=0.5383  AUC=0.7914  AP=0.7318  smoothAUC=0.8084  (280.4s)
+    batch 1/75
+    [swap-guard] 92.6% swap used (batch 3/75) -- pausing 3s for extra cleanup
+    batch 6/75
+    [swap-guard] 91.9% swap used (batch 6/75) -- pausing 3s for extra cleanup
+    [swap-guard] 91.4% swap used (batch 9/75) -- pausing 3s for extra cleanup
+    batch 11/75
+    [swap-guard] 90.8% swap used (batch 12/75) -- pausing 3s for extra cleanup
+    [swap-guard] 90.2% swap used (batch 15/75) -- pausing 3s for extra cleanup
+    batch 16/75
+    batch 21/75
+    batch 26/75
+    batch 31/75
+    [swap-guard] 91.1% swap used (batch 33/75) -- pausing 3s for extra cleanup
+    batch 36/75
+    [swap-guard] 90.5% swap used (batch 36/75) -- pausing 3s for extra cleanup
+    batch 41/75
+    [swap-guard] 93.3% swap used (batch 45/75) -- pausing 3s for extra cleanup
+    batch 46/75
