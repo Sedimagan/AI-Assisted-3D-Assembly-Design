@@ -18475,3 +18475,6 @@ Model built on mps  |  total params: 2,496,433
     batch 76/76
     [swap-guard] 93.1% swap used (batch 78/76) -- pausing 3s for extra cleanup
     [swap-guard] 93.0% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 93.9% swap used (fold 4 epoch 63 val) -- pausing 3s for extra cleanup
+  Ep  63/200  loss=0.3359  AUC=0.8434  AP=0.8041  smoothAUC=0.8436  (505.0s)
+    batch 1/78
