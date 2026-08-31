@@ -40,8 +40,15 @@ source ../.venv/bin/activate
 # through the back half of a fold, not just on a truly pathological epoch --
 # accepted as a reasonable trade since every restart this run has been a
 # net win (checkpoint-safe, pace snaps back afterward).
+#
+# TEMPORARY BUMP (2026-08-31, fold 5): 480s wasn't enough headroom for
+# fold 5's setup phase, which now replays 4 prior folds' checkpoints
+# (one more than fold 4 had) before it can even start epoch 1 -- 4
+# consecutive restarts fired at ~480s without a single real epoch
+# completing. Raised to 900s to give setup room to finish; revert to
+# 480 once fold 5 is confirmed past its first real epoch.
 STALL_TIMEOUT=1200
-EPOCH_STALL_TIMEOUT=480
+EPOCH_STALL_TIMEOUT=900
 STALL_MIN_FOLD=3
 EPOCH_STATE_FILE="../logs/.fold3plus_epoch_watch"
 
