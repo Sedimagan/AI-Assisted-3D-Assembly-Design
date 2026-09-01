@@ -41,14 +41,17 @@ source ../.venv/bin/activate
 # accepted as a reasonable trade since every restart this run has been a
 # net win (checkpoint-safe, pace snaps back afterward).
 #
-# TEMPORARY BUMP (2026-08-31, fold 5): 480s wasn't enough headroom for
-# fold 5's setup phase, which now replays 4 prior folds' checkpoints
-# (one more than fold 4 had) before it can even start epoch 1 -- 4
-# consecutive restarts fired at ~480s without a single real epoch
-# completing. Raised to 900s to give setup room to finish; revert to
-# 480 once fold 5 is confirmed past its first real epoch.
+# The 480->900s bump from 2026-08-31 (fold 5's setup phase needed more
+# than 480s before its first real epoch) has been REVERTED (2026-09-01):
+# with the longer runway, MPS memory was allowed to climb until it hit
+# the actual hardware ceiling and crashed twice with a genuine
+# "RuntimeError: MPS backend out of memory" mid-backward-pass, ~9min
+# apart -- a harder failure than the swap slowdowns this threshold was
+# built to manage. Fold 5 is well past its slow first epoch now, so
+# back to 480 to restore the periodic reset before MPS memory can ever
+# reach that ceiling.
 STALL_TIMEOUT=1200
-EPOCH_STALL_TIMEOUT=900
+EPOCH_STALL_TIMEOUT=480
 STALL_MIN_FOLD=3
 EPOCH_STATE_FILE="../logs/.fold3plus_epoch_watch"
 
