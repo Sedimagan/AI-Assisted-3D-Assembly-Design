@@ -39,8 +39,17 @@ training:
   # ~23GB total vs this machine's 20.13GB MPS ceiling / 16GB physical RAM,
   # since backprop's retained-activation memory runs well above the
   # forward-pass-only cost the 3000 figure was sized for). Cut to 500 for
-  # real headroom under backprop, not just forward inference.
-  max_edges_per_batch: 500
+  # real headroom under backprop, not just forward inference. Still not
+  # enough: fold 5 (2026-09-01) hit the same MPS-OOM at 500 repeatedly
+  # (11 crashes, always ~17.25GiB allocated) -- EdgeBudgetBatchSampler's
+  # shuffle-seed resets to 0 on every train.py relaunch (self._epoch in
+  # the sampler, not tied to the resumed epoch number), so the same
+  # crash-triggering graph combination replays deterministically on
+  # every restart instead of varying. Cut further to 300 for headroom;
+  # only affects epochs computed after this change -- folds already
+  # trained are re-evaluated in eval() mode, where BatchNorm uses saved
+  # running stats, not batch composition, so their results are unaffected.
+  max_edges_per_batch: 300
   epochs:       200
   lr:           1.0e-3
   weight_decay: 5.0e-4
