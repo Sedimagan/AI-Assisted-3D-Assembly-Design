@@ -154,3 +154,13 @@ Building part bank from 840 assemblies under ../Source_3d_models/Best_models_for
 [153/840] C_Clamps/C_Clamps_37: ok (4.4s) — 4 bodies
 [154/840] C_Clamps/C_Clamps_38: ok (8.5s) — 6 bodies
 [155/840] C_Clamps/C_Clamps_40: ok (17.5s) — 1 bodies
+[156/840] C_Clamps/C_Clamps_41: error (184.5s) — 0 bodies
+[157/840] C_Clamps/C_Clamps_42: timeout (300.0s) — 0 bodies
+[158/840] C_Clamps/C_Clamps_43: ok (7.9s) — 3 bodies
+[159/840] C_Clamps/C_Clamps_44: ok (6.7s) — 0 bodies
+[160/840] C_Clamps/C_Clamps_45: ok (8.6s) — 11 bodies
+[161/840] C_Clamps/C_Clamps_46: timeout (300.2s) — 0 bodies
+[162/840] C_Clamps/C_Clamps_47: ok (19.9s) — 0 bodies
+[163/840] C_Clamps/C_Clamps_48: ok (7.5s) — 6 bodies
+[164/840] C_Clamps/C_Clamps_49: ok (13.1s) — 5 bodies
+[165/840] C_Clamps/C_Clamps_50: timeout (300.2s) — 0 bodies
