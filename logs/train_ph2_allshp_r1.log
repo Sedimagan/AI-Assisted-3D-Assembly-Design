@@ -32802,3 +32802,110 @@ Model built on mps  |  total params: 2,496,433
     [swap-guard] 92.3% swap used (batch 30/127) -- pausing 3s for extra cleanup
     batch 31/127
     [swap-guard] 94.3% swap used (batch 33/127) -- pausing 3s for extra cleanup
+    batch 36/127
+    [swap-guard] 93.2% swap used (batch 36/127) -- pausing 3s for extra cleanup
+    [swap-guard] 92.9% swap used (batch 39/127) -- pausing 3s for extra cleanup
+    batch 41/127
+    [swap-guard] 95.4% swap used (batch 42/127) -- pausing 3s for extra cleanup
+    [swap-guard] 94.4% swap used (batch 45/127) -- pausing 3s for extra cleanup
+    batch 46/127
+    [swap-guard] 94.4% swap used (batch 48/127) -- pausing 3s for extra cleanup
+    batch 51/127
+    [swap-guard] 94.6% swap used (batch 51/127) -- pausing 3s for extra cleanup
+    [swap-guard] 94.1% swap used (batch 54/127) -- pausing 3s for extra cleanup
+    batch 56/127
+    [swap-guard] 93.4% swap used (batch 57/127) -- pausing 3s for extra cleanup
+    [swap-guard] 93.0% swap used (batch 60/127) -- pausing 3s for extra cleanup
+    batch 61/127
+    [swap-guard] 92.6% swap used (batch 63/127) -- pausing 3s for extra cleanup
+    batch 66/127
+    [swap-guard] 92.4% swap used (batch 66/127) -- pausing 3s for extra cleanup
+    [swap-guard] 92.0% swap used (batch 69/127) -- pausing 3s for extra cleanup
+    batch 71/127
+    [swap-guard] 96.4% swap used (batch 72/127) -- pausing 3s for extra cleanup
+    [swap-guard] 96.1% swap used (batch 75/127) -- pausing 3s for extra cleanup
+    batch 76/127
+    [swap-guard] 95.9% swap used (batch 78/127) -- pausing 3s for extra cleanup
+    batch 81/127
+    [swap-guard] 95.6% swap used (batch 81/127) -- pausing 3s for extra cleanup
+    [swap-guard] 97.9% swap used (batch 84/127) -- pausing 3s for extra cleanup
+    batch 86/127
+    [swap-guard] 97.3% swap used (batch 87/127) -- pausing 3s for extra cleanup
+    [swap-guard] 96.6% swap used (batch 90/127) -- pausing 3s for extra cleanup
+    batch 91/127
+    [swap-guard] 96.2% swap used (batch 93/127) -- pausing 3s for extra cleanup
+    batch 96/127
+    [swap-guard] 95.8% swap used (batch 96/127) -- pausing 3s for extra cleanup
+    [swap-guard] 95.4% swap used (batch 99/127) -- pausing 3s for extra cleanup
+    batch 101/127
+    [swap-guard] 95.1% swap used (batch 102/127) -- pausing 3s for extra cleanup
+    [swap-guard] 95.0% swap used (batch 105/127) -- pausing 3s for extra cleanup
+    batch 106/127
+    [swap-guard] 94.7% swap used (batch 108/127) -- pausing 3s for extra cleanup
+    batch 111/127
+    [swap-guard] 94.4% swap used (batch 111/127) -- pausing 3s for extra cleanup
+    [swap-guard] 94.3% swap used (batch 114/127) -- pausing 3s for extra cleanup
+    batch 116/127
+    [swap-guard] 94.1% swap used (batch 117/127) -- pausing 3s for extra cleanup
+    [swap-guard] 93.9% swap used (batch 120/127) -- pausing 3s for extra cleanup
+    batch 121/127
+    [swap-guard] 95.7% swap used (batch 123/127) -- pausing 3s for extra cleanup
+    batch 126/127
+    [swap-guard] 95.4% swap used (batch 126/127) -- pausing 3s for extra cleanup
+    [swap-guard] 95.3% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 94.2% swap used (fold 5 epoch 99 val) -- pausing 3s for extra cleanup
+  Ep  99/200  loss=0.2831  AUC=0.9044  AP=0.8768  smoothAUC=0.9035  (491.9s)
+
+  Early stopping at epoch 99.
+
+  Fold 5 test — AUC=0.9256  AP=0.9116  (random=0.5000)
+    [swap-guard] 94.4% swap used (fold 5 boundary) -- pausing 3s for extra cleanup
+
+=======================================================
+  5-Fold CV Summary
+=======================================================
+  Fold 1: AUC=0.9370  AP=0.9157  (random=0.5000)
+  Fold 2: AUC=0.9050  AP=0.8881  (random=0.5000)
+  Fold 3: AUC=0.9138  AP=0.8919  (random=0.5000)
+  Fold 4: AUC=0.9217  AP=0.9025  (random=0.5000)
+  Fold 5: AUC=0.9256  AP=0.9116  (random=0.5000)
+  ─────────────────────────────────────────
+  Mean AUC        = 0.9206 ± 0.0121
+  Mean AP         = 0.9020 ± 0.0120
+  Mean random AP  = 0.5000 ± 0.0000  (chance baseline — AP lift over this is the real signal)
+  Best overall fold: 2  (val AUC=0.9409)
+
+[4/4] Final test evaluation (best_overall.pt) …
+Model built on mps  |  total params: 2,496,433
+    [DIAG] graph 78: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+/Users/mbp/Documents/MTECH/Sem4/Individual_project/AI_Assisted_3D_Assembly_Design/AI-Assisted-3D-Assembly-Design/.venv/lib/python3.12/site-packages/torch_geometric/transforms/base_transform.py:32: UserWarning: There are not enough negative edges to satisfy the provided sampling ratio. The ratio will be adjusted to 0.00.
+  return self.forward(copy.copy(data))
+    [DIAG] graph 110: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 123: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 157: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 187: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 35: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+    [DIAG] graph 138: 2 nodes, 2 dir-edges, 1 pos, requested 1 neg but only 0 possible
+  Fold 2/5 — train: 414  val: 104  test: 130
+
+  ── Test results (best overall model) ─────
+     auc         : 0.9050
+     ap          : 0.8881
+     random_ap   : 0.5000
+
+  Results saved        → results
+  Best overall ckpt    → checkpoints/best_overall.pt
+  Trained model export → ../trained_models/assembly_gnn_20260902_003239_auc09409.pt
+
+  ✓ best_serving.pt updated — AUC=0.9206, AP=0.9020
+
+  Building assembly template cache …
+  [TemplateDB] Built 7 category templates from 648 training assemblies.
+    Bench Vice                                bodies≈24  dist={'long_shaft': 2, 'short_shaft': 3, 'thick_plate': 2, 'thin_plate': 3, 'bolt': 3, 'washer': 2, 'nut': 3, 'body': 11}
+    C Clamps                                  bodies≈7  dist={'long_shaft': 1, 'short_shaft': 1, 'thick_plate': 2, 'thin_plate': 2, 'bolt': 1, 'washer': 1, 'nut': 2, 'body': 2}
+    Crane Hook                                bodies≈67  dist={'long_shaft': 3, 'short_shaft': 3, 'thick_plate': 16, 'thin_plate': 5, 'bolt': 2, 'washer': 7, 'nut': 18, 'body': 13}
+    Gate Valve                                bodies≈61  dist={'long_shaft': 2, 'short_shaft': 5, 'thick_plate': 20, 'thin_plate': 5, 'bolt': 4, 'washer': 17, 'nut': 27, 'body': 19}
+    Pipe Vice                                 bodies≈10  dist={'long_shaft': 1, 'short_shaft': 2, 'thick_plate': 1, 'thin_plate': 1, 'bolt': 1, 'washer': 1, 'nut': 2, 'body': 4}
+    Press Tool                                bodies≈10  dist={'long_shaft': 4, 'short_shaft': 4, 'thick_plate': 2, 'thin_plate': 2, 'bolt': 2, 'washer': 4, 'nut': 4, 'body': 5}
+    Tool Post                                 bodies≈30  dist={'long_shaft': 1, 'short_shaft': 12, 'thick_plate': 3, 'thin_plate': 1, 'bolt': 13, 'washer': 1, 'nut': 2, 'body': 10}
+  [TemplateDB] Saved 7 templates → data/assembly_templates.json
