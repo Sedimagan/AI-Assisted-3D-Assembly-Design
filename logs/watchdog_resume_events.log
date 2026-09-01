@@ -504,3 +504,5 @@
 2026-09-01 18:46:12  [watchdog] train.py not running, 4 fold(s) confirmed complete — resuming with --start-fold 4
 2026-09-01 18:46:12  [watchdog] relaunched, PID 90820
 2026-09-01 18:59:33  [watchdog] fold 5 epoch 81 running 721s (>= 720s), restarting to clear swap/MPS degradation -- committing progress and restarting
+[ph2-all-shp-gen 1ee9243] Auto-restart backup: fold 5 epoch 81 running 721s (>= 720s), restarting to clear swap/MPS degradation
+ 2 files changed, 195 insertions(+)
