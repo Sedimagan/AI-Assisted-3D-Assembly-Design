@@ -31430,3 +31430,25 @@ Model built on mps  |  total params: 2,496,433
     batch 66/129
     batch 71/129
     batch 76/129
+    batch 81/129
+    batch 86/129
+    batch 91/129
+    batch 96/129
+    batch 101/129
+    batch 106/129
+    batch 111/129
+    batch 116/129
+    batch 121/129
+    batch 126/129
+    batch 131/129
+  Ep  80/200  loss=0.3141  AUC=0.8931  AP=0.8659  smoothAUC=0.9004  (254.4s)
+    batch 1/132
+    batch 6/132
+    [swap-guard] 90.6% swap used (batch 6/132) -- pausing 3s for extra cleanup
+    batch 11/132
+    batch 16/132
+    batch 21/132
+    batch 26/132
+    batch 31/132
+    batch 36/132
+    batch 41/132

@@ -555,3 +555,4 @@
 2026-09-01 21:26:29  [watchdog] started, watching ../logs/train_ph2_allshp_r1.log
 2026-09-01 21:27:29  [watchdog] train.py not running, 4 fold(s) confirmed complete — resuming with --start-fold 4
 2026-09-01 21:27:29  [watchdog] relaunched, PID 2490
+2026-09-01 21:43:51  [watchdog] fold 5 epoch 81 running 902s (>= 900s), restarting to clear swap/MPS degradation -- committing progress and restarting
