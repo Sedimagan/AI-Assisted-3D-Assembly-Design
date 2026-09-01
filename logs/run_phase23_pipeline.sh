@@ -38,7 +38,16 @@ if [ -d "data/part_bank" ]; then
 fi
 
 echo "$(date '+%Y-%m-%d %H:%M:%S')  [phase23] rebuilding part bank from full corpus..." >> "$EVENTS_LOG"
-python3 -u part_bank.py --out-dir data/part_bank >> ../logs/part_bank_rebuild_r1.log 2>&1
+# BUG FIX (2026-09-02): this call was missing --categories, so
+# part_bank.py's unfiltered rglob() pulled in Best_models_for_training's
+# rejected/, slow_or_unstable/, _quarantine_stall/, and
+# non_compatible_formats/ subfolders too (840 files instead of the real
+# 749) -- those are deliberately-excluded models, not part of the actual
+# training corpus (config.yaml's `categories` list is what correctly
+# scopes dataset.py to 749; part_bank.py has the same --categories
+# option, it just wasn't being passed here). Added explicitly to match
+# config.yaml's category list.
+python3 -u part_bank.py --out-dir data/part_bank --categories Bench_vice C_Clamps Crane_hook Gate_Valve Pipe_vice Press_Tool Tool_Post >> ../logs/part_bank_rebuild_r1.log 2>&1
 PB_STATUS=$?
 if [ $PB_STATUS -ne 0 ]; then
     echo "$(date '+%Y-%m-%d %H:%M:%S')  [phase23] part bank rebuild FAILED (exit $PB_STATUS) -- see logs/part_bank_rebuild_r1.log. Aborting pipeline." >> "$EVENTS_LOG"
