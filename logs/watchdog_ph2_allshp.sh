@@ -41,17 +41,19 @@ source ../.venv/bin/activate
 # accepted as a reasonable trade since every restart this run has been a
 # net win (checkpoint-safe, pace snaps back afterward).
 #
-# The 480->900s bump from 2026-08-31 (fold 5's setup phase needed more
-# than 480s before its first real epoch) has been REVERTED (2026-09-01):
-# with the longer runway, MPS memory was allowed to climb until it hit
-# the actual hardware ceiling and crashed twice with a genuine
-# "RuntimeError: MPS backend out of memory" mid-backward-pass, ~9min
-# apart -- a harder failure than the swap slowdowns this threshold was
-# built to manage. Fold 5 is well past its slow first epoch now, so
-# back to 480 to restore the periodic reset before MPS memory can ever
-# reach that ceiling.
+# History: 480->900s bump (2026-08-31, fold 5's setup phase needed more
+# runway) was reverted back to 480 (2026-09-01) after MPS memory was
+# allowed to climb under the longer runway and crashed twice with
+# "RuntimeError: MPS backend out of memory". A third MPS-OOM crash then
+# occurred even under 480s, only ~9min into a fresh process at a fixed
+# 17.25GiB allocation -- confirming that crash class is tied to a
+# specific batch's memory footprint, not runway length, so raising the
+# epoch threshold doesn't reintroduce that risk. Fold 5's epoch 64 has
+# been repeatedly landing just past 480s (481s) and retriggering the
+# restart before finishing -- bumped to 720s (12min) 2026-09-01 per
+# user request to give it enough room to actually complete.
 STALL_TIMEOUT=1200
-EPOCH_STALL_TIMEOUT=480
+EPOCH_STALL_TIMEOUT=720
 STALL_MIN_FOLD=3
 EPOCH_STATE_FILE="../logs/.fold3plus_epoch_watch"
 
