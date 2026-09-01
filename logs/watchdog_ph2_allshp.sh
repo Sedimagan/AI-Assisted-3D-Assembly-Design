@@ -47,13 +47,22 @@ source ../.venv/bin/activate
 # "RuntimeError: MPS backend out of memory". A third MPS-OOM crash then
 # occurred even under 480s, only ~9min into a fresh process at a fixed
 # 17.25GiB allocation -- confirming that crash class is tied to a
-# specific batch's memory footprint, not runway length, so raising the
-# epoch threshold doesn't reintroduce that risk. Fold 5's epoch 64 has
-# been repeatedly landing just past 480s (481s) and retriggering the
-# restart before finishing -- bumped to 720s (12min) 2026-09-01 per
-# user request to give it enough room to actually complete.
+# specific batch's memory footprint, not runway length. Bumped to 720s
+# (12min) to give slow-but-safe epochs room, but crashes kept recurring
+# (11 total) at the SAME point every restart -- root-caused to
+# EdgeBudgetBatchSampler replaying the same batch order every relaunch
+# (train.py's own shuffle-seed resets each launch) and fixed at the
+# source by cutting config.yaml's max_edges_per_batch 500->300
+# (2026-09-01), which eliminated the crashes entirely (2 consecutive
+# clean runs after the fix, both only hitting this timeout instead).
+# With crashes solved, epoch duration is now the sole constraint --
+# epoch81 lands at 721-722s under the smaller batch budget (more,
+# smaller batches per epoch) and gets killed right at the finish line.
+# Bumped back to 900s (2026-09-01, 2nd time) so it can actually
+# complete -- safe to do now since the crash risk this threshold used
+# to guard against no longer applies at this batch size.
 STALL_TIMEOUT=1200
-EPOCH_STALL_TIMEOUT=720
+EPOCH_STALL_TIMEOUT=900
 STALL_MIN_FOLD=3
 EPOCH_STATE_FILE="../logs/.fold3plus_epoch_watch"
 
