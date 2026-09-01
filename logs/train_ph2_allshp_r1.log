@@ -27663,3 +27663,35 @@ Model built on mps  |  total params: 2,496,433
     batch 31/83
     batch 36/83
     batch 41/83
+    batch 46/83
+    batch 51/83
+    [swap-guard] 90.2% swap used (batch 54/83) -- pausing 3s for extra cleanup
+    batch 56/83
+    [swap-guard] 92.8% swap used (batch 60/83) -- pausing 3s for extra cleanup
+    batch 61/83
+    [swap-guard] 90.4% swap used (batch 63/83) -- pausing 3s for extra cleanup
+    batch 66/83
+    batch 71/83
+    batch 76/83
+    batch 81/83
+    [swap-guard] 91.5% swap used (batch 81/83) -- pausing 3s for extra cleanup
+    [swap-guard] 91.2% swap used (epoch end) -- pausing 3s for extra cleanup
+    [swap-guard] 94.2% swap used (fold 5 epoch 68 val) -- pausing 3s for extra cleanup
+  Ep  68/200  loss=0.2898  AUC=0.8983  AP=0.8664  smoothAUC=0.8996  (362.5s)
+    batch 1/82
+    [swap-guard] 92.9% swap used (batch 3/82) -- pausing 3s for extra cleanup
+    batch 6/82
+    batch 11/82
+    batch 16/82
+    batch 21/82
+    [swap-guard] 91.2% swap used (batch 21/82) -- pausing 3s for extra cleanup
+    batch 26/82
+    batch 31/82
+    [swap-guard] 90.0% swap used (batch 33/82) -- pausing 3s for extra cleanup
+    batch 36/82
+    [swap-guard] 94.2% swap used (batch 36/82) -- pausing 3s for extra cleanup
+    batch 41/82
+    batch 46/82
+    batch 51/82
+    batch 56/82
+    [swap-guard] 91.0% swap used (batch 57/82) -- pausing 3s for extra cleanup
