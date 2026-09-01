@@ -60,9 +60,17 @@ source ../.venv/bin/activate
 # smaller batches per epoch) and gets killed right at the finish line.
 # Bumped back to 900s (2026-09-01, 2nd time) so it can actually
 # complete -- safe to do now since the crash risk this threshold used
-# to guard against no longer applies at this batch size.
-STALL_TIMEOUT=1200
-EPOCH_STALL_TIMEOUT=900
+# to guard against no longer applies at this batch size. Then epoch81
+# landed at 901-902s under THAT threshold too (3 restarts in a row,
+# each landing within a couple seconds of whatever the current ceiling
+# was: 721s@720s, 902s@900s, 901s@900s) -- looks like it's chasing
+# the ceiling rather than having a fixed real duration, likely
+# progressive memory pressure building within each process's lifetime.
+# Jumping to 1500s (25min, 3rd bump, 2026-09-01) for real headroom
+# instead of another small increment, to see if it actually completes
+# well clear of the limit rather than brushing it again.
+STALL_TIMEOUT=1800
+EPOCH_STALL_TIMEOUT=1500
 STALL_MIN_FOLD=3
 EPOCH_STATE_FILE="../logs/.fold3plus_epoch_watch"
 
