@@ -30667,3 +30667,7 @@ Model built on mps  |  total params: 2,496,433
     batch 76/82
   Ep  80/200  loss=0.2265  AUC=0.9027  AP=0.8747  smoothAUC=0.9036  (280.4s)
     batch 1/80
+    batch 6/80
+    batch 11/80
+    batch 16/80
+    batch 21/80
