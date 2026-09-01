@@ -522,3 +522,5 @@
 2026-09-01 19:39:59  [watchdog] relaunched, PID 94032
 2026-09-01 19:50:20  [watchdog] train.py not running, 4 fold(s) confirmed complete — resuming with --start-fold 4
 2026-09-01 19:50:20  [watchdog] relaunched, PID 94750
+2026-09-01 20:00:42  [watchdog] train.py not running, 4 fold(s) confirmed complete — resuming with --start-fold 4
+2026-09-01 20:00:42  [watchdog] relaunched, PID 95578
