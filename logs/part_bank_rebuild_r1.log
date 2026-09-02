@@ -330,3 +330,7 @@ Building part bank from 840 assemblies under ../Source_3d_models/Best_models_for
 [329/840] Gate_Valve/Gate_Valve_100: ok (176.4s) — 0 bodies
 [330/840] Gate_Valve/Gate_Valve_101: ok (42.5s) — 167 bodies
 [331/840] Gate_Valve/Gate_Valve_102: ok (35.5s) — 3 bodies
+[332/840] Gate_Valve/Gate_Valve_103: timeout (300.1s) — 0 bodies
+[333/840] Gate_Valve/Gate_Valve_104: timeout (300.3s) — 0 bodies
+[334/840] Gate_Valve/Gate_Valve_105: error (300.0s) — 0 bodies
+[335/840] Gate_Valve/Gate_Valve_106: timeout (300.1s) — 0 bodies
