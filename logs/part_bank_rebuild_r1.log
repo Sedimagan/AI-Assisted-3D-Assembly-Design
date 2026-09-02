@@ -744,3 +744,13 @@ Building part bank from 840 assemblies under ../Source_3d_models/Best_models_for
 [743/840] Tool_Post/Tool_Post_93: error (182.4s) — 0 bodies
 [744/840] Tool_Post/Tool_Post_94: ok (6.1s) — 2 bodies
 [745/840] Tool_Post/Tool_Post_95: ok (11.3s) — 0 bodies
+[746/840] Tool_Post/Tool_Post_96: timeout (300.1s) — 0 bodies
+[747/840] Tool_Post/Tool_Post_97: ok (10.7s) — 18 bodies
+[748/840] Tool_Post/Tool_Post_98: ok (10.2s) — 18 bodies
+[749/840] Tool_Post/Tool_Post_99: ok (10.4s) — 18 bodies
+[750/840] rejected/Bench_vice: ok (4.5s) — 0 bodies
+[751/840] rejected/Bench_vice: ok (4.2s) — 0 bodies
+[752/840] rejected/Bench_vice: ok (3.8s) — 0 bodies
+[753/840] rejected/Bench_vice: ok (3.2s) — 0 bodies
+/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 3 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
