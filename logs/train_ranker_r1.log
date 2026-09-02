@@ -1,0 +1,17 @@
+
+[1/5] Loading dataset …
+      648 graphs loaded.
+      train: 414  val: 104  test: 130
+
+[2/5] Loading frozen Phase-1 encoder …
+Model built on mps  |  total params: 2,496,433
+      Encoder frozen (val AUC=0.9409, trained_at=2026-09-02T00:32:39.774176)
+
+[3/5] Computing type prototypes …
+      Prototype table: (8, 34)
+
+[4/5] Building NodeRanker …
+      Leave-one-out samples — train: 2039  val: 511  test: 645
+      Class weights (inverse-frequency, capped at 5.0): long_shaft=1.12, short_shaft=1.76, thick_plate=0.86, thin_plate=2.63, bolt=0.80, washer=3.27, nut=1.57, body=0.36
+
+[5/5] Training (30 epochs) …
