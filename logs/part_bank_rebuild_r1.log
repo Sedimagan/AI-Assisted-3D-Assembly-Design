@@ -1169,3 +1169,14 @@ Building part bank from 749 assemblies under ../Source_3d_models/Best_models_for
 [412/749] Gate_Valve/Gate_Valve_83: timeout (300.1s) — 0 bodies
 [413/749] Gate_Valve/Gate_Valve_84: timeout (300.1s) — 0 bodies
 [414/749] Gate_Valve/Gate_Valve_85: timeout (300.2s) — 0 bodies
+[415/749] Gate_Valve/Gate_Valve_86: timeout (300.1s) — 0 bodies
+[416/749] Gate_Valve/Gate_Valve_87: timeout (300.1s) — 0 bodies
+[417/749] Gate_Valve/Gate_Valve_88: error (26.1s) — 0 bodies
+[418/749] Gate_Valve/Gate_Valve_89: error (205.1s) — 0 bodies
+[419/749] Gate_Valve/Gate_Valve_90: timeout (300.1s) — 0 bodies
+[420/749] Gate_Valve/Gate_Valve_91: error (205.1s) — 0 bodies
+[421/749] Gate_Valve/Gate_Valve_92: ok (147.5s) — 20 bodies
+[422/749] Gate_Valve/Gate_Valve_93: ok (173.7s) — 0 bodies
+[423/749] Gate_Valve/Gate_Valve_94: ok (44.6s) — 31 bodies
+[424/749] Gate_Valve/Gate_Valve_95: error (204.7s) — 0 bodies
+[425/749] Gate_Valve/Gate_Valve_96: error (205.3s) — 0 bodies
