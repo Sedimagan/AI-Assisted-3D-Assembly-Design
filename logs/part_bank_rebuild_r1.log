@@ -741,3 +741,6 @@ Building part bank from 840 assemblies under ../Source_3d_models/Best_models_for
 [740/840] Tool_Post/Tool_Post_90: timeout (300.1s) — 0 bodies
 [741/840] Tool_Post/Tool_Post_91: timeout (300.1s) — 0 bodies
 [742/840] Tool_Post/Tool_Post_92: ok (4.8s) — 7 bodies
+[743/840] Tool_Post/Tool_Post_93: error (182.4s) — 0 bodies
+[744/840] Tool_Post/Tool_Post_94: ok (6.1s) — 2 bodies
+[745/840] Tool_Post/Tool_Post_95: ok (11.3s) — 0 bodies
