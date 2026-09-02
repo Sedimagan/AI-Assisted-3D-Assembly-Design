@@ -15,3 +15,4 @@ Model built on mps  |  total params: 2,496,433
       Class weights (inverse-frequency, capped at 5.0): long_shaft=1.12, short_shaft=1.76, thick_plate=0.86, thin_plate=2.63, bolt=0.80, washer=3.27, nut=1.57, body=0.36
 
 [5/5] Training (30 epochs) …
+  Ep   1/30  loss=4.4149  Hit@1=0.3659  Hit@5=0.8689  MRR=0.5695  NDCG@5=0.6293
