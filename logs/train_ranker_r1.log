@@ -38,3 +38,4 @@ Model built on mps  |  total params: 2,496,433
   Ep  21/30  loss=3.2488  Hit@1=0.4031  Hit@5=0.8963  MRR=0.5925  NDCG@5=0.6558
   Ep  22/30  loss=3.2363  Hit@1=0.4110  Hit@5=0.8748  MRR=0.6016  NDCG@5=0.6552
   Ep  23/30  loss=3.2442  Hit@1=0.4110  Hit@5=0.8963  MRR=0.5991  NDCG@5=0.6611
+  Ep  24/30  loss=3.2242  Hit@1=0.3973  Hit@5=0.8904  MRR=0.5961  NDCG@5=0.6570
