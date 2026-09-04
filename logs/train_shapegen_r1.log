@@ -32,3 +32,18 @@ Model built on mps  |  total params: 2,496,433
   Ep  13/60  loss=0.2866 (bce=0.1056 dice=0.3323 kl=0.2959)  val_loss=0.2700  IoU=0.5867  chamfer=0.0406  score=0.5055  lr=1.00e-03
   Ep  14/60  loss=0.2839 (bce=0.1041 dice=0.3303 kl=0.2927)  val_loss=0.3305  IoU=0.4958  chamfer=0.0540  score=0.3879  lr=1.00e-03
   Ep  15/60  loss=0.2821 (bce=0.1037 dice=0.3272 kl=0.2951)  val_loss=0.3067  IoU=0.5355  chamfer=0.0572  score=0.4211  lr=1.00e-03
+  Ep  16/60  loss=0.2805 (bce=0.1027 dice=0.3262 kl=0.2923)  val_loss=0.2613  IoU=0.5943  chamfer=0.0394  score=0.5155  lr=5.00e-04
+  Ep  17/60  loss=0.2656 (bce=0.0968 dice=0.3094 kl=0.2828)  val_loss=0.2665  IoU=0.5776  chamfer=0.0417  score=0.4943  lr=5.00e-04
+  Ep  18/60  loss=0.2628 (bce=0.0963 dice=0.3054 kl=0.2750)  val_loss=0.2601  IoU=0.5843  chamfer=0.0467  score=0.4910  lr=5.00e-04
+  Ep  19/60  loss=0.2627 (bce=0.0962 dice=0.3057 kl=0.2734)  val_loss=0.2951  IoU=0.5429  chamfer=0.0440  score=0.4549  lr=5.00e-04
+  Ep  20/60  loss=0.2605 (bce=0.0954 dice=0.3027 kl=0.2741)  val_loss=0.2997  IoU=0.5447  chamfer=0.0481  score=0.4486  lr=5.00e-04
+  Ep  21/60  loss=0.2595 (bce=0.0951 dice=0.3017 kl=0.2718)  val_loss=0.2703  IoU=0.5694  chamfer=0.0409  score=0.4876  lr=5.00e-04
+  Ep  22/60  loss=0.2590 (bce=0.0951 dice=0.3009 kl=0.2696)  val_loss=0.2718  IoU=0.5811  chamfer=0.0445  score=0.4920  lr=5.00e-04
+  Ep  23/60  loss=0.2584 (bce=0.0947 dice=0.3006 kl=0.2679)  val_loss=0.2688  IoU=0.5735  chamfer=0.0415  score=0.4905  lr=5.00e-04
+  Ep  24/60  loss=0.2580 (bce=0.0945 dice=0.3000 kl=0.2692)  val_loss=0.2903  IoU=0.5517  chamfer=0.0431  score=0.4655  lr=5.00e-04
+  Ep  25/60  loss=0.2559 (bce=0.0934 dice=0.2982 kl=0.2683)  val_loss=0.2383  IoU=0.6205  chamfer=0.0373  score=0.5458  lr=5.00e-04
+  Ep  26/60  loss=0.2553 (bce=0.0929 dice=0.2981 kl=0.2670)  val_loss=0.2906  IoU=0.5389  chamfer=0.0458  score=0.4473  lr=5.00e-04
+  Ep  27/60  loss=0.2552 (bce=0.0936 dice=0.2967 kl=0.2668)  val_loss=0.2934  IoU=0.5413  chamfer=0.0436  score=0.4542  lr=5.00e-04
+  Ep  28/60  loss=0.2541 (bce=0.0927 dice=0.2961 kl=0.2668)  val_loss=0.2624  IoU=0.5744  chamfer=0.0394  score=0.4957  lr=5.00e-04
+  Ep  29/60  loss=0.2535 (bce=0.0925 dice=0.2958 kl=0.2636)  val_loss=0.2918  IoU=0.5489  chamfer=0.0453  score=0.4583  lr=5.00e-04
+  Ep  30/60  loss=0.2552 (bce=0.0935 dice=0.2966 kl=0.2678)  val_loss=0.2422  IoU=0.6065  chamfer=0.0385  score=0.5295  lr=5.00e-04
