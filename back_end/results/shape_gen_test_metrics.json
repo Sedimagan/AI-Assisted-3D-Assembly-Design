@@ -1,24 +1,24 @@
 {
   "test_metrics": {
-    "loss": 0.2162,
-    "iou": 0.6277,
-    "chamfer": 0.0356,
-    "loss_bce": 0.0583,
-    "loss_dice": 0.2831,
-    "loss_kl": 0.3272
+    "loss": 0.2234,
+    "iou": 0.6459,
+    "chamfer": 0.0377,
+    "loss_bce": 0.0749,
+    "loss_dice": 0.267,
+    "loss_kl": 0.2999
   },
   "val_metrics": {
-    "loss": 0.2005,
-    "iou": 0.6768,
-    "chamfer": 0.0345,
-    "loss_bce": 0.0634,
-    "loss_dice": 0.2411,
-    "loss_kl": 0.3302
+    "loss": 0.2122,
+    "iou": 0.664,
+    "chamfer": 0.0359,
+    "loss_bce": 0.0736,
+    "loss_dice": 0.2454,
+    "loss_kl": 0.3191
   },
   "retrieval_gated": {
     "tau": 0.4,
     "n_gated": 0,
-    "n_total": 133,
+    "n_total": 285,
     "metrics": null
   }
 }

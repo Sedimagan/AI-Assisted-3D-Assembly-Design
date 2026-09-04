@@ -71,3 +71,25 @@ Model built on mps  |  total params: 2,496,433
   Ep  52/60  loss=0.2372 (bce=0.0862 dice=0.2762 kl=0.2576)  val_loss=0.2388  IoU=0.6064  chamfer=0.0387  score=0.5290  lr=2.50e-04
   Ep  53/60  loss=0.2360 (bce=0.0852 dice=0.2763 kl=0.2531)  val_loss=0.2332  IoU=0.6081  chamfer=0.0377  score=0.5326  lr=2.50e-04
   Ep  54/60  loss=0.2370 (bce=0.0860 dice=0.2766 kl=0.2538)  val_loss=0.2607  IoU=0.5706  chamfer=0.0397  score=0.4912  lr=2.50e-04
+  Ep  55/60  loss=0.2365 (bce=0.0856 dice=0.2766 kl=0.2536)  val_loss=0.2398  IoU=0.6041  chamfer=0.0376  score=0.5288  lr=2.50e-04
+  Ep  56/60  loss=0.2360 (bce=0.0855 dice=0.2755 kl=0.2559)  val_loss=0.2477  IoU=0.5912  chamfer=0.0381  score=0.5151  lr=2.50e-04
+  Ep  57/60  loss=0.2357 (bce=0.0854 dice=0.2751 kl=0.2569)  val_loss=0.2089  IoU=0.6604  chamfer=0.0360  score=0.5884  lr=2.50e-04
+  Ep  58/60  loss=0.2357 (bce=0.0853 dice=0.2754 kl=0.2545)  val_loss=0.2179  IoU=0.6387  chamfer=0.0371  score=0.5645  lr=1.25e-04
+  Ep  59/60  loss=0.2329 (bce=0.0838 dice=0.2730 kl=0.2517)  val_loss=0.2175  IoU=0.6376  chamfer=0.0373  score=0.5630  lr=1.25e-04
+  Ep  60/60  loss=0.2318 (bce=0.0837 dice=0.2711 kl=0.2521)  val_loss=0.2180  IoU=0.6518  chamfer=0.0365  score=0.5789  lr=1.25e-04
+
+=======================================================
+  ConditionalShapeVAE — Test Results
+=======================================================
+     loss      : 0.2234
+     iou       : 0.6459
+     chamfer   : 0.0377
+     loss_bce  : 0.0749
+     loss_dice : 0.2670
+     loss_kl   : 0.2999
+  (selected epoch: val IoU=0.6640, chamfer=0.0359, score=0.5922)
+
+  Retrieval-gated: no test samples had fit_score < 0.4 — retrieval alone covers this test set at the current threshold.
+
+  Saved → checkpoints/shape_vae.pt
+  Saved → results/shape_gen_test_metrics.json
