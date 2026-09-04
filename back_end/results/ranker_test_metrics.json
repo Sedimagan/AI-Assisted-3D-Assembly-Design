@@ -1,73 +1,73 @@
 {
   "test_metrics": {
-    "hit@1": 0.4267,
-    "hit@5": 0.8533,
-    "mrr": 0.6098,
-    "ndcg@5": 0.6539
+    "hit@1": 0.4093,
+    "hit@5": 0.9101,
+    "mrr": 0.6102,
+    "ndcg@5": 0.6754
   },
   "val_metrics": {
-    "hit@1": 0.43,
-    "hit@5": 0.87,
-    "mrr": 0.6056,
-    "ndcg@5": 0.6572
+    "hit@1": 0.4188,
+    "hit@5": 0.8885,
+    "mrr": 0.6041,
+    "ndcg@5": 0.6621
   },
-  "baseline_hit1": 0.4133,
-  "baseline_hit1_corpus_wide": 0.4133,
+  "baseline_hit1": 0.3442,
+  "baseline_hit1_corpus_wide": 0.3442,
   "corpus_majority_type": "body",
   "per_class": {
     "per_class": {
       "long_shaft": {
-        "n": 11,
-        "hit@1": 0.2727272727272727
+        "n": 71,
+        "hit@1": 0.22535211267605634
       },
       "short_shaft": {
-        "n": 8,
-        "hit@1": 0.0
+        "n": 47,
+        "hit@1": 0.14893617021276595
       },
       "thick_plate": {
-        "n": 21,
-        "hit@1": 0.047619047619047616
+        "n": 111,
+        "hit@1": 0.36036036036036034
       },
       "thin_plate": {
-        "n": 7,
-        "hit@1": 0.42857142857142855
+        "n": 42,
+        "hit@1": 0.023809523809523808
       },
       "bolt": {
-        "n": 18,
-        "hit@1": 0.05555555555555555
+        "n": 98,
+        "hit@1": 0.3163265306122449
       },
       "washer": {
-        "n": 6,
+        "n": 18,
         "hit@1": 0.0
       },
       "nut": {
-        "n": 17,
-        "hit@1": 0.4117647058823529
+        "n": 36,
+        "hit@1": 0.4444444444444444
       },
       "body": {
-        "n": 62,
-        "hit@1": 0.7903225806451613
+        "n": 222,
+        "hit@1": 0.6891891891891891
       }
     },
     "true_distribution": {
-      "long_shaft": 11,
-      "short_shaft": 8,
-      "thick_plate": 21,
-      "thin_plate": 7,
-      "bolt": 18,
-      "washer": 6,
-      "nut": 17,
-      "body": 62
+      "long_shaft": 71,
+      "short_shaft": 47,
+      "thick_plate": 111,
+      "thin_plate": 42,
+      "bolt": 98,
+      "washer": 18,
+      "nut": 36,
+      "body": 222
     },
     "predicted_distribution": {
-      "long_shaft": 5,
-      "short_shaft": 1,
-      "thick_plate": 3,
-      "thin_plate": 9,
-      "bolt": 1,
-      "washer": 1,
-      "nut": 33,
-      "body": 97
+      "long_shaft": 36,
+      "short_shaft": 18,
+      "thick_plate": 96,
+      "thin_plate": 7,
+      "bolt": 78,
+      "washer": 3,
+      "nut": 63,
+      "body": 344
     }
   }
 }

@@ -45,3 +45,29 @@ Model built on mps  |  total params: 2,496,433
   Ep  28/30  loss=3.1909  Hit@1=0.4031  Hit@5=0.8885  MRR=0.5950  NDCG@5=0.6550
   Ep  29/30  loss=3.2007  Hit@1=0.4188  Hit@5=0.8885  MRR=0.6041  NDCG@5=0.6621
   Ep  30/30  loss=3.1886  Hit@1=0.4051  Hit@5=0.8904  MRR=0.5958  NDCG@5=0.6563
+
+=======================================================
+  NodeRanker — Test Results
+=======================================================
+     hit@1     : 0.4093
+     hit@5     : 0.9101
+     mrr       : 0.6102
+     ndcg@5    : 0.6754
+     majority-class baseline Hit@1 (sample-pool, legacy):  0.3442
+     majority-class baseline Hit@1 (corpus-wide, stable):  0.3442  (majority type: body)
+  (best val MRR=0.6041 at selection time)
+
+  Per-class breakdown (test set, n=645):
+  type            n   hit@1   true%   pred%
+  long_shaft     71   0.225   11.0%    5.6%
+  short_shaft    47   0.149    7.3%    2.8%
+  thick_plate   111   0.360   17.2%   14.9%
+  thin_plate     42   0.024    6.5%    1.1%
+  bolt           98   0.316   15.2%   12.1%
+  washer         18   0.000    2.8%    0.5%
+  nut            36   0.444    5.6%    9.8%
+  body          222   0.689   34.4%   53.3%
+  (true% vs pred% far apart for a type = the model is over/under-predicting it relative to how often it's actually the answer — a sign of majority-class collapse if e.g. 'body' pred% >> true%)
+
+  Saved → checkpoints/node_ranker.pt
+  Saved → results/ranker_test_metrics.json

@@ -1,0 +1,19 @@
+
+[1/6] Loading dataset …
+      648 graphs loaded.
+      train: 444  val: 112  test: 92
+
+[2/6] Loading frozen Phase-1 encoder …
+Model built on mps  |  total params: 2,496,433
+      Encoder frozen (val AUC=0.9409, trained_at=2026-09-02T00:32:39.774176)
+
+[3/6] Loading / building part bank …
+      Part bank: 11954 parts
+
+[4/6] Building leave-one-out samples …
+      Samples — train: 1338  val: 336  test: 285
+
+[5/6] Building ConditionalShapeVAE …
+      VAE params: 6,457,665
+
+[6/6] Training (60 epochs) …
