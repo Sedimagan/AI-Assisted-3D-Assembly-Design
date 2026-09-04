@@ -17,3 +17,18 @@ Model built on mps  |  total params: 2,496,433
       VAE params: 6,457,665
 
 [6/6] Training (60 epochs) …
+  Ep   1/60  loss=0.4788 (bce=0.1818 dice=0.5400 kl=0.5400)  val_loss=0.3552  IoU=0.4833  chamfer=0.0444  score=0.3944  lr=1.00e-03
+  Ep   2/60  loss=0.3682 (bce=0.1361 dice=0.4218 kl=0.4231)  val_loss=0.3187  IoU=0.5181  chamfer=0.0445  score=0.4292  lr=1.00e-03
+  Ep   3/60  loss=0.3436 (bce=0.1274 dice=0.3928 kl=0.3958)  val_loss=0.2937  IoU=0.5667  chamfer=0.0425  score=0.4816  lr=1.00e-03
+  Ep   4/60  loss=0.3324 (bce=0.1237 dice=0.3813 kl=0.3613)  val_loss=0.4619  IoU=0.3816  chamfer=0.0526  score=0.2763  lr=1.00e-03
+  Ep   5/60  loss=0.3224 (bce=0.1192 dice=0.3715 kl=0.3488)  val_loss=0.4009  IoU=0.4140  chamfer=0.0623  score=0.2894  lr=1.00e-03
+  Ep   6/60  loss=0.3167 (bce=0.1171 dice=0.3655 kl=0.3371)  val_loss=0.2921  IoU=0.5737  chamfer=0.0430  score=0.4878  lr=1.00e-03
+  Ep   7/60  loss=0.3095 (bce=0.1140 dice=0.3584 kl=0.3270)  val_loss=0.2802  IoU=0.6014  chamfer=0.0411  score=0.5192  lr=1.00e-03
+  Ep   8/60  loss=0.3070 (bce=0.1135 dice=0.3548 kl=0.3235)  val_loss=0.3077  IoU=0.5388  chamfer=0.0417  score=0.4554  lr=1.00e-03
+  Ep   9/60  loss=0.3015 (bce=0.1115 dice=0.3489 kl=0.3112)  val_loss=0.3381  IoU=0.4796  chamfer=0.0514  score=0.3768  lr=1.00e-03
+  Ep  10/60  loss=0.2963 (bce=0.1086 dice=0.3445 kl=0.3085)  val_loss=0.2865  IoU=0.5574  chamfer=0.0417  score=0.4740  lr=1.00e-03
+  Ep  11/60  loss=0.2930 (bce=0.1083 dice=0.3392 kl=0.3005)  val_loss=0.2816  IoU=0.5590  chamfer=0.0523  score=0.4545  lr=1.00e-03
+  Ep  12/60  loss=0.2925 (bce=0.1081 dice=0.3388 kl=0.3007)  val_loss=0.2697  IoU=0.5807  chamfer=0.0401  score=0.5005  lr=1.00e-03
+  Ep  13/60  loss=0.2866 (bce=0.1056 dice=0.3323 kl=0.2959)  val_loss=0.2700  IoU=0.5867  chamfer=0.0406  score=0.5055  lr=1.00e-03
+  Ep  14/60  loss=0.2839 (bce=0.1041 dice=0.3303 kl=0.2927)  val_loss=0.3305  IoU=0.4958  chamfer=0.0540  score=0.3879  lr=1.00e-03
+  Ep  15/60  loss=0.2821 (bce=0.1037 dice=0.3272 kl=0.2951)  val_loss=0.3067  IoU=0.5355  chamfer=0.0572  score=0.4211  lr=1.00e-03
