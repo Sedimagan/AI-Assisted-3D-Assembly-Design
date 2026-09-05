@@ -22,6 +22,11 @@
 \usepackage{listings}%
 \usepackage{tabularx}%
 
+%% sn-jnl's own default margins run much wider than expected (17 pages
+%% instead of the ~12 the same content produces in Word) -- force known,
+%% standard margins here instead of trusting the class default.
+\usepackage[a4paper,margin=1in]{geometry}%
+
 %% sn-jnl loads hyperref internally; \hypersetup here (after the class,
 %% before \begin{document}) turns on clickable, coloured citation numbers
 %% and section cross-references -- clicking [10] jumps to reference 10,
