@@ -264,6 +264,13 @@ R37 & + neg\_ratio 0.5$\to$1.0 fix, promotion-gate fix, seeded splits & 0.677~(+
 \end{tabularx}
 \end{table}
 
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{fig_training_history.pdf}
+\caption{(a) Mean/best AUC across all 39 tracked training runs, R39 (749-model corpus) highlighted. (b) R39's five-fold validation-AUC convergence, final test AUC per fold in the legend.}
+\label{fig:traininghistory}
+\end{figure}
+
 \subsection{Phase II: recommendation and generation}\label{sec:results-phase2}
 
 NodeRanker reaches Hit@1 of 0.4093 against a corpus-wide majority-class baseline of 0.3442 -- a genuine, non-trivial improvement over always predicting the plurality class (\texttt{body}, 35.5\% of all bodies in the corpus), rather than the exact tie with baseline this head produced in earlier corpus revisions. Hit@5 reaches 0.9101, MRR 0.6102, and NDCG@5 0.6754. Table~\ref{tab:perclass} breaks Hit@1 down by component type: performance is markedly uneven, with \texttt{body} (the majority class) at 0.689 against \texttt{washer} at 0.0 and \texttt{thin\_plate} at 0.024. The head also over-predicts \texttt{body} relative to its true frequency (64.7\% of predictions versus 41.3\% true share in the test split), confirming that the aggregate Hit@1 improvement, while real, coexists with an unresolved majority-class bias -- reported honestly here and returned to in Section~\ref{sec:limitations} rather than obscured by the headline number.
