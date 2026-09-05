@@ -29,11 +29,7 @@
 
 \author*[1]{\fnm{Parthasarathy} \sur{Perumal}}\email{parthasarathy.perumal@gmail.com}
 
-\author[1]{\fnm{Sagarika} \sur{Borah}}
-
-\author[1]{\fnm{Gaurav} \sur{Siwal}}
-
-\affil*[1]{\orgdiv{Department of Data Science and Artificial Intelligence}, \orgname{PES University}, \orgaddress{\street{Electronic City Campus}, \city{Bengaluru}, \postcode{560100}, \state{Karnataka}, \country{India}}}
+\affil*[1]{\orgdiv{Student -- M.Tech Data Science and AI}, \orgname{PES University}, \orgaddress{\street{Hosur Rd, Konappana Agrahara}, \city{Bangalore}, \postcode{560100}, \state{Karnataka}, \country{India}}}
 
 \abstract{Modern CAD tools offer no contextual intelligence during assembly creation: engineers rely entirely on domain experience to decide which components an assembly still needs and where they belong. We present an end-to-end graph neural network (GNN) system that treats a mechanical assembly as an attributed graph -- solid bodies as nodes, real contact surfaces as edges -- and addresses assembly completion in two phases. Phase~I detects missing components via inductive link prediction over a shared relational-attention encoder (RGATConv). Phase~II recommends the most likely next component type through a learned ranking head, then generates an actual placeable 3D shape for it through a hybrid retrieval-plus-conditional-VAE generator, rather than only a text label. Both phases build on a single frozen Phase~I encoder, so the marginal cost of each new task head is small. On a curated corpus of 749 CAD assemblies spanning seven machine-part categories (648 usable graphs, 25{,}155 labelled bodies after parsing), the system reaches a mean link-prediction AUC-ROC of 0.9206 ($\pm$0.0121) and mean average precision of 0.9020 across true five-fold cross-validation, a next-component ranking Hit@1 of 0.4093 against a majority-class baseline of 0.3442, and a shape-generation test IoU of 0.6459 with a Chamfer distance of 0.0377. We further contribute a novel Octree-based open-surface detector for locating candidate mating joints without a CAD kernel, an assembly-template frequency prior that works even from a single uploaded body, and an interactive natural-language explanation layer built on GNNExplainer attributions. We report an engineering finding from exploratory analysis of the current corpus -- a silently dead shape-descriptor feature affecting 99.95\% of bodies -- as a reminder that dataset-level auditing remains essential even after a model trains successfully.}
 
@@ -156,7 +152,7 @@ Once a component type is recommended, the system must produce an actual mesh, no
 
 \section{Novel Contributions}\label{sec:novel}
 
-\textbf{Octree open-surface detector.} To locate \emph{where} a missing component likely attaches without depending on a proprietary CAD-kernel API at inference time, an octree spatial partition -- adapting the octree concept from prior watermarking work by one of this paper's supervising authors \cite{borah2020watermark} -- clusters the free-surface (unmated) face centroids of each body after the same fragmentation step used for graph construction. Dense clusters of free-surface area flag candidate open joints directly from raw mesh geometry, independent of and complementary to the Phase~I link-prediction signal.
+\textbf{Octree open-surface detector.} To locate \emph{where} a missing component likely attaches without depending on a proprietary CAD-kernel API at inference time, an octree spatial partition -- adapting the octree concept from prior mesh-watermarking work \cite{borah2020watermark} -- clusters the free-surface (unmated) face centroids of each body after the same fragmentation step used for graph construction. Dense clusters of free-surface area flag candidate open joints directly from raw mesh geometry, independent of and complementary to the Phase~I link-prediction signal.
 
 \textbf{AssemblyTemplateDB.} A per-category component-type frequency prior, learned directly from the training corpus's true type distributions rather than from any graph-structured model. Because it requires no graph context at all, it remains useful even for the degenerate case of a single uploaded body with no known neighbours -- a case where Phase~I and NodeRanker have no assembly structure to reason over.
 
@@ -295,12 +291,12 @@ Three limitations are worth stating plainly. First, NodeRanker's majority-class 
 We have presented an end-to-end graph neural network system for CAD assembly completion, structured as two phases sharing one frozen relational-attention encoder: Phase~I detects missing components via inductive link prediction, and Phase~II recommends the most likely missing component type and generates an actual placeable 3D shape for it through a retrieval-first, VAE-fallback generator. On a curated 749-model, seven-category industrial-parts corpus, the system reaches a mean link-prediction AUC-ROC of 0.9206, a next-component ranking Hit@1 genuinely above a majority-class baseline, and a shape-generation IoU of 0.6459 with Chamfer distance 0.0377, alongside two supporting contributions -- an Octree-based open-surface detector and a component-type frequency prior effective even without graph context -- and a live, natural-language explanation layer built on GNNExplainer. We have also reported, rather than suppressed, two engineering findings surfaced only through direct exploratory analysis of the training corpus after the model itself had already trained successfully, as a concrete argument that dataset auditing and model evaluation are complementary practices, neither sufficient alone.
 
 \subsection*{Reproducibility}
-All five-fold cross-validation splits are seeded per fold and per graph, so a checkpoint's reported metrics are exactly reproducible from the same corpus snapshot. The 749-model corpus, all training and evaluation scripts, the trained checkpoints referenced in Tables~\ref{tab:phase1}--\ref{tab:perclass}, and the exploratory-analysis notebook behind Section~\ref{sec:eda-finding}'s findings are maintained in the authors' project repository and available on request.
+All five-fold cross-validation splits are seeded per fold and per graph, so a checkpoint's reported metrics are exactly reproducible from the same corpus snapshot. The 749-model corpus, all training and evaluation scripts, the trained checkpoints referenced in Tables~\ref{tab:phase1}--\ref{tab:perclass}, and the exploratory-analysis notebook behind Section~\ref{sec:eda-finding}'s findings are maintained in the author's project repository and available on request.
 
 \backmatter
 
 \section*{Acknowledgments}
-We thank the Department of Data Science and Artificial Intelligence at PES University for guidance and review throughout Phase~1 and Phase~2 of this M.Tech project.
+I thank Prof.~Sagarika Borah (Phase~1 guide) and Prof.~Gaurav Siwal (Phase~2 guide), and the Department of Data Science and Artificial Intelligence at PES University, for guidance and review throughout this M.Tech project.
 
 \bibliography{sn-bibliography}
 
