@@ -86,7 +86,7 @@ The rest of this paper is organised as follows. Section~\ref{sec:related} survey
 
 \section{System Architecture}\label{sec:arch}
 
-Figure~\ref{fig:pipeline} summarises the full pipeline: a STEP file is converted to an attributed graph, encoded once by a shared relational-attention network, and consumed by three task heads plus a live explanation layer, with two supporting geometric modules feeding candidate-location evidence back into the encoder's input.
+Figure~\ref{fig:pipeline} summarises the full pipeline: a STEP file is converted to an attributed graph, encoded once by a shared relational-attention network, and consumed by three task heads. Two supporting modules -- the AssemblyTemplateDB prior and the Octree open-surface detector -- operate independently of the encoder and join their evidence directly at the explanation layer alongside the task heads' outputs.
 
 \begin{figure}[h]
 \centering
