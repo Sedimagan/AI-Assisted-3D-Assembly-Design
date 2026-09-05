@@ -22,10 +22,14 @@
 \usepackage{listings}%
 \usepackage{tabularx}%
 
-%% sn-jnl's own default margins run much wider than expected (17 pages
-%% instead of the ~12 the same content produces in Word) -- force known,
-%% standard margins here instead of trusting the class default.
-\usepackage[a4paper,margin=1in]{geometry}%
+%% sn-jnl loads the geometry package internally with a print-production
+%% trim layout (text block only 31pc x 194.25mm on an A4 canvas meant to
+%% be cropped down at the printer, leaving a huge unused bottom margin in
+%% the raw, uncropped PDF Overleaf renders). A second \usepackage{geometry}
+%% call is silently ignored once a package is already loaded -- that's why
+%% the earlier fix attempt had no effect. \geometry{} is the package's own
+%% runtime-reconfiguration command and correctly overrides the class here.
+\geometry{margin=1in}
 
 %% sn-jnl loads hyperref internally; \hypersetup here (after the class,
 %% before \begin{document}) turns on clickable, coloured citation numbers
@@ -44,9 +48,14 @@
 
 \affil*[1]{\orgdiv{Student -- M.Tech Data Science and AI}, \orgname{PES University}, \orgaddress{\street{Hosur Rd, Konappana Agrahara}, \city{Bangalore}, \postcode{560100}, \state{Karnataka}, \country{India}}}
 
-\bigskip
-
-\noindent Corresponding author(s). E-mail(s): \href{mailto:parthasarathy.perumal@gmail.com}{parthasarathy.perumal@gmail.com};
+%% Do NOT add a manual "Corresponding author(s)..." line here: \author*
+%% (the asterisk) plus \email{} above already makes sn-jnl auto-generate
+%% that exact line as part of \maketitle's title block. A raw \noindent
+%% paragraph placed here, before \maketitle runs, gets typeset immediately
+%% as ordinary body text on page 1 -- producing a stray near-blank page 1
+%% with just that fragment, while \maketitle's real (duplicate) title block
+%% lands on page 2. Confirmed from the compiled PDF: removing this restores
+%% a single, correct title page.
 
 \abstract{Modern CAD tools offer no contextual intelligence during assembly creation: engineers rely entirely on domain experience to decide which components an assembly still needs and where they belong. We present an end-to-end graph neural network (GNN) system that treats a mechanical assembly as an attributed graph -- solid bodies as nodes, real contact surfaces as edges -- and addresses assembly completion in two phases. Phase~I detects missing components via inductive link prediction over a shared relational-attention encoder (RGATConv). Phase~II recommends the most likely next component type through a learned ranking head, then generates an actual placeable 3D shape for it through a hybrid retrieval-plus-conditional-VAE generator, rather than only a text label. Both phases build on a single frozen Phase~I encoder, so the marginal cost of each new task head is small. On a curated corpus of 749 CAD assemblies spanning seven machine-part categories (648 usable graphs, 25{,}155 labelled bodies after parsing), the system reaches a mean link-prediction AUC-ROC of 0.9206 ($\pm$0.0121) and mean average precision of 0.9020 across true five-fold cross-validation, a next-component ranking Hit@1 of 0.4093 against a majority-class baseline of 0.3442, and a shape-generation test IoU of 0.6459 with a Chamfer distance of 0.0377. We further contribute a novel Octree-based open-surface detector for locating candidate mating joints without a CAD kernel, an assembly-template frequency prior that works even from a single uploaded body, and an interactive natural-language explanation layer built on GNNExplainer attributions. We report an engineering finding from exploratory analysis of the current corpus -- a silently dead shape-descriptor feature affecting 99.95\% of bodies -- as a reminder that dataset-level auditing remains essential even after a model trains successfully.}
 
