@@ -20,6 +20,7 @@
 \usepackage{algorithmicx}%
 \usepackage{algpseudocode}%
 \usepackage{listings}%
+\usepackage{tabularx}%
 
 %% sn-jnl loads hyperref internally; \hypersetup here (after the class,
 %% before \begin{document}) turns on clickable, coloured citation numbers
@@ -112,7 +113,7 @@ Table~\ref{tab:hyperparams} lists the training configuration for each of the thr
 
 \begin{table}[h]
 \caption{Training configuration by stage.}\label{tab:hyperparams}
-\begin{tabular}{@{}lll@{}}
+\begin{tabularx}{\linewidth}{@{}lXX@{}}
 \toprule
 Parameter & Phase~I (encoder) & Phase~II (heads) \\
 \midrule
@@ -124,7 +125,7 @@ Early-stop patience & 20 epochs (LR patience 8) & none -- fixed 30 / 60 epochs \
 Dropout & 0.3 & -- \\
 Cross-validation & true 5-fold, per-fold reseeded splits & true 5-fold protocol, fold 0 reported \\
 \botrule
-\end{tabular}
+\end{tabularx}
 \end{table}
 
 \section{Phase I: Missing-Component Detection}\label{sec:phase1}
@@ -252,7 +253,7 @@ This result was not reached in a single pass; Table~\ref{tab:ablation} traces th
 
 \begin{table}[h]
 \caption{Three consecutive development runs illustrating the largest single-run gains (238-model corpus revision; superseded by the 749-model results in Table~\ref{tab:phase1}).}\label{tab:ablation}
-\begin{tabular}{@{}llr@{}}
+\begin{tabularx}{\linewidth}{@{}lXr@{}}
 \toprule
 Run & Change & Mean AUC \\
 \midrule
@@ -260,7 +261,7 @@ R35 & Populated previously dead hole-count / joint-type features & 0.539 \\
 R36 & + spatial link signal, real contact-area edge weight & 0.628~(+0.089) \\
 R37 & + neg\_ratio 0.5$\to$1.0 fix, promotion-gate fix, seeded splits & 0.677~(+0.049) \\
 \botrule
-\end{tabular}
+\end{tabularx}
 \end{table}
 
 \subsection{Phase II: recommendation and generation}\label{sec:results-phase2}
