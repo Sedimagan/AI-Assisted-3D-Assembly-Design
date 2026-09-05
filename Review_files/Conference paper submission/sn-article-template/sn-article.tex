@@ -21,6 +21,13 @@
 \usepackage{algpseudocode}%
 \usepackage{listings}%
 
+%% sn-jnl loads hyperref internally; \hypersetup here (after the class,
+%% before \begin{document}) turns on clickable, coloured citation numbers
+%% and section cross-references -- clicking [10] jumps to reference 10,
+%% clicking "Section 5.2" jumps to that section, matching the department's
+%% reference-format example.
+\hypersetup{colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue}
+
 \raggedbottom
 
 \begin{document}
