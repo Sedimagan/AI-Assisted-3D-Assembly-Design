@@ -213,6 +213,17 @@ could be built in the time available. His weekly guidance is the reason it
 was, and the hybrid retrieval-plus-VAE generator described in
 Chapter~4 exists because of that extra push.
 
+The headline detection result owes him the same debt. For most of this
+project the encoder sat close to chance --- a mean AUC-ROC in the 0.50 range,
+far short of the 0.85 target --- and it stayed there through run after run.
+His direction was consistent, and in hindsight plainly right: give the model
+more signal per body, and more assemblies to learn from. Widening the node
+feature vector and expanding the corpus to 749 curated models is what finally
+moved it. Runs R1 through R38 never reached the target. R39 cleared every
+metric at once, at a mean AUC-ROC of 0.9206. I am grateful for the patience
+that took, and for the weekly insistence that the ceiling was in the data
+rather than in the architecture.
+
 I thank the Department of Data Science and Artificial Intelligence and the
 project coordinators at PES University for the structure, review milestones
 and feedback that kept a project of this scope moving across two semesters.
