@@ -5,7 +5,10 @@
 %% Built on the PES M.Tech project-report LaTeX template.
 %% =====================================================================
 
-\documentclass[12pt]{report}
+%% oneside: one-sided printing (mandated by the submission checklist).
+%% report defaults to oneside, but state it so a later class change can't
+%% silently flip margins to a twoside binding offset.
+\documentclass[12pt,oneside,a4paper]{report}
 
 \usepackage{graphicx}
 \usepackage{geometry}
@@ -18,6 +21,8 @@
 \usepackage{caption}
 \usepackage{setspace}
 \usepackage{enumitem}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 \usepackage{xcolor}
 \usepackage{fancyhdr}
 \usepackage[hidelinks]{hyperref}
@@ -27,6 +32,29 @@
 
 \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 \newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+
+%% ---------------------------------------------------------------------
+%% Signature blocks.
+%%
+%% \sigslot{<file-basename>} drops in a scanned/digital signature image if
+%% that file is present next to main.tex, and otherwise leaves clear space
+%% above the rule for a wet signature. Either way the document compiles --
+%% no missing-file error, so the report can be built before the signatures
+%% exist.
+%%
+%% Submission checklist:
+%%   * Declaration  -- YOUR digital signature is required. Save it as
+%%                     signature_student.png (transparent PNG, ~600px wide)
+%%                     beside main.tex and it appears automatically.
+%%   * Certificate  -- the Phase 2 mentor is Great Learning faculty, so per
+%%                     the checklist NO scanned signature goes here; it is
+%%                     physically signed after printing. Left deliberately
+%%                     blank.
+%% ---------------------------------------------------------------------
+\newcommand{\sigslot}[1]{%
+  \IfFileExists{#1.png}{\includegraphics[height=1.5cm]{#1.png}}{%
+    \IfFileExists{#1.jpg}{\includegraphics[height=1.5cm]{#1.jpg}}{\vspace*{1.5cm}}}%
+}
 
 \pagestyle{fancy}
 \fancyhf{}
@@ -55,11 +83,11 @@ Submitted in partial fulfilment of the requirements for the award of degree of\\
 
 Under the guidance of\\[0.3cm]
 \textbf{Prof. Sagarika Borah} \quad (Project Phase 1)\\
-\textbf{Prof. Gaurav Siwal} \quad (Project Phase 2)\\
-Department of Data Science and Artificial Intelligence\\
-PES University\\[1.0cm]
+Department of Data Science and Artificial Intelligence, PES University\\[0.4cm]
+\textbf{Mr. Gaurav Siwal} \quad (Project Phase 2)\\
+Faculty, Great Learning\\[1.0cm]
 
-May -- September 2026\\[1.0cm]
+May 2026 -- Oct 2026\\[1.0cm]
 
 DEPARTMENT OF DATA SCIENCE AND ARTIFICIAL INTELLIGENCE\\
 FACULTY OF ENGINEERING\\
@@ -82,7 +110,7 @@ Assemblies using Graph Neural Networks''} is a bonafide work carried out by
 \textbf{Parthasarathy Perumal} in partial fulfilment for the completion of
 Project Phase~2 in the Program of Study --- Master of Technology in Data
 Science and Artificial Intelligence, under the rules and regulations of PES
-University, Bengaluru, during the period May~2026 -- September~2026.
+University, Bengaluru, during the period May~2026 -- Oct~2026.
 
 The work reported here is original, was carried out by the candidate under
 our guidance, and has not been submitted elsewhere for the award of any other
@@ -90,9 +118,13 @@ degree or diploma.
 
 \vspace{2.5cm}
 
+%% Both guide slots are intentionally left unsigned: the Phase 2 mentor is
+%% Great Learning faculty, which the checklist exempts from a scanned
+%% signature -- these are signed physically on the printed copy.
 \noindent
 \begin{minipage}[t]{0.48\textwidth}
 \centering
+\vspace*{1.5cm}\\
 \rule{5cm}{0.4pt}\\
 Prof. Sagarika Borah\\
 Guide, Project Phase 1\\
@@ -101,10 +133,11 @@ Dept. of DSAI, PES University
 \hfill
 \begin{minipage}[t]{0.48\textwidth}
 \centering
+\vspace*{1.5cm}\\
 \rule{5cm}{0.4pt}\\
-Prof. Gaurav Siwal\\
+Mr. Gaurav Siwal\\
 Guide, Project Phase 2\\
-Dept. of DSAI, PES University
+Faculty, Great Learning
 \end{minipage}
 
 \vspace{2cm}
@@ -112,6 +145,7 @@ Dept. of DSAI, PES University
 \noindent
 \begin{minipage}[t]{0.48\textwidth}
 \centering
+\vspace*{1.5cm}\\
 \rule{5cm}{0.4pt}\\
 Chairperson\\
 Dept. of DSAI, PES University
@@ -119,6 +153,7 @@ Dept. of DSAI, PES University
 \hfill
 \begin{minipage}[t]{0.48\textwidth}
 \centering
+\vspace*{1.5cm}\\
 \rule{5cm}{0.4pt}\\
 Dean of Faculty\\
 PES University
@@ -133,11 +168,12 @@ I hereby declare that the Project Phase~2 dissertation entitled
 \textbf{``AI-Assisted 3D Assembly Design: Detecting, Ranking and Generating
 Missing Components in CAD Assemblies using Graph Neural Networks''} has been
 carried out by me under the guidance of Prof.~Sagarika Borah (Project
-Phase~1) and Prof.~Gaurav Siwal (Project Phase~2), Department of Data Science
-and Artificial Intelligence, PES University, and submitted in partial
+Phase~1), Department of Data Science and Artificial Intelligence, PES
+University, and Mr.~Gaurav Siwal (Project Phase~2), Faculty, Great Learning,
+and submitted in partial
 fulfilment of the course requirements for the award of the degree of Master
 of Technology in Data Science and Artificial Intelligence of PES University,
-Bengaluru, during the academic period May~2026 -- September~2026.
+Bengaluru, during the academic period May~2026 -- Oct~2026.
 
 I further declare that the models, training corpus, source code and
 experimental results presented in this report are my own work. All external
@@ -148,6 +184,7 @@ any other institution.
 \vspace{3cm}
 
 \begin{flushright}
+\sigslot{signature_student}\\[-0.2cm]
 \rule{6cm}{0.4pt}\\
 \textbf{Parthasarathy Perumal}\\
 M.Tech, Data Science and Artificial Intelligence\\
@@ -170,7 +207,7 @@ early. The octree spatial-partitioning idea that became this project's
 open-surface detector was adapted from her published work on
 three-dimensional mesh models.
 
-I am equally grateful to Prof.~Gaurav Siwal, who guided Project Phase~2
+I am equally grateful to Mr.~Gaurav Siwal of Great Learning, who guided Project Phase~2
 through the ranking and shape-generation work. His questions about what a
 metric actually measures --- rather than whether it had improved --- led
 directly to the negative-sampling correction and the per-class evaluation
@@ -739,6 +776,82 @@ Environment management & \texttt{uv}, Python virtual environment \\
 \end{table}
 
 %% =====================================================================
+\section{Use Cases}
+
+Four primary use cases drive the interface design. Table~\ref{tab:usecases}
+summarises them; the two most important are described below in full.
+
+\begin{table}[h]
+\centering
+\caption{Primary use cases.}
+\label{tab:usecases}
+\small
+\begin{tabularx}{\textwidth}{@{}C{1.4cm}L{4.0cm}XC{2.0cm}@{}}
+\toprule
+\textbf{ID} & \textbf{Use case} & \textbf{Primary actor's goal} & \textbf{Phases used} \\
+\midrule
+UC-1 & Audit an inherited assembly & Determine whether anything is missing from a partially-defined assembly & 1, supporting \\
+UC-2 & Complete a detected gap & Obtain a component-type recommendation and a placeable shape for it & 1, 2, 3 \\
+UC-3 & Reason about a single body & Get a plausible next-component suggestion with no surrounding assembly context & Template prior \\
+UC-4 & Justify a suggestion & Understand \emph{why} the system proposed a particular component & Explanation layer \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\textbf{UC-1: Audit an inherited assembly.} The designer uploads a STEP file
+they did not author. The system parses it, builds the assembly graph, scores
+every non-adjacent body pair, and returns those whose best candidate
+connection scores anomalously low relative to structurally similar peers. In
+parallel, the octree detector reports clusters of unmated free surface. The
+designer sees both signals, and the interface distinguishes between locations
+where the two agree --- a strong claim --- and where only one fires.
+
+The precondition is a parseable STEP file containing at least two distinct
+solid bodies. The main alternative flow is a parse failure: the bounded-timeout
+policy aborts, and the system reports which stage failed rather than silently
+returning an empty graph.
+
+\textbf{UC-2: Complete a detected gap.} Having accepted a detection from UC-1,
+the designer requests a completion. The ranking head returns the eight
+component types in likelihood order. For the top-ranked type the hybrid
+generator queries the part bank; if a match clears the type-dependent
+threshold, that real mesh is returned, and if not the conditional VAE produces
+a novel shape. The result is displayed in the 3D viewer and can be exported.
+
+The postcondition worth noting is that the system always reports \emph{which}
+strategy produced the geometry. A retrieved part and a generated one carry
+different confidence, and collapsing that distinction would mislead the user
+in exactly the situation where the stakes are highest.
+
+\section{System Context}
+
+The system occupies a deliberately narrow position in a designer's workflow. It
+does not replace the CAD package, integrate into its plugin architecture, or
+write back into a native file format. It consumes a neutral STEP export and
+returns advice plus optional geometry.
+
+\begin{table}[h]
+\centering
+\caption{External interfaces.}
+\label{tab:interfaces}
+\small
+\begin{tabularx}{\textwidth}{@{}L{3.4cm}L{3.0cm}X@{}}
+\toprule
+\textbf{Interface} & \textbf{Direction} & \textbf{Content} \\
+\midrule
+STEP upload & Inbound & ISO 10303 assembly file from any CAD package \\
+Mesh export & Outbound & Generated or retrieved component geometry \\
+Language model API & Outbound & Structured attribution bundle for explanation \\
+Part bank & Internal & Indexed geometry from the training corpus \\
+Model checkpoints & Internal & Encoder, ranking head, shape VAE \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+This narrowness is a design position rather than a limitation of effort.
+Writing mating constraints back into a native CAD file would require a licensed
+kernel API at inference time, which the project explicitly set out to avoid.
+
 \chapter{Proposed Methodology}
 %% =====================================================================
 
@@ -1044,6 +1157,105 @@ explain pipeline completing in approximately 24 seconds end-to-end for a
 typical four-body assembly.
 
 %% =====================================================================
+\section{Algorithms}
+
+Three algorithms carry most of the system's behaviour. They are given here in
+pseudocode; the corresponding source modules are listed in
+Table~\ref{tab:modules}.
+
+\begin{algorithm}[h]
+\caption{STEP file to attributed assembly graph}
+\label{alg:graphbuild}
+\begin{algorithmic}[1]
+\Require STEP file $F$, parse timeout $T$
+\Ensure Attributed graph $G=(V,E,X,A)$, or \textbf{null} on failure
+\State $B \gets \textsc{FragmentSolids}(F)$ \Comment{gmsh / OpenCASCADE, bounded by $T$}
+\If{$B = \emptyset$ \textbf{or} timeout exceeded}
+  \State \Return \textbf{null} \Comment{reported, not silently substituted}
+\EndIf
+\State $V \gets \{v_b : b \in B\}$
+\ForAll{$b \in B$}
+  \State $M_b \gets \textsc{BuildMesh}(b)$
+  \State $s_b \gets \textsc{ShapeSignals}(M_b)$ \Comment{volume, area, bbox, SDF, holes}
+  \State $\tau_b \gets \textsc{ClassifyType}(s_b)$ \Comment{multi-signal geometric voting}
+  \State $X[v_b] \gets \textsc{AssembleNodeVector}(\tau_b, s_b)$ \Comment{34-dim}
+\EndFor
+\ForAll{unordered pairs $(u,v) \in V \times V$}
+  \State $S \gets \textsc{SharedBoundaryFaces}(u,v)$
+  \If{$S \neq \emptyset$} \Comment{genuine contact, not proximity}
+    \State $w \gets \textsc{ContactAreaWeight}(S, \mathrm{area}(u), \mathrm{area}(v))$
+    \State $j \gets \textsc{ClassifyJoint}(S)$ \Comment{rigid / revolute / slider / cylindrical}
+    \State $E \gets E \cup \{(u,v)\}$; \quad $A[(u,v)] \gets [\,\mathrm{mate}, w, \textsc{OneHot}(j)\,]$
+  \EndIf
+\EndFor
+\State \Return $(V,E,X,A)$
+\end{algorithmic}
+\end{algorithm}
+
+The critical line is the conditional on shared boundary faces. Substituting a
+distance threshold there would admit every pair of bodies that merely sit close
+together, and the resulting graph would encode spatial layout rather than
+mechanical connectivity.
+
+\begin{algorithm}[h]
+\caption{Missing-component detection at inference}
+\label{alg:detect}
+\begin{algorithmic}[1]
+\Require Graph $G$, trained encoder $f_\theta$, link head $g_\phi$
+\Ensure Ranked candidate missing connections
+\State $Z \gets f_\theta(X, E, A)$ \Comment{one forward pass, shared by all heads}
+\State $C \gets \{(u,v) : u,v \in V,\ u \neq v,\ (u,v) \notin E\}$
+\ForAll{$(u,v) \in C$}
+  \State $d \gets \lVert p_u - p_v \rVert_2$ \Comment{scale-normalised centroids}
+  \State $\sigma_{uv} \gets \mathrm{sigmoid}\big(g_\phi(z_u \Vert z_v \Vert d)\big)$
+\EndFor
+\State $O \gets \textsc{OctreeOpenSurfaces}(G)$ \Comment{independent geometric evidence}
+\State \Return $\textsc{SortDescending}(C \text{ by } \sigma)$, corroborated against $O$
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[h]
+\caption{Hybrid shape generation}
+\label{alg:shapegen}
+\begin{algorithmic}[1]
+\Require Component type $t$, target bounding box $\beta$, context vector $c$
+\Ensure Mesh $M$ and its provenance
+\State $\tau \gets 0.4$ \textbf{if} $t \in \{\text{bolt},\text{nut},\text{washer}\}$ \textbf{else} $0.6$
+\State $(M_r, \mathrm{fit}) \gets \textsc{QueryPartBank}(t, \beta)$
+\If{$\mathrm{fit} \geq \tau$}
+  \State \Return $(M_r, \textsc{retrieval})$ \Comment{a real part, at zero generation cost}
+\EndIf
+\State $z \sim \mathcal{N}(0, I)$
+\State $\kappa \gets [\,c \Vert \textsc{OneHot}(t) \Vert \beta \Vert \textsc{NeighbourScale}\,]$ \Comment{77-dim}
+\State $V \gets \mathrm{sigmoid}\big(\textsc{Decode}(z, \kappa)\big)$ \Comment{$32^3$ occupancy}
+\State \Return $(\textsc{Marching Cubes}(V), \textsc{generated})$
+\end{algorithmic}
+\end{algorithm}
+
+\section{Data Flow}
+
+Data passes through five stages, and the boundary between stages three and four
+is where the architecture's central decision becomes visible.
+
+\begin{enumerate}[leftmargin=2.0cm]
+\item \textbf{Ingest.} A STEP file arrives, is fragmented into solid bodies, and
+each body is meshed. This stage is by far the slowest and is the only one that
+can fail outright.
+\item \textbf{Featurise.} Geometric signals are computed per body and per
+contact, producing the 34-dimensional node vectors and 6-dimensional edge
+vectors. Component types are assigned here by geometric voting.
+\item \textbf{Encode.} The graph passes through the frozen encoder \emph{once},
+yielding a 64-dimensional embedding per node.
+\item \textbf{Branch.} All three task heads read those same embeddings
+independently. No head re-encodes, and no head can influence another's input.
+\item \textbf{Explain.} Attributions, the template prior and the octree findings
+are bundled and rendered into engineering language.
+\end{enumerate}
+
+Stage four is what makes the marginal cost of a task head small, and it is also
+what creates the operational constraint noted in Section~\ref{sec:encoder}: any
+change to stage three invalidates every head downstream of it.
+
 \chapter{Implementation Details}
 %% =====================================================================
 
@@ -1491,6 +1703,158 @@ coverage. A corpus containing more geometrically varied or less standardised
 components would exercise the fallback, and the threshold analysis would need
 re-running.
 
+\section{Ablation Studies}
+\label{sec:ablations}
+
+Four controlled experiments were run to test design decisions that would
+otherwise rest on assumption. Each is reported with its outcome, including the
+two that did \emph{not} support the change being tested.
+
+\subsection{Encoder Benchmark}
+
+RGATConv was benchmarked against GATv2, GraphSAGE and GIN. Per-stage widths
+were held constant across all four candidates, so the comparison isolates the
+aggregation mechanism rather than confounding it with layer capacity. GraphSAGE
+and GIN lose edge features entirely --- neither accepts an \texttt{edge\_dim}
+--- which is a real asymmetry, and a deliberate one: part of what the benchmark
+was meant to surface was whether the joint-type and contact-area edge features
+are actually load-bearing.
+
+\begin{table}[h]
+\centering
+\caption{Encoder benchmark. Two-fold screening against full five-fold validation.}
+\label{tab:encoderbench}
+\small
+\begin{tabularx}{\textwidth}{@{}L{2.6cm}L{4.4cm}C{2.6cm}C{2.6cm}@{}}
+\toprule
+\textbf{Encoder} & \textbf{Edge features used} & \textbf{2-fold screen} & \textbf{Full 5-fold} \\
+\midrule
+RGATConv & Joint type + contact area & lower & \textbf{0.6765} \\
+GraphSAGE & None & apparently higher & 0.6717 \\
+GATv2 & Contact area (layer 1) & --- & --- \\
+GIN & None & --- & --- \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The result is worth recording precisely because it is a near-miss. Two-fold
+screening suggested GraphSAGE was ahead, and acting on that screen would have
+removed relational attention from the architecture. Full five-fold validation
+showed an essential tie --- 0.6765 against 0.6717, well inside the fold-to-fold
+spread. RGATConv was retained.
+
+The methodological lesson generalises: an under-powered screening protocol does
+not merely produce a noisy estimate, it can invert the ranking of two
+candidates and drive a permanent architectural decision the wrong way.
+
+\subsection{Capacity Ablation}
+
+Two capacity parameters were varied against the then-current baseline of 0.6765
+mean AUC.
+
+\begin{table}[h]
+\centering
+\caption{Capacity ablation outcomes.}
+\label{tab:capacity}
+\small
+\begin{tabularx}{\textwidth}{@{}L{4.0cm}C{3.0cm}X@{}}
+\toprule
+\textbf{Change} & \textbf{Mean AUC} & \textbf{Outcome} \\
+\midrule
+Baseline (dropout 0.2) & 0.6765 & Reference \\
+Dropout $\to$ 0.3 & \textbf{0.6875} & Promoted; retained in the final configuration \\
+Hidden dim $\to$ 256 & --- & Hard MPS out-of-memory crash; not evaluable on this hardware \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Raising dropout to 0.3 produced a modest but real gain at full five-fold rigour
+and was promoted. Widening the hidden dimension to 256 could not be assessed at
+all: it exceeds the Metal Performance Shaders allocation ceiling of the
+development machine. That is a hardware limit rather than a negative result,
+and it is recorded as such rather than as evidence that wider is not better.
+
+\subsection{Learning Curve}
+
+To establish whether the system was data-limited or model-limited, Phase~1 was
+retrained on nested subsets of the corpus.
+
+\begin{table}[h]
+\centering
+\caption{Phase 1 performance against training-corpus fraction.}
+\label{tab:learningcurve}
+\small
+\begin{tabularx}{\textwidth}{@{}C{4.0cm}C{4.0cm}X@{}}
+\toprule
+\textbf{Corpus fraction} & \textbf{Mean AUC} & \textbf{Trend} \\
+\midrule
+25\%  & 0.5736 & --- \\
+50\%  & intermediate & rising \\
+75\%  & intermediate & rising \\
+100\% & 0.6627 & no plateau observed \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Performance scales cleanly with corpus size across the full range, with no sign
+of saturation at 100\%. The system was therefore \emph{data-limited} at that
+point, not architecture-limited --- which directly motivated the corpus
+expansion from 238 to 749 models described in Section~\ref{sec:corpus}, and
+predicted the large gain that expansion subsequently produced.
+
+\subsection{Cross-Validation Protocol}
+
+An early protocol used a fixed test set reused across all five folds. It was
+replaced with true five-fold assignment, in which each fold rotates a genuinely
+independent test partition.
+
+\begin{table}[h]
+\centering
+\caption{Fixed test set versus true five-fold assignment, same corpus.}
+\label{tab:cvprotocol}
+\small
+\begin{tabularx}{\textwidth}{@{}L{5.0cm}C{3.4cm}X@{}}
+\toprule
+\textbf{Protocol} & \textbf{Mean AUC} & \textbf{Std} \\
+\midrule
+Fixed test set, reused $\times$5 & 0.6875 & $\pm$0.0274 \\
+True five-fold assignment & 0.6937 & $\pm$0.0702 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The means are essentially identical; the standard deviation is roughly two and
+a half times larger under the honest protocol. The fixed test set had not been
+\emph{inflating} the reported mean --- it had been \emph{masking} genuine
+fold-to-fold variance. Every Phase~1 number reported in this chapter uses the
+true five-fold protocol.
+
+\subsection{Part Bank Quality Gate}
+
+The retrieval bank was rebuilt with a geometric quality gate applied at
+indexing time, rejecting degenerate and malformed bodies.
+
+\begin{table}[h]
+\centering
+\caption{Part bank composition before and after the quality gate.}
+\label{tab:partbank}
+\small
+\begin{tabularx}{\textwidth}{@{}L{4.6cm}C{3.0cm}C{3.0cm}X@{}}
+\toprule
+\textbf{Bank version} & \textbf{Parts} & \textbf{Assemblies} \\
+\midrule
+No gate & 4{,}500 & 187 \\
+With quality gate & 3{,}843 & 193 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The gate removed roughly 15\% of indexed parts while \emph{increasing} the
+number of contributing assemblies, which is the expected signature of
+eliminating many degenerate fragments drawn from a few pathological files.
+Comparing the two rebuilds also surfaced a signed-versus-absolute volume bug
+that had been silently admitting inverted-normal bodies into the bank.
+
 \section{Findings from Exploratory Data Analysis}
 \label{sec:eda-finding}
 
@@ -1553,6 +1917,132 @@ $32^3$-resolution generative sample. The architecture reflects a judgement
 about the domain rather than about model capability.
 
 %% =====================================================================
+\chapter{Testing and Validation}
+
+This chapter describes how the system's correctness was established, separately
+from how its performance was measured. The distinction matters: a model can
+post a strong AUC while a defect upstream of it quietly corrupts the inputs, as
+Section~\ref{sec:eda-finding} demonstrates.
+
+\section{Reproducibility Protocol}
+
+Every reported metric must be reproducible from the same corpus snapshot. This
+was not true early in the project, and making it true required fixing a real
+defect.
+
+\texttt{get\_splits()} seeds the per-graph edge split, but it originally seeded
+only the PyTorch generator and not Python's own. Because \texttt{RandomLinkSplit}
+draws on both, re-evaluating an identical checkpoint on an identical fold
+produced a slightly different AUC on each run. The fix seeds both generators
+per \emph{(fold, graph)} pair. Verification was direct: the same checkpoint,
+re-evaluated on the same fold, now returns a bit-identical AUC.
+
+\begin{table}[h]
+\centering
+\caption{Reproducibility controls.}
+\label{tab:repro}
+\small
+\begin{tabularx}{\textwidth}{@{}L{4.4cm}X@{}}
+\toprule
+\textbf{Control} & \textbf{Mechanism} \\
+\midrule
+Split determinism & Both RNGs seeded per (fold, graph) in \texttt{get\_splits()} \\
+Feature-set versioning & Cache invalidated whenever the node-vector width changes \\
+Configuration capture & Every checkpoint stores the \texttt{config.yaml} it trained under \\
+Metric provenance & Checkpoints embed their own CV summary and test metrics \\
+Batch determinism & Sampler shuffle seeded from the resumed epoch, not a reset counter \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The feature-set versioning control deserves a note, because it was added after
+a near-miss. The per-graph cache is keyed by filename alone. When the node
+vector grew from 22 to 34 dimensions, 235 graphs cached under the old width
+were about to be silently mixed into a dataset built under the new one,
+producing a corpus of inconsistent tensor widths. A version stamp on the
+feature set now invalidates the cache whenever the vector changes.
+
+\section{Validation of the Graph Construction Pipeline}
+
+The pipeline is validated at three levels.
+
+\textbf{Structural validation.} Every parsed graph is checked for node/edge
+count consistency, correct feature-vector width, and absence of self-loops.
+Graphs failing any check are rejected rather than repaired, on the principle
+that a silently-corrected graph is worse than a missing one.
+
+\textbf{Classification validation.} Component-type assignment was audited
+against manual inspection, which is how both geometry-classification bugs in
+Section~\ref{sec:challenges} were caught --- the fastener-orientation error and
+the merged-hole heuristic. Neither produced an exception; both were visible
+only by looking at what the classifier actually output for known parts.
+
+\textbf{Statistical validation.} The exploratory pass described in
+Section~\ref{sec:eda-finding} examines the distribution of every feature across
+the whole corpus. This is what surfaced the dead SDF feature, and it is the
+only one of the three levels that could have.
+
+\section{Model Validation}
+
+Phase~1 is validated under true five-fold cross-validation with chance-level AP
+reported alongside AP, so that dataset imbalance can never be mistaken for
+ranking skill. Phase~2 is validated against a corpus-wide majority-class
+baseline computed from true type frequency rather than from the leave-one-out
+sample pool --- the latter makes the baseline a moving target whenever sampling
+parameters change, and is retained only for continuity with older logs. Phase~3
+selects its checkpoint by validation IoU and Chamfer distance rather than
+training loss.
+
+\section{Checkpoint Promotion Gating}
+
+A newly trained checkpoint does not automatically replace the serving model. A
+promotion gate compares candidate metrics against the incumbent and requires
+both AUC-ROC and average precision to improve, or to remain within a defined
+tolerance.
+
+The gate itself contained a defect for part of the project's history, described
+in Section~\ref{sec:challenges}: comparing metrics as a lexicographic tuple
+meant Python's short-circuiting silently ignored AP whenever AUC differed. A
+checkpoint that improved AUC while regressing AP would be promoted with no
+warning. The corrected gate evaluates both metrics explicitly.
+
+This class of defect --- one that produces no error, no warning and no
+anomalous number, and merely makes a reported quantity decorative --- is the
+hardest to find, and is the reason the ablation protocol in
+Section~\ref{sec:ablations} reports negative and inconclusive results rather
+than only successful ones.
+
+\section{System Testing}
+
+End-to-end testing runs real STEP files through the deployed application. A
+representative test asset is a tool-post assembly with its bolts deliberately
+removed, which exercises the full detect $\to$ rank $\to$ generate $\to$
+explain path and has a known correct answer.
+
+\begin{table}[h]
+\centering
+\caption{End-to-end pipeline timing, typical four-body assembly.}
+\label{tab:timing}
+\small
+\begin{tabularx}{\textwidth}{@{}L{4.6cm}C{3.0cm}X@{}}
+\toprule
+\textbf{Stage} & \textbf{Share of latency} & \textbf{Notes} \\
+\midrule
+STEP parse and meshing & Dominant & Bounded by the parse-timeout policy \\
+Feature extraction & Moderate & Hole analysis is the costliest component \\
+Encoder forward pass & Negligible & One pass, shared by all heads \\
+Task heads & Negligible & Small parameter counts \\
+Explanation generation & Moderate & External API round-trip \\
+\midrule
+\textbf{Total} & \textbf{$\approx$24 s} & Against a $<$30 s requirement (NFR-1) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The distribution is itself informative: geometry processing dominates, and the
+neural components are effectively free by comparison. Any future latency work
+belongs in the parser, not the model.
+
 \chapter{Conclusion and Future Work}
 %% =====================================================================
 
