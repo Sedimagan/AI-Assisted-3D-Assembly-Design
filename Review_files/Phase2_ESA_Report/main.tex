@@ -196,11 +196,22 @@ early. The octree spatial-partitioning idea that became this project's
 open-surface detector was adapted from her published work on
 three-dimensional mesh models.
 
-I am equally grateful to Mr.~Gaurav Siwal of Great Learning, who guided Project Phase~2
-through the ranking and shape-generation work. His questions about what a
-metric actually measures --- rather than whether it had improved --- led
-directly to the negative-sampling correction and the per-class evaluation
-breakdown that are reported honestly here rather than averaged away.
+I am equally grateful to Mr.~Gaurav Siwal of Great Learning, who guided
+Project Phase~2 through the ranking and shape-generation work. His questions
+about what a metric actually measures --- rather than whether it had improved
+--- led directly to the negative-sampling correction and the per-class
+evaluation breakdown that are reported honestly here rather than averaged
+away.
+
+I owe him the scope of this project as much as its rigour. My own plan for
+Phase~2 ended at NodeRanker: detect that a component was missing, rank its
+likely type, and stop there. It was his challenge that pushed the work
+further --- to generate an actual three-dimensional shape for the recommended
+component, and to treat that generation as a novel contribution and a real
+Phase~2 deliverable rather than an optional extra. I was not convinced it
+could be built in the time available. His weekly guidance is the reason it
+was, and the hybrid retrieval-plus-VAE generator described in
+Chapter~4 exists because of that extra push.
 
 I thank the Department of Data Science and Artificial Intelligence and the
 project coordinators at PES University for the structure, review milestones
