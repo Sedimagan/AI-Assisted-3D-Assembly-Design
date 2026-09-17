@@ -17,7 +17,7 @@ Current git branch: `ph2-node-ranker-review1`.
 bash bootstrap.sh                 # one-shot setup: uv, .venv, deps, .env, skills validation
 source .venv/bin/activate         # activate before any command below
 
-bash start_services.sh            # front-end :8501 + back-end :11000 (from .env)
+bash start_services.sh            # front-end :8501 + back-end :8000 (from .env)
 bash stop_services.sh             # graceful shutdown
 
 streamlit run front_end/app.py    # front-end only
@@ -60,8 +60,8 @@ Checkpoints: `back_end/checkpoints/` (serving model, e.g. `best_serving.pt`) and
 - `config.yaml` node/edge feature dims (22/6) are current; older docs (README, GETTING_STARTED) may reference earlier dims (e.g. 21 or 13) — trust `config.yaml` and recent git log/commit messages over prose docs when they disagree.
 - Training data lives under `Source_3d_models/` (drop `.step`/`.stp` files anywhere inside; re-run with `--force-reload` to reprocess). Falls back to synthetic graphs if no valid STEP files are found.
 - Phase 1 partial-graph/edge masking is done by `RandomLinkSplit` in `dataset.py`'s `get_splits()` (`num_val`/`num_test`/`disjoint_train_ratio`), not by a `mask_ratio` config key — an earlier `mask_ratio` entry in `config.yaml` was dead (never read by any code) and was removed 2026-08; `ranker.n_per_graph` controls leave-one-node-out samples per graph per epoch (Phase 2).
-- **Ports come from `.env`: front-end `:8501`, back-end `:11000`** (`FRONTEND_PORT` and `BACKEND_URL`). `start_services.sh` / `stop_services.sh` fall back to 8501/8000 only when `.env` is absent. Verify what is actually bound with `lsof -nP -iTCP -sTCP:LISTEN | grep Python`.
-- Historical note, because it explains older logs and any long-running process you may find on `:8000`: until 2026-09-17 both scripts loaded `.env` via `source <(...)` process substitution, which silently sets nothing under bash 3.2.57 (macOS stock bash, which `#!/usr/bin/env bash` resolves to here). `.env` was therefore ignored outright and the 8501/8000 fallbacks always won. Both scripts now write the filtered lines to a temp file and source that instead, so `.env` is genuinely applied. A service started before that fix is still on `:8000` until restarted.
+- **Ports come from `.env`: front-end `:8501`, back-end `:8000`** (`FRONTEND_PORT` and `BACKEND_URL`). `start_services.sh` / `stop_services.sh` fall back to the same values when `.env` is absent. Verify what is actually bound with `lsof -nP -iTCP -sTCP:LISTEN | grep Python`.
+- Historical note, because it explains older logs and any long-running process you may find on `:8000`: until 2026-09-17 both scripts loaded `.env` via `source <(...)` process substitution, which silently sets nothing under bash 3.2.57 (macOS stock bash, which `#!/usr/bin/env bash` resolves to here). `.env` was therefore ignored outright and the 8501/8000 fallbacks always won. Both scripts now write the filtered lines to a temp file and source that instead, so `.env` is genuinely applied. `.env` was then set to `BACKEND_URL=http://localhost:8000` so the effective ports are unchanged by the fix.
 - That bug never affected Gemini/skills config: `api.py` and `skills_agent.py` call `python-dotenv`'s `load_dotenv()` themselves, so `GEMINI_API_KEY` and friends always loaded. Only shell-level vars were affected.
 - `front_end/app.py` does **not** call the back-end over HTTP. It loads checkpoints from disk and runs inference in a subprocess (avoiding gmsh + PyTorch signal-handler conflicts). `BACKEND_URL` is read only by the start/stop scripts. The FastAPI service is an independent API surface, not a dependency of the Streamlit app — which is why the port mismatch above went unnoticed for so long.
 - Don't hardcode ports in code; read from env.
