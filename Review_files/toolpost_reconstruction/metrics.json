@@ -1,0 +1,350 @@
+{
+ "placed": [
+  {
+   "name": "recon_machine_screw_0",
+   "family": "machine_screw",
+   "centroid": [
+    60.000000000000455,
+    -60.0,
+    110.7035039120191
+   ],
+   "kind": "hole",
+   "provenance": "bank:part_011303 fit=1.000"
+  },
+  {
+   "name": "recon_machine_screw_1",
+   "family": "machine_screw",
+   "centroid": [
+    -59.999999999999545,
+    -60.0,
+    110.7035039120191
+   ],
+   "kind": "hole",
+   "provenance": "bank:part_011303 fit=1.000"
+  },
+  {
+   "name": "recon_machine_screw_2",
+   "family": "machine_screw",
+   "centroid": [
+    60.000000000000455,
+    60.0,
+    110.7035039120191
+   ],
+   "kind": "hole",
+   "provenance": "bank:part_011303 fit=1.000"
+  },
+  {
+   "name": "recon_machine_screw_3",
+   "family": "machine_screw",
+   "centroid": [
+    -59.999999999999545,
+    60.0,
+    110.7035039120191
+   ],
+   "kind": "hole",
+   "provenance": "bank:part_011303 fit=1.000"
+  },
+  {
+   "name": "recon_ball_4",
+   "family": "ball",
+   "centroid": [
+    52.00000000000033,
+    1.150785046826311e-14,
+    24.849747468306
+   ],
+   "kind": "hole",
+   "provenance": "bank:part_007599 fit=0.991"
+  },
+  {
+   "name": "recon_ball_5",
+   "family": "ball",
+   "centroid": [
+    -52.00000000000033,
+    1.7847530616237273e-14,
+    24.849747468306
+   ],
+   "kind": "hole",
+   "provenance": "bank:part_007599 fit=0.991"
+  },
+  {
+   "name": "recon_compress_spring_6",
+   "family": "compress_spring",
+   "centroid": [
+    9.641879123178281e-15,
+    52.00000000000033,
+    33.0
+   ],
+   "kind": "hole",
+   "provenance": "bank:part_000222 fit=1.000"
+  },
+  {
+   "name": "recon_compress_spring_7",
+   "family": "compress_spring",
+   "centroid": [
+    52.00000000000033,
+    1.150785046826311e-14,
+    33.0
+   ],
+   "kind": "hole",
+   "provenance": "bank:part_000222 fit=1.000"
+  },
+  {
+   "name": "recon_compress_spring_8",
+   "family": "compress_spring",
+   "centroid": [
+    -3.2595247776950846e-15,
+    -52.00000000000033,
+    33.0
+   ],
+   "kind": "hole",
+   "provenance": "bank:part_000222 fit=1.000"
+  },
+  {
+   "name": "recon_compress_spring_9",
+   "family": "compress_spring",
+   "centroid": [
+    -52.00000000000033,
+    1.7847530616237273e-14,
+    33.0
+   ],
+   "kind": "hole",
+   "provenance": "bank:part_000222 fit=1.000"
+  },
+  {
+   "name": "recon_bs4183_screw_10",
+   "family": "bs4183_screw",
+   "centroid": [
+    58.00000017636311,
+    -58.00000000000005,
+    1.4016566990735693
+   ],
+   "kind": "symmetry",
+   "provenance": "bank:part_011272 fit=1.000"
+  },
+  {
+   "name": "recon_bs4183_screw_11",
+   "family": "bs4183_screw",
+   "centroid": [
+    -58.0000001763631,
+    58.00000000000006,
+    1.4016566990735693
+   ],
+   "kind": "symmetry",
+   "provenance": "bank:part_011272 fit=1.000"
+  },
+  {
+   "name": "recon_din_washer_12",
+   "family": "din_washer",
+   "centroid": [
+    58.0,
+    -58.0000000000004,
+    9.000000000000002
+   ],
+   "kind": "symmetry",
+   "provenance": "bank:part_002469 fit=1.000"
+  },
+  {
+   "name": "recon_din_washer_13",
+   "family": "din_washer",
+   "centroid": [
+    -57.99999999999999,
+    58.000000000000405,
+    9.000000000000002
+   ],
+   "kind": "symmetry",
+   "provenance": "bank:part_002469 fit=1.000"
+  },
+  {
+   "name": "recon_shaft_central_14",
+   "family": "shaft_central",
+   "centroid": [
+    -8.606448886894212e-13,
+    1.7652182335767882e-14,
+    76.00000000005001
+   ],
+   "kind": "bore-centroid",
+   "provenance": "bank:part_011299 fit=1.000"
+  },
+  {
+   "name": "recon_shaft_side_15",
+   "family": "shaft_side",
+   "centroid": [
+    72.55434999137682,
+    5.508543974934694,
+    149.50524730992367
+   ],
+   "kind": "mount-hole",
+   "provenance": "VAE (32^3, 1.3% occupied)"
+  },
+  {
+   "name": "recon_knob_16",
+   "family": "knob",
+   "centroid": [
+    128.9983499913768,
+    5.508543974934694,
+    149.50524730992367
+   ],
+   "kind": "mount-hole",
+   "provenance": "VAE (32^3, 12.1% occupied)"
+  }
+ ],
+ "scores": [
+  {
+   "family": "ball",
+   "gt": [
+    52.00000000000001,
+    8.373335378741797e-17,
+    24.849747468305807
+   ],
+   "err_mm": 3.730576070293701e-13
+  },
+  {
+   "family": "ball",
+   "gt": [
+    -51.99999999999999,
+    4.5246253537874186e-15,
+    24.849747468305836
+   ],
+   "err_mm": 3.720365223312364e-13
+  },
+  {
+   "family": "bs4183_screw",
+   "gt": [
+    58.00000017636252,
+    -58.00000000000001,
+    1.4016566990724222
+   ],
+   "err_mm": 1.2905120116498258e-12
+  },
+  {
+   "family": "bs4183_screw",
+   "gt": [
+    -58.00000000000001,
+    57.999999823637474,
+    1.4016566990724186
+   ],
+   "err_mm": 2.4941471881458457e-07
+  },
+  {
+   "family": "compress_spring",
+   "gt": [
+    0.0030505107150983163,
+    51.95081733032735,
+    33.042394086125654
+   ],
+   "err_mm": 0.06500383950363031
+  },
+  {
+   "family": "compress_spring",
+   "gt": [
+    -51.950817330327325,
+    0.003050510715124133,
+    33.042394086125654
+   ],
+   "err_mm": 0.06500383950364727
+  },
+  {
+   "family": "compress_spring",
+   "gt": [
+    -0.0030505107151043687,
+    -51.95081733032731,
+    33.042394086125654
+   ],
+   "err_mm": 0.06500383950365778
+  },
+  {
+   "family": "compress_spring",
+   "gt": [
+    51.950817330327325,
+    -0.0030505107150885632,
+    33.042394086125654
+   ],
+   "err_mm": 0.06500383950364698
+  },
+  {
+   "family": "din_washer",
+   "gt": [
+    58.00000000000001,
+    -58.00000000000001,
+    9.0
+   ],
+   "err_mm": 3.908671306113408e-13
+  },
+  {
+   "family": "din_washer",
+   "gt": [
+    -58.00000000000001,
+    58.00000000000001,
+    9.0
+   ],
+   "err_mm": 3.9816157895612607e-13
+  },
+  {
+   "family": "knob",
+   "gt": [
+    128.90139213534965,
+    34.64657297733052,
+    184.04599815132386
+   ],
+   "err_mm": 45.18957405926718
+  },
+  {
+   "family": "machine_screw",
+   "gt": [
+    -60.00003437379229,
+    60.00013048040805,
+    110.70392199771048
+   ],
+   "err_mm": 0.0004393203157712072
+  },
+  {
+   "family": "machine_screw",
+   "gt": [
+    59.99996562620772,
+    60.00013048040805,
+    110.70392199771048
+   ],
+   "err_mm": 0.0004393203157706512
+  },
+  {
+   "family": "machine_screw",
+   "gt": [
+    -60.00003437379229,
+    -59.99986951959197,
+    110.70392199771048
+   ],
+   "err_mm": 0.0004393203157648761
+  },
+  {
+   "family": "machine_screw",
+   "gt": [
+    59.999965626207704,
+    -59.99986951959195,
+    110.70392199771048
+   ],
+   "err_mm": 0.0004393203157717631
+  },
+  {
+   "family": "shaft_central",
+   "gt": [
+    5.1371752304167555e-11,
+    -1.4079707885554645e-10,
+    84.38483157705582
+   ],
+   "err_mm": 8.384831577005812
+  },
+  {
+   "family": "shaft_side",
+   "gt": [
+    68.56499742584226,
+    18.42914298798016,
+    164.82203489531946
+   ],
+   "err_mm": 20.431857347881596
+  }
+ ],
+ "exact_count": 14,
+ "total": 17,
+ "median_err_mm": 0.0004393203157712072,
+ "mean_err_mm": 4.3687079925205765
+}
