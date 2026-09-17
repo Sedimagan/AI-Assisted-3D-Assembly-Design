@@ -2754,6 +2754,9 @@ with col_left:
         if _rc and "error" not in _rc and _rc.get("placed"):
             from collections import Counter as _Ctr
             _cnt = _Ctr(p["family"] or "unclassified" for p in _rc["placed"])
+            st.success(
+                f"🧩 **{len(_rc['placed'])} missing components reconstructed "
+                f"and placed** — details below")
             with st.expander(
                     f"🧩 Reconstructed components — {len(_rc['placed'])} placed",
                     expanded=True):
@@ -2782,7 +2785,7 @@ with col_left:
                       "bank part": p.get("part_id", ""),
                       "fit": p.get("fit", "")}
                      for p in _rc["placed"]],
-                    use_container_width=True, hide_index=True)
+                    width='stretch', hide_index=True)
         elif _rc.get("error"):
             st.caption(f"Reconstruction unavailable: {_rc['error'][:120]}")
 
