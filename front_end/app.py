@@ -2420,7 +2420,7 @@ with col_right:
             # client-side restyle, not a rerun).
             _group_trace_indices: dict = {
                 "not_assembled": [], "parts": [], "potentially_missing": [],
-                "open_joints": [], "suggested_shapes": [],
+                "open_joints": [], "suggested_shapes": [], "reconstructed": [],
             }
 
             _first_not_assembled_legend = True
@@ -2607,6 +2607,59 @@ with col_right:
                 ))
                 _group_trace_indices["suggested_shapes"].append(len(fig.data) - 1)
 
+            # ── Reconstructed components ──────────────────────────────────
+            # slot_detector found the seat for each missing part and a mesh was
+            # retrieved and placed there; draw them in the Result view so the
+            # rebuilt assembly is visible, not just listed in a table.
+            _recon_glb = _STEP_CACHE.parent / "reconstructed.glb"
+            if _recon_glb.exists():
+                try:
+                    import trimesh as _rtm
+                    _rsc = _rtm.load(str(_recon_glb))
+                    _rgeo = getattr(_rsc, "geometry", {}) or {}
+                    _r_i = 0
+                    for _rname, _rmesh in _rgeo.items():
+                        try:
+                            _rtf = (_rsc.graph.get(_rname)[0]
+                                    if _rname in _rsc.graph.nodes_geometry else None)
+                            _rm = _rmesh.copy()
+                            if _rtf is not None:
+                                _rm.apply_transform(_rtf)
+                            _rv = np.asarray(_rm.vertices, dtype=float)
+                            _rf = np.asarray(_rm.faces, dtype=int)
+                            if len(_rv) == 0 or len(_rf) == 0:
+                                continue
+                            try:
+                                _rc_rgb = _rm.visual.face_colors[0][:3]
+                                _rcol = "#%02x%02x%02x" % tuple(int(c) for c in _rc_rgb)
+                            except Exception:
+                                _rcol = "#22c55e"
+                            _rfam = (_rname.replace("recon_", "")
+                                     .rsplit("_", 1)[0].replace("_", " ").title())
+                            fig.add_trace(go.Mesh3d(
+                                x=_rv[:, 0], y=_rv[:, 1], z=_rv[:, 2],
+                                i=_rf[:, 0], j=_rf[:, 1], k=_rf[:, 2],
+                                color=_rcol, opacity=0.95, flatshading=True,
+                                name=f"🧩 {_rfam}",
+                                showlegend=True,
+                                legendgroup="reconstructed",
+                                legendgrouptitle=(dict(text="🧩 Reconstructed")
+                                                  if _r_i == 0 else None),
+                                hovertext=(f"Reconstructed {_rfam}<br>"
+                                           "seat located from the uploaded model, "
+                                           "shape retrieved from the part bank"),
+                                hoverinfo="text",
+                                lighting=dict(ambient=0.85, diffuse=0.4, specular=0.5,
+                                              roughness=0.25, fresnel=0.5),
+                                lightposition=dict(x=150, y=200, z=300),
+                            ))
+                            _group_trace_indices["reconstructed"].append(len(fig.data) - 1)
+                            _r_i += 1
+                        except Exception:
+                            continue
+                except Exception as _rexc:
+                    log(f"⚠️  Could not draw reconstruction: {type(_rexc).__name__}")
+
             # "Select all" buttons — one per group that actually has traces
             # this run — client-side restyle (no Streamlit rerun) so they
             # don't disturb whatever the user has individually toggled
@@ -2617,6 +2670,7 @@ with col_right:
                 "potentially_missing": "❓ All missing",
                 "open_joints": "⬡ All joints",
                 "suggested_shapes": "🪄 All suggested",
+                "reconstructed": "🧩 All rebuilt",
             }
             _select_all_buttons = [
                 dict(
