@@ -250,6 +250,96 @@ def render_log(entries: list) -> str:
 
 # ── Inference helpers ─────────────────────────────────────────────────────────
 
+def _run_reconstruction(step_path: str) -> dict:
+    """Locate the seats of missing components and place a part in each.
+
+    Runs in a subprocess for the same reason _run_inference does: gmsh and
+    PyTorch fight over signal handlers in one process.
+
+    Returns {"slots": [...], "recognised": bool, "summary": str, "glb": path}
+    or {"error": ...}. Placement comes from back_end/slot_detector.py and reads
+    only the uploaded file -- see that module for the two mechanisms used.
+    """
+    back_end = str(_PROJ_ROOT / "back_end")
+    out_glb = str(_STEP_CACHE.parent / "reconstructed.glb")
+    script = textwrap.dedent(f"""\
+        import sys, json
+        sys.path.insert(0, {repr(back_end)})
+        import numpy as np, trimesh
+        from slot_detector import find_missing_slots, head_end_sign, orient_like
+
+        res = find_missing_slots({repr(step_path)})
+        slots = res["slots"]
+
+        # part-bank retrieval for each slot, then orientation-matched placement
+        from pathlib import Path
+        bank = Path({repr(back_end)}) / "data" / "part_bank"
+        index = json.load(open(bank / "index.json"))
+
+        def bank_pick(comp_type, target):
+            t = np.sort(np.asarray(target, float))[::-1]
+            best, bfit = None, -1.0
+            for e in index:
+                if comp_type and e["comp_type"] != comp_type:
+                    continue
+                b = np.sort(np.asarray(e["bbox"], float))[::-1]
+                den = np.maximum(b, t); den[den == 0] = 1e-9
+                fit = float(1.0 - np.mean(np.abs(b - t) / den))
+                if fit > bfit:
+                    best, bfit = e, fit
+            return best, bfit
+
+        scene = trimesh.Scene()
+        placed = []
+        fam_ext = res.get("family_extents", {{}})
+        for i, sl in enumerate(slots):
+            fam = sl.get("family")
+            if fam in fam_ext:
+                target = fam_ext[fam]          # measured from a surviving part
+            else:
+                d = sl.get("diam") or 10.0
+                target = [d * 3.0, d * 0.9, d * 0.9]
+            pick, fit = bank_pick(sl.get("comp_type"), target)
+            if pick is None:
+                continue
+            z = np.load(bank / (pick["part_id"] + ".npz"), allow_pickle=True)
+            m = trimesh.Trimesh(vertices=np.array(z["vertices"], float),
+                                faces=np.array(z["faces"]), process=False)
+            ext = m.extents.copy(); ext[ext == 0] = 1e-9
+            m.apply_scale(np.sort(np.asarray(target, float))[::-1] / np.sort(ext)[::-1])
+            m.apply_translation(-m.bounds.mean(axis=0))
+            m.apply_translation(np.asarray(sl["centroid"], float))
+            m = orient_like(m, 1, axis=2)
+            col = list(sl.get("color") or (150, 150, 150)) + [255]
+            m.visual.face_colors = col
+            nm = f"recon_{{sl.get('family') or 'slot'}}_{{i}}"
+            scene.add_geometry(m, node_name=nm, geom_name=nm)
+            placed.append({{"family": sl.get("family"), "centroid": sl["centroid"],
+                           "source": sl.get("source"), "part_id": pick["part_id"],
+                           "fit": round(fit, 3)}})
+
+        if len(scene.geometry):
+            scene.export({repr(out_glb)})
+
+        print("@@RECON@@" + json.dumps({{
+            "recognised": res["recognised"], "holes": res["holes"],
+            "empty": res["empty"], "placed": placed,
+            "glb": {repr(out_glb)} if len(scene.geometry) else None,
+        }}))
+    """)
+    try:
+        r = subprocess.run([sys.executable, "-c", script],
+                           capture_output=True, text=True, timeout=600)
+        for line in r.stdout.splitlines():
+            if line.startswith("@@RECON@@"):
+                return json.loads(line[len("@@RECON@@"):])
+        return {"error": (r.stderr or "no reconstruction output")[-400:]}
+    except subprocess.TimeoutExpired:
+        return {"error": "reconstruction timed out"}
+    except Exception as exc:                                   # pragma: no cover
+        return {"error": f"{type(exc).__name__}: {exc}"}
+
+
 def _run_inference(step_bytes: bytes,
                    source_dir: str = "",
                    uploaded_name: str = "") -> dict:
@@ -2644,6 +2734,57 @@ with col_left:
                 else:
                     log(f"⚠️  Inference: {_res.get('error','')[:80]}")
                 st.rerun()
+
+        # ── Missing-component reconstruction ──────────────────────────────
+        # Phase 1/2 say WHAT is missing; slot_detector says WHERE it goes, so
+        # the retrieved part can actually be placed in the model.
+        if st.session_state.get("recon_done_for") != st.session_state.pred_name:
+            with st.spinner("🧩 Locating missing-component slots…"):
+                _rc = _run_reconstruction(str(_STEP_CACHE))
+                st.session_state.recon_result = _rc
+                st.session_state.recon_done_for = st.session_state.pred_name
+                if "error" in _rc:
+                    log(f"⚠️  Reconstruction: {_rc['error'][:80]}")
+                else:
+                    log(f"🧩  Reconstruction — {len(_rc.get('placed', []))} "
+                        f"part(s) placed in {_rc.get('empty', 0)} empty slot(s)")
+                st.rerun()
+
+        _rc = st.session_state.get("recon_result") or {}
+        if _rc and "error" not in _rc and _rc.get("placed"):
+            from collections import Counter as _Ctr
+            _cnt = _Ctr(p["family"] or "unclassified" for p in _rc["placed"])
+            with st.expander(
+                    f"🧩 Reconstructed components — {len(_rc['placed'])} placed",
+                    expanded=True):
+                if not _rc.get("recognised"):
+                    st.caption(
+                        "Category not in the calibrated set — slots are reported "
+                        "without family labels, and placement is less reliable.")
+                st.markdown(" · ".join(
+                    f"**{n}×** {f.replace('_', ' ')}" for f, n in _cnt.most_common()))
+                _glb = _rc.get("glb")
+                if _glb and Path(_glb).exists():
+                    st.caption(
+                        f"{_rc.get('empty', 0)} empty slots found across "
+                        f"{_rc.get('holes', 0)} detected holes.")
+                    with open(_glb, "rb") as _f:
+                        st.download_button(
+                            "⬇️  Download reconstructed parts (.glb)",
+                            _f.read(), file_name="reconstructed_parts.glb",
+                            mime="model/gltf-binary", key="dl_recon_glb")
+                st.dataframe(
+                    [{"component": (p["family"] or "—").replace("_", " "),
+                      "x": round(p["centroid"][0], 2),
+                      "y": round(p["centroid"][1], 2),
+                      "z": round(p["centroid"][2], 2),
+                      "found via": p.get("source", ""),
+                      "bank part": p.get("part_id", ""),
+                      "fit": p.get("fit", "")}
+                     for p in _rc["placed"]],
+                    use_container_width=True, hide_index=True)
+        elif _rc.get("error"):
+            st.caption(f"Reconstruction unavailable: {_rc['error'][:120]}")
 
         _ph = _placeholder_panel_html(st.session_state.inference_result, True)
         if _ph is not None:

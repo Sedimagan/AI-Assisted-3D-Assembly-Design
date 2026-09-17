@@ -279,6 +279,52 @@ def occupancy_to_mesh(occ, target_bbox, level=0.5):
 
 # ───────────────────────── placement ─────────────────────────
 
+def head_end_sign(mesh, axis=2, nbins=12, frac=0.25):
+    """Which end of the part is the HEAD, i.e. physically wider?
+
+    Returns +1 when the wide end faces +axis, -1 when it faces -axis.
+
+    Slices the mesh into bins along `axis` and compares the mean lateral
+    spread of the outermost bins at each end. This beats a volume-centroid
+    test, which is what I used first and which got these screws backwards:
+    the bank screw and the fitted screw have different mass distributions,
+    so their centroid offsets agreed in sign while the parts were visually
+    inverted. Cross-sectional width is a direct read of where the head is.
+    """
+    v = np.asarray(mesh.vertices, dtype=float)
+    a = v[:, axis]
+    lo, hi = a.min(), a.max()
+    if hi - lo < 1e-9:
+        return 0
+    lat = np.delete(v, axis, axis=1)
+    edges = np.linspace(lo, hi, nbins + 1)
+    widths = []
+    for i in range(nbins):
+        m = (a >= edges[i]) & (a <= edges[i + 1])
+        if m.sum() < 3:
+            widths.append(np.nan); continue
+        w = lat[m]
+        widths.append(float(np.linalg.norm(w.max(axis=0) - w.min(axis=0))))
+    widths = np.array(widths, dtype=float)
+    k = max(1, int(round(nbins * frac)))
+    top = np.nanmean(widths[-k:])
+    bot = np.nanmean(widths[:k])
+    if not np.isfinite(top) or not np.isfinite(bot):
+        return 0
+    if abs(top - bot) < 0.02 * max(top, bot):
+        return 0                       # symmetric part, orientation is free
+    return 1 if top > bot else -1
+
+
+def flip_180(mesh, about=(1.0, 0.0, 0.0)):
+    m = mesh.copy()
+    c = m.bounds.mean(axis=0)
+    m.apply_translation(-c)
+    m.apply_transform(trimesh.transformations.rotation_matrix(math.pi, about))
+    m.apply_translation(c)
+    return m
+
+
 def place(mesh, target_centroid, align_axis=None, source_axis=None):
     m = mesh.copy()
     m.apply_translation(-m.bounds.mean(axis=0))
@@ -522,7 +568,26 @@ def run_full():
         mm.visual.face_colors = COLORS.get(s["family"], COLORS["existing_other"])
         scene_parts.append((f"existing_{s['family']}_{s['tag']}", mm, s["family"], None))
 
+    # Which way does each family point? Measure it from the instances that
+    # SURVIVED in the uploaded file rather than assuming. A screw's volume
+    # centroid sits toward its head, so the sign of that offset fixes the
+    # 180-degree ambiguity that align_vectors() leaves open.
+    ref_bias = {}
+    for fam, lst in by_fam.items():
+        live = [s for s in lst if not s.get("scrap")]
+        if live:
+            signs = [head_end_sign(s["mesh"], 2) for s in live]
+            nz = [x for x in signs if x != 0]
+            if nz:
+                ref_bias[fam] = 1 if sum(nz) > 0 else -1
+    if ref_bias:
+        print("    reference orientation (head end, +1 = head up):")
+        for f, b in sorted(ref_bias.items()):
+            if not f.startswith("host"):
+                print(f"      {f:<18}{b:+d}")
+
     placed = []
+    flips = 0
     for i, (fam, c, kind) in enumerate(targets):
         base = geom_cache[fam]
         axis = np.array([0, 0, 1.0])
@@ -531,6 +596,12 @@ def run_full():
         if e.argmax() != 2:
             src_axis = np.eye(3)[int(e.argmax())]
         m = place(base, c, align_axis=axis, source_axis=src_axis)
+        want = ref_bias.get(fam)
+        if want:
+            got = head_end_sign(m, 2)
+            if got and got != want:
+                m = flip_180(m)
+                flips += 1
         m.visual.face_colors = COLORS[fam]
         name = f"recon_{fam}_{i}"
         scene_parts.append((name, m, fam, c))
@@ -538,6 +609,7 @@ def run_full():
                        "kind": kind, "provenance": prov[fam]})
     print(f"    {len(scene_parts)} meshes "
           f"({len(scene_parts)-len(placed)} existing + {len(placed)} reconstructed)")
+    print(f"    {flips} part(s) flipped 180 deg to match surviving orientation")
 
     # ---------- 6. export ----------
     print("\n[6] Exporting ...")
