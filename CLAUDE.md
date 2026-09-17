@@ -17,7 +17,7 @@ Current git branch: `ph2-node-ranker-review1`.
 bash bootstrap.sh                 # one-shot setup: uv, .venv, deps, .env, skills validation
 source .venv/bin/activate         # activate before any command below
 
-bash start_services.sh            # front-end :11501 + back-end :11000 (reads .env)
+bash start_services.sh            # front-end :8501 + back-end :8000  (see port note below)
 bash stop_services.sh             # graceful shutdown
 
 streamlit run front_end/app.py    # front-end only
@@ -60,6 +60,9 @@ Checkpoints: `back_end/checkpoints/` (serving model, e.g. `best_serving.pt`) and
 - `config.yaml` node/edge feature dims (22/6) are current; older docs (README, GETTING_STARTED) may reference earlier dims (e.g. 21 or 13) — trust `config.yaml` and recent git log/commit messages over prose docs when they disagree.
 - Training data lives under `Source_3d_models/` (drop `.step`/`.stp` files anywhere inside; re-run with `--force-reload` to reprocess). Falls back to synthetic graphs if no valid STEP files are found.
 - Phase 1 partial-graph/edge masking is done by `RandomLinkSplit` in `dataset.py`'s `get_splits()` (`num_val`/`num_test`/`disjoint_train_ratio`), not by a `mask_ratio` config key — an earlier `mask_ratio` entry in `config.yaml` was dead (never read by any code) and was removed 2026-08; `ranker.n_per_graph` controls leave-one-node-out samples per graph per epoch (Phase 2).
-- Ports and Gemini/skills config are all driven from `.env` (see `.env.example` for the full list) — don't hardcode ports; read from env.
+- **Ports: front-end `:8501`, back-end `:8000`.** These are `start_services.sh`'s hardcoded fallbacks, and in practice they are always what you get, because the script's `.env` loading is broken on this machine: it uses `source <(...)` process substitution, which silently sets nothing under bash 3.2.57 (macOS stock bash, which the script's `#!/usr/bin/env bash` resolves to). So `.env`'s `BACKEND_URL=http://localhost:11000` never takes effect. Verify what is actually bound with `lsof -nP -iTCP -sTCP:LISTEN | grep Python` rather than trusting `.env`.
+- That broken shell sourcing does **not** affect Gemini/skills config: `api.py` and `skills_agent.py` both call `python-dotenv`'s `load_dotenv()` themselves, so `GEMINI_API_KEY` and friends load correctly. Only shell-level vars (the ports) are affected.
+- The port mismatch is harmless in practice: `front_end/app.py` never calls the back-end over HTTP. It loads checkpoints from disk and runs inference in a subprocess (avoiding gmsh + PyTorch signal-handler conflicts). `BACKEND_URL` is read only by `start_services.sh` / `stop_services.sh`. The FastAPI service is an independent API surface, not a dependency of the Streamlit app.
+- Don't hardcode ports in code; read from env — but be aware the shell-level path above is currently a no-op.
 - `skills/engineering_3d_assembly.yaml` defines AIDA's persona and domain skill areas — extend by editing this YAML, not by changing `skills_agent.py` (it loads profiles dynamically via `SKILLS_PROFILE`).
 - Presentation/report artifacts (slide decks, speaker notes, LaTeX report) live in `Review_files/` and the repo root — these are generated deliverables, not source of truth for current model state; check `config.yaml`, `results/`, and git log instead.
