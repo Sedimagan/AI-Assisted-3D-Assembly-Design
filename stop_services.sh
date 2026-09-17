@@ -28,10 +28,19 @@ PIDS_DIR="$PROJ_ROOT/.pids"
 
 # Load .env to get the same ports used at start time
 if [[ -f "$PROJ_ROOT/.env" ]]; then
+  # NB: `source <(...)` silently sets NOTHING under bash 3.2 (macOS stock
+  # bash, which this script's `#!/usr/bin/env bash` resolves to when no
+  # newer bash is installed) -- .env was being ignored entirely, so the
+  # fallbacks below always won. Source a real temp file instead.
+  # `\s` is also not portable in BSD grep's BRE; use [[:space:]].
+  _env_tmp="$(mktemp -t assembly_env)"
+  grep -v '^[[:space:]]*#' "$PROJ_ROOT/.env" \
+    | grep -v '^[[:space:]]*$' > "$_env_tmp"
   set -o allexport
-  # shellcheck disable=SC1091
-  source <(grep -v '^\s*#' "$PROJ_ROOT/.env" | grep -v '^\s*$')
+  # shellcheck disable=SC1090
+  source "$_env_tmp"
   set +o allexport
+  rm -f "$_env_tmp"
 fi
 
 FRONTEND_PORT="${FRONTEND_PORT:-8501}"
