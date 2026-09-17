@@ -1,0 +1,6 @@
+2026-08-24 11:17:57  [backup-watcher] started, watching ../logs/train_ph2_allshp_r1.log for parse-complete
+2026-08-25 14:51:20  [backup-watcher] train.py no longer running and parse never completed -- exiting without backup
+2026-08-25 14:52:03  [backup-watcher] started, watching ../logs/train_ph2_allshp_r1.log for parse-complete
+2026-08-25 14:52:34  [backup-watcher] started, watching ../logs/train_ph2_allshp_r1.log for parse-complete
+2026-08-27 08:27:33  [backup-watcher] parse complete, backing up data/processed/processed -> data/processed_backup_ph2allshp_20260825_145234
+2026-08-27 08:27:34  [backup-watcher] done -- 648 cached graphs + data.pt backed up to data/processed_backup_ph2allshp_20260825_145234
