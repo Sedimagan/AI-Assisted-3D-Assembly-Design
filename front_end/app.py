@@ -276,6 +276,29 @@ def _part_source_info(src: str) -> tuple[str, str, str]:
     return ("✨", "AI-generated (VAE)", "the conditional VAE")
 
 
+def _reset_prediction_state() -> None:
+    """Forget everything derived from the previous prediction.
+
+    The right-hand viewer is drawn BEFORE the prediction code runs in every script
+    run, so any leftover result (inference, reconstruction, its .glb on disk) would
+    show up the instant a new file loads.  Called on every new upload and by both
+    reset buttons.  The viewer's own mode widget is reset via a pending flag,
+    because a widget's value cannot be changed after the widget has been drawn.
+    """
+    st.session_state.inference_result   = None
+    st.session_state.inference_done_for = ""
+    st.session_state.aida_explanation   = None
+    st.session_state.aida_explain_for   = ""
+    st.session_state.recon_result       = None
+    st.session_state.recon_done_for     = ""
+    st.session_state.viewer_auto_done_for = ""
+    st.session_state["_viewer_mode_next"] = "Original"
+    try:
+        (_STEP_CACHE.parent / "reconstructed.glb").unlink()
+    except FileNotFoundError:
+        pass
+
+
 def _run_reconstruction(step_path: str) -> dict:
     """Locate the seat of every missing component and put a real part in it.
 
@@ -2329,12 +2352,29 @@ with col_right:
     else:
         # "Show parts" is now a native "🧩 Parts" legend group (click to
         # toggle, same as Open Joints / Suggested Shapes / etc).
+        # The view starts on "Original" (only the uploaded model) and switches itself to
+        # "Result" once prediction AND reconstruction have both finished for THIS file;
+        # after that the user's own choice sticks.  (State is set before the widget is
+        # drawn -- Streamlit forbids changing a widget's value afterwards.)
+        _uname = st.session_state.uploaded_name
+        _pred_complete = bool(_uname) and (
+            st.session_state.inference_done_for == _uname
+            and st.session_state.get("recon_done_for") == _uname
+        )
+        if "_viewer_mode_next" in st.session_state:
+            st.session_state["viewer_mode"] = st.session_state.pop("_viewer_mode_next")
+        if "viewer_mode" not in st.session_state:
+            st.session_state["viewer_mode"] = "Original"
+        if _pred_complete and st.session_state.get("viewer_auto_done_for") != _uname:
+            st.session_state["viewer_mode"] = "Result"
+            st.session_state["viewer_auto_done_for"] = _uname
+
         _vt_col1, _vt_col2 = st.columns([1, 1])
         with _vt_col1:
             _viewer_mode = st.segmented_control(
-                "View", options=["Original", "Result"], default="Result",
+                "View", options=["Original", "Result"],
                 key="viewer_mode", label_visibility="collapsed",
-            ) or "Result"
+            ) or ("Result" if _pred_complete else "Original")
         with _vt_col2:
             _highlight_choice = st.segmented_control(
                 "Highlight", options=["Highlight: On", "Highlight: Off"],
@@ -2629,8 +2669,12 @@ with col_right:
             # slot_detector found the seat for each missing part and a mesh was
             # retrieved and placed there; draw them in the Result view so the
             # rebuilt assembly is visible, not just listed in a table.
+            # Drawn only once prediction has finished for THIS file (never from a leftover
+            # .glb of an earlier upload), only in the Result view, and switched OFF by
+            # default: it shows up greyed in the legend and the "🧩 All rebuilt" button
+            # (or the legend entry) turns it on.
             _recon_glb = _STEP_CACHE.parent / "reconstructed.glb"
-            if _recon_glb.exists():
+            if _show_result and _pred_complete and _recon_glb.exists():
                 try:
                     import trimesh as _rtm
                     _rsc = _rtm.load(str(_recon_glb))
@@ -2660,6 +2704,7 @@ with col_right:
                                 color=_rcol, opacity=0.95, flatshading=True,
                                 name=f"🧩 {_rfam}",
                                 showlegend=True,
+                                visible="legendonly",
                                 legendgroup="reconstructed",
                                 legendgrouptitle=(dict(text="🧩 Reconstructed")
                                                   if _r_i == 0 else None),
@@ -2697,7 +2742,7 @@ with col_right:
                     # args/args2 = toggle: first click selects all, next
                     # click deselects all, alternating on each press.
                     args=[{"visible": True}, _grp_indices],
-                    args2=[{"visible": False}, _grp_indices],
+                    args2=[{"visible": "legendonly" if _grp_key == "reconstructed" else False}, _grp_indices],
                 )
                 for _grp_key, _grp_indices in _group_trace_indices.items()
                 if _grp_indices
@@ -2785,6 +2830,7 @@ with col_left:
             help="The trained GNN will identify which component connections are missing.",
         )
         if pred_file:
+            _reset_prediction_state()          # nothing from a previous file may reach the viewer
             st.session_state.pred_bytes = pred_file.getvalue()
             st.session_state.pred_name  = pred_file.name
             log(f"🔍  Prediction file received: {pred_file.name}")
@@ -2914,10 +2960,7 @@ with col_left:
             if st.button("🔄 Predict another", key="reset_pred", use_container_width=True):
                 st.session_state.pred_bytes         = None
                 st.session_state.pred_name          = None
-                st.session_state.inference_result   = None
-                st.session_state.inference_done_for = ""
-                st.session_state.aida_explanation   = None
-                st.session_state.aida_explain_for   = ""
+                _reset_prediction_state()
                 # Synchronize reset to the left viewer
                 st.session_state.uploaded_bytes     = None
                 st.session_state.uploaded_name      = None
@@ -2927,10 +2970,7 @@ with col_left:
             if st.button("🗑️ Reset All & Log", key="reset_main_log", use_container_width=True):
                 st.session_state.pred_bytes         = None
                 st.session_state.pred_name          = None
-                st.session_state.inference_result   = None
-                st.session_state.inference_done_for = ""
-                st.session_state.aida_explanation   = None
-                st.session_state.aida_explain_for   = ""
+                _reset_prediction_state()
                 st.session_state.uploaded_bytes     = None
                 st.session_state.uploaded_name      = None
                 st.session_state.mesh_logged        = False
