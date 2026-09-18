@@ -252,86 +252,64 @@ def render_log(entries: list) -> str:
 
 # ── Inference helpers ─────────────────────────────────────────────────────────
 
+def _part_source_info(src: str) -> tuple[str, str, str]:
+    """(icon, short badge, longer wording) for where a suggested part's shape came from.
+
+    "copied"    -- the real solid from a matching part already in the upload
+    "retrieved" -- exact geometry looked up from the tool-post corpus
+    anything else is treated as the VAE fallback, as before.
+    """
+    if src == "copied":
+        return ("📋", "Copied from your uploaded model",
+                "a matching part already in the uploaded model")
+    if src == "retrieved":
+        return ("🔄", "Retrieved from part library",
+                "the most similar tool posts in the part library")
+    return ("✨", "AI-generated (VAE)", "the conditional VAE")
+
+
 def _run_reconstruction(step_path: str) -> dict:
-    """Locate the seats of missing components and place a part in each.
+    """Locate the seat of every missing component and put a real part in it.
 
-    Runs in a subprocess for the same reason _run_inference does: gmsh and
-    PyTorch fight over signal handlers in one process.
+    All placement and geometry logic lives in back_end/rebuild.py (which builds
+    on slot_detector.py): empty-hole detection says WHERE, and the shape is
+    either a copy of a surviving instance from the upload or exact geometry
+    from the most similar tool posts in the corpus. Runs in a subprocess for
+    the same reason _run_inference does -- gmsh and PyTorch fight over signal
+    handlers in one process.
 
-    Returns {"slots": [...], "recognised": bool, "summary": str, "glb": path}
-    or {"error": ...}. Placement comes from back_end/slot_detector.py and reads
-    only the uploaded file -- see that module for the two mechanisms used.
+    Returns {"recognised", "holes", "empty", "placed": [...], "glb": path} where
+    each placed entry carries name/family/type/source/part_id/fit_score/
+    confidence/centroid/seat, or {"error": ...}.
     """
     back_end = str(_PROJ_ROOT / "back_end")
     out_glb = str(_STEP_CACHE.parent / "reconstructed.glb")
     script = textwrap.dedent(f"""\
         import sys, json
         sys.path.insert(0, {repr(back_end)})
-        import numpy as np, trimesh
-        from slot_detector import find_missing_slots, head_end_sign, orient_like
+        import rebuild as RB
 
-        res = find_missing_slots({repr(step_path)})
-        slots = res["slots"]
-
-        # part-bank retrieval for each slot, then orientation-matched placement
-        from pathlib import Path
-        bank = Path({repr(back_end)}) / "data" / "part_bank"
-        index = json.load(open(bank / "index.json"))
-
-        def bank_pick(comp_type, target):
-            t = np.sort(np.asarray(target, float))[::-1]
-            best, bfit = None, -1.0
-            for e in index:
-                if comp_type and e["comp_type"] != comp_type:
-                    continue
-                b = np.sort(np.asarray(e["bbox"], float))[::-1]
-                den = np.maximum(b, t); den[den == 0] = 1e-9
-                fit = float(1.0 - np.mean(np.abs(b - t) / den))
-                if fit > bfit:
-                    best, bfit = e, fit
-            return best, bfit
-
-        scene = trimesh.Scene()
-        placed = []
-        fam_ext = res.get("family_extents", {{}})
-        for i, sl in enumerate(slots):
-            fam = sl.get("family")
-            if fam in fam_ext:
-                target = fam_ext[fam]          # measured from a surviving part
-            else:
-                d = sl.get("diam") or 10.0
-                target = [d * 3.0, d * 0.9, d * 0.9]
-            pick, fit = bank_pick(sl.get("comp_type"), target)
-            if pick is None:
-                continue
-            z = np.load(bank / (pick["part_id"] + ".npz"), allow_pickle=True)
-            m = trimesh.Trimesh(vertices=np.array(z["vertices"], float),
-                                faces=np.array(z["faces"]), process=False)
-            ext = m.extents.copy(); ext[ext == 0] = 1e-9
-            m.apply_scale(np.sort(np.asarray(target, float))[::-1] / np.sort(ext)[::-1])
-            m.apply_translation(-m.bounds.mean(axis=0))
-            m.apply_translation(np.asarray(sl["centroid"], float))
-            m = orient_like(m, 1, axis=2)
-            col = list(sl.get("color") or (150, 150, 150)) + [255]
-            m.visual.face_colors = col
-            nm = f"recon_{{sl.get('family') or 'slot'}}_{{i}}"
-            scene.add_geometry(m, node_name=nm, geom_name=nm)
-            placed.append({{"family": sl.get("family"), "centroid": sl["centroid"],
-                           "source": sl.get("source"), "part_id": pick["part_id"],
-                           "fit": round(fit, 3)}})
-
-        if len(scene.geometry):
-            scene.export({repr(out_glb)})
-
+        res = RB.rebuild_missing({repr(step_path)})
+        placed = res["placed"]
+        if placed:
+            RB.export_glb(placed, {repr(out_glb)})
         print("@@RECON@@" + json.dumps({{
             "recognised": res["recognised"], "holes": res["holes"],
-            "empty": res["empty"], "placed": placed,
-            "glb": {repr(out_glb)} if len(scene.geometry) else None,
+            "empty": res["empty"],
+            "similar_assemblies": res.get("similar_assemblies", []),
+            "glb": {repr(out_glb)} if placed else None,
+            "placed": [{{
+                "name": "recon_%s_%d" % (p["family"], i),
+                "family": p["family"], "type": p["type"], "source": p["source"],
+                "part_id": p["part_id"], "fit_score": p["fit_score"],
+                "confidence": p["confidence"], "centroid": p["centroid"],
+                "seat": p.get("seat", ""),
+            }} for i, p in enumerate(placed)],
         }}))
     """)
     try:
         r = subprocess.run([sys.executable, "-c", script],
-                           capture_output=True, text=True, timeout=600)
+                           capture_output=True, text=True, timeout=900)
         for line in r.stdout.splitlines():
             if line.startswith("@@RECON@@"):
                 return json.loads(line[len("@@RECON@@"):])
@@ -340,6 +318,37 @@ def _run_reconstruction(step_path: str) -> dict:
         return {"error": "reconstruction timed out"}
     except Exception as exc:                                   # pragma: no cover
         return {"error": f"{type(exc).__name__}: {exc}"}
+
+
+def _suggested_from_reconstruction(rc: dict) -> list:
+    """generated_parts entries (the "Suggested Shapes" schema) built from the
+    reconstruction, so that group and the "Reconstructed" group are literally the
+    same geometry and cannot disagree."""
+    glb = rc.get("glb")
+    if not glb or not Path(glb).exists():
+        return []
+    import numpy as np
+    import trimesh
+    scene = trimesh.load(str(glb))
+    geo = getattr(scene, "geometry", {}) or {}
+    out = []
+    for p in rc.get("placed", []):
+        m = geo.get(p["name"])
+        if m is None:
+            continue
+        tf = scene.graph.get(p["name"])[0] if p["name"] in scene.graph.nodes_geometry else None
+        m = m.copy()
+        if tf is not None:
+            m.apply_transform(tf)
+        out.append({
+            "type": p["type"], "family": p["family"], "source": p["source"],
+            "fit_score": round(float(p["fit_score"]), 3),
+            "confidence": round(float(p["confidence"]), 3),
+            "part_id": p["part_id"], "surface_body_idx": 0,
+            "vertices": np.asarray(m.vertices, dtype=float).round(3).tolist(),
+            "triangles": np.asarray(m.faces, dtype=int).tolist(),
+        })
+    return out
 
 
 def _run_inference(step_bytes: bytes,
@@ -1551,12 +1560,11 @@ def _build_panel_sections(result: dict) -> tuple[str, list[dict]]:
             )
             _GP_COLORS_PANEL = {"bolt": "#ef4444", "nut": "#7f1d1d", "washer": "#92400e"}
             for _gp in gen_parts:
-                _gp_type = str(_gp.get("type", "component")).capitalize()
+                _gp_type = str(_gp.get("family") or _gp.get("type", "component")).replace("_", " ").capitalize()
                 _gp_src  = _gp.get("source", "generated")
                 _gp_conf = _gp.get("confidence", 0.0)
                 _gp_fit  = _gp.get("fit_score", 0.0)
-                _gp_icon = "🔄" if _gp_src == "retrieved" else "✨"
-                _gp_badge_txt = "Retrieved from part bank" if _gp_src == "retrieved" else "AI-generated (VAE)"
+                _gp_icon, _gp_badge_txt, _ = _part_source_info(_gp_src)
                 _gp_pct = int(max(0.0, min(1.0, _gp_conf)) * 100)
                 _gp_swatch = _GP_COLORS_PANEL.get(str(_gp.get("type", "")).lower(), "#38bdf8")
                 _sec_html += (
@@ -1660,8 +1668,8 @@ def _run_aida_explain(inference_result: dict) -> str:
 
     # Category 4 — Suggested Missing-Part Shapes (Phase 3, shape generation)
     suggested_shapes = [
-        {"type": str(g.get("type", "component")).capitalize(),
-         "source": "retrieved from part bank" if g.get("source") == "retrieved" else "AI-generated (VAE)",
+        {"type": str(g.get("family") or g.get("type", "component")).replace("_", " ").capitalize(),
+         "source": _part_source_info(g.get("source", ""))[2],
          "confidence": round(g.get("confidence", 0.0), 3),
          "fit_score": round(g.get("fit_score", 0.0), 3)}
         for g in gen_parts
@@ -2576,11 +2584,11 @@ with col_right:
                 _gpt_arr = np.array(_gpt)
                 if len(_gpv_arr) < 3 or len(_gpt_arr) < 1:
                     continue
-                _gp_type = str(_gp.get("type", "component")).capitalize()
+                _gp_type = str(_gp.get("family") or _gp.get("type", "component")).replace("_", " ").capitalize()
                 _gp_src  = _gp.get("source", "generated")
                 _gp_conf = _gp.get("confidence", 0.0)
                 _gp_fit  = _gp.get("fit_score", 0.0)
-                _gp_icon = "🔄" if _gp_src == "retrieved" else "✨"
+                _gp_icon = _part_source_info(_gp_src)[0]
                 # Fastener sequence color coding (user spec, 2026-08-22):
                 # bolt=red, nut=dark red, washer=brown; anything else keeps
                 # the original red so non-fastener suggested shapes are
@@ -2599,7 +2607,7 @@ with col_right:
                     legendgrouptitle=(dict(text="🪄 Suggested Shapes") if _gp_i == 0 else None),
                     hovertext=(
                         f"AI-suggested {_gp_type.lower()}<br>"
-                        f"{'Retrieved from part bank' if _gp_src == 'retrieved' else 'AI-generated (VAE)'}"
+                        f"{_part_source_info(_gp_src)[1]}"
                         f" · location fit {_gp_fit:.0%} · shape confidence {_gp_conf:.0%}"
                     ),
                     hoverinfo="text",
@@ -2804,6 +2812,21 @@ with col_left:
                 else:
                     log(f"🧩  Reconstruction — {len(_rc.get('placed', []))} "
                         f"part(s) placed in {_rc.get('empty', 0)} empty slot(s)")
+                    # "Suggested Shapes" and "Reconstructed" must show the same
+                    # parts. When the assembly is recognised, the reconstruction
+                    # is the better-grounded of the two, so it REPLACES the older
+                    # per-joint suggestions (kept under generated_parts_legacy).
+                    # AIDA runs later in the script and so describes these too.
+                    if _rc.get("recognised") and _rc.get("placed"):
+                        _sugg = _suggested_from_reconstruction(_rc)
+                        if _sugg and st.session_state.get("inference_result"):
+                            _ir = dict(st.session_state.inference_result)
+                            _ir.setdefault("generated_parts_legacy",
+                                           _ir.get("generated_parts", []))
+                            _ir["generated_parts"] = _sugg
+                            st.session_state.inference_result = _ir
+                            log(f"🪄  Suggested Shapes now match the reconstruction "
+                                f"({len(_sugg)} parts)")
                 st.rerun()
 
         _rc = st.session_state.get("recon_result") or {}
@@ -2837,9 +2860,9 @@ with col_left:
                       "x": round(p["centroid"][0], 2),
                       "y": round(p["centroid"][1], 2),
                       "z": round(p["centroid"][2], 2),
-                      "found via": p.get("source", ""),
-                      "bank part": p.get("part_id", ""),
-                      "fit": p.get("fit", "")}
+                      "seat found via": p.get("seat", ""),
+                      "shape from": _part_source_info(p.get("source", ""))[1],
+                      "part": p.get("part_id", "")}
                      for p in _rc["placed"]],
                     width='stretch', hide_index=True)
         elif _rc.get("error"):

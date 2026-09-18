@@ -234,6 +234,20 @@ def find_missing_slots(step_path: str) -> Dict:
         return result
 
     result["recognised"] = True
+    # Size signature of every solid in the upload (hosts included), longest
+    # dimension first. rebuild.py scores bank assemblies against these to find
+    # the tool posts most like this one.
+    result["solid_extents"] = [sorted((float(x) for x in s["extents"]), reverse=True)
+                               for s in solids]
+    # The upload's host bodies, largest first, with the centre of each bounding
+    # box. rebuild.py uses these as the shared reference that a sibling
+    # assembly's part offsets are expressed against.
+    result["host_boxes"] = [
+        {"extents": sorted((float(x) for x in h["extents"]), reverse=True),
+         "center": [float(x) for x in (np.asarray(h["bbox_min"]) + np.asarray(h["bbox_max"])) / 2.0],
+         "volume": float(h["volume"])}
+        for h in sorted(solids, key=lambda z: -z["volume"]) if h["volume"] >= HOST_MIN_VOLUME
+    ]
     by_fam: Dict[str, List[Dict]] = {}
     for s in solids:
         by_fam.setdefault(family_of_volume(s["volume"]), []).append(s)
@@ -264,8 +278,8 @@ def find_missing_slots(step_path: str) -> Dict:
                     and zlo <= c[2] <= zhi):
                 z = present_z(fam, c[2]) if fam in ("machine_screw", "ball") else c[2]
                 slots.append({"family": fam, "centroid": [c[0], c[1], z],
-                              "axis": axis, "diam": m["diam"], "source": "hole",
-                              "comp_type": ctype, "color": col})
+                              "axis": axis, "diam": m["diam"], "length": m["length"],
+                              "source": "hole", "comp_type": ctype, "color": col})
 
     # (2) springs ride above the balls, so every seat of that bore gets one --
     #     including bores whose ball is still fitted.
@@ -285,6 +299,19 @@ def find_missing_slots(step_path: str) -> Dict:
                           "axis": 2, "diam": None, "source": "symmetry",
                           "comp_type": "bolt" if "screw" in fam else "washer",
                           "color": col})
+
+    # (4) the side-shaft mount: a small EMPTY hole drilled along X high on the
+    #     clamping nut. Nothing else in the file constrains the side shaft, so
+    #     this hole is its only anchor; the rebuild step seats the lever's
+    #     insertion tip in it.
+    for m in empty:
+        c = m["centroid"]
+        if m["axis"] == 0 and 8.0 <= m["diam"] <= 13.0 and c[2] > 120.0:
+            slots.append({"family": "shaft_side", "centroid": list(c), "axis": 0,
+                          "diam": m["diam"], "length": m["length"],
+                          "source": "mount hole", "comp_type": "long_shaft",
+                          "color": (255, 140, 40)})
+            break
 
     result["slots"] = slots
     return result

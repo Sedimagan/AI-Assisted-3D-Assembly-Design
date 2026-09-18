@@ -1,0 +1,171 @@
+[
+ {
+  "part_id": "spring_Tool_Post_10",
+  "family": "compress_spring",
+  "category": "Tool_Post",
+  "source_assembly": "Tool_Post_10",
+  "volume": 494.13,
+  "extents": [
+   9.002,
+   9.005,
+   16.375
+  ],
+  "n_in_assembly": 4
+ },
+ {
+  "part_id": "spring_Tool_Post_106",
+  "family": "compress_spring",
+  "category": "Tool_Post",
+  "source_assembly": "Tool_Post_106",
+  "volume": 494.13,
+  "extents": [
+   9.002,
+   16.375,
+   9.005
+  ],
+  "n_in_assembly": 24
+ },
+ {
+  "part_id": "spring_Tool_Post_107",
+  "family": "compress_spring",
+  "category": "Tool_Post",
+  "source_assembly": "Tool_Post_107",
+  "volume": 494.13,
+  "extents": [
+   9.002,
+   16.375,
+   9.005
+  ],
+  "n_in_assembly": 24
+ },
+ {
+  "part_id": "spring_Tool_Post_25",
+  "family": "compress_spring",
+  "category": "Tool_Post",
+  "source_assembly": "Tool_Post_25",
+  "volume": 494.13,
+  "extents": [
+   9.002,
+   9.005,
+   16.375
+  ],
+  "n_in_assembly": 4
+ },
+ {
+  "part_id": "spring_Tool_Post_26",
+  "family": "compress_spring",
+  "category": "Tool_Post",
+  "source_assembly": "Tool_Post_26",
+  "volume": 494.13,
+  "extents": [
+   9.002,
+   9.005,
+   16.375
+  ],
+  "n_in_assembly": 4
+ },
+ {
+  "part_id": "spring_Tool_Post_39",
+  "family": "compress_spring",
+  "category": "Tool_Post",
+  "source_assembly": "Tool_Post_39",
+  "volume": 494.13,
+  "extents": [
+   9.002,
+   16.375,
+   9.005
+  ],
+  "n_in_assembly": 9
+ },
+ {
+  "part_id": "spring_Tool_Post_50",
+  "family": "compress_spring",
+  "category": "Tool_Post",
+  "source_assembly": "Tool_Post_50",
+  "volume": 494.13,
+  "extents": [
+   9.002,
+   16.375,
+   9.005
+  ],
+  "n_in_assembly": 12
+ },
+ {
+  "part_id": "spring_Tool_Post_51",
+  "family": "compress_spring",
+  "category": "Tool_Post",
+  "source_assembly": "Tool_Post_51",
+  "volume": 494.13,
+  "extents": [
+   9.002,
+   16.375,
+   9.005
+  ],
+  "n_in_assembly": 12
+ },
+ {
+  "part_id": "spring_Tool_Post_64",
+  "family": "compress_spring",
+  "category": "Tool_Post",
+  "source_assembly": "Tool_Post_64",
+  "volume": 494.13,
+  "extents": [
+   9.002,
+   16.375,
+   9.005
+  ],
+  "n_in_assembly": 9
+ },
+ {
+  "part_id": "spring_Tool_Post_77",
+  "family": "compress_spring",
+  "category": "Tool_Post",
+  "source_assembly": "Tool_Post_77",
+  "volume": 494.13,
+  "extents": [
+   9.002,
+   16.375,
+   9.005
+  ],
+  "n_in_assembly": 12
+ },
+ {
+  "part_id": "spring_Tool_Post_78",
+  "family": "compress_spring",
+  "category": "Tool_Post",
+  "source_assembly": "Tool_Post_78",
+  "volume": 494.13,
+  "extents": [
+   9.002,
+   16.375,
+   9.005
+  ],
+  "n_in_assembly": 12
+ },
+ {
+  "part_id": "spring_Tool_Post_79",
+  "family": "compress_spring",
+  "category": "Tool_Post",
+  "source_assembly": "Tool_Post_79",
+  "volume": 494.13,
+  "extents": [
+   9.002,
+   16.375,
+   9.005
+  ],
+  "n_in_assembly": 12
+ },
+ {
+  "part_id": "spring_Tool_Post_93",
+  "family": "compress_spring",
+  "category": "Tool_Post",
+  "source_assembly": "Tool_Post_93",
+  "volume": 494.13,
+  "extents": [
+   9.002,
+   16.375,
+   9.005
+  ],
+  "n_in_assembly": 21
+ }
+]
