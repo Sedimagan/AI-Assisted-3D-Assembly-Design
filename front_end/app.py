@@ -43,6 +43,10 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+# ── Theme: map this file's inline (light-page) colours to the active Streamlit theme ──
+import dark_theme
+dark_theme.install()
+
 # ── Fixed header + global CSS ─────────────────────────────────────────────────
 st.markdown(
     """
@@ -162,6 +166,10 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
+# ── Futuristic GNN backdrop (animated graph scene behind the whole UI) ────────
+import gnn_background
+gnn_background.inject()
 
 # ── Session state ─────────────────────────────────────────────────────────────
 if "uploaded_bytes" not in st.session_state:
@@ -2695,12 +2703,18 @@ with col_right:
                 if _grp_indices
             ]
 
+            # Text on the 3D scene must contrast with the scene background the user picked,
+            # not with the page theme (a white scene on a dark page would otherwise get pale axis text).
+            _bgc = BG_MAP[bg_color].lstrip("#")
+            _bg_lum = (0.2126 * int(_bgc[0:2], 16) + 0.7152 * int(_bgc[2:4], 16) + 0.0722 * int(_bgc[4:6], 16)) / 255
+            _fg = "#0f172a" if _bg_lum > 0.5 else "#e5e7eb"
             fig.update_layout(
+                font=dict(color=_fg),
                 scene=dict(
                     bgcolor=BG_MAP[bg_color], aspectmode="data",
-                    xaxis=dict(showgrid=show_grid, title="X"),
-                    yaxis=dict(showgrid=show_grid, title="Y"),
-                    zaxis=dict(showgrid=show_grid, title="Z"),
+                    xaxis=dict(showgrid=show_grid, title="X", color=_fg),
+                    yaxis=dict(showgrid=show_grid, title="Y", color=_fg),
+                    zaxis=dict(showgrid=show_grid, title="Z", color=_fg),
                 ),
                 scene_camera=CAMERAS[view_preset],
                 margin=dict(l=0, r=0, b=(28 if _select_all_buttons else 0), t=0),
@@ -2713,13 +2727,13 @@ with col_right:
                     bgcolor="rgba(0,0,0,0)",
                     bordercolor="rgba(0,0,0,0)",
                     borderwidth=0,
-                    font=dict(size=9, color="#000000"),
+                    font=dict(size=9, color=_fg),
                     itemsizing="constant",
                     # "toggleitem" so each entry can still be selected/hidden
                     # individually — grouping is just visual organization
                     # (headers), not a forced all-or-nothing click.
                     groupclick="toggleitem",
-                    grouptitlefont=dict(size=9, color="#000000"),
+                    grouptitlefont=dict(size=9, color=_fg),
                 ),
                 updatemenus=(
                     [
