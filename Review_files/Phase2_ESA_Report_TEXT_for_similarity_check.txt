@@ -1056,21 +1056,23 @@ Figure: Original view of the uploaded partial tool-post assembly, before predict
 ### Result View
 
 
-Selecting Result overlays the predictions on the uploaded model (Figure (a)). Components are grouped in the legend by their status. Parts (blue) are components with their expected contacts. Not Assembled (orange, marked with a warning symbol) are components flagged either because they touch nothing or because they have fewer contacts than other instances of the same part. Suggested Shapes (pink) are the geometries proposed for the missing components. Each group can be shown or hidden individually, and the row of buttons beneath the viewer switches whole groups on or off at once. The caption line under the viewer reports the file name and the mesh size that was processed (here 76,996 points and 154,008 faces).
+Selecting Result overlays the predictions on the uploaded model (Figure ). Components are grouped in the legend by their status. Parts (blue) are components with their expected contacts. Not Assembled (orange, marked with a warning symbol) are components flagged either because they touch nothing or because they have fewer contacts than other instances of the same part. Suggested Shapes (pink) are the geometries proposed for the missing components. Each group can be shown or hidden individually, and the row of buttons beneath the viewer switches whole groups on or off at once. The caption line under the viewer reports the file name and the mesh size that was processed (here 76,996 points and 154,008 faces).
+
+Figure: Result view of the partial tool post: Parts (blue), Not Assembled (orange) and the Suggested Shapes group (pink).
 
 
 ### Reconstructed Components
 
 
-For tool-post assemblies the application additionally reconstructs the missing components and draws them in a separate Reconstructed group, coloured by component category so that fasteners, springs, shafts and the knob can be told apart (Figure (b)). The step is implemented in slot_detector.py and rebuild.py, and works in three stages. First, it locates open seats: cylindrical holes on the host bodies with nothing seated in them, plus positions implied by the rotational symmetry of a hole pattern that has surviving members. Second, it assigns each seat a component family from the seat geometry and the parts around it. Third, it obtains the geometry. Where an identical part survives elsewhere in the upload, its mesh is copied and translated to the empty seat. Otherwise the part is retrieved from the part bank or from a small library of springs, which the bank's watertightness gate cannot hold, using the corpus assemblies most similar to the upload to choose between candidates. Panels (a) and (b) of Figure show the same components in the same positions, under the suggested-shape colouring and the category colouring respectively.
+For tool-post assemblies the application additionally reconstructs the missing components and draws them in a separate Reconstructed group, coloured by component category so that fasteners, springs, shafts and the knob can be told apart (Figure ). The step is implemented in slot_detector.py and rebuild.py, and works in three stages. First, it locates open seats: cylindrical holes on the host bodies with nothing seated in them, plus positions implied by the rotational symmetry of a hole pattern that has surviving members. Second, it assigns each seat a component family from the seat geometry and the parts around it. Third, it obtains the geometry. Where an identical part survives elsewhere in the upload, its mesh is copied and translated to the empty seat. Otherwise the part is retrieved from the part bank or from a small library of springs, which the bank's watertightness gate cannot hold, using the corpus assemblies most similar to the upload to choose between candidates. The components in Figure are in the same positions as the suggested shapes of Figure , drawn under the category colouring instead.
 
-Figure: Result view for the partial tool post. (a) Suggested Shapes group (pink) with the Not Assembled group (orange). (b) The same components in the Reconstructed group, coloured by category.
+Figure: The same components in the Reconstructed group, coloured by component category.
 
 The reconstruction was scored against the withheld original. Table reports, for each component family, the distance between the rebuilt part's centroid and the matching part in the original assembly (position), and the mean surface distance between the two meshes after centring both (shape and orientation). Across the 17 rebuilt components the mean position error is 0.27 mm and the mean shape error is 0.39 mm. Re-running with the original model's own parts excluded from retrieval gives the same figures. Two independent tessellations of the same solid differ by roughly 0.2–0.6 mm, so shape errors inside that band are indistinguishable from an exact match. The central shaft (0.83 mm) is the only family above it, and the knob has the largest position error (2.93 mm).
 
 Table: Reconstruction accuracy against the original Tool_Post_10
 
-[!htbp] (17 components; mean per family, in mm). @L3.6cmC1.2cmL4.6cmC2.0cmC2.0cm@ Family | n | Geometry source | Position | Shape
+[H] (17 components; mean per family, in mm). @L3.3cmC0.9cmL5.5cmC1.9cmC1.9cm@ Family | n | Geometry source | Position | Shape
 
 Machine screw | 4 | Copied from surviving instance | 0.00 | 0.41
 

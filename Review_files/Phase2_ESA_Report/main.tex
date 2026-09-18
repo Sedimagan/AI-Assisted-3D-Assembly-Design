@@ -19,6 +19,7 @@
 \usepackage{longtable}
 \usepackage{array}
 \usepackage{caption}
+\usepackage{float}
 \usepackage{setspace}
 \usepackage{enumitem}
 \usepackage{algorithm}
@@ -1962,7 +1963,7 @@ an \emph{Input} panel and a \emph{Results} panel. The \emph{AIDA panel} below
 the workspace stays empty until inference finishes, and then holds the
 engineering-language explanation of the predictions.
 
-\begin{figure}[!htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{figures/ui_full_view.png}
 \caption{Full application window in its initial state: sidebar (left), Input
@@ -1983,7 +1984,7 @@ internal components such as balls and springs can be seen through their
 housings, \emph{Background} sets the scene background (white in the figure),
 and \emph{Camera} selects the viewing preset (isometric in the figure).
 
-\begin{figure}[!htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.5\textwidth]{figures/ui_viewer_settings.png}
 \caption{Viewer Settings: part colour, opacity, background and camera preset.}
@@ -2002,7 +2003,7 @@ badges the application shows the date and commit of the code it is running,
 whether uncommitted changes are present, and the repository and branch it was
 served from, so that any screenshot can be traced to a specific code state.
 
-\begin{figure}[!htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{figures/ui_model_info.png}
 \caption{Trained-model information: metrics of the promoted serving
@@ -2019,7 +2020,7 @@ example \texttt{[2/4] Building model}. It makes the multi-second processing
 time visible to the user and is the first place to look when a stage fails.
 A \emph{Reset All \& Log} control (Figure~\ref{fig:ui-details}) clears it.
 
-\begin{figure}[!htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.4\textwidth]{figures/ui_activity_log.png}
 \caption{Activity Log: timestamped pipeline stages.}
@@ -2037,7 +2038,7 @@ upload control shown in Figure~\ref{fig:ui-input}(a). Until a file is loaded,
 the Results panel displays a prompt asking for one
 (Figure~\ref{fig:ui-input}(b)).
 
-\begin{figure}[!htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{figures/ui_input_panel.png}\\[8pt]
 \includegraphics[width=0.8\textwidth]{figures/ui_results_empty.png}
@@ -2058,7 +2059,7 @@ rotation, home view, camera reset and full-screen mode. The model can be
 inspected from any angle before any prediction is run, which is how a user
 confirms that the file loaded as intended.
 
-\begin{figure}[!htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.6\textwidth]{figures/ui_view_before.png}
 \caption{Original view of the uploaded partial tool-post assembly, before
@@ -2073,7 +2074,7 @@ prediction.}
 \subsection{Result View}
 
 Selecting \emph{Result} overlays the predictions on the uploaded model
-(Figure~\ref{fig:ui-result}(a)). Components are grouped in the legend by their
+(Figure~\ref{fig:ui-suggested}). Components are grouped in the legend by their
 status. \emph{Parts} (blue) are components with their expected contacts.
 \emph{Not Assembled} (orange, marked with a warning symbol) are components
 flagged either because they touch nothing or because they have fewer contacts
@@ -2084,13 +2085,21 @@ groups on or off at once. The caption line under the viewer reports the file
 name and the mesh size that was processed (here 76,996 points and 154,008
 faces).
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{figures/ui_view_suggested.png}
+\caption{Result view of the partial tool post: Parts (blue), Not Assembled
+(orange) and the Suggested Shapes group (pink).}
+\label{fig:ui-suggested}
+\end{figure}
+
 \subsection{Reconstructed Components}
 \label{sec:ui-reconstruct}
 
 For tool-post assemblies the application additionally reconstructs the missing
 components and draws them in a separate \emph{Reconstructed} group, coloured by
 component category so that fasteners, springs, shafts and the knob can be told
-apart (Figure~\ref{fig:ui-result}(b)). The step is implemented in
+apart (Figure~\ref{fig:ui-reconstructed}). The step is implemented in
 \texttt{slot\_detector.py} and \texttt{rebuild.py}, and works in three stages.
 First, it locates \emph{open seats}: cylindrical holes on the host bodies with
 nothing seated in them, plus positions implied by the rotational symmetry of a
@@ -2100,27 +2109,19 @@ obtains the geometry. Where an identical part survives elsewhere in the upload,
 its mesh is copied and translated to the empty seat. Otherwise the part is
 retrieved from the part bank or from a small library of springs, which the
 bank's watertightness gate cannot hold, using the corpus assemblies most
-similar to the upload to choose between candidates. Panels (a) and (b) of
-Figure~\ref{fig:ui-result} show the same components in the same positions,
-under the suggested-shape colouring and the category colouring respectively.
+similar to the upload to choose between candidates. The components in
+Figure~\ref{fig:ui-reconstructed} are in the same positions as the suggested
+shapes of Figure~\ref{fig:ui-suggested}, drawn under the category colouring
+instead.
 
-\begin{figure}[!htbp]
+\begin{figure}[H]
 \centering
-\begin{minipage}[t]{0.49\textwidth}
-\centering
-\includegraphics[width=\textwidth]{figures/ui_view_suggested.png}\\
-(a)
-\end{minipage}\hfill
-\begin{minipage}[t]{0.49\textwidth}
-\centering
-\includegraphics[width=\textwidth]{figures/ui_view_reconstructed.png}\\
-(b)
-\end{minipage}
-\caption{Result view for the partial tool post. (a)~Suggested Shapes group
-(pink) with the Not Assembled group (orange). (b)~The same components in the
-Reconstructed group, coloured by category.}
-\label{fig:ui-result}
+\includegraphics[width=0.6\textwidth]{figures/ui_view_reconstructed.png}
+\caption{The same components in the Reconstructed group, coloured by
+component category.}
+\label{fig:ui-reconstructed}
 \end{figure}
+
 
 The reconstruction was scored against the withheld original. Table~\ref{tab:recon}
 reports, for each component family, the distance between the rebuilt part's
@@ -2134,7 +2135,7 @@ independent tessellations of the \emph{same} solid differ by roughly
 exact match. The central shaft (0.83~mm) is the only family above it, and the
 knob has the largest position error (2.93~mm).
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \centering
 \caption{Reconstruction accuracy against the original \texttt{Tool\_Post\_10}
 (17 components; mean per family, in mm).}
@@ -2183,7 +2184,7 @@ output), \emph{Why This Next Component?} (the GNNExplainer attributions),
 \emph{Suggested Missing-Part Shapes}. \emph{Predict another} loads a new file,
 and \emph{Reset All \& Log} clears the session.
 
-\begin{figure}[!htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.5\textwidth]{figures/ui_output_details.png}
 \caption{Prediction details panel with the reconstruction banner and the six
@@ -2212,7 +2213,7 @@ non-fastener type in the live application, and it shows that for the generated
 part the weak point is the placement, not the shape. A closing recommendation
 summarises the findings.
 
-\begin{figure}[!htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.95\textwidth]{figures/ui_aida.png}
 \caption{AIDA panel: Gemini-generated engineering interpretation of the GNN
