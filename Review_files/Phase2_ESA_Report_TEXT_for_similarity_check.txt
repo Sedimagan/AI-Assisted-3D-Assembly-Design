@@ -1060,13 +1060,15 @@ Selecting Result overlays the predictions on the uploaded model (Figure ). Compo
 
 Figure: Result view of the partial tool post: Parts (blue), Not Assembled (orange) and the Suggested Shapes group (pink).
 
+The same components appear again in the Reconstructed group, coloured by category, in Figure ; how that group is produced is described in Section .
+
+Figure: The same components in the Reconstructed group, coloured by component category.
+
 
 ### Reconstructed Components
 
 
-For tool-post assemblies the application additionally reconstructs the missing components and draws them in a separate Reconstructed group, coloured by component category so that fasteners, springs, shafts and the knob can be told apart (Figure ). The step is implemented in slot_detector.py and rebuild.py, and works in three stages. First, it locates open seats: cylindrical holes on the host bodies with nothing seated in them, plus positions implied by the rotational symmetry of a hole pattern that has surviving members. Second, it assigns each seat a component family from the seat geometry and the parts around it. Third, it obtains the geometry. Where an identical part survives elsewhere in the upload, its mesh is copied and translated to the empty seat. Otherwise the part is retrieved from the part bank or from a small library of springs, which the bank's watertightness gate cannot hold, using the corpus assemblies most similar to the upload to choose between candidates. The components in Figure are in the same positions as the suggested shapes of Figure , drawn under the category colouring instead.
-
-Figure: The same components in the Reconstructed group, coloured by component category.
+For tool-post assemblies the application additionally reconstructs the missing components and draws them in a separate Reconstructed group, coloured by component category so that fasteners, springs, shafts and the knob can be told apart (Figure ). The step is implemented in slot_detector.py and rebuild.py, and works in three stages. First, it locates open seats: cylindrical holes on the host bodies with nothing seated in them, plus positions implied by the rotational symmetry of a hole pattern that has surviving members. Second, it assigns each seat a component family from the seat geometry and the parts around it. Third, it obtains the geometry. Where an identical part survives elsewhere in the upload, its mesh is copied and translated to the empty seat. Otherwise the part is retrieved from the part bank or from a small library of springs, which the bank's watertightness gate cannot hold, using the corpus assemblies most similar to the upload to choose between candidates. The components in Figure , shown above, are in the same positions as the suggested shapes of Figure , drawn under the category colouring instead.
 
 The reconstruction was scored against the withheld original. Table reports, for each component family, the distance between the rebuilt part's centroid and the matching part in the original assembly (position), and the mean surface distance between the two meshes after centring both (shape and orientation). Across the 17 rebuilt components the mean position error is 0.27 mm and the mean shape error is 0.39 mm. Re-running with the original model's own parts excluded from retrieval gives the same figures. Two independent tessellations of the same solid differ by roughly 0.2–0.6 mm, so shape errors inside that band are indistinguishable from an exact match. The central shaft (0.83 mm) is the only family above it, and the knob has the largest position error (2.93 mm).
 
