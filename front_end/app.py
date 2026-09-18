@@ -53,9 +53,9 @@ st.markdown(
         left: 21rem;   /* Streamlit sidebar width — centers within the main content area */
         right: 0;
         z-index: 998;
-        background: #0d1828;
-        border-bottom: 1px solid #1e3a5f;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        background: #ffffff;
+        border-bottom: 1px solid #cbd5e1;
+        box-shadow: 0 2px 8px rgba(15,23,42,0.08);
         padding: 0.85rem 1.5rem 0.3rem;
         display: flex;
         flex-direction: column;
@@ -70,7 +70,7 @@ st.markdown(
     /* Left viewer border — box-shadow renders outside the element box so all
        four sides (including bottom) are always fully visible */
     [data-testid="stPlotlyChart"] {
-        box-shadow: 0 0 0 1.5px #2a4060;
+        box-shadow: 0 0 0 1.5px #cbd5e1;
         border-radius: 8px;
         margin-bottom: 4px;   /* keeps the shadow from being clipped by the row below */
     }
@@ -148,10 +148,10 @@ st.markdown(
     </style>
 
     <div id="proj-header">
-        <span style="color:#ffffff;font-size:1.5rem;font-weight:700;letter-spacing:0.4px;margin-top:0.4rem;display:block;">
+        <span style="color:#0f2744;font-size:1.5rem;font-weight:700;letter-spacing:0.4px;margin-top:0.4rem;display:block;">
             🔩 AI-Assisted 3D Assembly Design
         </span>
-        <span style="color:#a0b8cc;font-size:0.82rem;letter-spacing:0.2px;">
+        <span style="color:#475569;font-size:0.82rem;letter-spacing:0.2px;">
             <strong>Student:</strong> Parthasarathy Perumal &nbsp;·&nbsp;
             <strong>Guide:</strong> Prof. Sagarika Borah (Phase 1) &nbsp;·&nbsp;
             Prof. Gaurav Siwal (Phase 2) &nbsp;·&nbsp;
@@ -228,14 +228,16 @@ def log(msg: str) -> None:
 # ── Activity log renderer ─────────────────────────────────────────────────────
 def render_log(entries: list) -> str:
     def colour(e: str) -> str:
-        if "❌" in e:                                        return "#ff6b6b"
-        if "✅" in e:                                        return "#6bffb8"
-        if any(x in e for x in ("⚙️", "🧠", "⏸️")):       return "#6bbbff"
-        if any(x in e for x in ("📂", "📐", "📦", "🗂️")): return "#ffd06b"
-        if any(x in e for x in ("📊", "📈")):               return "#a0e0ff"
-        if any(x in e for x in ("🏋️", "🔹")):              return "#c0c0e0"
-        if "🚀" in e:                                        return "#ffaa44"
-        return "#aaaacc"
+        # Darker shades of the same semantic hues, chosen to clear WCAG AA
+        # (>=4.5:1) on the #f1f5f9 console background below.
+        if "❌" in e:                                        return "#b91c1c"
+        if "✅" in e:                                        return "#15803d"
+        if any(x in e for x in ("⚙️", "🧠", "⏸️")):       return "#1d4ed8"
+        if any(x in e for x in ("📂", "📐", "📦", "🗂️")): return "#92400e"
+        if any(x in e for x in ("📊", "📈")):               return "#0e7490"
+        if any(x in e for x in ("🏋️", "🔹")):              return "#4338ca"
+        if "🚀" in e:                                        return "#c2410c"
+        return "#475569"
 
     rows = "".join(
         f'<div style="color:{colour(e)};font-size:0.67rem;'
@@ -243,7 +245,7 @@ def render_log(entries: list) -> str:
         for e in entries
     )
     return (
-        '<div style="background:#070e18;border-radius:6px;padding:0.5rem 0.6rem;'
+        '<div style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:6px;padding:0.5rem 0.6rem;'
         'height:calc(100vh - 420px);min-height:200px;overflow-y:auto;">'
         + rows + "</div>"
     )
@@ -1219,7 +1221,7 @@ def _placeholder_panel_html(result: dict | None, ckpt_exists: bool) -> str | Non
     `_build_panel_sections()` instead of a single HTML blob.
     """
     PANEL = (
-        "border:1.5px solid #2a4060;border-radius:8px;height:400px;"
+        "border:1.5px solid #cbd5e1;border-radius:8px;height:400px;"
         "background:#f8f9fb;"
     )
     CENTER = (
@@ -2924,30 +2926,30 @@ if _expl_text:
         if _esc.startswith("===") and _esc.endswith("==="):
             # Section heading — bright sky-blue, bold
             _lines.append(
-                f'<p style="font-size:0.82rem;font-weight:700;color:#7dd3fc;'
+                f'<p style="font-size:0.82rem;font-weight:700;color:#0369a1;'
                 f'margin:10px 0 4px;">{_esc}</p>'
             )
         elif _esc.startswith(("* ", "- ", "• ")):
-            # Bullet — white text
+            # Bullet — dark slate text
             _bullet = _esc[2:]
             _lines.append(
-                f'<p style="font-size:0.85rem;color:#e0f2fe;line-height:1.7;'
+                f'<p style="font-size:0.85rem;color:#1e293b;line-height:1.7;'
                 f'margin:2px 0 2px 8px;">• {_bullet}</p>'
             )
         elif _esc.strip() == "":
             _lines.append('<div style="height:4px;"></div>')
         else:
-            # Plain text (non-bullet body lines) — same bright white
+            # Plain text (non-bullet body lines) — same dark slate
             _lines.append(
-                f'<p style="font-size:0.85rem;color:#e0f2fe;line-height:1.7;'
+                f'<p style="font-size:0.85rem;color:#1e293b;line-height:1.7;'
                 f'margin:2px 0;">{_esc}</p>'
             )
     _body = "".join(_lines)
 elif _inf and "error" in _inf:
-    _body = '<p style="font-size:0.84rem;color:#fca5a5;margin:0;">Inference error — no explanation available.</p>'
+    _body = '<p style="font-size:0.84rem;color:#b91c1c;margin:0;">Inference error — no explanation available.</p>'
 else:
     _body = (
-        '<p style="font-size:0.84rem;color:#7dd3fc;font-style:italic;margin:0;">'
+        '<p style="font-size:0.84rem;color:#0369a1;font-style:italic;margin:0;">'
         'Upload a 3D model to the left panel — AIDA will explain the missing '
         'component predictions in engineering language once inference is complete.'
         '</p>'
@@ -2956,24 +2958,24 @@ else:
 st.markdown(
     f"""
     <div style="
-        background:linear-gradient(135deg,#0a1628,#0f2744);
-        border:1px solid #1d4ed8;
-        border-left:4px solid #38bdf8;
+        background:linear-gradient(135deg,#f8fbff,#eef6ff);
+        border:1px solid #bfdbfe;
+        border-left:4px solid #0284c7;
         border-radius:10px;
         margin-top:0.8rem;
         overflow:hidden;
-        box-shadow:0 0 18px rgba(56,189,248,0.15);
+        box-shadow:0 1px 4px rgba(15,23,42,0.08);
     ">
         <div style="
             padding:0.6rem 1.2rem;
-            border-bottom:1px solid #1e3a6e;
+            border-bottom:1px solid #bfdbfe;
             display:flex;
             align-items:baseline;
             gap:0.6rem;
-            background:linear-gradient(90deg,#0c3566,#0f2744);
+            background:linear-gradient(90deg,#e0f2fe,#eef6ff);
         ">
-            <span style="color:#38bdf8;font-size:0.95rem;font-weight:700;letter-spacing:0.3px;">🤖 AIDA explains</span>
-            <span style="color:#93c5fd;font-size:0.76rem;font-weight:500;">
+            <span style="color:#0369a1;font-size:0.95rem;font-weight:700;letter-spacing:0.3px;">🤖 AIDA explains</span>
+            <span style="color:#475569;font-size:0.76rem;font-weight:500;">
                 Gemini AI · engineering interpretation of GNN predictions
             </span>
         </div>
