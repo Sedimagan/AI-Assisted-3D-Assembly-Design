@@ -606,6 +606,10 @@ Gate valve | 55 | 51.4% | 93.9 | body
 
 Total | 648 | 86.5% | 38.8 | —
 
+Figure shows the same composition visually: one reference image of each category, and beneath it the number of usable graphs that category produced from its 107 models, in the same order. Gate valves are the clear outlier at 55 usable graphs (51.4%); the other six categories each yield at least 82%.
+
+Figure: Corpus overview. Top: a reference image of each of the seven categories. Bottom: usable assembly graphs obtained from the 107 models in each category (648 of 749 in total, 86.5%); gate valves, highlighted, have the lowest yield at 51.4%.
+
 An earlier iteration of this project worked from a smaller, scraped corpus of 192 models. Replacing it with a deliberately curated and category-balanced 749-model corpus was the single most expensive undertaking of the project in wall-clock terms, and also the one that produced the largest measured improvement — a point returned to in Section .
 
 
