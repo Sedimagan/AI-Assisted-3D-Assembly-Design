@@ -78,13 +78,13 @@ The project set the following objectives at the outset, with the measurable targ
 
 In scope. The system operates on rigid mechanical assemblies supplied in STEP (ISO 10303) format. It covers seven industrial part categories relevant to fastening and flow-control mechanisms: bench vices, C-clamps, pipe vices, gate valves, press tools, tool posts and crane hooks. Component types are classified into eight canonical classes — long shaft, short shaft, thick plate, thin plate, bolt, washer, nut and body. The deliverable includes a trained three-phase model, a FastAPI backend, and a Streamlit front end that runs the complete detect–rank–generate–explain pipeline live.
 
-Out of scope. The project does not address kinematic simulation, tolerance analysis, stress or thermal analysis, manufacturing process planning, or automatic assembly-sequence generation. It does not perform constraint solving or write mating constraints back into a native CAD file. The conditional-VAE generative fallback is scoped to fastener types only. Non-rigid components such as gaskets, springs under load, cables and hoses are not modelled. The corpus is domain-specific to fastening and flow-control mechanisms and no claim is made about generalisation beyond that domain.
+Out of scope. The project does not address kinematic simulation, tolerance analysis, stress or thermal analysis, manufacturing process planning, or automatic assembly-sequence generation. It does not perform constraint solving or write mating constraints back into a native CAD file. The conditional-VAE generative fallback is retained as a safety net rather than a validated component: the offline evaluation never invoked it (Section ). Non-rigid components such as gaskets, springs under load, cables and hoses are not modelled. The corpus is domain-specific to fastening and flow-control mechanisms and no claim is made about generalisation beyond that domain.
 
 
 ## Organization of the Report
 
 
-Chapter 2 surveys related work across generative CAD modelling, graph representation learning, mechanical part datasets and model interpretability, and identifies the specific gap this project addresses. Chapter 3 states the system requirements — functional, non-functional, hardware and software. Chapter 4 presents the proposed methodology: the graph construction pipeline, the feature engineering, the shared encoder, and the three task heads. Chapter 5 covers implementation, including the corpus construction, the training protocol, the evaluation metrics, and the engineering problems encountered and solved during development. Chapter 6 reports and discusses results for all three phases, together with the development history and two data-quality findings from exploratory analysis. Chapter 7 concludes and sets out directions for future work.
+Chapter 2 surveys related work across generative CAD modelling, graph representation learning, mechanical part datasets and model interpretability, and identifies the specific gap this project addresses. Chapter 3 states the system requirements — functional, non-functional, hardware and software. Chapter 4 presents the proposed methodology: the graph construction pipeline, the feature engineering, the shared encoder, and the three task heads. Chapter 5 covers implementation, including the corpus construction, the training protocol, the evaluation metrics, and the engineering problems encountered and solved during development. Chapter 6 reports and discusses results for all three phases, together with the development history and two data-quality findings from exploratory analysis. Chapter 7 walks through the deployed application using screenshots of the running system, including the reconstruction of missing components. Chapter 8 describes testing and validation, and Chapter 9 concludes and sets out directions for future work.
 
 
 # Literature Survey
@@ -630,6 +630,10 @@ part_bank.py | Retrieval index over training-corpus geometry, keyed by type and 
 
 shape_generator.py | HybridShapeGenerator: retrieval-first with VAE fallback
 
+slot_detector.py | Locates unfilled hole seats on host bodies and infers missing members from hole-pattern symmetry
+
+rebuild.py | Reconstructs missing components: copies surviving instances, retrieves shafts, springs and knob, exports .glb
+
 surface_analyzer.py | Octree open-surface detector
 
 assembly_templates.py | AssemblyTemplateDB component-type frequency prior
@@ -983,6 +987,128 @@ Aggregate metrics conceal structure. Phase 2's Hit@1 of 0.4093 genuinely exceeds
 Retrieval-first was the right default for this domain. Industrial fasteners are highly standardised, and a part bank holding hundreds of real examples will usually contain something closer to correct than a 32^3-resolution generative sample. The architecture reflects a judgement about the domain rather than about model capability.
 
 
+# Application Interface and Demonstration
+
+
+This chapter documents the deployed application through screenshots of the running system, captured on 18 September 2026. The application is the Streamlit front end described in Section : a single page with a control sidebar and a dual-panel workspace, in which a user uploads a STEP file and receives the detected, ranked, generated and explained results without leaving the page. The demonstration asset is a tool-post assembly, derived from the corpus model Tool_Post_10, from which fasteners, springs, shafts and the knob were deliberately removed so that the correct answer is known (Section ).
+
+
+## Application Overview
+
+
+Figure shows the application in its initial state, before any file is loaded. The window has three regions. The sidebar on the left carries the viewer settings, the trained-model information and the activity log. The workspace occupies the centre and is divided into an Input panel and a Results panel. The AIDA panel below the workspace stays empty until inference finishes, and then holds the engineering-language explanation of the predictions.
+
+Figure: Full application window in its initial state: sidebar (left), Input and Results panels (centre) and the AIDA explanation panel (bottom).
+
+
+## Sidebar Controls
+
+
+
+### Viewer Settings
+
+
+The viewer settings, shown in Figure , control how the 3D model is drawn and do not affect any prediction. Colour sets the base colour of the assembled parts, Opacity ranges from 0.10 to 1.00 so that internal components such as balls and springs can be seen through their housings, Background sets the scene background (white in the figure), and Camera selects the viewing preset (isometric in the figure).
+
+Figure: Viewer Settings: part colour, opacity, background and camera preset.
+
+
+### Trained-Model Information
+
+
+The sidebar reports which model is currently serving predictions (Figure ). Three badges give the validation AUC-ROC (0.941), the test AUC-ROC (0.905) and the test average precision (0.888) recorded for the promoted checkpoint; a badge is green when its AUC is at least 0.70. These are single-checkpoint figures and differ from the five-fold means of Table , which are the results this project reports. Beneath the badges the application shows the date and commit of the code it is running, whether uncommitted changes are present, and the repository and branch it was served from, so that any screenshot can be traced to a specific code state.
+
+Figure: Trained-model information: metrics of the promoted serving checkpoint and the code version the application is running.
+
+
+### Activity Log
+
+
+The activity log (Figure ) records each pipeline stage with a timestamp as it runs: STEP files being parsed, the assembly graphs built and saved, the split summary, and the stage markers of the inference run, for example [2/4] Building model. It makes the multi-second processing time visible to the user and is the first place to look when a stage fails. A Reset All & Log control (Figure ) clears it.
+
+Figure: Activity Log: timestamped pipeline stages.
+
+
+## Input and Results Panels
+
+
+
+### Model Upload
+
+
+The Input panel accepts a single STEP or STP file of up to 50 MB through the upload control shown in Figure (a). Until a file is loaded, the Results panel displays a prompt asking for one (Figure (b)).
+
+Figure: (a) Input panel with the STEP/STP upload control. (b) Results panel before a file is loaded.
+
+
+### Inspecting the Uploaded Assembly
+
+
+Once a file is parsed, the Results panel shows the model in an interactive 3D viewer (Figure ). A Original/Result toggle switches between the uploaded geometry and the prediction overlay, and Highlight toggles emphasis on the selected component. Each body appears as a separately switchable entry in the legend (Part 1 to Part 4 here), and the toolbar provides screenshot capture, zoom, pan, orbit, turntable rotation, home view, camera reset and full-screen mode. The model can be inspected from any angle before any prediction is run, which is how a user confirms that the file loaded as intended.
+
+Figure: Original view of the uploaded partial tool-post assembly, before prediction.
+
+
+## Prediction Results
+
+
+
+### Result View
+
+
+Selecting Result overlays the predictions on the uploaded model (Figure (a)). Components are grouped in the legend by their status. Parts (blue) are components with their expected contacts. Not Assembled (orange, marked with a warning symbol) are components flagged either because they touch nothing or because they have fewer contacts than other instances of the same part. Suggested Shapes (pink) are the geometries proposed for the missing components. Each group can be shown or hidden individually, and the row of buttons beneath the viewer switches whole groups on or off at once. The caption line under the viewer reports the file name and the mesh size that was processed (here 76,996 points and 154,008 faces).
+
+
+### Reconstructed Components
+
+
+For tool-post assemblies the application additionally reconstructs the missing components and draws them in a separate Reconstructed group, coloured by component category so that fasteners, springs, shafts and the knob can be told apart (Figure (b)). The step is implemented in slot_detector.py and rebuild.py, and works in three stages. First, it locates open seats: cylindrical holes on the host bodies with nothing seated in them, plus positions implied by the rotational symmetry of a hole pattern that has surviving members. Second, it assigns each seat a component family from the seat geometry and the parts around it. Third, it obtains the geometry. Where an identical part survives elsewhere in the upload, its mesh is copied and translated to the empty seat. Otherwise the part is retrieved from the part bank or from a small library of springs, which the bank's watertightness gate cannot hold, using the corpus assemblies most similar to the upload to choose between candidates. Panels (a) and (b) of Figure show the same components in the same positions, under the suggested-shape colouring and the category colouring respectively.
+
+Figure: Result view for the partial tool post. (a) Suggested Shapes group (pink) with the Not Assembled group (orange). (b) The same components in the Reconstructed group, coloured by category.
+
+The reconstruction was scored against the withheld original. Table reports, for each component family, the distance between the rebuilt part's centroid and the matching part in the original assembly (position), and the mean surface distance between the two meshes after centring both (shape and orientation). Across the 17 rebuilt components the mean position error is 0.27 mm and the mean shape error is 0.39 mm. Re-running with the original model's own parts excluded from retrieval gives the same figures. Two independent tessellations of the same solid differ by roughly 0.2–0.6 mm, so shape errors inside that band are indistinguishable from an exact match. The central shaft (0.83 mm) is the only family above it, and the knob has the largest position error (2.93 mm).
+
+Table: Reconstruction accuracy against the original Tool_Post_10
+
+[!htbp] (17 components; mean per family, in mm). @L3.6cmC1.2cmL4.6cmC2.0cmC2.0cm@ Family | n | Geometry source | Position | Shape
+
+Machine screw | 4 | Copied from surviving instance | 0.00 | 0.41
+
+BS 4183 screw | 2 | Copied from surviving instance | 0.00 | 0.49
+
+DIN washer | 2 | Copied from surviving instance | 0.00 | 0.29
+
+Ball | 2 | Copied from surviving instance | 0.00 | 0.10
+
+Compression spring | 4 | Retrieved (spring library) | 0.07 | 0.36
+
+Central shaft | 1 | Retrieved (part bank) | 0.32 | 0.83
+
+Side shaft | 1 | Retrieved (part bank) | 1.14 | 0.45
+
+Knob | 1 | Retrieved (part bank) | 2.93 | 0.54
+
+All | 17 | 0.27 | 0.39
+
+This result should be read narrowly. It is one assembly. The family rules and the mount-hole rule for the side shaft are calibrated for the tool-post category, and that same model was used to tune them, so the table demonstrates that the mechanism can recover a known answer rather than establishing how it generalises to unseen assemblies or other categories. The exclusion test removes the original's parts from retrieval but does not remove the model from the calibration. A held-out evaluation on further partial tool posts, and an equivalent calibration for the other six categories, remain to be done.
+
+
+### Prediction Details Panel
+
+
+When inference completes, a green banner reports how many missing components were reconstructed and placed (Figure ). The reconstructed components can be expanded into a table giving each component's position, how its seat was found, where its shape came from, and the part used, and the result can be downloaded as a .glb file for use in other 3D tools. Below the reconstruction sits a summary line (here four components and six known connections) and six collapsible sections: Assembly Type Identified, Expected Components Missing (the AssemblyTemplateDB prior), AI-Ranked Next Component (the NodeRanker output), Why This Next Component? (the GNNExplainer attributions), Open Assembly Joints Detected (the octree open-surface findings) and Suggested Missing-Part Shapes. Predict another loads a new file, and Reset All & Log clears the session.
+
+Figure: Prediction details panel with the reconstruction banner and the six result sections.
+
+
+## AIDA Engineering Interpretation
+
+
+The AIDA panel (Figure ) turns the model outputs into an engineering-language report with fixed sections. Section 1 lists components that touch nothing, or that have fewer contacts than sibling instances of the same part; in this run none met either condition. Section 2 lists the links the GNN predicts between existing parts. Here every one carries a confidence of 0.001, and AIDA reports them as very low confidence rather than presenting them as findings. Section 3 reports the octree detector's open-surface fractions (34%, 30% and 29% for Bodies 2, 3 and 4). Section 4 lists the suggested missing-part shapes together with a location fit and a shape confidence for each: the washer, nut and bolt are retrieved from the part bank at 99–100% on both scores, while the long shaft is generated by the conditional VAE with a 97% shape confidence but only 34% location fit. The last item is worth noting. It shows the VAE fallback being used for a non-fastener type in the live application, and it shows that for the generated part the weak point is the placement, not the shape. A closing recommendation summarises the findings.
+
+Figure: AIDA panel: Gemini-generated engineering interpretation of the GNN predictions, open-surface findings and suggested shapes.
+
+
 # Testing and Validation
 
 
@@ -1090,7 +1216,7 @@ Three limitations are worth stating plainly.
 
 First, NodeRanker's majority-class bias means Hit@1 performance, while a genuine improvement over baseline, is not evenly distributed across component types. washer sits at zero and thin_plate at 0.024. Class-balanced sampling or loss re-weighting is the natural next step; an earlier attempt at class-balanced BPR sampling weakly reduced the over-prediction of body without resolving the underlying collapse.
 
-Second, HybridShapeGenerator's conditional-VAE fallback is currently scoped to fastener types — bolt, washer, nut — only. Broadening it to plates and shafts is future work, and the retrieval-threshold analysis would need re-running afterwards, since the zero-fallback-usage result reported above may not hold once non-fastener types are added.
+Second, HybridShapeGenerator's conditional-VAE fallback is available for every component type, but only the fastener types — bolt, washer, nut — receive the relaxed retrieval threshold, and the fallback was never invoked in the offline evaluation. Its output quality is therefore not covered by the reported IoU and Chamfer figures, even though the live application does call it for non-fastener types: the long shaft in Figure was generated this way, with a low location fit (34%). Measuring the fallback on those types, and re-running the retrieval-threshold analysis with them included, is future work.
 
 Third, the SDF and hole-detection findings in Section are open engineering issues rather than fixed ones. Confirming and repairing the SDF ray-cast, and manually auditing the bolt/washer hole-detection false-positive rate against ground-truth STEP geometry, are concrete near-term priorities before the next full corpus retrain.
 
@@ -1104,7 +1230,7 @@ More broadly, the corpus — while curated across seven realistic industrial cat
 
 • Repair the dead SDF feature and re-run the full corpus pipeline, then measure whether restoring two genuinely informative dimensions produces a gain comparable to the earlier hole-count/joint-type repair.
 
-• Broaden the generative fallback beyond fasteners and raise voxel resolution above 32^3, which currently bounds achievable detail.
+• Validate the generative fallback on the non-fastener types the live application already calls it for, and raise voxel resolution above 32^3, which currently bounds achievable detail.
 
 • Extend corpus coverage to a wider range of mechanical assembly types — gearboxes, linkages, weldments — to test whether the approach generalises past fastening and flow-control mechanisms.
 
