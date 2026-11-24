@@ -1027,3 +1027,99 @@ td.num, th.num{font-family:var(--font-mono); font-variant-numeric:tabular-nums;}
   }, true);
 })();
 </script>
+
+<script>
+/* Fullscreen toggle: button (top-right) + "F" key. Additive only. */
+(function(){
+  var de=document.documentElement;
+  var can=de.requestFullscreen||de.webkitRequestFullscreen;
+  if(!can) return;
+  var st=document.createElement('style');
+  st.textContent='#fsBtn{position:fixed;top:20px;right:22px;z-index:9999;width:40px;height:40px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid var(--line,rgba(120,140,200,.3));background:rgba(15,22,44,.7);color:#cfd8f5;cursor:pointer;opacity:.55;transition:opacity .2s,border-color .2s,background .2s}#fsBtn:hover,#fsBtn:focus-visible{opacity:1;border-color:var(--accent,#6aa0ff);background:rgba(30,42,78,.85)}#fsBtn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}';
+  document.head.appendChild(st);
+  var b=document.createElement('button');
+  b.id='fsBtn'; b.type='button';
+  function isFs(){ return !!(document.fullscreenElement||document.webkitFullscreenElement); }
+  function sync(){ b.innerHTML=isFs()?'<svg viewBox="0 0 24 24"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>':'<svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>'; var t=isFs()?'Exit full screen (F)':'Full screen (F)'; b.title=t; b.setAttribute('aria-label',t); }
+  function toggle(){
+    if(isFs()){ (document.exitFullscreen||document.webkitExitFullscreen).call(document); }
+    else { (de.requestFullscreen||de.webkitRequestFullscreen).call(de); }
+  }
+  b.addEventListener('click',function(e){ e.stopPropagation(); toggle(); b.blur(); });
+  document.addEventListener('keydown',function(e){
+    if((e.key==='f'||e.key==='F') && !e.ctrlKey && !e.metaKey && !e.altKey){ e.preventDefault(); toggle(); }
+  });
+  document.addEventListener('fullscreenchange',sync);
+  document.addEventListener('webkitfullscreenchange',sync);
+  sync(); document.body.appendChild(b);
+})();
+</script>
+
+<style id="fitStyle">
+/* Fit-to-screen: JS sets --fx/--fy (centering offset) and --fs (scale) per slide. Content untouched. */
+.slide-inner{transform-origin:0 0 !important; transform:translate(var(--fx,0px),calc(var(--fy,0px) + 14px)) scale(var(--fs,1)) !important;}
+.slide.active .slide-inner{transform:translate(var(--fx,0px),var(--fy,0px)) scale(var(--fs,1)) !important;}
+.slide-inner .pstmt,.slide-inner .road-chart,.slide-inner .road-cards,.slide-inner .road-take,.slide-inner .tour-titlebar{max-width:none !important;}
+.slide.measuring .slide-inner{transform:none !important; transition:none !important;}
+</style>
+<script>
+(function(){
+  var MAXS=1.9, MX=96, MT=36, MB=56;   /* max zoom; side margin clears the arrows; top/bottom clear HUD */
+  /* Let wide containers use the full width so the whole slide can be scaled up (text-width caps like 'ch' are kept). */
+  [].forEach.call(document.querySelectorAll('.slide-inner [style*="max-width"]'),function(e){
+    var m=/^(\d+)px$/.exec(e.style.maxWidth); if(m && +m[1]>=480) e.style.maxWidth='none';
+  });
+  function extent(slide,inner){
+    var sr=slide.getBoundingClientRect(), L=1e9,T=1e9,R=-1e9,B=-1e9;
+    function add(r){ if(r.width<1||r.height<1) return; L=Math.min(L,r.left-sr.left); T=Math.min(T,r.top-sr.top); R=Math.max(R,r.right-sr.left); B=Math.max(B,r.bottom-sr.top); }
+    var els=inner.querySelectorAll('*');
+    for(var i=0;i<els.length;i++){
+      var e=els[i], tg=e.tagName.toLowerCase();
+      if(e.closest('svg') && tg!=='svg') continue;
+      var cs=getComputedStyle(e);
+      var box = tg==='img'||tg==='svg'||tg==='canvas'||tg==='table'
+        || (cs.backgroundColor!=='rgba(0, 0, 0, 0)' && cs.backgroundColor!=='transparent')
+        || cs.backgroundImage!=='none'
+        || parseFloat(cs.borderTopWidth)>0 || parseFloat(cs.borderLeftWidth)>0 || parseFloat(cs.borderBottomWidth)>0;
+      if(box) add(e.getBoundingClientRect());
+    }
+    var tw=document.createTreeWalker(inner,NodeFilter.SHOW_TEXT,null), n, rg=document.createRange();
+    while((n=tw.nextNode())){
+      if(!n.nodeValue.trim()||(n.parentNode.closest&&n.parentNode.closest('svg'))) continue;
+      rg.selectNodeContents(n); var rs=rg.getClientRects(); for(var k=0;k<rs.length;k++) add(rs[k]);
+    }
+    return L>R?null:{L:L,T:T,R:R,B:B};
+  }
+  /* For each slide, try several layout widths (narrower = taller, text reflows) and keep the one that
+     lets the content be scaled up the most while still fitting the screen; then centre it. */
+  function fit(slide){
+    var inner=slide.querySelector('.slide-inner'); if(!inner) return;
+    slide.classList.add('measuring');
+    var sr=slide.getBoundingClientRect(), aw=sr.width-2*MX, ah=sr.height-MT-MB;
+    var full=Math.round(aw/1.0), best=null;
+    for(var Wl=full; Wl>=Math.max(640,full*0.55); Wl-=Math.round(full*0.04)){
+      inner.style.width=Wl+'px'; inner.style.maxWidth='none';
+      var x=extent(slide,inner); if(!x) continue;
+      var w=x.R-x.L, h=x.B-x.T, s=Math.min(MAXS,aw/w,ah/h);
+      if(!best || s>best.s*1.01) best={s:s,Wl:Wl};
+    }
+    if(!best){ slide.classList.remove('measuring'); return; }
+    inner.style.width=best.Wl+'px';
+    var x=extent(slide,inner), w=x.R-x.L, h=x.B-x.T, s=Math.max(.5,Math.min(MAXS,aw/w,ah/h));
+    var ir=inner.getBoundingClientRect(), ox=ir.left-sr.left, oy=ir.top-sr.top;  /* transform-origin = inner's top-left */
+    slide.classList.remove('measuring');
+    slide.style.setProperty('--fs',s.toFixed(4));
+    slide.style.setProperty('--fx',(MX+(aw-w*s)/2-ox-(x.L-ox)*s).toFixed(1)+'px');
+    slide.style.setProperty('--fy',(MT+(ah-h*s)/2-oy-(x.T-oy)*s).toFixed(1)+'px');
+  }
+  function all(){ [].forEach.call(document.querySelectorAll('.slide'),fit); }
+  var t; window.addEventListener('resize',function(){ clearTimeout(t); t=setTimeout(all,120); });
+  document.addEventListener('fullscreenchange',function(){ setTimeout(all,200); });
+  document.addEventListener('webkitfullscreenchange',function(){ setTimeout(all,200); });
+  window.addEventListener('load',function(){ all(); setTimeout(all,600); });
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(all);
+  var lw=innerWidth, lh=innerHeight;   /* safety net: re-fit whenever the viewport size changes */
+  setInterval(function(){ if(innerWidth!==lw||innerHeight!==lh){ lw=innerWidth; lh=innerHeight; all(); } },400);
+  all();
+})();
+</script>
